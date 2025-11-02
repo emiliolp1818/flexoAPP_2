@@ -1,0 +1,89 @@
+<div class="modern-header" *ngIf="currentUser() as user">
+    <!-- Header Background -->
+    <div class="header-background"></div>
+    <div class="header-pattern"></div>
+
+    <!-- Header Content -->
+    <div class="header-content">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo-container" (click)="navigateToHome()">
+                <div class="logo-text-container">
+                    <h1 class="logo-text">Flexo Spring</h1>
+                    <span class="logo-subtitle">Sistema Flexográfico</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="time-indicator">
+                <mat-icon class="time-icon">{{ getTimeIcon() }}</mat-icon>
+                <span class="time-text">{{ getCurrentTime() }}</span>
+            </div>
+            <div class="welcome-message">
+                <span class="greeting">{{ getTimeBasedGreeting() }}, {{ userDisplayName() }}</span>
+                <span class="message">{{ getTimeBasedMessage() }}</span>
+            </div>
+        </div>
+
+        <!-- User Section -->
+        <div class="user-section">
+
+
+            <!-- User Info -->
+            <div class="user-info">
+                <div class="user-details">
+                    <span class="user-name">{{ userDisplayName() }}</span>
+                    <span class="user-role">{{ getRoleDisplayName(user.role) }}</span>
+                </div>
+
+            </div>
+
+            <!-- User Avatar and Menu -->
+            <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-button">
+                <div class="user-avatar-container">
+                    <img *ngIf="user.profileImage" [src]="user.profileImage" alt="Foto de perfil"
+                        class="user-profile-image">
+                    <mat-icon *ngIf="!user.profileImage" class="user-avatar-icon">account_circle</mat-icon>
+                </div>
+            </button>
+
+            <!-- User Menu - UPDATED: Only Profile and Logout -->
+            <mat-menu #userMenu="matMenu" class="user-menu">
+                <!-- User Info in Menu -->
+                <div class="menu-header">
+                    <div class="menu-user-info">
+                        <div class="menu-avatar-container">
+                            <img *ngIf="user.profileImage" [src]="user.profileImage" alt="Foto de perfil"
+                                class="menu-profile-image">
+                            <mat-icon *ngIf="!user.profileImage" class="menu-avatar-icon">account_circle</mat-icon>
+                        </div>
+                        <div class="menu-user-details">
+                            <span class="menu-user-name">{{ userDisplayName() }}</span>
+                            <span class="menu-user-role">{{ getRoleDisplayName(user.role) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <mat-divider></mat-divider>
+
+                <!-- UPDATED MENU - VERSION 2.0 -->
+                <button mat-menu-item (click)="onProfile()">
+                    <mat-icon>person</mat-icon>
+                    <span>MI PERFIL</span>
+                </button>
+
+                <!-- FORCE UPDATE INDICATOR -->
+
+
+                <mat-divider></mat-divider>
+
+                <!-- ONLY Logout Option -->
+                <button mat-menu-item (click)="onLogout()">
+                    <mat-icon>logout</mat-icon>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </mat-menu>
+        </div>
+    </div>

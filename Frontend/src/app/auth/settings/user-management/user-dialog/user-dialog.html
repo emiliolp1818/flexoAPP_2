@@ -1,0 +1,110 @@
+<div class="user-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      <mat-icon>{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+      {{ getTitle() }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <form [formGroup]="userForm" class="user-form">
+      
+      <!-- User Code -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Código de Usuario</mat-label>
+        <input matInput formControlName="userCode" placeholder="Ej: admin, user001">
+        <mat-icon matSuffix>badge</mat-icon>
+        <mat-error *ngIf="userForm.get('userCode')?.hasError('required')">
+          El código de usuario es requerido
+        </mat-error>
+        <mat-error *ngIf="userForm.get('userCode')?.hasError('minlength')">
+          Mínimo 3 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Password -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ isEditMode ? 'Nueva Contraseña (opcional)' : 'Contraseña' }}</mat-label>
+        <input matInput type="password" formControlName="password" 
+               [placeholder]="isEditMode ? 'Dejar vacío para mantener actual' : 'Ingrese contraseña'">
+        <mat-icon matSuffix>lock</mat-icon>
+        <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+          La contraseña es requerida
+        </mat-error>
+        <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+          Mínimo 6 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <!-- First Name -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="firstName" placeholder="Ej: Juan">
+        <mat-icon matSuffix>person</mat-icon>
+        <mat-error *ngIf="userForm.get('firstName')?.hasError('required')">
+          El nombre es requerido
+        </mat-error>
+        <mat-error *ngIf="userForm.get('firstName')?.hasError('minlength')">
+          Mínimo 2 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Last Name -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Apellidos</mat-label>
+        <input matInput formControlName="lastName" placeholder="Ej: Pérez García">
+        <mat-icon matSuffix>person_outline</mat-icon>
+        <mat-error *ngIf="userForm.get('lastName')?.hasError('required')">
+          Los apellidos son requeridos
+        </mat-error>
+        <mat-error *ngIf="userForm.get('lastName')?.hasError('minlength')">
+          Mínimo 2 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Role -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Rol</mat-label>
+        <mat-select formControlName="role">
+          <mat-option *ngFor="let role of roles" [value]="role.value">
+            {{ role.label }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>work</mat-icon>
+        <mat-error *ngIf="userForm.get('role')?.hasError('required')">
+          El rol es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Phone -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Teléfono (Opcional)</mat-label>
+        <input matInput formControlName="phone" placeholder="Número de teléfono">
+        <mat-icon matSuffix>phone</mat-icon>
+      </mat-form-field>
+
+      <!-- Active Status -->
+      <div class="checkbox-field">
+        <mat-checkbox formControlName="isActive">
+          Usuario activo
+        </mat-checkbox>
+        <p class="field-hint">Los usuarios inactivos no pueden iniciar sesión</p>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="onCancel()" class="cancel-button">
+      Cancelar
+    </button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" 
+            [disabled]="userForm.invalid" class="submit-button">
+      <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+      {{ getSubmitButtonText() }}
+    </button>
+  </mat-dialog-actions>
+</div>

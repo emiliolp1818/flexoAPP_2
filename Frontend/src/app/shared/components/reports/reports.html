@@ -1,0 +1,739 @@
+<div class="reports-container">
+  <div class="reports-content">
+    
+    <!-- Header del módulo -->
+    <div class="reports-header">
+      <div class="header-content">
+        <div class="header-info">
+          <h1 class="page-title">
+            <mat-icon>assessment</mat-icon>
+            Reportes de Actividades de Usuario
+          </h1>
+          <p class="page-subtitle">
+            Consulta y exporta reportes detallados de actividades por código de usuario
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestañas de reportes -->
+    <mat-tab-group class="reports-tabs" (selectedTabChange)="onTabChange($event.index)">
+      
+      <!-- Pestaña: Reportes de Actividades de Usuario -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>person</mat-icon>
+          Actividades de Usuario
+        </ng-template>
+        
+        <!-- Formulario de búsqueda de usuarios -->
+        <mat-card class="search-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>search</mat-icon>
+          Búsqueda de Actividades por Usuario
+        </mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="searchForm" class="search-form">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="user-code-field">
+              <mat-label>Código de Usuario</mat-label>
+              <input matInput formControlName="userCode" 
+                     placeholder="Ej: admin, manager01, designer01"
+                     [matAutocomplete]="userAutocomplete">
+              <mat-icon matSuffix>person</mat-icon>
+              <mat-autocomplete #userAutocomplete="matAutocomplete" [displayWith]="displayUserCode">
+                <mat-option *ngFor="let user of availableUsers()" [value]="user.userCode">
+                  <div class="user-option">
+                    <span class="user-code">{{ user.userCode }}</span>
+                    <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                    <span class="user-role">{{ user.role }}</span>
+                  </div>
+                </mat-option>
+              </mat-autocomplete>
+              <mat-error *ngIf="searchForm.get('userCode')?.hasError('required')">
+                El código de usuario es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="module-field">
+              <mat-label>Módulo</mat-label>
+              <mat-select formControlName="module">
+                <mat-option *ngFor="let option of moduleOptions" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>category</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="date-field-enhanced">
+              <mat-label>Fecha de Inicio</mat-label>
+              <input matInput [matDatepicker]="startPicker" formControlName="startDate" 
+                     placeholder="Selecciona fecha inicial" readonly>
+              <mat-icon matPrefix>event</mat-icon>
+              <mat-datepicker-toggle matSuffix [for]="startPicker">
+                <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
+              </mat-datepicker-toggle>
+              <mat-datepicker #startPicker 
+                             [startAt]="getDefaultStartDate()"
+                             [touchUi]="false">
+              </mat-datepicker>
+              <mat-hint>Fecha desde la cual buscar actividades</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="date-field-enhanced">
+              <mat-label>Fecha de Fin</mat-label>
+              <input matInput [matDatepicker]="endPicker" formControlName="endDate" 
+                     placeholder="Selecciona fecha final" readonly>
+              <mat-icon matPrefix>event</mat-icon>
+              <mat-datepicker-toggle matSuffix [for]="endPicker">
+                <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
+              </mat-datepicker-toggle>
+              <mat-datepicker #endPicker 
+                             [startAt]="getDefaultEndDate()"
+                             [touchUi]="false">
+              </mat-datepicker>
+              <mat-hint>Fecha hasta la cual buscar actividades</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="form-actions">
+            <button mat-raised-button color="primary" (click)="searchUserActivities()" 
+                    [disabled]="loading() || searchForm.invalid" class="search-btn">
+              <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!loading()">search</mat-icon>
+              {{ loading() ? 'Buscando...' : 'Buscar Actividades' }}
+            </button>
+
+            <button mat-stroked-button (click)="clearResults()" 
+                    [disabled]="loading()" class="clear-btn">
+              <mat-icon>clear</mat-icon>
+              Limpiar
+            </button>
+          </div>
+        </form>
+
+    <!-- Resultados de búsqueda -->
+    <div *ngIf="searchResults()" class="results-section">
+      
+      <!-- Información del usuario mejorada -->
+      <mat-card class="user-info-card-enhanced">
+        <div class="user-card-header">
+          <div class="user-avatar">
+            <mat-icon>account_circle</mat-icon>
+          </div>
+          <div class="user-main-info">
+            <h2 class="user-full-name">
+              {{ searchResults()?.user?.firstName || 'Usuario' }} {{ searchResults()?.user?.lastName || 'Desconocido' }}
+            </h2>
+            <p class="user-code-display">@{{ searchResults()?.user?.userCode || 'N/A' }}</p>
+            <div class="user-role-badge">
+              <mat-icon>work</mat-icon>
+              <span>{{ getRoleDisplayName(searchResults()?.user?.role || '') }}</span>
+            </div>
+          </div>
+          <div class="user-status-indicator">
+            <div class="status-dot active"></div>
+            <span class="status-text">Activo</span>
+          </div>
+        </div>
+        
+        <mat-card-content>
+          <div class="user-details-enhanced">
+            <div class="detail-row">
+              <div class="detail-item-enhanced">
+                <mat-icon class="detail-icon">badge</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Código de Usuario</span>
+                  <span class="detail-value">{{ searchResults()?.user?.userCode || 'No disponible' }}</span>
+                </div>
+              </div>
+              
+              <div class="detail-item-enhanced">
+                <mat-icon class="detail-icon">email</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Correo Electrónico</span>
+                  <span class="detail-value">{{ searchResults()?.user?.email || 'No disponible' }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="detail-item-enhanced">
+                <mat-icon class="detail-icon">person</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Nombre Completo</span>
+                  <span class="detail-value">
+                    {{ (searchResults()?.user?.firstName || '') + ' ' + (searchResults()?.user?.lastName || '') || 'No disponible' }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="detail-item-enhanced">
+                <mat-icon class="detail-icon">security</mat-icon>
+                <div class="detail-info">
+                  <span class="detail-label">Rol del Sistema</span>
+                  <span class="detail-value">{{ getRoleDisplayName(searchResults()?.user?.role || '') }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Estadísticas del reporte -->
+      <mat-card class="stats-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>analytics</mat-icon>
+            Estadísticas del Período
+          </mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-icon">
+                <mat-icon>timeline</mat-icon>
+              </div>
+              <div class="stat-content">
+                <span class="stat-number">{{ searchResults()?.totalActivities }}</span>
+                <span class="stat-label">Total Actividades</span>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon">
+                <mat-icon>date_range</mat-icon>
+              </div>
+              <div class="stat-content">
+                <span class="stat-number">{{ searchResults()?.dateRange?.start | date:'shortDate' }}</span>
+                <span class="stat-label">Fecha Inicio</span>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-icon">
+                <mat-icon>event</mat-icon>
+              </div>
+              <div class="stat-content">
+                <span class="stat-number">{{ searchResults()?.dateRange?.end | date:'shortDate' }}</span>
+                <span class="stat-label">Fecha Fin</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desglose por módulo -->
+          <div class="module-breakdown">
+            <h4>Desglose por Módulo:</h4>
+            <div class="module-chips">
+              <mat-chip-set>
+                <mat-chip *ngFor="let item of searchResults()?.moduleBreakdown | keyvalue" 
+                         [class]="'module-chip module-' + item.key.toLowerCase()">
+                  <mat-icon>{{ getModuleIcon(item.key) }}</mat-icon>
+                  {{ getModuleLabel(item.key) }}: {{ item.value }}
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Lista de actividades -->
+      <mat-card class="activities-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>list</mat-icon>
+            Detalle de Actividades
+          </mat-card-title>
+          <div class="card-actions">
+            <button mat-raised-button color="accent" (click)="exportToPDF()" 
+                    [disabled]="loading()" class="export-pdf-btn">
+              <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+              <mat-icon *ngIf="!loading()">picture_as_pdf</mat-icon>
+              {{ loading() ? 'Generando...' : 'Exportar PDF' }}
+            </button>
+          </div>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="activities-list">
+            <div *ngFor="let activity of searchResults()?.activities; let i = index" 
+                 class="activity-item-report">
+              
+              <div class="activity-number">{{ i + 1 }}</div>
+              
+              <div class="activity-icon-report">
+                <mat-icon>{{ getModuleIcon(activity.module) }}</mat-icon>
+              </div>
+              
+              <div class="activity-content-report">
+                <div class="activity-header-report">
+                  <h4 class="activity-title-report">{{ activity.action }}</h4>
+                  <div class="activity-meta-report">
+                    <span class="activity-date">{{ activity.timestamp | date:'medium' }}</span>
+                    <mat-chip class="module-chip-small">{{ activity.module }}</mat-chip>
+                  </div>
+                </div>
+                
+                <p class="activity-description-report">{{ activity.description }}</p>
+                
+                <div class="activity-details-report">
+                  <span class="detail-item-report">
+                    <mat-icon>code</mat-icon>
+                    Componente: {{ activity.component }}
+                  </span>
+                  <span class="detail-item-report" *ngIf="activity.metadata?.ip">
+                    <mat-icon>computer</mat-icon>
+                    IP: {{ activity.metadata.ip }}
+                  </span>
+                  <span class="detail-item-report" *ngIf="activity.metadata?.browser">
+                    <mat-icon>web</mat-icon>
+                    Navegador: {{ activity.metadata.browser }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Estado sin resultados -->
+    <div *ngIf="!searchResults() && !loading()" class="no-results">
+      <mat-icon>search_off</mat-icon>
+      <h3>Sin resultados</h3>
+      <p>Ingresa un código de usuario para buscar sus actividades</p>
+    </div>
+
+        <!-- Estado sin resultados -->
+        <div *ngIf="!searchResults() && !loading()" class="no-results">
+          <mat-icon>search_off</mat-icon>
+          <h3>Sin resultados</h3>
+          <p>Ingresa un código de usuario para buscar sus actividades</p>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+
+      </mat-tab>
+
+      <!-- Pestaña: Reportes de Máquinas -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon>precision_manufacturing</mat-icon>
+          Reportes de Máquinas
+        </ng-template>
+
+        <!-- Formulario de búsqueda de máquinas -->
+        <mat-card class="search-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>search</mat-icon>
+              Reporte de Actividades por Máquina
+            </mat-card-title>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <form [formGroup]="machineSearchForm" class="search-form">
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="user-code-field">
+                  <mat-label>Código de Usuario</mat-label>
+                  <input matInput formControlName="userCode" 
+                         placeholder="Ej: admin, operator01"
+                         [matAutocomplete]="machineUserAutocomplete">
+                  <mat-icon matSuffix>person</mat-icon>
+                  <mat-autocomplete #machineUserAutocomplete="matAutocomplete" [displayWith]="displayUserCode">
+                    <mat-option *ngFor="let user of availableUsers()" [value]="user.userCode">
+                      <div class="user-option">
+                        <span class="user-code">{{ user.userCode }}</span>
+                        <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                        <span class="user-role">{{ user.role }}</span>
+                      </div>
+                    </mat-option>
+                  </mat-autocomplete>
+                  <mat-error *ngIf="machineSearchForm.get('userCode')?.hasError('required')">
+                    El código de usuario es requerido
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="date-field-enhanced">
+                  <mat-label>Fecha del Reporte</mat-label>
+                  <input matInput [matDatepicker]="machineDatePicker" formControlName="reportDate" 
+                         placeholder="Selecciona fecha" readonly>
+                  <mat-icon matPrefix>event</mat-icon>
+                  <mat-datepicker-toggle matSuffix [for]="machineDatePicker">
+                    <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
+                  </mat-datepicker-toggle>
+                  <mat-datepicker #machineDatePicker 
+                                 [startAt]="getDefaultEndDate()"
+                                 [touchUi]="false">
+                  </mat-datepicker>
+                  <mat-hint>Fecha para consultar actividades de máquinas</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button color="primary" (click)="searchMachineActivities()" 
+                        [disabled]="machineLoading() || machineSearchForm.invalid" class="search-btn">
+                  <mat-spinner *ngIf="machineLoading()" diameter="20"></mat-spinner>
+                  <mat-icon *ngIf="!machineLoading()">search</mat-icon>
+                  {{ machineLoading() ? 'Buscando...' : 'Buscar Actividades' }}
+                </button>
+
+                <button mat-stroked-button (click)="clearMachineResults()" 
+                        [disabled]="machineLoading()" class="clear-btn">
+                  <mat-icon>clear</mat-icon>
+                  Limpiar
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Sección de Backups de Máquinas -->
+        <mat-card class="backup-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>backup</mat-icon>
+              Consultar Backups de Máquinas
+            </mat-card-title>
+            <div class="card-actions">
+              <button mat-raised-button color="accent" (click)="createManualBackup()" 
+                      [disabled]="machineLoading()" class="create-backup-btn">
+                <mat-spinner *ngIf="machineLoading()" diameter="20"></mat-spinner>
+                <mat-icon *ngIf="!machineLoading()">add</mat-icon>
+                {{ machineLoading() ? 'Creando...' : 'Crear Backup' }}
+              </button>
+            </div>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <div class="backup-section">
+              <p class="backup-description">
+                Consulta reportes históricos desde backups almacenados. Los backups contienen datos completos 
+                de programación de máquinas para análisis y auditoría.
+              </p>
+
+              <!-- Lista de backups disponibles -->
+              <div class="backups-list">
+                <h4>Backups Disponibles:</h4>
+                <div class="backup-items">
+                  <div *ngFor="let backup of availableBackups()" 
+                       class="backup-item"
+                       [class.selected]="selectedBackup() === backup.backupId">
+                    
+                    <div class="backup-info">
+                      <div class="backup-header">
+                        <h5 class="backup-title">{{ backup.description }}</h5>
+                        <div class="backup-meta">
+                          <span class="backup-date">{{ backup.createdAt | date:'medium' }}</span>
+                          <mat-chip class="backup-status" [class.valid]="backup.isValid">
+                            {{ backup.isValid ? 'Válido' : 'Corrupto' }}
+                          </mat-chip>
+                        </div>
+                      </div>
+                      
+                      <div class="backup-details">
+                        <span class="detail-item">
+                          <mat-icon>storage</mat-icon>
+                          {{ backup.totalRecords }} registros
+                        </span>
+                        <span class="detail-item">
+                          <mat-icon>precision_manufacturing</mat-icon>
+                          {{ backup.machineCount }} máquinas
+                        </span>
+                        <span class="detail-item">
+                          <mat-icon>folder</mat-icon>
+                          {{ formatFileSize(backup.backupSize) }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="backup-actions">
+                      <button mat-raised-button color="primary" 
+                              (click)="searchMachineActivitiesFromBackup(backup.backupId)"
+                              [disabled]="machineLoading() || !backup.isValid"
+                              class="load-backup-btn">
+                        <mat-spinner *ngIf="machineLoading() && selectedBackup() === backup.backupId" diameter="16"></mat-spinner>
+                        <mat-icon *ngIf="!machineLoading() || selectedBackup() !== backup.backupId">assessment</mat-icon>
+                        {{ machineLoading() && selectedBackup() === backup.backupId ? 'Cargando...' : 'Generar Reporte' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Estado sin backups -->
+                <div *ngIf="availableBackups().length === 0" class="no-backups">
+                  <mat-icon>backup</mat-icon>
+                  <h4>No hay backups disponibles</h4>
+                  <p>Crea un backup manual o espera a que se generen backups automáticos</p>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Resultados de búsqueda de máquinas -->
+        <div *ngIf="machineResults()" class="results-section">
+          
+          <!-- Información del usuario -->
+          <mat-card class="user-info-card-enhanced">
+            <div class="user-card-header">
+              <div class="user-avatar">
+                <mat-icon>{{ machineResults()?.isFromBackup ? 'backup' : 'account_circle' }}</mat-icon>
+              </div>
+              <div class="user-main-info">
+                <h2 class="user-full-name">
+                  {{ machineResults()?.user?.firstName || 'Usuario' }} {{ machineResults()?.user?.lastName || 'Desconocido' }}
+                </h2>
+                <p class="user-code-display">@{{ machineResults()?.user?.userCode || 'N/A' }}</p>
+                <div class="user-role-badge">
+                  <mat-icon>{{ machineResults()?.isFromBackup ? 'backup' : 'work' }}</mat-icon>
+                  <span>{{ machineResults()?.isFromBackup ? 'Datos de Backup' : getRoleDisplayName(machineResults()?.user?.role || '') }}</span>
+                </div>
+              </div>
+              <div class="user-status-indicator">
+                <div class="status-dot" [class.backup]="machineResults()?.isFromBackup" [class.active]="!machineResults()?.isFromBackup"></div>
+                <span class="status-text">{{ machineResults()?.isFromBackup ? 'Backup' : 'Activo' }}</span>
+              </div>
+            </div>
+            
+            <!-- Información adicional del backup -->
+            <div *ngIf="machineResults()?.isFromBackup" class="backup-info-banner">
+              <mat-icon>info</mat-icon>
+              <span>Datos cargados desde backup: {{ machineResults()?.backupId }}</span>
+            </div>
+          </mat-card>
+
+          <!-- Estadísticas del día -->
+          <mat-card class="stats-card">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon>analytics</mat-icon>
+                Resumen del Día - {{ machineResults()?.reportDate | date:'fullDate' }}
+              </mat-card-title>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="stats-grid">
+                <div class="stat-item completed">
+                  <div class="stat-icon">
+                    <mat-icon>check_circle</mat-icon>
+                  </div>
+                  <div class="stat-content">
+                    <span class="stat-number">{{ machineResults()?.completedOrders }}</span>
+                    <span class="stat-label">Pedidos Completados</span>
+                  </div>
+                </div>
+
+                <div class="stat-item suspended">
+                  <div class="stat-icon">
+                    <mat-icon>pause_circle</mat-icon>
+                  </div>
+                  <div class="stat-content">
+                    <span class="stat-number">{{ machineResults()?.suspendedOrders }}</span>
+                    <span class="stat-label">Pedidos Suspendidos</span>
+                  </div>
+                </div>
+
+                <div class="stat-item total-movements">
+                  <div class="stat-icon">
+                    <mat-icon>swap_horiz</mat-icon>
+                  </div>
+                  <div class="stat-content">
+                    <span class="stat-number">{{ machineResults()?.totalMovements }}</span>
+                    <span class="stat-label">Movimientos Totales</span>
+                  </div>
+                </div>
+
+                <div class="stat-item active-time">
+                  <div class="stat-icon">
+                    <mat-icon>schedule</mat-icon>
+                  </div>
+                  <div class="stat-content">
+                    <span class="stat-number">{{ machineResults()?.activeHours }}h</span>
+                    <span class="stat-label">Horas Activas</span>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Lista de pedidos completados -->
+          <mat-card class="orders-card" *ngIf="machineResults()?.completedOrdersList && machineResults()!.completedOrdersList.length > 0">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon>check_circle</mat-icon>
+                Pedidos Completados ({{ machineResults()!.completedOrdersList.length }})
+              </mat-card-title>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="orders-list">
+                <div *ngFor="let order of machineResults()!.completedOrdersList; let i = index" 
+                     class="order-item completed-order">
+                  
+                  <div class="order-number">{{ i + 1 }}</div>
+                  
+                  <div class="order-icon">
+                    <mat-icon>check_circle</mat-icon>
+                  </div>
+                  
+                  <div class="order-content">
+                    <div class="order-header">
+                      <h4 class="order-title">{{ order.orderNumber }}</h4>
+                      <div class="order-meta">
+                        <span class="order-time">{{ order.completedTime | date:'shortTime' }}</span>
+                        <mat-chip class="status-chip completed">Completado</mat-chip>
+                      </div>
+                    </div>
+                    
+                    <p class="order-description">{{ order.description }}</p>
+                    
+                    <div class="order-details">
+                      <span class="detail-item">
+                        <mat-icon>precision_manufacturing</mat-icon>
+                        Máquina: {{ order.machineId }}
+                      </span>
+                      <span class="detail-item">
+                        <mat-icon>schedule</mat-icon>
+                        Duración: {{ order.duration }} min
+                      </span>
+                      <span class="detail-item">
+                        <mat-icon>inventory</mat-icon>
+                        Cantidad: {{ order.quantity }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Lista de pedidos suspendidos -->
+          <mat-card class="orders-card" *ngIf="machineResults()?.suspendedOrdersList && machineResults()!.suspendedOrdersList.length > 0">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon>pause_circle</mat-icon>
+                Pedidos Suspendidos ({{ machineResults()!.suspendedOrdersList.length }})
+              </mat-card-title>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="orders-list">
+                <div *ngFor="let order of machineResults()!.suspendedOrdersList; let i = index" 
+                     class="order-item suspended-order">
+                  
+                  <div class="order-number">{{ i + 1 }}</div>
+                  
+                  <div class="order-icon">
+                    <mat-icon>pause_circle</mat-icon>
+                  </div>
+                  
+                  <div class="order-content">
+                    <div class="order-header">
+                      <h4 class="order-title">{{ order.orderNumber }}</h4>
+                      <div class="order-meta">
+                        <span class="order-time">{{ order.suspendedTime | date:'shortTime' }}</span>
+                        <mat-chip class="status-chip suspended">Suspendido</mat-chip>
+                      </div>
+                    </div>
+                    
+                    <p class="order-description">{{ order.description }}</p>
+                    <p class="suspension-reason">
+                      <mat-icon>info</mat-icon>
+                      Motivo: {{ order.suspensionReason }}
+                    </p>
+                    
+                    <div class="order-details">
+                      <span class="detail-item">
+                        <mat-icon>precision_manufacturing</mat-icon>
+                        Máquina: {{ order.machineId }}
+                      </span>
+                      <span class="detail-item">
+                        <mat-icon>schedule</mat-icon>
+                        Tiempo transcurrido: {{ order.elapsedTime }} min
+                      </span>
+                      <span class="detail-item">
+                        <mat-icon>inventory</mat-icon>
+                        Progreso: {{ order.progress }}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Lista de movimientos del usuario -->
+          <mat-card class="movements-card">
+            <mat-card-header>
+              <mat-card-title>
+                <mat-icon>swap_horiz</mat-icon>
+                Movimientos del Usuario ({{ machineResults()?.userMovements?.length || 0 }})
+              </mat-card-title>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <div class="movements-list">
+                <div *ngFor="let movement of machineResults()!.userMovements; let i = index" 
+                     class="movement-item">
+                  
+                  <div class="movement-number">{{ i + 1 }}</div>
+                  
+                  <div class="movement-icon">
+                    <mat-icon>{{ getMovementIcon(movement.type) }}</mat-icon>
+                  </div>
+                  
+                  <div class="movement-content">
+                    <div class="movement-header">
+                      <h4 class="movement-title">{{ movement.action }}</h4>
+                      <div class="movement-meta">
+                        <span class="movement-time">{{ movement.timestamp | date:'shortTime' }}</span>
+                        <mat-chip class="movement-chip" [class]="'movement-' + movement.type.toLowerCase()">
+                          {{ getMovementTypeLabel(movement.type) }}
+                        </mat-chip>
+                      </div>
+                    </div>
+                    
+                    <p class="movement-description">{{ movement.description }}</p>
+                    
+                    <div class="movement-details">
+                      <span class="detail-item" *ngIf="movement.machineId">
+                        <mat-icon>precision_manufacturing</mat-icon>
+                        Máquina: {{ movement.machineId }}
+                      </span>
+                      <span class="detail-item" *ngIf="movement.orderNumber">
+                        <mat-icon>receipt</mat-icon>
+                        Pedido: {{ movement.orderNumber }}
+                      </span>
+                      <span class="detail-item" *ngIf="movement.module">
+                        <mat-icon>category</mat-icon>
+                        Módulo: {{ movement.module }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Estado sin resultados para máquinas -->
+        <div *ngIf="!machineResults() && !machineLoading()" class="no-results">
+          <mat-icon>precision_manufacturing</mat-icon>
+          <h3>Sin resultados</h3>
+          <p>Ingresa un código de usuario y fecha para buscar actividades de máquinas</p>
+        </div>
+
+      </mat-tab>
+
+    </mat-tab-group>
+
+  </div>
+</div>

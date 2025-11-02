@@ -1,0 +1,469 @@
+<div class="machines-container">
+  <div class="machines-content">
+    
+    <!-- Header del módulo homogeneizado -->
+    <div class="machines-header">
+      <div class="header-content">
+        <div class="header-info">
+          <h1 class="page-title">
+            <mat-icon>precision_manufacturing</mat-icon>
+            Gestión de Máquinas Flexográficas
+          </h1>
+          <p class="page-subtitle">
+            Sistema completo de programación y control de máquinas de producción flexográfica
+          </p>
+        </div>
+        <div class="header-actions">
+          <input type="file" #fileInput accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" style="display: none;">
+
+          <button mat-raised-button (click)="fileInput.click()" class="create-design-btn" 
+                  [disabled]="loading() || !userPermissions().canLoadExcel"
+                  *ngIf="userPermissions().canLoadExcel">
+            <mat-icon>upload_file</mat-icon>
+            <span *ngIf="!loading()">Cargar Programación Excel</span>
+            <span *ngIf="loading()">Procesando...</span>
+          </button>
+
+          <button mat-stroked-button (click)="downloadTemplate()" class="template-btn" 
+                  [disabled]="loading() || !userPermissions().canDownloadTemplate"
+                  *ngIf="userPermissions().canDownloadTemplate">
+            <mat-icon>download</mat-icon>
+            Descargar Plantilla
+          </button>
+
+          <button mat-stroked-button (click)="openFF459Sample()" class="ff459-btn" 
+                  [disabled]="loading() || !userPermissions().canViewFF459"
+                  *ngIf="userPermissions().canViewFF459">
+            <mat-icon>description</mat-icon>
+            Ver Formato FF459
+          </button>
+
+          <button mat-stroked-button (click)="clearAllPrograms()" class="clear-btn" 
+                  [disabled]="loading() || !userPermissions().canClearPrograms"
+                  *ngIf="userPermissions().canClearPrograms">
+            <mat-icon>clear_all</mat-icon>
+            Limpiar Programación
+          </button>
+
+          <button mat-stroked-button (click)="debugConnectionInfo()" class="debug-btn"
+                  matTooltip="Mostrar información de conexión y estado de la base de datos">
+            <mat-icon>bug_report</mat-icon>
+            Debug BD
+          </button>
+
+          <button mat-stroked-button (click)="loadMockData()" class="mock-data-btn"
+                  matTooltip="Cargar datos de prueba locales para demostración">
+            <mat-icon>science</mat-icon>
+            Datos Demo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Layout - DOS COLUMNAS -->
+    <div class="machines-layout-two-columns">
+
+    <!-- Columna Izquierda - Máquinas -->
+    <mat-card class="machines-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>precision_manufacturing</mat-icon>
+          Máquinas Disponibles
+        </mat-card-title>
+        <div class="card-actions">
+          <span class="machines-count">{{ machineNumbers.length }} máquinas</span>
+        </div>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="machines-grid-vertical">
+        <button *ngFor="let machineNum of machineNumbers; trackBy: trackByMachineNumber" mat-raised-button
+          [class]="'machine-card' + (selectedMachineNumber() === machineNum ? ' selected' : '') + ' ' + getMachineStatusClass(machineNum)"
+          (click)="selectMachine(machineNum)"
+          [attr.title]="getMachineStatusTooltip(machineNum)">
+          <div class="machine-card-content">
+            <div class="machine-icon-wrapper">
+              <mat-icon class="machine-icon">precision_manufacturing</mat-icon>
+            </div>
+            <div class="machine-info">
+              <span class="machine-number">{{ machineNum }}</span>
+            </div>
+          </div>
+        </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Columna Derecha - Programación -->
+    <mat-card class="programming-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>table_view</mat-icon>
+          Programación de Máquina {{ selectedMachineNumber() }}
+        </mat-card-title>
+        <div class="card-actions">
+          <div class="programming-stats">
+            <div class="stat-item">
+              <div class="stat-icon">
+                <mat-icon>list_alt</mat-icon>
+              </div>
+              <div class="stat-content">
+                <span class="stat-number">{{ selectedMachinePrograms().length }}</span>
+                <span class="stat-label">Programas</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="table-content">
+          <div class="table-container">
+            <div *ngIf="showProgramTable() && selectedMachinePrograms.length > 0">
+              <table mat-table [dataSource]="selectedMachinePrograms()" class="excel-table">
+
+                <!-- Columna Artículo -->
+                <ng-container matColumnDef="articulo">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>tag</mat-icon>
+                      <span>Artículo</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell article-cell">
+                    <span class="article-code">{{ program.articulo }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna OT SAP -->
+                <ng-container matColumnDef="otSap">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>confirmation_number</mat-icon>
+                      <span>OT SAP</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell">
+                    <span class="ot-number">{{ getNumericOtSap(program.otSap) }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Cliente -->
+                <ng-container matColumnDef="cliente">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>business</mat-icon>
+                      <span>Cliente</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell">
+                    <span class="client-name">{{ program.cliente }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Referencia -->
+                <ng-container matColumnDef="referencia">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>description</mat-icon>
+                      <span>Referencia</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell">
+                    <span class="reference-text">{{ program.referencia }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna TD -->
+                <ng-container matColumnDef="td">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>code</mat-icon>
+                      <span>TD</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell">
+                    <span class="td-code">{{ formatTdCode(program.td) }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Colores -->
+                <ng-container matColumnDef="colores">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>palette</mat-icon>
+                      <span>Colores</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell colors-cell">
+                    <div class="colors-cell-container">
+                      <button mat-icon-button
+                        [class]="'colors-toggle-btn-modern' + (isColorsExpanded(program.id?.toString() || '') ? ' active' : '')"
+                        (click)="toggleColors(program.id?.toString() || '')"
+                        [attr.title]="'Ver ' + program.colores.length + ' colores'">
+                        <div class="colors-icon-container">
+                          <mat-icon class="colors-icon">color_lens</mat-icon>
+                          <div class="colors-badge">{{ program.colores.length }}</div>
+                        </div>
+                      </button>
+                      
+                      <!-- Dropdown de colores dentro de la celda -->
+                      <div class="colors-dropdown" 
+                           [class.visible]="isColorsExpanded(program.id?.toString() || '')">
+                        <div class="colors-dropdown-content">
+                          <div class="colors-dropdown-header">
+                            <mat-icon>palette</mat-icon>
+                            <span>Colores para {{ program.articulo }}</span>
+                            <button mat-icon-button (click)="closeColors(program.id?.toString() || '')"
+                              class="close-colors-btn">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          </div>
+                          <div class="colors-dropdown-list">
+                            <div *ngFor="let color of program.colores; let i = index" class="color-item">
+                              <span class="color-number">{{ i + 1 }}</span>
+                              <span class="color-name">{{ color }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Sustrato -->
+                <ng-container matColumnDef="sustrato">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>layers</mat-icon>
+                      <span>Sustrato</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell">
+                    <span class="substrate-info">{{ program.sustrato }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Kilos -->
+                <ng-container matColumnDef="kilos">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>scale</mat-icon>
+                      <span>Kilos</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell">
+                    <div class="kilos-info">
+                      <span class="kilos-number">{{ program.kilos | number:'1.0-0' }}</span>
+                      <span class="kilos-unit">kg</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Operario -->
+                <ng-container matColumnDef="operario">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>person</mat-icon>
+                      <span>Operario</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell operario-cell">
+                    <div class="operario-info" *ngIf="program.lastActionBy; else noOperario">
+                      <div class="operario-avatar">
+                        <mat-icon>account_circle</mat-icon>
+                      </div>
+                      <div class="operario-details">
+                        <span class="operario-name">{{ program.lastActionBy }}</span>
+                        <small class="operario-time" *ngIf="program.lastActionAt">
+                          {{ program.lastActionAt | date:'short' }}
+                        </small>
+                      </div>
+                    </div>
+                    <ng-template #noOperario>
+                      <div class="no-operario">
+                        <mat-icon>person_outline</mat-icon>
+                        <span>Sin asignar</span>
+                      </div>
+                    </ng-template>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Estado -->
+                <ng-container matColumnDef="estado">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>toggle_on</mat-icon>
+                      <span>Estado</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell estado-cell">
+                    <div class="estado-container">
+                      <div class="status-main">
+                        <span class="status-text" [class]="'status-' + program.estado.toLowerCase()">
+                          {{ program.estado }}
+                        </span>
+                        <div *ngIf="program.lastActionBy" class="operator-info-mini">
+                          <mat-icon>person</mat-icon>
+                          <span>{{ program.lastActionBy }}</span>
+                        </div>
+                      </div>
+                      <div *ngIf="program.estado === 'SUSPENDIDO' && program.observaciones" class="motivo-suspendido">
+                        <small>{{ program.observaciones }}</small>
+                      </div>
+                      <div *ngIf="program.lastActionAt" class="action-time">
+                        <small>{{ program.lastActionAt | date:'short' }}</small>
+                      </div>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Acciones -->
+                <ng-container matColumnDef="acciones">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>settings</mat-icon>
+                      <span>Acciones</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let program" class="excel-cell actions-cell">
+                    <div class="action-buttons-inline">
+                      <!-- Botón Listo -->
+                      <button mat-icon-button [style.background-color]="'#16a34a'" [style.color]="'white'"
+                        (click)="changeStatus(program, 'LISTO')" [disabled]="program.estado === 'LISTO'"
+                        matTooltip="Marcar como Listo" class="action-btn-inline listo-btn">
+                        <mat-icon>check_circle</mat-icon>
+                      </button>
+
+                      <!-- Botón Suspendido -->
+                      <button mat-icon-button [style.background-color]="'#ea580c'" [style.color]="'white'"
+                        (click)="suspendProgram(program)" [disabled]="program.estado === 'SUSPENDIDO'"
+                        matTooltip="Suspender" class="action-btn-inline suspendido-btn">
+                        <mat-icon>pause_circle</mat-icon>
+                      </button>
+
+                      <!-- Botón Corriendo -->
+                      <button mat-icon-button [style.background-color]="'#2563eb'" [style.color]="'white'"
+                        (click)="changeStatus(program, 'CORRIENDO')" [disabled]="program.estado === 'CORRIENDO'"
+                        matTooltip="Iniciar/Continuar" class="action-btn-inline corriendo-btn">
+                        <mat-icon>play_circle</mat-icon>
+                      </button>
+
+                      <!-- Botón Terminado -->
+                      <button mat-icon-button [style.background-color]="'#059669'" [style.color]="'white'"
+                        (click)="changeStatus(program, 'TERMINADO')" [disabled]="program.estado === 'TERMINADO'"
+                        matTooltip="Marcar como Terminado" class="action-btn-inline terminado-btn">
+                        <mat-icon>task_alt</mat-icon>
+                      </button>
+
+                      <!-- Botón Imprimir FF459 -->
+                      <button mat-icon-button [style.background-color]="'#4b5563'" [style.color]="'white'"
+                        (click)="printProgram(program)" matTooltip="Imprimir Formato FF459"
+                        class="action-btn-inline print-btn">
+                        <mat-icon>print</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="programDisplayedColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: programDisplayedColumns;"
+                  [class]="'excel-row status-row-' + row.estado.toLowerCase()" [attr.data-program-id]="row.id"></tr>
+              </table>
+
+
+
+              <table style="display: none;">
+              </table>
+            </div>
+
+            <div *ngIf="!showProgramTable() || selectedMachinePrograms().length === 0" class="no-data">
+              <mat-icon>precision_manufacturing</mat-icon>
+              <p *ngIf="!showProgramTable()">Selecciona una máquina del panel izquierdo para ver su programación</p>
+              <p *ngIf="showProgramTable() && selectedMachinePrograms().length === 0 && !loading()">
+                La máquina {{ selectedMachineNumber() }} no tiene programas asignados
+              </p>
+              <p *ngIf="showProgramTable() && selectedMachinePrograms().length === 0 && programs().length === 0 && !loading()">
+                No hay programas cargados en la base de datos
+              </p>
+              <div *ngIf="programs().length === 0 && !loading()" class="no-data-actions">
+                <button mat-raised-button (click)="loadPrograms()" class="reload-btn">
+                  <mat-icon>refresh</mat-icon>
+                  Recargar desde BD
+                </button>
+                <button mat-stroked-button (click)="fileInput.click()" class="load-excel-btn">
+                  <mat-icon>upload_file</mat-icon>
+                  Cargar Excel
+                </button>
+              </div>
+              <div *ngIf="loading()" class="loading-indicator">
+                <mat-icon class="spinning">refresh</mat-icon>
+                <p>Cargando programas desde la base de datos...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    </div>
+  </div>
+</div>
+
+<!-- Diálogo de suspensión -->
+<div *ngIf="showSuspendDialog" class="suspend-dialog-overlay">
+  <div class="suspend-dialog">
+    <div class="suspend-dialog-header">
+      <h3>
+        <mat-icon>pause_circle</mat-icon>
+        Suspender Programa
+      </h3>
+      <button mat-icon-button (click)="closeSuspendDialog()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="suspend-dialog-content">
+      <p><strong>Programa:</strong> {{ currentProgramToSuspend?.articulo }}</p>
+      <p><strong>Cliente:</strong> {{ currentProgramToSuspend?.cliente }}</p>
+
+      <div class="reason-section">
+        <label for="suspendReason">Motivo de suspensión:</label>
+
+        <!-- Motivos predefinidos -->
+        <div class="predefined-reasons">
+          <button type="button" class="reason-chip" [class.selected]="suspendReason.includes('Falta de material')"
+            (click)="selectPredefinedReason('Falta de material')">
+            Falta de material
+          </button>
+          <button type="button" class="reason-chip" [class.selected]="suspendReason.includes('Mantenimiento')"
+            (click)="selectPredefinedReason('Mantenimiento')">
+            Mantenimiento
+          </button>
+          <button type="button" class="reason-chip" [class.selected]="suspendReason.includes('Cambio de prioridad')"
+            (click)="selectPredefinedReason('Cambio de prioridad')">
+            Cambio de prioridad
+          </button>
+          <button type="button" class="reason-chip" [class.selected]="suspendReason.includes('Problema técnico')"
+            (click)="selectPredefinedReason('Problema técnico')">
+            Problema técnico
+          </button>
+        </div>
+
+        <!-- Campo de texto para motivo personalizado -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Motivo detallado</mat-label>
+          <textarea matInput [(ngModel)]="suspendReason" placeholder="Describe el motivo de la suspensión..." rows="3"
+            required></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="suspend-dialog-actions">
+      <button mat-button (click)="closeSuspendDialog()">Cancelar</button>
+      <button mat-raised-button color="warn" (click)="confirmSuspend()" [disabled]="!suspendReason.trim()">
+        <mat-icon>pause_circle</mat-icon>
+        Suspender
+      </button>
+    </div>
+  </div>
+</div>

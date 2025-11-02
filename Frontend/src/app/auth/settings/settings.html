@@ -1,0 +1,417 @@
+<div class="settings-container">
+  <!-- Header Banner - Similar al módulo de máquinas -->
+  <div class="settings-header fixed-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="page-title">
+          <mat-icon>settings</mat-icon>
+          Configuraciones del Sistema
+        </h1>
+        <p class="page-subtitle">
+          Administra usuarios, configuraciones generales y parámetros del sistema FlexoApp
+        </p>
+      </div>
+      
+      <div class="header-debug">
+        <mat-chip-set>
+          <mat-chip>
+            <mat-icon matChipAvatar>person</mat-icon>
+            Usuario: {{ (currentUser()?.firstName || '') + ' ' + (currentUser()?.lastName || '') || 'No user' }}
+          </mat-chip>
+          <mat-chip>
+            <mat-icon matChipAvatar>work</mat-icon>
+            Rol: {{ currentUser()?.role || 'No role' }}
+          </mat-chip>
+          <mat-chip>
+            <mat-icon matChipAvatar>security</mat-icon>
+            Permisos: {{ canManageUsers() ? 'Usuarios ✓' : 'Usuarios ✗' }} | {{ canManageSystemConfigs() ? 'Sistema ✓' : 'Sistema ✗' }}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="settings-content">
+    <mat-card class="settings-card">
+
+    <mat-card-content>
+      <mat-tab-group 
+        [selectedIndex]="selectedTabIndex()" 
+        (selectedTabChange)="onTabChange($event.index)"
+        animationDuration="0ms">
+        
+        <!-- Tab: Gestión de Usuarios -->
+        <mat-tab label="Usuarios">
+          <ng-template matTabContent>
+            <div class="tab-content">
+              <div class="section-header">
+                <h3>Gestión de Usuarios</h3>
+                <button 
+                  mat-raised-button 
+                  color="primary" 
+                  (click)="openCreateUserDialog()"
+                  [disabled]="loading()">
+                  <mat-icon>person_add</mat-icon>
+                  Agregar Usuario
+                </button>
+              </div>
+
+              <div class="users-table-container">
+                <table mat-table [dataSource]="users()" class="users-table">
+                  <!-- Código de Usuario -->
+                  <ng-container matColumnDef="userCode">
+                    <th mat-header-cell *matHeaderCellDef>Código</th>
+                    <td mat-cell *matCellDef="let user">
+                      <div class="user-code">
+                        <mat-icon class="user-icon">account_circle</mat-icon>
+                        {{ user.userCode }}
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- Nombre Completo -->
+                  <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
+                    <td mat-cell *matCellDef="let user">
+                      <div class="user-info">
+                        <span class="full-name">{{ user.firstName }} {{ user.lastName }}</span>
+                        <span class="display-name">{{ user.userCode }}</span>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- Rol -->
+                  <ng-container matColumnDef="role">
+                    <th mat-header-cell *matHeaderCellDef>Rol</th>
+                    <td mat-cell *matCellDef="let user">
+                      <mat-chip-set>
+                        <mat-chip [class]="'role-chip role-' + user.role.toLowerCase()">
+                          {{ getRoleDisplayName(user.role) }}
+                        </mat-chip>
+                      </mat-chip-set>
+                    </td>
+                  </ng-container>
+
+
+
+                  <!-- Estado -->
+                  <ng-container matColumnDef="isActive">
+                    <th mat-header-cell *matHeaderCellDef>Estado</th>
+                    <td mat-cell *matCellDef="let user">
+                      <mat-slide-toggle
+                        [checked]="user.isActive"
+                        (change)="toggleUserStatus(user)"
+                        [disabled]="loading()">
+                      </mat-slide-toggle>
+                      <span class="status-text" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                        {{ user.isActive ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <!-- Acciones -->
+                  <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                    <td mat-cell *matCellDef="let user">
+                      <div class="action-buttons">
+                        <button 
+                          mat-icon-button 
+                          color="primary" 
+                          (click)="editUser(user)"
+                          [disabled]="loading()"
+                          matTooltip="Editar usuario">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button 
+                          mat-icon-button 
+                          color="warn" 
+                          (click)="deleteUser(user)"
+                          [disabled]="loading() || user.role === 'Administrador'"
+                          matTooltip="Eliminar usuario">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="userDisplayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: userDisplayedColumns;"></tr>
+                </table>
+
+                <div *ngIf="users().length === 0 && !loading()" class="no-data">
+                  <mat-icon>person_off</mat-icon>
+                  <p>No hay usuarios registrados</p>
+                </div>
+
+                <div *ngIf="loading()" class="loading-container">
+                  <mat-icon class="loading-icon">refresh</mat-icon>
+                  <p>Cargando usuarios...</p>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </mat-tab>
+
+        <!-- Tab: Configuraciones del Sistema -->
+        <mat-tab label="Sistema">
+          <ng-template matTabContent>
+            <div class="tab-content">
+              <div class="section-header">
+                <h3>Configuraciones del Sistema</h3>
+                <p class="section-description">
+                  Ajusta las configuraciones generales del sistema FlexoApp
+                </p>
+              </div>
+
+              <div class="config-sections">
+                <mat-accordion multi="true">
+                  <mat-expansion-panel 
+                    *ngFor="let category of getConfigCategories()" 
+                    [expanded]="true">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <mat-icon>{{ category === 'General' ? 'settings' : 
+                                     category === 'Seguridad' ? 'security' :
+                                     category === 'Notificaciones' ? 'notifications' : 'tune' }}
+                        </mat-icon>
+                        {{ category }}
+                      </mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <div class="config-items">
+                      <div 
+                        *ngFor="let config of getConfigsByCategory(category)" 
+                        class="config-item">
+                        <div class="config-info">
+                          <label class="config-name">{{ config.name }}</label>
+                          <p class="config-description">{{ config.description }}</p>
+                        </div>
+
+                        <div class="config-control">
+                          <!-- String Input -->
+                          <mat-form-field *ngIf="config.type === 'string'" appearance="outline">
+                            <input 
+                              matInput 
+                              [value]="config.value"
+                              (blur)="updateSystemConfig(config, $event.target.value)">
+                          </mat-form-field>
+
+                          <!-- Number Input -->
+                          <mat-form-field *ngIf="config.type === 'number'" appearance="outline">
+                            <input 
+                              matInput 
+                              type="number"
+                              [value]="config.value"
+                              (blur)="updateSystemConfig(config, +$event.target.value)">
+                          </mat-form-field>
+
+                          <!-- Boolean Toggle -->
+                          <mat-slide-toggle 
+                            *ngIf="config.type === 'boolean'"
+                            [checked]="config.value"
+                            (change)="updateSystemConfig(config, $event.checked)">
+                          </mat-slide-toggle>
+
+                          <!-- Select Dropdown -->
+                          <mat-form-field *ngIf="config.type === 'select'" appearance="outline">
+                            <mat-select 
+                              [value]="config.value"
+                              (selectionChange)="updateSystemConfig(config, $event.value)">
+                              <mat-option *ngFor="let option of config.options" [value]="option">
+                                {{ getOptionDisplayName(config.id, option) }}
+                              </mat-option>
+                            </mat-select>
+                          </mat-form-field>
+                        </div>
+                      </div>
+                    </div>
+                  </mat-expansion-panel>
+                </mat-accordion>
+              </div>
+            </div>
+          </ng-template>
+        </mat-tab>
+
+        <!-- Tab: Permisos de Máquinas -->
+        <mat-tab label="Permisos Máquinas">
+          <ng-template matTabContent>
+            <div class="tab-content">
+              <app-user-permissions></app-user-permissions>
+            </div>
+          </ng-template>
+        </mat-tab>
+
+        <!-- Tab: Permisos y Roles -->
+        <mat-tab label="Roles Sistema">
+          <ng-template matTabContent>
+            <div class="tab-content">
+              <div class="section-header">
+                <h3>Gestión de Permisos y Roles del Sistema</h3>
+                <p class="section-description">
+                  Configura los permisos generales para cada rol del sistema
+                </p>
+              </div>
+
+              <div class="roles-permissions">
+                <mat-accordion multi="true">
+                  <mat-expansion-panel *ngFor="let role of roles" [expanded]="role === 'Administrador'">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <mat-icon>{{ role === 'Administrador' ? 'admin_panel_settings' : 
+                                     role === 'Supervisor' ? 'supervisor_account' : 
+                                     role === 'Pre-alistador' ? 'list_alt' :
+                                     role === 'Matizador' ? 'palette' : 'person' }}
+                        </mat-icon>
+                        {{ getRoleDisplayName(role) }}
+                      </mat-panel-title>
+                      <mat-panel-description>
+                        Permisos para el rol {{ getRoleDisplayName(role) }}
+                      </mat-panel-description>
+                    </mat-expansion-panel-header>
+
+                    <div class="permissions-grid">
+                      <div class="permission-category">
+                        <h4>Usuarios</h4>
+                        <mat-checkbox [checked]="role === 'Administrador' || role === 'Supervisor'">
+                          Ver usuarios
+                        </mat-checkbox>
+                        <mat-checkbox [checked]="role === 'Administrador'">
+                          Crear usuarios
+                        </mat-checkbox>
+                        <mat-checkbox [checked]="role === 'Administrador'">
+                          Editar usuarios
+                        </mat-checkbox>
+                        <mat-checkbox [checked]="role === 'Administrador'">
+                          Eliminar usuarios
+                        </mat-checkbox>
+                      </div>
+
+
+
+                      <div class="permission-category">
+                        <h4>Configuraciones</h4>
+                        <mat-checkbox [checked]="role === 'Administrador'">
+                          Configuraciones del sistema
+                        </mat-checkbox>
+
+                        <mat-checkbox [checked]="role === 'Administrador'">
+                          Gestión de permisos
+                        </mat-checkbox>
+                      </div>
+
+                      <div class="permission-category">
+                        <h4>Reportes</h4>
+                        <mat-checkbox [checked]="true">
+                          Ver reportes básicos
+                        </mat-checkbox>
+                        <mat-checkbox [checked]="role === 'Administrador' || role === 'Supervisor'">
+                          Reportes avanzados
+                        </mat-checkbox>
+                        <mat-checkbox [checked]="role === 'Administrador' || role === 'Supervisor'">
+                          Exportar reportes
+                        </mat-checkbox>
+                      </div>
+                    </div>
+                  </mat-expansion-panel>
+                </mat-accordion>
+              </div>
+            </div>
+          </ng-template>
+        </mat-tab>
+
+        <!-- Tab: Información del Sistema -->
+        <mat-tab label="Sistema">
+          <ng-template matTabContent>
+            <div class="tab-content">
+              <div class="section-header">
+                <h3>Información del Sistema</h3>
+                <p class="section-description">
+                  Información general sobre FlexoApp y el sistema
+                </p>
+              </div>
+
+              <div class="system-info-grid">
+                <mat-card class="info-card">
+                  <mat-card-header>
+                    <mat-card-title>
+                      <mat-icon>info</mat-icon>
+                      Versión del Sistema
+                    </mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="info-item">
+                      <span class="label">FlexoApp:</span>
+                      <span class="value">v2.1.0</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">Base de datos:</span>
+                      <span class="value">SQL Server 2019</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">Última actualización:</span>
+                      <span class="value">{{ getCurrentDate() }}</span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+
+                <mat-card class="info-card">
+                  <mat-card-header>
+                    <mat-card-title>
+                      <mat-icon>storage</mat-icon>
+                      Estado del Sistema
+                    </mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="info-item">
+                      <span class="label">Estado del servidor:</span>
+                      <span class="value status-online">
+                        <mat-icon>check_circle</mat-icon>
+                        En línea
+                      </span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">Base de datos:</span>
+                      <span class="value status-online">
+                        <mat-icon>check_circle</mat-icon>
+                        Conectada
+                      </span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">Usuarios activos:</span>
+                      <span class="value">{{ getActiveUsersCount() }}</span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+
+                <mat-card class="info-card">
+                  <mat-card-header>
+                    <mat-card-title>
+                      <mat-icon>support</mat-icon>
+                      Soporte Técnico
+                    </mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="info-item">
+                      <span class="label">Email:</span>
+                      <span class="value">soporte@flexoapp.com</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">Teléfono:</span>
+                      <span class="value">+1 (555) 123-4567</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="label">Horario:</span>
+                      <span class="value">Lun-Vie 8:00-18:00</span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+          </ng-template>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+  </div>
+</div>

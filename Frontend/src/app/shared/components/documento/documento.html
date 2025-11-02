@@ -1,0 +1,210 @@
+<div class="documento-container">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="title-section">
+            <mat-icon class="page-icon">folder_open</mat-icon>
+            <h1>Gestión de Documentos</h1>
+        </div>
+        <div class="action-buttons">
+            <button mat-raised-button color="primary" (click)="uploadDocument()">
+                <mat-icon>cloud_upload</mat-icon>
+                Subir Documento
+            </button>
+            <button mat-raised-button color="accent" (click)="createNewDocument()">
+                <mat-icon>add</mat-icon>
+                Crear Nuevo
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <mat-card class="filters-card">
+        <mat-card-content>
+            <div class="filters-container">
+                <!-- Search Input -->
+                <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Buscar documentos</mat-label>
+                    <input matInput placeholder="Nombre o tipo de documento" (input)="onSearchChange($event)">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <!-- Category Filter -->
+                <mat-form-field appearance="outline" class="filter-field">
+                    <mat-label>Categoría</mat-label>
+                    <mat-select [value]="selectedCategory()" (selectionChange)="onCategoryChange($event.value)">
+                        <mat-option *ngFor="let category of categories" [value]="category.value">
+                            {{ category.label }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Status Filter -->
+                <mat-form-field appearance="outline" class="filter-field">
+                    <mat-label>Estado</mat-label>
+                    <mat-select [value]="selectedStatus()" (selectionChange)="onStatusChange($event.value)">
+                        <mat-option *ngFor="let status of statuses" [value]="status.value">
+                            {{ status.label }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Documents Table -->
+    <mat-card class="documents-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>description</mat-icon>
+                Documentos ({{ filteredDocuments().length }})
+            </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+            <div class="table-container">
+                <table mat-table [dataSource]="filteredDocuments()" class="documents-table">
+
+                    <!-- Name Column -->
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                        <td mat-cell *matCellDef="let document">
+                            <div class="document-name">
+                                <mat-icon class="type-icon">{{ getTypeIcon(document.type) }}</mat-icon>
+                                <span>{{ document.name }}</span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Type Column -->
+                    <ng-container matColumnDef="type">
+                        <th mat-header-cell *matHeaderCellDef>Tipo</th>
+                        <td mat-cell *matCellDef="let document">
+                            <span class="document-type">{{ document.type }}</span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Size Column -->
+                    <ng-container matColumnDef="size">
+                        <th mat-header-cell *matHeaderCellDef>Tamaño</th>
+                        <td mat-cell *matCellDef="let document">{{ document.size }}</td>
+                    </ng-container>
+
+                    <!-- Created Date Column -->
+                    <ng-container matColumnDef="createdDate">
+                        <th mat-header-cell *matHeaderCellDef>Fecha Creación</th>
+                        <td mat-cell *matCellDef="let document">
+                            {{ document.createdDate | date:'dd/MM/yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>Estado</th>
+                        <td mat-cell *matCellDef="let document">
+                            <div class="status-badge" [ngClass]="'status-' + document.status">
+                                <mat-icon>{{ getStatusIcon(document.status) }}</mat-icon>
+                                <span>
+                                    {{ document.status === 'active' ? 'Activo' :
+                                    document.status === 'archived' ? 'Archivado' : 'Borrador' }}
+                                </span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                        <td mat-cell *matCellDef="let document">
+                            <div class="action-buttons">
+                                <button mat-icon-button color="primary" matTooltip="Ver documento"
+                                    (click)="viewDocument(document)">
+                                    <mat-icon>visibility</mat-icon>
+                                </button>
+
+                                <button mat-icon-button color="accent" matTooltip="Descargar"
+                                    (click)="downloadDocument(document)">
+                                    <mat-icon>download</mat-icon>
+                                </button>
+
+                                <button mat-icon-button color="primary" matTooltip="Editar"
+                                    (click)="editDocument(document)" *ngIf="document.status !== 'archived'">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+
+                                <button mat-icon-button color="warn" matTooltip="Eliminar"
+                                    (click)="deleteDocument(document)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+
+                <!-- Empty State -->
+                <div class="empty-state" *ngIf="filteredDocuments().length === 0">
+                    <mat-icon class="empty-icon">folder_open</mat-icon>
+                    <h3>No se encontraron documentos</h3>
+                    <p>No hay documentos que coincidan con los filtros seleccionados.</p>
+                    <button mat-raised-button color="primary" (click)="uploadDocument()">
+                        <mat-icon>cloud_upload</mat-icon>
+                        Subir Primer Documento
+                    </button>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Statistics Cards -->
+    <div class="stats-section">
+        <mat-card class="stat-card">
+            <mat-card-content>
+                <div class="stat-content">
+                    <mat-icon class="stat-icon active">description</mat-icon>
+                    <div class="stat-info">
+                        <h3>{{ getActiveDocumentsCount() }}</h3>
+                        <p>Documentos Activos</p>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+            <mat-card-content>
+                <div class="stat-content">
+                    <mat-icon class="stat-icon draft">edit</mat-icon>
+                    <div class="stat-info">
+                        <h3>{{ getDraftDocumentsCount() }}</h3>
+                        <p>Borradores</p>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+            <mat-card-content>
+                <div class="stat-content">
+                    <mat-icon class="stat-icon archived">archive</mat-icon>
+                    <div class="stat-info">
+                        <h3>{{ getArchivedDocumentsCount() }}</h3>
+                        <p>Archivados</p>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card">
+            <mat-card-content>
+                <div class="stat-content">
+                    <mat-icon class="stat-icon total">folder</mat-icon>
+                    <div class="stat-info">
+                        <h3>{{ getTotalDocumentsCount() }}</h3>
+                        <p>Total Documentos</p>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

@@ -1,0 +1,345 @@
+<div class="user-permissions-container">
+  <!-- Header -->
+  <div class="permissions-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="page-title">
+          <mat-icon>admin_panel_settings</mat-icon>
+          Configuración de Permisos de Usuario
+        </h1>
+        <p class="page-subtitle">
+          Gestiona los permisos de acceso a funcionalidades del módulo de máquinas
+        </p>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button (click)="exportPermissionsConfig()" class="export-btn">
+          <mat-icon>download</mat-icon>
+          Exportar Configuración
+        </button>
+        <button mat-raised-button (click)="loadUsers()" class="refresh-btn" [disabled]="loading()">
+          <mat-icon>refresh</mat-icon>
+          <span *ngIf="!loading()">Actualizar</span>
+          <span *ngIf="loading()">Cargando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario para agregar nuevo usuario -->
+  <mat-card class="add-user-card" *ngIf="canModifyPermissions()">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>person_add</mat-icon>
+        Agregar Nuevo Usuario
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="add-user-form">
+        <mat-form-field appearance="outline">
+          <mat-label>ID de Usuario</mat-label>
+          <input matInput [(ngModel)]="newUserForm.userId" placeholder="ej: user001">
+          <mat-icon matSuffix>badge</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre Completo</mat-label>
+          <input matInput [(ngModel)]="newUserForm.userName" placeholder="ej: Juan Pérez">
+          <mat-icon matSuffix>person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Rol</mat-label>
+          <mat-select [(ngModel)]="newUserForm.role">
+            <mat-option *ngFor="let role of availableRoles()" [value]="role">
+              {{ getRoleText(role) }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matSuffix>security</mat-icon>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="addNewUser()" class="add-btn">
+          <mat-icon>add</mat-icon>
+          Agregar Usuario
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla de usuarios y permisos -->
+  <mat-card class="permissions-table-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>people</mat-icon>
+        Usuarios y Permisos ({{ users().length }})
+      </mat-card-title>
+      <mat-card-subtitle>
+        Configura los permisos individuales para cada usuario del sistema
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="users()" class="permissions-table">
+
+          <!-- Columna Usuario -->
+          <ng-container matColumnDef="userName">
+            <th mat-header-cell *matHeaderCellDef class="header-cell">
+              <div class="header-content">
+                <mat-icon>person</mat-icon>
+                <span>Usuario</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="user-cell">
+              <div class="user-info">
+                <div class="user-avatar">
+                  <mat-icon>account_circle</mat-icon>
+                </div>
+                <div class="user-details">
+                  <span class="user-name">{{ user.userName }}</span>
+                  <small class="user-id">ID: {{ user.userId }}</small>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Rol -->
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef class="header-cell">
+              <div class="header-content">
+                <mat-icon>security</mat-icon>
+                <span>Rol</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="role-cell">
+              <div class="role-container">
+                <mat-form-field appearance="outline" class="role-select" *ngIf="canModifyPermissions() && user.role !== 'custom'">
+                  <mat-select [value]="user.role" (selectionChange)="changeUserRole(user, $event.value)">
+                    <mat-option *ngFor="let role of availableRoles()" [value]="role">
+                      {{ getRoleText(role) }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <span class="role-chip" [class]="'role-' + user.role" *ngIf="!canModifyPermissions() || user.role === 'custom'">
+                  {{ getRoleText(user.role) }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Cargar Excel -->
+          <ng-container matColumnDef="canLoadExcel">
+            <th mat-header-cell *matHeaderCellDef class="header-cell permission-header">
+              <div class="header-content">
+                <mat-icon>upload_file</mat-icon>
+                <span>Cargar Excel</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="permission-cell">
+              <mat-slide-toggle 
+                [checked]="user.machinePermissions.canLoadExcel"
+                [disabled]="!canModifyPermissions()"
+                (change)="togglePermission(user, 'canLoadExcel')"
+                [color]="'primary'">
+              </mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Columna Descargar Plantilla -->
+          <ng-container matColumnDef="canDownloadTemplate">
+            <th mat-header-cell *matHeaderCellDef class="header-cell permission-header">
+              <div class="header-content">
+                <mat-icon>download</mat-icon>
+                <span>Descargar Plantilla</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="permission-cell">
+              <mat-slide-toggle 
+                [checked]="user.machinePermissions.canDownloadTemplate"
+                [disabled]="!canModifyPermissions()"
+                (change)="togglePermission(user, 'canDownloadTemplate')"
+                [color]="'primary'">
+              </mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Columna Ver FF459 -->
+          <ng-container matColumnDef="canViewFF459">
+            <th mat-header-cell *matHeaderCellDef class="header-cell permission-header">
+              <div class="header-content">
+                <mat-icon>description</mat-icon>
+                <span>Ver FF459</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="permission-cell">
+              <mat-slide-toggle 
+                [checked]="user.machinePermissions.canViewFF459"
+                [disabled]="!canModifyPermissions()"
+                (change)="togglePermission(user, 'canViewFF459')"
+                [color]="'primary'">
+              </mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Columna Cambiar Estados -->
+          <ng-container matColumnDef="canChangeStatus">
+            <th mat-header-cell *matHeaderCellDef class="header-cell permission-header">
+              <div class="header-content">
+                <mat-icon>toggle_on</mat-icon>
+                <span>Cambiar Estados</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="permission-cell">
+              <mat-slide-toggle 
+                [checked]="user.machinePermissions.canChangeStatus"
+                [disabled]="!canModifyPermissions()"
+                (change)="togglePermission(user, 'canChangeStatus')"
+                [color]="'primary'">
+              </mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Columna Suspender Programas -->
+          <ng-container matColumnDef="canSuspendPrograms">
+            <th mat-header-cell *matHeaderCellDef class="header-cell permission-header">
+              <div class="header-content">
+                <mat-icon>pause_circle</mat-icon>
+                <span>Suspender</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="permission-cell">
+              <mat-slide-toggle 
+                [checked]="user.machinePermissions.canSuspendPrograms"
+                [disabled]="!canModifyPermissions()"
+                (change)="togglePermission(user, 'canSuspendPrograms')"
+                [color]="'accent'">
+              </mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Columna Eliminar Programas -->
+          <ng-container matColumnDef="canDeletePrograms">
+            <th mat-header-cell *matHeaderCellDef class="header-cell permission-header">
+              <div class="header-content">
+                <mat-icon>delete</mat-icon>
+                <span>Eliminar</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="permission-cell">
+              <mat-slide-toggle 
+                [checked]="user.machinePermissions.canDeletePrograms"
+                [disabled]="!canModifyPermissions()"
+                (change)="togglePermission(user, 'canDeletePrograms')"
+                [color]="'warn'">
+              </mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Columna Limpiar Programación -->
+          <ng-container matColumnDef="canClearPrograms">
+            <th mat-header-cell *matHeaderCellDef class="header-cell permission-header">
+              <div class="header-content">
+                <mat-icon>clear_all</mat-icon>
+                <span>Limpiar Todo</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="permission-cell">
+              <mat-slide-toggle 
+                [checked]="user.machinePermissions.canClearPrograms"
+                [disabled]="!canModifyPermissions()"
+                (change)="togglePermission(user, 'canClearPrograms')"
+                [color]="'warn'">
+              </mat-slide-toggle>
+            </td>
+          </ng-container>
+
+          <!-- Columna Acciones -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="header-cell">
+              <div class="header-content">
+                <mat-icon>settings</mat-icon>
+                <span>Acciones</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let user" class="actions-cell">
+              <div class="action-buttons" *ngIf="canModifyPermissions()">
+                <button mat-icon-button 
+                        (click)="resetToRolePermissions(user)"
+                        [disabled]="user.role === 'custom'"
+                        matTooltip="Restaurar permisos por rol"
+                        class="reset-btn">
+                  <mat-icon>restore</mat-icon>
+                </button>
+                <button mat-icon-button 
+                        (click)="deleteUser(user)"
+                        matTooltip="Eliminar usuario"
+                        class="delete-btn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="user-row"></tr>
+        </table>
+
+        <!-- Estado vacío -->
+        <div *ngIf="users().length === 0 && !loading()" class="no-data">
+          <mat-icon>people_outline</mat-icon>
+          <p>No hay usuarios configurados</p>
+          <button mat-raised-button color="primary" (click)="loadUsers()">
+            <mat-icon>refresh</mat-icon>
+            Cargar Usuarios
+          </button>
+        </div>
+
+        <!-- Estado de carga -->
+        <div *ngIf="loading()" class="loading-state">
+          <mat-icon>hourglass_empty</mat-icon>
+          <p>Cargando usuarios...</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Información de ayuda -->
+  <mat-card class="help-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>help</mat-icon>
+        Información de Permisos
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="help-content">
+        <div class="permission-info">
+          <h4><mat-icon>upload_file</mat-icon> Cargar Excel</h4>
+          <p>Permite al usuario cargar archivos Excel con programación de máquinas</p>
+        </div>
+        <div class="permission-info">
+          <h4><mat-icon>download</mat-icon> Descargar Plantilla</h4>
+          <p>Permite descargar la plantilla Excel con el formato correcto</p>
+        </div>
+        <div class="permission-info">
+          <h4><mat-icon>description</mat-icon> Ver FF459</h4>
+          <p>Permite visualizar y generar el formato FF459 de prealistamiento</p>
+        </div>
+        <div class="permission-info">
+          <h4><mat-icon>toggle_on</mat-icon> Cambiar Estados</h4>
+          <p>Permite cambiar el estado de los programas (LISTO, CORRIENDO, TERMINADO)</p>
+        </div>
+        <div class="permission-info">
+          <h4><mat-icon>pause_circle</mat-icon> Suspender</h4>
+          <p>Permite suspender programas con motivo específico</p>
+        </div>
+        <div class="permission-info">
+          <h4><mat-icon>delete</mat-icon> Eliminar</h4>
+          <p>Permite eliminar programas del sistema (solo administradores)</p>
+        </div>
+        <div class="permission-info">
+          <h4><mat-icon>clear_all</mat-icon> Limpiar Todo</h4>
+          <p>Permite limpiar toda la programación del sistema (solo administradores)</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

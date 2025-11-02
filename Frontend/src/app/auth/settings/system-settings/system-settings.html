@@ -1,0 +1,295 @@
+<div class="system-settings-container">
+  <!-- Header Banner -->
+  <div class="system-settings-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="page-title">
+          <mat-icon>tune</mat-icon>
+          Configuraciones del Sistema
+        </h1>
+        <p class="page-subtitle">
+          Personaliza y administra todas las configuraciones generales del sistema FlexoApp
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="settings-content">
+
+  <form [formGroup]="settingsForm" class="settings-form">
+    
+
+
+    <!-- Configuraciones Generales -->
+    <mat-card class="settings-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          Configuraciones Generales
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Tema</mat-label>
+            <mat-select formControlName="theme">
+              <mat-option *ngFor="let theme of themes" [value]="theme.value">
+                {{ theme.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>palette</mat-icon>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Idioma de la Aplicación</mat-label>
+            <mat-select formControlName="language" (selectionChange)="onLanguageChange($event.value)">
+              <mat-option *ngFor="let lang of languages" [value]="lang.value">
+                {{ lang.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>language</mat-icon>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Zona Horaria</mat-label>
+            <mat-select formControlName="timezone">
+              <mat-option *ngFor="let tz of timezones" [value]="tz.value">
+                {{ tz.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>schedule</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Horas por Turno</mat-label>
+            <mat-select formControlName="hoursPerShift">
+              <mat-option *ngFor="let hours of shiftHours" [value]="hours.value">
+                {{ hours.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>access_time</mat-icon>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Configuraciones de Seguridad -->
+    <mat-card class="settings-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>security</mat-icon>
+          Seguridad y Acceso
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Tiempo de Inicio de Sesión (minutos)</mat-label>
+            <input matInput type="number" formControlName="sessionTimeout" min="5" max="480">
+            <mat-icon matSuffix>timer</mat-icon>
+            <mat-error *ngIf="settingsForm.get('sessionTimeout')?.hasError('min')">
+              Mínimo 5 minutos
+            </mat-error>
+            <mat-error *ngIf="settingsForm.get('sessionTimeout')?.hasError('max')">
+              Máximo 480 minutos (8 horas)
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Intentos de Login Máximos</mat-label>
+            <input matInput type="number" formControlName="maxLoginAttempts" min="1" max="10">
+            <mat-icon matSuffix>lock</mat-icon>
+            <mat-error *ngIf="settingsForm.get('maxLoginAttempts')?.hasError('min')">
+              Mínimo 1 intento
+            </mat-error>
+            <mat-error *ngIf="settingsForm.get('maxLoginAttempts')?.hasError('max')">
+              Máximo 10 intentos
+            </mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Longitud Mínima de Contraseña</mat-label>
+            <input matInput type="number" formControlName="passwordMinLength" min="4" max="20">
+            <mat-icon matSuffix>key</mat-icon>
+            <mat-error *ngIf="settingsForm.get('passwordMinLength')?.hasError('min')">
+              Mínimo 4 caracteres
+            </mat-error>
+            <mat-error *ngIf="settingsForm.get('passwordMinLength')?.hasError('max')">
+              Máximo 20 caracteres
+            </mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-row">
+          <div class="toggle-field">
+            <mat-slide-toggle formControlName="requirePasswordChange">
+              Cambio obligatorio de contraseña en primer login
+            </mat-slide-toggle>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Notificaciones del Sistema -->
+    <mat-card class="settings-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>notifications</mat-icon>
+          Notificaciones del Sistema
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <div class="toggle-field">
+            <mat-slide-toggle formControlName="enableNotifications">
+              Habilitar notificaciones del sistema
+            </mat-slide-toggle>
+            <button mat-button (click)="onTestNotification()" class="test-button">
+              <mat-icon>notifications</mat-icon>
+              Probar
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="toggle-field">
+            <mat-slide-toggle formControlName="enableErrorNotifications">
+              Notificaciones de errores del sistema
+            </mat-slide-toggle>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Frecuencia de Notificaciones</mat-label>
+            <mat-select formControlName="notificationFrequency">
+              <mat-option *ngFor="let freq of notificationFrequencies" [value]="freq.value">
+                {{ freq.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>schedule</mat-icon>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Configuraciones del Sistema -->
+    <mat-card class="settings-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>tune</mat-icon>
+          Sistema y Mantenimiento
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <div class="toggle-field">
+            <mat-slide-toggle formControlName="enableAuditLog">
+              Habilitar registro de auditoría
+            </mat-slide-toggle>
+            <button mat-button (click)="viewAuditLog()" class="test-button">
+              <mat-icon>visibility</mat-icon>
+              Ver Log
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="toggle-field">
+            <mat-slide-toggle formControlName="enableAutoBackup">
+              Backup automático diario
+            </mat-slide-toggle>
+            <button mat-button (click)="configureBackupSchedule()" class="test-button">
+              <mat-icon>schedule</mat-icon>
+              Configurar
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="toggle-field">
+            <mat-slide-toggle formControlName="enableMaintenanceMode">
+              Modo mantenimiento
+            </mat-slide-toggle>
+            <button mat-button (click)="toggleMaintenanceMode()" class="test-button" 
+                    [class.maintenance-active]="settingsForm.get('enableMaintenanceMode')?.value">
+              <mat-icon>build</mat-icon>
+              {{ settingsForm.get('enableMaintenanceMode')?.value ? 'Desactivar' : 'Activar' }}
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- System Tools -->
+    <mat-card class="settings-section">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>build_circle</mat-icon>
+          Herramientas del Sistema
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="tools-grid">
+          <button mat-raised-button class="tool-button" (click)="clearSystemCache()">
+            <mat-icon>cached</mat-icon>
+            <span>Limpiar Caché</span>
+            <small>Elimina archivos temporales</small>
+          </button>
+
+          <button mat-raised-button class="tool-button" (click)="optimizeDatabase()">
+            <mat-icon>tune</mat-icon>
+            <span>Optimizar BD</span>
+            <small>Mejora el rendimiento</small>
+          </button>
+
+          <button mat-raised-button class="tool-button" (click)="generateSystemReport()">
+            <mat-icon>assessment</mat-icon>
+            <span>Reporte Sistema</span>
+            <small>Estado y estadísticas</small>
+          </button>
+
+          <button mat-raised-button class="tool-button" (click)="checkSystemHealth()">
+            <mat-icon>health_and_safety</mat-icon>
+            <span>Verificar Salud</span>
+            <small>Diagnóstico completo</small>
+          </button>
+
+          <button mat-raised-button class="tool-button" (click)="updateSystemComponents()">
+            <mat-icon>system_update</mat-icon>
+            <span>Actualizar Sistema</span>
+            <small>Buscar actualizaciones</small>
+          </button>
+
+          <button mat-raised-button class="tool-button" (click)="restartSystemServices()">
+            <mat-icon>restart_alt</mat-icon>
+            <span>Reiniciar Servicios</span>
+            <small>Reinicia componentes</small>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button mat-button (click)="onReset()" class="reset-button">
+        <mat-icon>restore</mat-icon>
+        Restablecer
+      </button>
+      
+      <button mat-raised-button color="primary" (click)="onSave()" 
+              [disabled]="settingsForm.invalid || loading()" class="save-button">
+        <mat-icon *ngIf="loading()" class="loading-icon">refresh</mat-icon>
+        <mat-icon *ngIf="!loading()">save</mat-icon>
+        {{ loading() ? 'Guardando...' : 'Guardar Cambios' }}
+      </button>
+    </div>
+
+  </form>
+  </div>
+</div>

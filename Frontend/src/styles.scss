@@ -1,0 +1,223 @@
+
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  // Default the application to a light color theme. This can be changed to
+  // `dark` to enable the dark color theme, or to `light dark` to defer to the
+  // user's system settings.
+  color-scheme: light;
+
+  // Set a default background, font and text colors for the application using
+  // Angular Material's system-level CSS variables. Learn more about these
+  // variables at https://material.angular.dev/guide/system-variables
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  // Reset the user agent margin.
+  margin: 0;
+}
+// ========================================
+// ESTILOS GLOBALES - FlexoAPP Frontend
+// ========================================
+
+// ========================================
+// CONFIGURACIÓN DE TEMA ANGULAR MATERIAL
+// ========================================
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+// ========================================
+// RESET Y CONFIGURACIÓN BASE
+// ========================================
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  color-scheme: light;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  color: #1f2937;
+  overflow-x: hidden;
+}
+
+// ========================================
+// LAYOUT PRINCIPAL
+// ========================================
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+// ========================================
+// NAVEGACIÓN Y HEADER
+// ========================================
+
+app-header {
+  position: relative;
+  z-index: 1001;
+}
+
+.mat-toolbar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  color: #1f2937;
+}
+
+// Espaciado para contenido con header
+router-outlet + * {
+  margin-top: 64px;
+  
+  &.no-header {
+    margin-top: 0;
+  }
+}
+
+// ========================================
+// COMPONENTES MATERIAL
+// ========================================
+
+mat-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+  position: relative;
+  z-index: 2;
+}
+
+.mat-mdc-card-title,
+.mat-mdc-card-subtitle,
+.mat-mdc-card-content {
+  color: #1f2937 !important;
+}
+
+.mat-sidenav-container,
+.mat-sidenav-content {
+  position: relative;
+  z-index: 2;
+}
+
+// ========================================
+// PÁGINAS ESPECÍFICAS
+// ========================================
+
+// Login
+body.login-page {
+  overflow: hidden;
+  height: 100vh;
+}
+
+app-login {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+// Máquinas
+body.machines-page {
+  background: #f8fafc !important;
+}
+
+app-machines {
+  margin-top: 0 !important;
+  width: 100vw !important;
+  position: relative;
+  overflow-x: hidden;
+}
+
+// ========================================
+// UTILIDADES
+// ========================================
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.error-message {
+  color: #dc2626;
+  background: rgba(254, 226, 226, 0.8);
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #dc2626;
+}
+
+.success-message {
+  color: #059669;
+  background: rgba(209, 250, 229, 0.8);
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #059669;
+}
+
+// ========================================
+// RESPONSIVE DESIGN
+// ========================================
+
+@media (max-width: 768px) {
+  router-outlet + * {
+    margin-top: 56px; // Header más pequeño en móvil
+  }
+  
+  mat-card {
+    margin: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  
+  .mat-toolbar {
+    padding: 0 8px;
+  }
+}
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

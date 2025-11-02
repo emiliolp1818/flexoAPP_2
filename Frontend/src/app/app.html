@@ -1,0 +1,24 @@
+<div class="app-container">
+  <!-- Header Navigation -->
+  <header class="app-header" *ngIf="authService.isLoggedIn()">
+    <app-header></app-header>
+  </header>
+
+  <!-- Main Content -->
+  <main class="app-content" [class.no-header]="!authService.isLoggedIn()">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Offline Indicator -->
+  <div class="offline-indicator" [class.show]="!isOnline">
+    <span>Sin conexión a internet</span>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="app-loading" *ngIf="loadingService.isLoading$ | async">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Cargando...</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,169 @@
+<!-- Header Component - Persistent across all pages -->
+<app-header></app-header>
+
+<!-- Dashboard Container - Full Page -->
+<div class="dashboard-container">
+  <div class="dashboard-content">
+    <!-- System Statistics -->
+  <div class="statistics-section">
+    <h2 class="section-title">
+      <mat-icon>analytics</mat-icon>
+      Estadísticas del Sistema
+    </h2>
+    <div class="stats-grid">
+      <mat-card class="stat-card users-stat">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3 class="stat-number">{{ systemStats().totalUsers }}</h3>
+            <p class="stat-label">Usuarios Totales</p>
+            <span class="stat-change positive">+{{ systemStats().newUsersThisMonth }} este mes</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card orders-stat">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>work</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3 class="stat-number">{{ systemStats().activeOrders }}</h3>
+            <p class="stat-label">Órdenes Activas</p>
+            <span class="stat-change positive">+{{ systemStats().ordersToday }} hoy</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+
+
+      <!-- Nueva estadística: Diseños Totales -->
+      <mat-card class="stat-card designs-stat">
+        <mat-card-content>
+          <div class="stat-icon">
+            <mat-icon>design_services</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3 class="stat-number">{{ systemStats().totalDesigns }}</h3>
+            <p class="stat-label">Diseños Totales</p>
+            <span class="stat-change positive">+{{ systemStats().newDesignsThisWeek }} esta semana</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <h2 class="section-title">
+      <mat-icon>flash_on</mat-icon>
+      Acciones Rápidas
+    </h2>
+    <div class="actions-grid">
+      
+      <!-- Settings Button (only for Admin/Supervisor) -->
+      <mat-card class="action-card settings-card" (click)="navigateToSettings()" *ngIf="canManageSettings()">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>settings</mat-icon>
+          </div>
+          <div class="card-content">
+            <h3>Configuraciones</h3>
+            <p>Administra usuarios y configuraciones del sistema</p>
+          </div>
+          <div class="card-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Reports Button -->
+      <mat-card class="action-card reports-card" (click)="navigateToReports()">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>assessment</mat-icon>
+          </div>
+          <div class="card-content">
+            <h3>Reportes</h3>
+            <p>Visualiza estadísticas y reportes del sistema</p>
+          </div>
+          <div class="card-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+
+
+      <!-- Machines Button -->
+      <mat-card class="action-card machines-card" (click)="navigateToMachines()">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>precision_manufacturing</mat-icon>
+          </div>
+          <div class="card-content">
+            <h3>Máquinas</h3>
+            <p>Gestiona y monitorea el estado de las máquinas</p>
+          </div>
+          <div class="card-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Design Button -->
+      <mat-card class="action-card design-card" (click)="navigateToDesign()">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>design_services</mat-icon>
+          </div>
+          <div class="card-content">
+            <h3>Diseño</h3>
+            <p>Crea y gestiona diseños flexográficos</p>
+          </div>
+          <div class="card-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Documento Button -->
+      <mat-card class="action-card documento-card" (click)="navigateToDocumento()">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>folder_open</mat-icon>
+          </div>
+          <div class="card-content">
+            <h3>Documento</h3>
+            <p>Gestiona y organiza documentos del sistema</p>
+          </div>
+          <div class="card-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Información Button -->
+      <mat-card class="action-card informacion-card" (click)="navigateToInformacion()">
+        <mat-card-content>
+          <div class="card-icon">
+            <mat-icon>info</mat-icon>
+          </div>
+          <div class="card-content">
+            <h3>Información</h3>
+            <p>Información del sistema y documentación</p>
+          </div>
+          <div class="card-arrow">
+            <mat-icon>arrow_forward</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+  </div>
+  </div>
+</div>

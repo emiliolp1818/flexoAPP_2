@@ -1,0 +1,569 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background: #98c1d9;
+}
+
+.settings-container {
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #98c1d9;
+}
+
+// Fixed Header - Similar al módulo de máquinas
+.settings-header {
+  position: fixed;
+  top: 64px; // Height of main header
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0;
+
+  .header-content {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 16px 24px;
+    background: white;
+    color: #1e293b;
+    max-width: 1600px;
+    margin: 0 auto;
+    border-bottom: 1px solid #e2e8f0;
+
+    .header-info {
+      flex: 1;
+
+      .page-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+        color: #1e293b;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+          color: #8b5cf6;
+        }
+      }
+
+      .page-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        margin: 0;
+        font-weight: 300;
+        color: #64748b;
+      }
+    }
+  }
+
+  .header-debug {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    mat-chip-set {
+      mat-chip {
+        background: rgba(255, 255, 255, 0.2);
+        color: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        margin-right: 8px;
+        margin-bottom: 8px;
+
+        mat-icon {
+          color: #1e293b;
+        }
+      }
+    }
+  }
+}
+
+.settings-content {
+  position: fixed;
+  top: 140px; // Space for fixed header
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  background: #98c1d9;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.settings-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+
+  h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .section-description {
+    margin: 5px 0 0 0;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+// Usuarios Table
+.users-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.users-table {
+  width: 100%;
+
+  th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  td,
+  th {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  tr:hover {
+    background-color: #f9f9f9;
+  }
+}
+
+.user-code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .user-icon {
+    color: #666;
+    font-size: 20px;
+  }
+}
+
+.user-info {
+  .full-name {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .display-name {
+    display: block;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.role-chip {
+  &.role-administrador {
+    background-color: #f44336;
+    color: white;
+  }
+
+  &.role-supervisor {
+    background-color: #ff9800;
+    color: white;
+  }
+
+  &.role-pre-alistador {
+    background-color: #9c27b0;
+    color: white;
+  }
+
+  &.role-matizador {
+    background-color: #2196f3;
+    color: white;
+  }
+}
+
+.status-text {
+  margin-left: 8px;
+  font-size: 12px;
+
+  &.active {
+    color: #4caf50;
+  }
+
+  &.inactive {
+    color: #f44336;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.no-data,
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: rgba(0, 0, 0, 0.6);
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 16px;
+  }
+}
+
+// Removed spinning animation - static loading icon instead
+
+// Configuraciones del Sistema - Mejoradas
+.config-sections {
+  .mat-expansion-panel {
+    margin-bottom: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    background: white;
+
+    .mat-expansion-panel-header {
+      padding: 20px 24px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px 12px 0 0;
+
+      .mat-panel-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 1.1rem;
+
+        mat-icon {
+          color: #8b5cf6;
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+
+    &.mat-expanded {
+      .mat-expansion-panel-header {
+        border-bottom: 2px solid #e2e8f0;
+      }
+    }
+  }
+}
+
+.config-items {
+  padding: 20px 24px;
+  background: white;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .config-info {
+    flex: 1;
+    margin-right: 20px;
+
+    .config-name {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #1e293b;
+      font-size: 1rem;
+    }
+
+    .config-description {
+      margin: 0;
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+  }
+
+  .config-control {
+    min-width: 250px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    mat-form-field {
+      width: 100%;
+
+      .mat-mdc-text-field-wrapper {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+      }
+
+      &.mat-focused .mat-mdc-text-field-wrapper {
+        border-color: #8b5cf6;
+      }
+    }
+
+    mat-slide-toggle {
+      margin-top: 0;
+
+      .mat-mdc-slide-toggle-bar {
+        background: #e2e8f0;
+      }
+
+      &.mat-checked .mat-mdc-slide-toggle-bar {
+        background: #8b5cf6;
+      }
+    }
+
+    button {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-weight: 500;
+      cursor: pointer;
+
+      mat-icon {
+        margin-right: 4px;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+// Permisos y Roles
+.roles-permissions {
+  .mat-expansion-panel {
+    margin-bottom: 16px;
+
+    .mat-panel-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+  }
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  padding: 16px 0;
+}
+
+.permission-category {
+  h4 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 8px;
+  }
+
+  mat-checkbox {
+    display: block;
+    margin-bottom: 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Información del Sistema
+.system-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.info-card {
+  mat-card-header {
+    margin-bottom: 16px;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .value {
+    font-weight: 400;
+    color: rgba(0, 0, 0, 0.87);
+
+    &.status-online {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #4caf50;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 10px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .users-table {
+    font-size: 14px;
+
+    td,
+    th {
+      padding: 12px 8px;
+    }
+  }
+
+  .config-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    .config-control {
+      width: 100%;
+      min-width: unset;
+    }
+  }
+
+  .permissions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .system-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Snackbar Styles
+::ng-deep {
+  .success-snackbar {
+    background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
+    color: white;
+    font-weight: 500;
+  }
+
+  .info-snackbar {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    font-weight: 500;
+  }
+
+  .warning-snackbar {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    font-weight: 500;
+  }
+
+  .error-snackbar {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    font-weight: 500;
+  }
+}

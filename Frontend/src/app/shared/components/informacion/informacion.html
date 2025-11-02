@@ -1,0 +1,348 @@
+<div class="informacion-container">
+  <!-- Header Banner - Igual al módulo de máquinas -->
+  <div class="informacion-header fixed-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="page-title">
+          <mat-icon>info</mat-icon>
+          Información de Usuarios
+        </h1>
+        <p class="page-subtitle">
+          Sistema completo de gestión y visualización de usuarios registrados
+        </p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button (click)="refreshUsers()" [disabled]="isLoading()" class="refresh-btn">
+          <mat-icon>refresh</mat-icon>
+          Actualizar Datos
+        </button>
+        <button mat-raised-button (click)="toggleStats()" class="stats-btn">
+          <mat-icon>analytics</mat-icon>
+          {{ showStats() ? 'Ocultar' : 'Ver' }} Estadísticas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="informacion-content">
+    <!-- Search Section -->
+    <div class="search-section">
+      <mat-card class="search-card">
+        <mat-card-content>
+          <div class="search-container">
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Buscar por código de usuario o nombre</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="searchTerm" 
+                (input)="onSearchChange()"
+                placeholder="Ej: USR001, Juan Pérez..."
+              >
+              <mat-icon matPrefix>search</mat-icon>
+              @if (searchTerm()) {
+                <button matSuffix mat-icon-button (click)="clearSearch()">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              }
+            </mat-form-field>
+            
+            <div class="search-stats">
+              <mat-chip-set>
+                <mat-chip>
+                  <mat-icon matChipAvatar>people</mat-icon>
+                  {{ filteredUsers().length }} usuarios encontrados
+                </mat-chip>
+                <mat-chip>
+                  <mat-icon matChipAvatar>check_circle</mat-icon>
+                  {{ getActiveUsersCount() }} activos
+                </mat-chip>
+                <mat-chip>
+                  <mat-icon matChipAvatar>cancel</mat-icon>
+                  {{ getInactiveUsersCount() }} inactivos
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Statistics Section -->
+    @if (showStats()) {
+      <div class="statistics-section">
+        <mat-card class="stats-card">
+          <mat-card-content>
+            <div class="stats-header">
+              <h3>
+                <mat-icon>analytics</mat-icon>
+                Estadísticas de Usuarios
+              </h3>
+              <button mat-icon-button (click)="toggleStats()" class="close-stats-btn">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+            
+            <div class="stats-grid">
+              <!-- Total Users -->
+              <div class="stat-item total-users">
+                <div class="stat-icon">
+                  <mat-icon>people</mat-icon>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ getTotalUsers() }}</div>
+                  <div class="stat-label">Total Usuarios</div>
+                </div>
+              </div>
+
+              <!-- Active Users -->
+              <div class="stat-item active-users">
+                <div class="stat-icon">
+                  <mat-icon>check_circle</mat-icon>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ getActiveUsersCount() }}</div>
+                  <div class="stat-label">Usuarios Activos</div>
+                  <div class="stat-percentage">{{ getActivePercentage() }}%</div>
+                </div>
+              </div>
+
+              <!-- Inactive Users -->
+              <div class="stat-item inactive-users">
+                <div class="stat-icon">
+                  <mat-icon>cancel</mat-icon>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ getInactiveUsersCount() }}</div>
+                  <div class="stat-label">Usuarios Inactivos</div>
+                  <div class="stat-percentage">{{ getInactivePercentage() }}%</div>
+                </div>
+              </div>
+
+              <!-- Roles Distribution -->
+              <div class="stat-item roles-distribution">
+                <div class="stat-icon">
+                  <mat-icon>work</mat-icon>
+                </div>
+                <div class="stat-content">
+                  <div class="stat-number">{{ getRolesCount() }}</div>
+                  <div class="stat-label">Roles Diferentes</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Roles Breakdown -->
+            <div class="roles-breakdown">
+              <h4>
+                <mat-icon>pie_chart</mat-icon>
+                Distribución por Roles
+              </h4>
+              <div class="roles-list">
+                @for (roleStats of getRoleStats(); track roleStats.role) {
+                  <div class="role-stat-item">
+                    <div class="role-info">
+                      <mat-icon [style.color]="getRoleColor(roleStats.role)">
+                        {{ getRoleIcon(roleStats.role) }}
+                      </mat-icon>
+                      <span class="role-name">{{ getRoleDisplayName(roleStats.role) }}</span>
+                    </div>
+                    <div class="role-numbers">
+                      <span class="role-count">{{ roleStats.count }}</span>
+                      <span class="role-percentage">{{ roleStats.percentage }}%</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+              <h4>
+                <mat-icon>schedule</mat-icon>
+                Actividad Reciente
+              </h4>
+              <div class="activity-stats">
+                <div class="activity-item">
+                  <span class="activity-label">Usuarios registrados este mes:</span>
+                  <span class="activity-value">{{ getRecentUsersCount() }}</span>
+                </div>
+                <div class="activity-item">
+                  <span class="activity-label">Usuario más reciente:</span>
+                  <span class="activity-value">{{ getMostRecentUser() }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Cargando información de usuarios...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="error-container">
+        <mat-card class="error-card">
+          <mat-card-content>
+            <div class="error-content">
+              <mat-icon>error</mat-icon>
+              <h3>Error al cargar usuarios</h3>
+              <p>{{ error() }}</p>
+              <button mat-raised-button color="primary" (click)="loadUsers()">
+                <mat-icon>refresh</mat-icon>
+                Reintentar
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+
+    <!-- Users Rows Layout -->
+    @if (!isLoading() && !error() && filteredUsers().length > 0) {
+      <div class="users-rows-container">
+        @for (user of filteredUsers(); track user.id) {
+          <mat-card class="user-row" [class.inactive-user]="!user.isActive">
+            <mat-card-content>
+              <div class="user-row-content">
+                <!-- User Avatar and Basic Info -->
+                <div class="user-basic-section">
+                  <div class="user-avatar">
+                    <img 
+                      [src]="user.profileImage || getDefaultProfileImage()" 
+                      [alt]="getFullName(user)"
+                      class="avatar-image"
+                      (error)="$event.target.src = getDefaultProfileImage()"
+                    >
+                    <div class="status-indicator" [style.background-color]="getStatusColor(user.isActive)"></div>
+                  </div>
+                  
+                  <div class="user-info">
+                    <h3 class="user-name">{{ getFullName(user) }}</h3>
+                    <p class="user-display-name">{{ user.firstName }} {{ user.lastName }}</p>
+                    <div class="user-code-badge">
+                      <mat-icon>badge</mat-icon>
+                      {{ user.userCode }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- User Details Grid -->
+                <div class="user-details-grid">
+                  <!-- Status -->
+                  <div class="detail-item status-item">
+                    <div class="detail-header">
+                      <mat-icon>{{ user.isActive ? 'check_circle' : 'cancel' }}</mat-icon>
+                      <span class="detail-label">Estado</span>
+                    </div>
+                    <mat-chip 
+                      [style.background-color]="getStatusColor(user.isActive)"
+                      [style.color]="'white'"
+                      class="status-chip"
+                    >
+                      {{ getStatusText(user.isActive) }}
+                    </mat-chip>
+                  </div>
+
+                  <!-- Role -->
+                  <div class="detail-item role-item">
+                    <div class="detail-header">
+                      <mat-icon>{{ getRoleIcon(user.role) }}</mat-icon>
+                      <span class="detail-label">Rol</span>
+                    </div>
+                    <mat-chip 
+                      [style.background-color]="getRoleColor(user.role)" 
+                      [style.color]="'white'"
+                      class="role-chip"
+                    >
+                      {{ getRoleDisplayName(user.role) }}
+                    </mat-chip>
+                  </div>
+
+                  <!-- Phone -->
+                  @if (user.phone) {
+                    <div class="detail-item phone-item">
+                      <div class="detail-header">
+                        <mat-icon>phone</mat-icon>
+                        <span class="detail-label">Teléfono</span>
+                      </div>
+                      <span class="detail-value">{{ user.phone }}</span>
+                    </div>
+                  }
+
+                  <!-- Registration Date -->
+                  <div class="detail-item date-item">
+                    <div class="detail-header">
+                      <mat-icon>calendar_today</mat-icon>
+                      <span class="detail-label">Registro</span>
+                    </div>
+                    <span class="detail-value">{{ formatDate(user.createdAt) }}</span>
+                  </div>
+
+                  <!-- Permissions -->
+                  @if (user.permissions && user.permissions.length > 0) {
+                    <div class="detail-item permissions-item">
+                      <div class="detail-header">
+                        <mat-icon>security</mat-icon>
+                        <span class="detail-label">Permisos ({{ user.permissions.length }})</span>
+                      </div>
+                      <div class="permissions-list">
+                        @for (permission of user.permissions; track permission) {
+                          <mat-chip class="permission-chip">{{ permission }}</mat-chip>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+
+
+              </div>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && !error() && filteredUsers().length === 0 && users().length > 0) {
+      <div class="empty-state">
+        <mat-card class="empty-card">
+          <mat-card-content>
+            <div class="empty-content">
+              <mat-icon>search_off</mat-icon>
+              <h3>No se encontraron usuarios</h3>
+              <p>No hay usuarios que coincidan con tu búsqueda "{{ searchTerm() }}"</p>
+              <button mat-raised-button color="primary" (click)="clearSearch()">
+                <mat-icon>clear</mat-icon>
+                Limpiar búsqueda
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+
+    @if (!isLoading() && !error() && users().length === 0) {
+      <div class="empty-state">
+        <mat-card class="empty-card">
+          <mat-card-content>
+            <div class="empty-content">
+              <mat-icon>people_outline</mat-icon>
+              <h3>No hay usuarios registrados</h3>
+              <p>Aún no se han registrado usuarios en el sistema</p>
+              <button mat-raised-button color="primary" (click)="refreshUsers()">
+                <mat-icon>refresh</mat-icon>
+                Actualizar
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+  </div>
+</div>
