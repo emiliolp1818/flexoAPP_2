@@ -5,7 +5,6 @@ import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
 
 import { environment } from '../../../environments/environment';
-import { NetworkStabilityService } from './network-stability.service';
 
 export interface User {
   id: string;
@@ -16,9 +15,11 @@ export interface User {
   role: string;
   isActive: boolean;
   profileImage?: string;
+  profileImageUrl?: string;
   phone?: string;
   permissions?: string[];
   createdAt?: string;
+  lastLogin?: string;
 }
 
 export interface LoginRequest {
@@ -47,8 +48,7 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router,
-    private networkService: NetworkStabilityService
+    private router: Router
   ) {
     this.loadStoredUser();
   }
@@ -57,38 +57,42 @@ export class AuthService {
    * Iniciar sesión
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    const apiUrl = this.networkService.getCurrentApiUrl();
-    return this.http.post<LoginResponse>(`${apiUrl}/auth/login`, credentials)
-      .pipe(
-        tap(response => {
-          // Si tenemos token y user, guardar la sesión
-          if (response.token && response.user) {
-            this.setSession(response.token, response.user);
-          }
-        }),
-        catchError(error => {
-          console.error('❌ Error en login:', error);
-          // Intentar reconectar en caso de error de red
-          if (error.status === 0 || error.status >= 500) {
-            return this.networkService.forceReconnect().pipe(
-              switchMap(() => {
-                const newApiUrl = this.networkService.getCurrentApiUrl();
-                return this.http.post<LoginResponse>(`${newApiUrl}/auth/login`, credentials);
-              }),
-              tap(response => {
-                if (response.token && response.user) {
-                  this.setSession(response.token, response.user);
-                }
-              }),
-              catchError(retryError => {
-                console.error('❌ Error en reintento de login:', retryError);
-                return throwError(() => retryError);
-              })
-            );
-          }
-          return throwError(() => error);
-        })
-      );
+    return this.tryLoginWithFallback(credentials, 0);
+  }
+
+  /**
+   * Intentar login con URLs de respaldo
+   */
+  private tryLoginWithFallback(credentials: LoginRequest, urlIndex: number): Observable<LoginResponse> {
+    const fallbackUrls = environment.fallbackUrls || [];
+    const urls = [environment.apiUrl, ...fallbackUrls];
+    
+    if (urlIndex >= urls.length) {
+      return throwError(() => new Error('No se pudo conectar con el servidor. Verifique su conexión de red.'));
+    }
+
+    const currentUrl = urls[urlIndex];
+    console.log(`🔄 Intentando conexión con: ${currentUrl}`);
+
+    return this.http.post<LoginResponse>(`${currentUrl}/auth/login`, credentials).pipe(
+      tap(response => {
+        console.log(`✅ Conexión exitosa con: ${currentUrl}`);
+        if (response.token && response.user) {
+          this.setSession(response.token, response.user);
+        }
+      }),
+      catchError(error => {
+        console.warn(`⚠️ Error con ${currentUrl}:`, error.message || error);
+        
+        // Si es un error de red, intentar con la siguiente URL
+        if (error.status === 0 || error.status >= 500 || error.name === 'TimeoutError') {
+          return this.tryLoginWithFallback(credentials, urlIndex + 1);
+        }
+        
+        // Si es un error de autenticación (400, 401), no intentar otras URLs
+        return throwError(() => error);
+      })
+    );
   }
 
   /**

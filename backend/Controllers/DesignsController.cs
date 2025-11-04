@@ -55,21 +55,202 @@ namespace FlexoAPP.API.Controllers
         }
 
         /// <summary>
-        /// Get all designs
+        /// Get all designs (OPTIMIZED)
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DesignDto>>> GetAllDesigns()
         {
             try
             {
-                _logger.LogInformation("Getting all designs...");
+                _logger.LogInformation("🚀 Getting all designs with optimizations...");
                 var designs = await _designService.GetAllDesignsAsync();
-                _logger.LogInformation($"Successfully retrieved {designs.Count()} designs");
+                _logger.LogInformation($"✅ Successfully retrieved {designs.Count()} designs");
                 return Ok(designs);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting all designs");
+                _logger.LogError(ex, "❌ Error getting all designs");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get designs with pagination (OPTIMIZED FOR LARGE DATASETS)
+        /// </summary>
+        [HttpGet("paginated")]
+        public async Task<ActionResult<PaginatedDesignsDto>> GetDesignsPaginated(
+            [FromQuery] int page = 1, 
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? search = null,
+            [FromQuery] string? sortBy = "LastModified",
+            [FromQuery] string? sortOrder = "desc")
+        {
+            try
+            {
+                _logger.LogInformation("🚀 Getting paginated designs - Page: {Page}, Size: {PageSize}", page, pageSize);
+                
+                var result = await _designService.GetDesignsPaginatedAsync(page, pageSize, search, sortBy, sortOrder);
+                
+                _logger.LogInformation("✅ Retrieved {Count} designs from page {Page}", result.Items.Count(), page);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting paginated designs");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get designs summary (ULTRA FAST - Only essential fields)
+        /// </summary>
+        [HttpGet("summary")]
+        public async Task<ActionResult<IEnumerable<DesignSummaryDto>>> GetDesignsSummary()
+        {
+            try
+            {
+                _logger.LogInformation("⚡ Getting designs summary (fast load)...");
+                var designs = await _designService.GetDesignsSummaryAsync();
+                _logger.LogInformation($"✅ Retrieved {designs.Count()} design summaries");
+                return Ok(designs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting designs summary");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get designs with lazy loading (Load details on demand)
+        /// </summary>
+        [HttpGet("lazy")]
+        public async Task<ActionResult<IEnumerable<DesignLazyDto>>> GetDesignsLazy()
+        {
+            try
+            {
+                _logger.LogInformation("🔄 Getting designs with lazy loading...");
+                var designs = await _designService.GetDesignsLazyAsync();
+                _logger.LogInformation($"✅ Retrieved {designs.Count()} lazy-loaded designs");
+                return Ok(designs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting lazy designs");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Load colors for a specific design (On-demand loading)
+        /// </summary>
+        [HttpGet("{id}/colors")]
+        public async Task<ActionResult<List<string>>> LoadDesignColors(int id)
+        {
+            try
+            {
+                _logger.LogInformation("🎨 Loading colors for design {DesignId}", id);
+                var colors = await _designService.LoadDesignColorsAsync(id);
+                return Ok(colors);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error loading colors for design {DesignId}", id);
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Load full details for a specific design (On-demand loading)
+        /// </summary>
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<DesignLazyDto>> LoadDesignDetails(int id)
+        {
+            try
+            {
+                _logger.LogInformation("📋 Loading full details for design {DesignId}", id);
+                var design = await _designService.LoadDesignDetailsAsync(id);
+                return Ok(design);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error loading details for design {DesignId}", id);
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get cache information
+        /// </summary>
+        [HttpGet("cache/info")]
+        public async Task<ActionResult<DesignCacheInfoDto>> GetCacheInfo()
+        {
+            try
+            {
+                var cacheInfo = await _designService.GetCacheInfoAsync();
+                return Ok(cacheInfo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting cache info");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Clear cache
+        /// </summary>
+        [HttpPost("cache/clear")]
+        public async Task<IActionResult> ClearCache()
+        {
+            try
+            {
+                var result = await _designService.ClearCacheAsync();
+                return Ok(new { 
+                    message = "Cache cleared successfully",
+                    success = result,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error clearing cache");
                 return StatusCode(500, new { 
                     error = "Internal server error",
                     message = ex.Message,

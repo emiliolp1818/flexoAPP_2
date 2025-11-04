@@ -11,23 +11,6 @@
           Administra usuarios, configuraciones generales y parámetros del sistema FlexoApp
         </p>
       </div>
-      
-      <div class="header-debug">
-        <mat-chip-set>
-          <mat-chip>
-            <mat-icon matChipAvatar>person</mat-icon>
-            Usuario: {{ (currentUser()?.firstName || '') + ' ' + (currentUser()?.lastName || '') || 'No user' }}
-          </mat-chip>
-          <mat-chip>
-            <mat-icon matChipAvatar>work</mat-icon>
-            Rol: {{ currentUser()?.role || 'No role' }}
-          </mat-chip>
-          <mat-chip>
-            <mat-icon matChipAvatar>security</mat-icon>
-            Permisos: {{ canManageUsers() ? 'Usuarios ✓' : 'Usuarios ✗' }} | {{ canManageSystemConfigs() ? 'Sistema ✓' : 'Sistema ✗' }}
-          </mat-chip>
-        </mat-chip-set>
-      </div>
 
     </div>
   </div>
@@ -42,11 +25,18 @@
         animationDuration="0ms">
         
         <!-- Tab: Gestión de Usuarios -->
-        <mat-tab label="Usuarios">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>people</mat-icon>
+            Usuarios  
+          </ng-template>
           <ng-template matTabContent>
             <div class="tab-content">
               <div class="section-header">
-                <h3>Gestión de Usuarios</h3>
+                <div>
+                  <h3>Gestión de Usuarios</h3>
+                  <p class="section-description">Administra los usuarios del sistema FlexoApp</p>
+                </div>
                 <button 
                   mat-raised-button 
                   color="primary" 
@@ -58,77 +48,156 @@
               </div>
 
               <div class="users-table-container">
-                <table mat-table [dataSource]="users()" class="users-table">
-                  <!-- Código de Usuario -->
-                  <ng-container matColumnDef="userCode">
-                    <th mat-header-cell *matHeaderCellDef>Código</th>
-                    <td mat-cell *matCellDef="let user">
-                      <div class="user-code">
-                        <mat-icon class="user-icon">account_circle</mat-icon>
-                        {{ user.userCode }}
+                <table mat-table [dataSource]="users()" class="users-table compact-table">
+                  
+                  <!-- Usuario (Foto + Nombre + Código) -->
+                  <ng-container matColumnDef="user">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <mat-icon>person</mat-icon>
+                        <span>Usuario</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let user" class="excel-cell user-cell">
+                      <div class="user-profile">
+                        <!-- Foto de perfil o avatar por defecto -->
+                        <div class="user-avatar">
+                          <img 
+                            *ngIf="user.profileImageUrl" 
+                            [src]="getProfileImageUrl(user.profileImageUrl)" 
+                            [alt]="user.firstName + ' ' + user.lastName"
+                            class="profile-image"
+                            (error)="onImageError($event)">
+                          <div 
+                            *ngIf="!user.profileImageUrl" 
+                            class="default-avatar"
+                            [style.background-color]="getAvatarColor(user.firstName)">
+                            {{ getInitials(user.firstName, user.lastName) }}
+                          </div>
+                        </div>
+                        <!-- Información del usuario -->
+                        <div class="user-details">
+                          <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                          <span class="user-code">{{ user.userCode }}</span>
+                        </div>
                       </div>
                     </td>
                   </ng-container>
 
-                  <!-- Nombre Completo -->
-                  <ng-container matColumnDef="name">
-                    <th mat-header-cell *matHeaderCellDef>Nombre Completo</th>
-                    <td mat-cell *matCellDef="let user">
-                      <div class="user-info">
-                        <span class="full-name">{{ user.firstName }} {{ user.lastName }}</span>
-                        <span class="display-name">{{ user.userCode }}</span>
+                  <!-- Información de Contacto -->
+                  <ng-container matColumnDef="contact">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <mat-icon>contact_phone</mat-icon>
+                        <span>Contacto</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let user" class="excel-cell contact-cell">
+                      <div class="contact-info">
+                        <div *ngIf="user.email" class="contact-item">
+                          <mat-icon class="contact-icon">email</mat-icon>
+                          <span class="contact-text">{{ user.email }}</span>
+                        </div>
+                        <div *ngIf="user.phone" class="contact-item">
+                          <mat-icon class="contact-icon">phone</mat-icon>
+                          <span class="contact-text">{{ user.phone }}</span>
+                        </div>
+                        <div *ngIf="!user.email && !user.phone" class="no-contact">
+                          <mat-icon class="contact-icon">contact_phone_off</mat-icon>
+                          <span class="contact-text">Sin contacto</span>
+                        </div>
                       </div>
                     </td>
                   </ng-container>
 
                   <!-- Rol -->
                   <ng-container matColumnDef="role">
-                    <th mat-header-cell *matHeaderCellDef>Rol</th>
-                    <td mat-cell *matCellDef="let user">
-                      <mat-chip-set>
-                        <mat-chip [class]="'role-chip role-' + user.role.toLowerCase()">
-                          {{ getRoleDisplayName(user.role) }}
-                        </mat-chip>
-                      </mat-chip-set>
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <mat-icon>work</mat-icon>
+                        <span>Rol</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let user" class="excel-cell role-cell">
+                      <mat-chip [class]="'role-chip role-' + user.role.toLowerCase().replace(' ', '-').replace('ñ', 'n')">
+                        {{ getRoleDisplayName(user.role) }}
+                      </mat-chip>
                     </td>
                   </ng-container>
 
-
-
                   <!-- Estado -->
-                  <ng-container matColumnDef="isActive">
-                    <th mat-header-cell *matHeaderCellDef>Estado</th>
-                    <td mat-cell *matCellDef="let user">
-                      <mat-slide-toggle
-                        [checked]="user.isActive"
-                        (change)="toggleUserStatus(user)"
-                        [disabled]="loading()">
-                      </mat-slide-toggle>
-                      <span class="status-text" [class.active]="user.isActive" [class.inactive]="!user.isActive">
-                        {{ user.isActive ? 'Activo' : 'Inactivo' }}
+                  <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <mat-icon>toggle_on</mat-icon>
+                        <span>Estado</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let user" class="excel-cell status-cell">
+                      <div class="status-container">
+                        <mat-slide-toggle
+                          [checked]="user.isActive"
+                          (change)="toggleUserStatus(user)"
+                          [disabled]="loading() || user.role === 'Administrador'"
+                          class="compact-toggle">
+                        </mat-slide-toggle>
+                        <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                          {{ user.isActive ? 'Activo' : 'Inactivo' }}
+                        </span>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- Último Acceso -->
+                  <ng-container matColumnDef="lastLogin">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <mat-icon>schedule</mat-icon>
+                        <span>Último Acceso</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let user" class="excel-cell date-cell">
+                      <span class="last-login" [title]="formatFullDate(user.lastLogin)">
+                        {{ formatRelativeDate(user.lastLogin) }}
                       </span>
                     </td>
                   </ng-container>
 
                   <!-- Acciones -->
                   <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                    <td mat-cell *matCellDef="let user">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <mat-icon>settings</mat-icon>
+                        <span>Acciones</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let user" class="excel-cell actions-cell">
                       <div class="action-buttons">
                         <button 
                           mat-icon-button 
                           color="primary" 
                           (click)="editUser(user)"
                           [disabled]="loading()"
-                          matTooltip="Editar usuario">
+                          matTooltip="Editar usuario"
+                          class="action-btn edit-btn">
                           <mat-icon>edit</mat-icon>
+                        </button>
+                        <button 
+                          mat-icon-button 
+                          color="accent" 
+                          (click)="resetPassword(user)"
+                          [disabled]="loading()"
+                          matTooltip="Restablecer contraseña"
+                          class="action-btn reset-btn">
+                          <mat-icon>lock_reset</mat-icon>
                         </button>
                         <button 
                           mat-icon-button 
                           color="warn" 
                           (click)="deleteUser(user)"
                           [disabled]="loading() || user.role === 'Administrador'"
-                          matTooltip="Eliminar usuario">
+                          matTooltip="Eliminar usuario"
+                          class="action-btn delete-btn">
                           <mat-icon>delete</mat-icon>
                         </button>
                       </div>
@@ -154,14 +223,20 @@
         </mat-tab>
 
         <!-- Tab: Configuraciones del Sistema -->
-        <mat-tab label="Sistema">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>settings</mat-icon>
+            Ajustes
+          </ng-template>
           <ng-template matTabContent>
             <div class="tab-content">
               <div class="section-header">
-                <h3>Configuraciones del Sistema</h3>
-                <p class="section-description">
-                  Ajusta las configuraciones generales del sistema FlexoApp
-                </p>
+                <div>
+                  <h3>Configuraciones del Sistema</h3>
+                  <p class="section-description">
+                    Ajusta las configuraciones generales del sistema FlexoApp
+                  </p>
+                </div>
               </div>
 
               <div class="config-sections">
@@ -233,24 +308,21 @@
           </ng-template>
         </mat-tab>
 
-        <!-- Tab: Permisos de Máquinas -->
-        <mat-tab label="Permisos Máquinas">
-          <ng-template matTabContent>
-            <div class="tab-content">
-              <app-user-permissions></app-user-permissions>
-            </div>
-          </ng-template>
-        </mat-tab>
-
         <!-- Tab: Permisos y Roles -->
-        <mat-tab label="Roles Sistema">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>security</mat-icon>
+            Permisos
+          </ng-template>
           <ng-template matTabContent>
             <div class="tab-content">
               <div class="section-header">
-                <h3>Gestión de Permisos y Roles del Sistema</h3>
-                <p class="section-description">
-                  Configura los permisos generales para cada rol del sistema
-                </p>
+                <div>
+                  <h3>Gestión de Permisos y Roles</h3>
+                  <p class="section-description">
+                    Configura los permisos para cada rol del sistema
+                  </p>
+                </div>
               </div>
 
               <div class="roles-permissions">
@@ -321,14 +393,20 @@
         </mat-tab>
 
         <!-- Tab: Información del Sistema -->
-        <mat-tab label="Sistema">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>info</mat-icon>
+            Sistema
+          </ng-template>
           <ng-template matTabContent>
             <div class="tab-content">
               <div class="section-header">
-                <h3>Información del Sistema</h3>
-                <p class="section-description">
-                  Información general sobre FlexoApp y el sistema
-                </p>
+                <div>
+                  <h3>Información del Sistema</h3>
+                  <p class="section-description">
+                    Información general sobre FlexoApp y el sistema
+                  </p>
+                </div>
               </div>
 
               <div class="system-info-grid">

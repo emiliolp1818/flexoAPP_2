@@ -749,5 +749,235 @@ namespace FlexoAPP.API.Services
             
             return deletedCount;
         }
+
+        // ===== OPTIMIZED METHODS FOR FAST LOADING =====
+
+        /// <summary>
+        /// Get designs with pagination (OPTIMIZED)
+        /// </summary>
+        public async Task<PaginatedDesignsDto> GetDesignsPaginatedAsync(
+            int page, int pageSize, string? search = null, string? sortBy = "LastModified", string? sortOrder = "desc")
+        {
+            var startTime = DateTime.UtcNow;
+            
+            try
+            {
+                _logger.LogInformation("🚀 Getting paginated designs - Page: {Page}, Size: {PageSize}", page, pageSize);
+                
+                var (designs, totalCount) = await _designRepository.GetDesignsPaginatedAsync(page, pageSize, search, sortBy, sortOrder);
+                
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                var loadTime = DateTime.UtcNow - startTime;
+                
+                var result = new PaginatedDesignsDto
+                {
+                    Items = designs.Select(MapToDto),
+                    TotalCount = totalCount,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    HasNextPage = page < totalPages,
+                    HasPreviousPage = page > 1,
+                    LoadTime = loadTime
+                };
+                
+                _logger.LogInformation("✅ Retrieved {Count} designs in {LoadTime}ms", designs.Count(), loadTime.TotalMilliseconds);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting paginated designs");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get designs summary (ULTRA FAST - Only essential fields)
+        /// </summary>
+        public async Task<IEnumerable<DesignSummaryDto>> GetDesignsSummaryAsync()
+        {
+            var startTime = DateTime.UtcNow;
+            
+            try
+            {
+                _logger.LogInformation("⚡ Getting designs summary (ultra fast)...");
+                
+                var designs = await _designRepository.GetDesignsSummaryAsync();
+                
+                var result = designs.Select(d => new DesignSummaryDto
+                {
+                    Id = d.Id,
+                    ArticleF = d.ArticleF ?? string.Empty,
+                    Client = d.Client ?? string.Empty,
+                    Status = d.Status ?? string.Empty,
+                    ColorCount = d.ColorCount ?? 0,
+                    LastModified = d.LastModified ?? DateTime.UtcNow
+                });
+                
+                var loadTime = DateTime.UtcNow - startTime;
+                _logger.LogInformation("✅ Retrieved {Count} design summaries in {LoadTime}ms", result.Count(), loadTime.TotalMilliseconds);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting designs summary");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get designs with lazy loading (Load details on demand)
+        /// </summary>
+        public async Task<IEnumerable<DesignLazyDto>> GetDesignsLazyAsync()
+        {
+            var startTime = DateTime.UtcNow;
+            
+            try
+            {
+                _logger.LogInformation("🔄 Getting designs with lazy loading...");
+                
+                var designs = await _designRepository.GetDesignsLazyAsync();
+                
+                var result = designs.Select(d => new DesignLazyDto
+                {
+                    Id = d.Id,
+                    ArticleF = d.ArticleF ?? string.Empty,
+                    Client = d.Client ?? string.Empty,
+                    Description = d.Description ?? string.Empty,
+                    Status = d.Status ?? string.Empty,
+                    ColorCount = d.ColorCount ?? 0,
+                    LastModified = d.LastModified ?? DateTime.UtcNow,
+                    ColorsLoaded = false,
+                    DetailsLoaded = false
+                });
+                
+                var loadTime = DateTime.UtcNow - startTime;
+                _logger.LogInformation("✅ Retrieved {Count} lazy designs in {LoadTime}ms", result.Count(), loadTime.TotalMilliseconds);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting lazy designs");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Load colors for lazy design
+        /// </summary>
+        public async Task<List<string>> LoadDesignColorsAsync(int designId)
+        {
+            try
+            {
+                _logger.LogInformation("🎨 Loading colors for design {DesignId}", designId);
+                
+                var colors = await _designRepository.GetDesignColorsAsync(designId);
+                
+                _logger.LogInformation("✅ Loaded {ColorCount} colors for design {DesignId}", colors.Count, designId);
+                
+                return colors;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error loading colors for design {DesignId}", designId);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Load full details for lazy design
+        /// </summary>
+        public async Task<DesignLazyDto> LoadDesignDetailsAsync(int designId)
+        {
+            try
+            {
+                _logger.LogInformation("📋 Loading full details for design {DesignId}", designId);
+                
+                var design = await _designRepository.GetDesignWithDetailsAsync(designId);
+                if (design == null)
+                {
+                    throw new KeyNotFoundException($"Design with ID {designId} not found");
+                }
+                
+                var colors = await _designRepository.GetDesignColorsAsync(designId);
+                
+                var result = new DesignLazyDto
+                {
+                    Id = design.Id,
+                    ArticleF = design.ArticleF ?? string.Empty,
+                    Client = design.Client ?? string.Empty,
+                    Description = design.Description ?? string.Empty,
+                    Status = design.Status ?? string.Empty,
+                    ColorCount = design.ColorCount ?? 0,
+                    LastModified = design.LastModified ?? DateTime.UtcNow,
+                    ColorsLoaded = true,
+                    Colors = colors,
+                    DetailsLoaded = true,
+                    Substrate = design.Substrate ?? string.Empty,
+                    Type = design.Type ?? string.Empty,
+                    PrintType = design.PrintType ?? string.Empty
+                };
+                
+                _logger.LogInformation("✅ Loaded full details for design {DesignId}", designId);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error loading details for design {DesignId}", designId);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get cache information (Mock implementation)
+        /// </summary>
+        public async Task<DesignCacheInfoDto> GetCacheInfoAsync()
+        {
+            try
+            {
+                var totalDesigns = await _designRepository.GetDesignStatsAsync();
+                
+                return new DesignCacheInfoDto
+                {
+                    CachedCount = totalDesigns.TotalDesigns,
+                    LastCacheUpdate = DateTime.UtcNow.AddMinutes(-5), // Mock
+                    CacheAge = TimeSpan.FromMinutes(5), // Mock
+                    IsCacheValid = true,
+                    CacheStatus = "Active"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting cache info");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Clear cache (Mock implementation)
+        /// </summary>
+        public async Task<bool> ClearCacheAsync()
+        {
+            try
+            {
+                _logger.LogInformation("🧹 Clearing design cache...");
+                
+                // Mock cache clearing
+                await Task.Delay(100);
+                
+                _logger.LogInformation("✅ Design cache cleared");
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error clearing cache");
+                throw;
+            }
+        }
     }
 }

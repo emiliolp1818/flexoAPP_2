@@ -35,5 +35,42 @@ namespace FlexoAPP.API.Services
         // Data management
         Task<bool> ClearTestDataAsync();
         Task<int> ClearAllDesignsAsync();
+
+        // ===== OPTIMIZED METHODS FOR FAST LOADING =====
+        
+        /// <summary>
+        /// Get designs with pagination (OPTIMIZED)
+        /// </summary>
+        Task<PaginatedDesignsDto> GetDesignsPaginatedAsync(int page, int pageSize, string? search = null, string? sortBy = "LastModified", string? sortOrder = "desc");
+        
+        /// <summary>
+        /// Get designs summary (ULTRA FAST - Only essential fields)
+        /// </summary>
+        Task<IEnumerable<DesignSummaryDto>> GetDesignsSummaryAsync();
+        
+        /// <summary>
+        /// Get designs with lazy loading (Load details on demand)
+        /// </summary>
+        Task<IEnumerable<DesignLazyDto>> GetDesignsLazyAsync();
+        
+        /// <summary>
+        /// Load colors for lazy design
+        /// </summary>
+        Task<List<string>> LoadDesignColorsAsync(int designId);
+        
+        /// <summary>
+        /// Load full details for lazy design
+        /// </summary>
+        Task<DesignLazyDto> LoadDesignDetailsAsync(int designId);
+        
+        /// <summary>
+        /// Get cache information
+        /// </summary>
+        Task<DesignCacheInfoDto> GetCacheInfoAsync();
+        
+        /// <summary>
+        /// Clear cache
+        /// </summary>
+        Task<bool> ClearCacheAsync();
     }
 }

@@ -1,7 +1,7 @@
 -- Script para crear la tabla de usuarios en MySQL
 -- Base de datos: flexoapp_db
 
-USE flexoapp_db;
+USE flexoapp_bd;
 
 -- Crear tabla de usuarios
 CREATE TABLE IF NOT EXISTS Users (

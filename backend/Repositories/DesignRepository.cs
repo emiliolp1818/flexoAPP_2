@@ -341,5 +341,168 @@ namespace FlexoAPP.API.Repositories
                 throw new Exception($"Error clearing all designs: {ex.Message}", ex);
             }
         }
+
+        // ===== OPTIMIZED METHODS FOR FAST LOADING =====
+
+        /// <summary>
+        /// Get designs with pagination (OPTIMIZED)
+        /// </summary>
+        public async Task<(IEnumerable<Design> designs, int totalCount)> GetDesignsPaginatedAsync(
+            int page, int pageSize, string? search = null, string? sortBy = "LastModified", string? sortOrder = "desc")
+        {
+            try
+            {
+                var query = _context.Designs.AsQueryable();
+
+                // Apply search filter
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(d => 
+                        d.ArticleF.Contains(search) ||
+                        d.Client.Contains(search) ||
+                        d.Description.Contains(search) ||
+                        d.Substrate.Contains(search));
+                }
+
+                // Get total count before pagination
+                var totalCount = await query.CountAsync();
+
+                // Apply sorting
+                query = sortBy?.ToLower() switch
+                {
+                    "articlef" => sortOrder?.ToLower() == "asc" 
+                        ? query.OrderBy(d => d.ArticleF) 
+                        : query.OrderByDescending(d => d.ArticleF),
+                    "client" => sortOrder?.ToLower() == "asc" 
+                        ? query.OrderBy(d => d.Client) 
+                        : query.OrderByDescending(d => d.Client),
+                    "createddate" => sortOrder?.ToLower() == "asc" 
+                        ? query.OrderBy(d => d.CreatedDate) 
+                        : query.OrderByDescending(d => d.CreatedDate),
+                    _ => sortOrder?.ToLower() == "asc" 
+                        ? query.OrderBy(d => d.LastModified) 
+                        : query.OrderByDescending(d => d.LastModified)
+                };
+
+                // Apply pagination
+                var designs = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return (designs, totalCount);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting paginated designs: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Get designs summary (ULTRA FAST - Only essential fields)
+        /// </summary>
+        public async Task<IEnumerable<Design>> GetDesignsSummaryAsync()
+        {
+            try
+            {
+                return await _context.Designs
+                    .Select(d => new Design
+                    {
+                        Id = d.Id,
+                        ArticleF = d.ArticleF,
+                        Client = d.Client,
+                        Status = d.Status,
+                        ColorCount = d.ColorCount,
+                        LastModified = d.LastModified
+                    })
+                    .OrderByDescending(d => d.LastModified)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting designs summary: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Get designs with lazy loading (Load basic info only)
+        /// </summary>
+        public async Task<IEnumerable<Design>> GetDesignsLazyAsync()
+        {
+            try
+            {
+                return await _context.Designs
+                    .Select(d => new Design
+                    {
+                        Id = d.Id,
+                        ArticleF = d.ArticleF,
+                        Client = d.Client,
+                        Description = d.Description,
+                        Status = d.Status,
+                        ColorCount = d.ColorCount,
+                        LastModified = d.LastModified
+                        // Colors and other details not loaded initially
+                    })
+                    .OrderByDescending(d => d.LastModified)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting lazy designs: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Get design colors only
+        /// </summary>
+        public async Task<List<string>> GetDesignColorsAsync(int designId)
+        {
+            try
+            {
+                var design = await _context.Designs
+                    .Where(d => d.Id == designId)
+                    .Select(d => new { 
+                        d.Color1, d.Color2, d.Color3, d.Color4, d.Color5,
+                        d.Color6, d.Color7, d.Color8, d.Color9, d.Color10 
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (design == null) return new List<string>();
+
+                var colors = new List<string>();
+                if (!string.IsNullOrEmpty(design.Color1)) colors.Add(design.Color1);
+                if (!string.IsNullOrEmpty(design.Color2)) colors.Add(design.Color2);
+                if (!string.IsNullOrEmpty(design.Color3)) colors.Add(design.Color3);
+                if (!string.IsNullOrEmpty(design.Color4)) colors.Add(design.Color4);
+                if (!string.IsNullOrEmpty(design.Color5)) colors.Add(design.Color5);
+                if (!string.IsNullOrEmpty(design.Color6)) colors.Add(design.Color6);
+                if (!string.IsNullOrEmpty(design.Color7)) colors.Add(design.Color7);
+                if (!string.IsNullOrEmpty(design.Color8)) colors.Add(design.Color8);
+                if (!string.IsNullOrEmpty(design.Color9)) colors.Add(design.Color9);
+                if (!string.IsNullOrEmpty(design.Color10)) colors.Add(design.Color10);
+
+                return colors;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting design colors: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Get design with full details
+        /// </summary>
+        public async Task<Design?> GetDesignWithDetailsAsync(int designId)
+        {
+            try
+            {
+                return await _context.Designs
+                    .FirstOrDefaultAsync(d => d.Id == designId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting design details: {ex.Message}", ex);
+            }
+        }
     }
 }

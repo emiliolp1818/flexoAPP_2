@@ -9,361 +9,425 @@ using FlexoAPP.API.Data.Context;
 using FlexoAPP.API.Data;
 using flexoAPP.Services;
 using flexoAPP.Repositories;
+using Serilog;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 
-var builder = WebApplication.CreateBuilder(args);
+// ===== SERILOG CONFIGURATION =====
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("logs/flexoapp-.log", 
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
-Console.WriteLine("🚀 Iniciando FlexoAPP Backend - ASP.NET Core 8.0");
-
-// ===== KESTREL CONFIGURATION =====
-builder.WebHost.ConfigureKestrel(options =>
+try
 {
-    options.Limits.MaxRequestHeadersTotalSize = 1048576; // 1MB
-    options.Limits.MaxRequestHeaderCount = 1000;
-    options.Limits.MaxRequestLineSize = 131072; // 128KB
-    options.Limits.MaxRequestBufferSize = 20971520; // 20MB
-    options.Limits.MaxRequestBodySize = 262144000; // 250MB
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
-});
+    Log.Information("🚀 Starting FlexoAPP Enhanced Backend - MySQL Edition");
 
-// Las URLs se configuran mediante ASPNETCORE_URLS
+    var builder = WebApplication.CreateBuilder(args);
 
-// ===== CORS CONFIGURATION =====
-builder.Services.AddCors(options => 
-{ 
-    options.AddDefaultPolicy(policy => 
-    { 
-        policy.SetIsOriginAllowed(origin =>
-        {
-            if (string.IsNullOrEmpty(origin)) return false;
-            
-            // Allow localhost
-            if (origin.StartsWith("http://localhost") || origin.StartsWith("http://127.0.0.1"))
-                return true;
-            
-            // Allow local network (192.168.x.x)
-            if (origin.StartsWith("http://192.168."))
-                return true;
-            
-            // Allow specific development origins
-            var allowedOrigins = new[]
-            {
-                "http://localhost:4200",
-                "http://localhost:7003",
-                "http://127.0.0.1:4200",
-                "http://127.0.0.1:7003"
-            };
-            
-            return allowedOrigins.Contains(origin);
-        })
-        .AllowAnyMethod() 
-        .AllowAnyHeader()
-        .AllowCredentials()
-        .SetPreflightMaxAge(TimeSpan.FromSeconds(86400))
-        .WithExposedHeaders("*");
-    }); 
-});
+    // ===== SERILOG INTEGRATION =====
+    builder.Host.UseSerilog();
 
-// ===== API CONFIGURATION =====
-builder.Services.AddControllers(); 
-builder.Services.AddEndpointsApiExplorer(); 
-
-// ===== SWAGGER CONFIGURATION =====
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo 
-    { 
-        Title = "FlexoAPP API", 
-        Version = "v1",
-        Description = "Sistema de Gestión Flexográfica - API REST"
-    });
-    
-    // JWT Authentication in Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    // ===== PERFORMANCE CONFIGURATION =====
+    builder.WebHost.ConfigureKestrel(options =>
     {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        // Listen on all network interfaces
+        options.ListenAnyIP(7003);
+        
+        options.Limits.MaxRequestHeadersTotalSize = 1048576; // 1MB
+        options.Limits.MaxRequestHeaderCount = 1000;
+        options.Limits.MaxRequestLineSize = 131072; // 128KB
+        options.Limits.MaxRequestBufferSize = 20971520; // 20MB
+        options.Limits.MaxRequestBodySize = 52428800; // 50MB
+        options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
+        options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
     });
-    
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+
+    // ===== RESPONSE COMPRESSION =====
+    builder.Services.AddResponseCompression(options =>
     {
+        options.EnableForHttps = true;
+        options.Providers.Add<BrotliCompressionProvider>();
+        options.Providers.Add<GzipCompressionProvider>();
+        options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
         {
-            new OpenApiSecurityScheme
+            "application/json",
+            "text/json",
+            "application/javascript",
+            "text/css",
+            "text/html"
+        });
+    });
+
+    builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Optimal;
+    });
+
+    builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Optimal;
+    });
+
+    // ===== CORS CONFIGURATION =====
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            policy.SetIsOriginAllowed(origin =>
             {
-                Reference = new OpenApiReference
+                if (string.IsNullOrEmpty(origin)) return false;
+
+                // Allow localhost and local network
+                if (origin.StartsWith("http://localhost") || 
+                    origin.StartsWith("http://127.0.0.1") ||
+                    origin.StartsWith("http://192.168.") ||
+                    origin.StartsWith("http://10.") ||
+                    origin.StartsWith("http://172."))
+                    return true;
+
+                return false;
+            })
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .SetPreflightMaxAge(TimeSpan.FromSeconds(86400))
+            .WithExposedHeaders("*");
+        });
+    });
+
+    // ===== API CONFIGURATION =====
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+
+    // ===== SWAGGER CONFIGURATION =====
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "FlexoAPP Enhanced API - MySQL Edition",
+            Version = "v2.1.0",
+            Description = "Enterprise Flexographic Management System - Enhanced with MySQL optimizations, Serilog, and Performance improvements",
+            Contact = new OpenApiContact
+            {
+                Name = "FlexoAPP Team",
+                Email = "support@flexoapp.com"
+            }
+        });
+
+        // JWT Authentication in Swagger
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        {
+            {
+                new OpenApiSecurityScheme
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    },
+                    Scheme = "oauth2",
+                    Name = "Bearer",
+                    In = ParameterLocation.Header,
                 },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header,
-            },
-            new List<string>()
+                new List<string>()
+            }
+        });
+    });
+
+    // ===== MINIPROFILER CONFIGURATION =====
+    builder.Services.AddMiniProfiler(options =>
+    {
+        options.RouteBasePath = "/profiler";
+        options.PopupRenderPosition = StackExchange.Profiling.RenderPosition.BottomLeft;
+        options.PopupShowTimeWithChildren = true;
+        options.PopupShowTrivial = true;
+    }).AddEntityFramework();
+
+    // ===== MEMORY CACHE (Simplified for now) =====
+    builder.Services.AddMemoryCache(options =>
+    {
+        options.SizeLimit = 1024 * 1024 * 100; // 100MB
+        options.CompactionPercentage = 0.25;
+        options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
+    });
+
+    // ===== SIGNALR CONFIGURATION =====
+    builder.Services.AddSignalR(options =>
+    {
+        options.EnableDetailedErrors = true;
+        options.KeepAliveInterval = TimeSpan.FromMinutes(1);
+        options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
+        options.HandshakeTimeout = TimeSpan.FromMinutes(1);
+        options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
+    });
+
+    // ===== JWT AUTHENTICATION =====
+    var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+    var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is required");
+
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidAudience = jwtSettings["Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                ClockSkew = TimeSpan.FromMinutes(5),
+                RequireExpirationTime = true,
+                RequireSignedTokens = true
+            };
+
+            // SignalR configuration
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                    {
+                        context.Token = accessToken;
+                    }
+                    return Task.CompletedTask;
+                }
+            };
+        });
+
+    builder.Services.AddAuthorization();
+
+    // ===== MYSQL DATABASE CONFIGURATION =====
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                          ?? builder.Configuration.GetConnectionString("LocalConnection")
+                          ?? throw new InvalidOperationException("MySQL connection string is required");
+
+    builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
+    {
+        // MySQL optimized configuration
+        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), mySqlOptions =>
+        {
+            mySqlOptions.CommandTimeout(30);
+            mySqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null);
+        });
+
+        options.EnableSensitiveDataLogging(false);
+        options.EnableServiceProviderCaching();
+        options.ConfigureWarnings(warnings => 
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.RowLimitingOperationWithoutOrderByWarning));
+        options.EnableDetailedErrors(builder.Environment.IsDevelopment());
+    });
+
+    Log.Information("✅ MySQL Database configured with optimized connection pooling");
+
+    // ===== HEALTH CHECKS =====
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<FlexoAPPDbContext>("database")
+        .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy());
+
+    Log.Information("✅ Health checks configured");
+
+    // ===== AUTOMAPPER CONFIGURATION =====
+    builder.Services.AddAutoMapper(typeof(Program));
+
+    // ===== DEPENDENCY INJECTION =====
+    // Authentication & Authorization
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IJwtService, JwtService>();
+    builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
+    // Business Services
+    builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+    builder.Services.AddScoped<IActivityService, ActivityService>();
+    builder.Services.AddScoped<flexoAPP.Repositories.IMachineProgramRepository, flexoAPP.Repositories.MachineProgramRepository>();
+    builder.Services.AddScoped<flexoAPP.Services.IMachineProgramService, flexoAPP.Services.MachineProgramService>();
+    builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
+    builder.Services.AddScoped<IPedidoService, PedidoService>();
+    builder.Services.AddScoped<IDesignRepository, DesignRepository>();
+    builder.Services.AddScoped<IDesignService, DesignService>();
+
+    // Reports & Backup Services
+    builder.Services.AddScoped<IReportsService, ReportsService>();
+    builder.Services.AddScoped<IMachineBackupService, MachineBackupService>();
+
+    // Automatic Backup Service deshabilitado para estabilidad
+
+    // Audit & Logging
+    builder.Services.AddScoped<FlexoAPP.API.Services.IAuditService, FlexoAPP.API.Services.AuditService>();
+
+    // HTTP Context
+    builder.Services.AddHttpContextAccessor();
+
+    // Cache Service (Memory Cache for now)
+    builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+
+    Log.Information("✅ All services configured successfully");
+
+    var app = builder.Build();
+
+    Log.Information("🔧 Configuring middleware pipeline...");
+
+    // ===== MIDDLEWARE PIPELINE =====
+
+    // Response compression
+    app.UseResponseCompression();
+
+    // MiniProfiler (development only)
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseMiniProfiler();
+    }
+
+    // CORS
+    app.UseCors();
+
+    // Static Files - Para servir imágenes de perfil y otros archivos
+    app.UseStaticFiles();
+
+    // Swagger (development and staging)
+    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "FlexoAPP Enhanced API v2.1.0");
+            c.RoutePrefix = "swagger";
+            c.DisplayRequestDuration();
+            c.EnableDeepLinking();
+            c.EnableFilter();
+            c.ShowExtensions();
+        });
+    }
+
+    // Authentication & Authorization
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    // Controllers
+    app.MapControllers();
+
+    // SignalR Hubs
+    app.MapHub<flexoAPP.Hubs.MachineProgramHub>("/hubs/machine-programs");
+
+    // Health Check Endpoints
+    app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+            var response = new
+            {
+                status = report.Status.ToString().ToLower(),
+                timestamp = DateTime.UtcNow,
+                message = "FlexoAPP Enhanced API Health Check - MySQL Edition",
+                version = "2.1.0",
+                database = report.Entries.ContainsKey("database") ? 
+                          (report.Entries["database"].Status == Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy ? "MySQL Connected" : "MySQL Disconnected") : 
+                          "Unknown",
+                authentication = "JWT Enabled",
+                caching = "Memory Cache",
+                profiling = "MiniProfiler Enabled",
+                compression = "Brotli + Gzip Enabled",
+                uptime = DateTime.UtcNow.Subtract(System.Diagnostics.Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss"),
+                checks = report.Entries.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new { 
+                        status = kvp.Value.Status.ToString().ToLower(),
+                        description = kvp.Value.Description,
+                        duration = kvp.Value.Duration.TotalMilliseconds
+                    }
+                )
+            };
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         }
     });
-});
 
-// ===== SIGNALR CONFIGURATION =====
-builder.Services.AddSignalR(options =>
-{
-    options.EnableDetailedErrors = true;
-    options.KeepAliveInterval = TimeSpan.FromMinutes(1);
-    options.ClientTimeoutInterval = TimeSpan.FromMinutes(5);
-    options.HandshakeTimeout = TimeSpan.FromMinutes(1);
-    options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
-});
+    app.MapHealthChecks("/health/ready");
+    app.MapHealthChecks("/health/live");
 
-// ===== JWT AUTHENTICATION =====
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? "FlexoAPP-Super-Secret-Key-2024-Production-Ready";
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings["Issuer"] ?? "FlexoAPP",
-            ValidAudience = jwtSettings["Audience"] ?? "FlexoAPP-Users",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-            ClockSkew = TimeSpan.FromMinutes(5), // Tolerancia de 5 minutos
-            RequireExpirationTime = true,
-            RequireSignedTokens = true
-        };
-        
-        // Configuración para SignalR
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            }
-        };
+    // Root endpoint
+    app.MapGet("/", () => new { 
+        message = "FlexoAPP Enhanced API - MySQL Edition", 
+        status = "running", 
+        timestamp = DateTime.UtcNow,
+        version = "2.1.0",
+        framework = ".NET 8.0",
+        features = new {
+            database = "MySQL with Optimized Connection Pooling",
+            caching = "Memory Cache",
+            logging = "Serilog Structured Logging",
+            profiling = "MiniProfiler Enabled",
+            compression = "Brotli + Gzip Enabled",
+            authentication = "JWT Bearer Token"
+        },
+        login = "admin / admin123", 
+        endpoints = new[] { 
+            "/api/auth/login", 
+            "/api/auth/me", 
+            "/api/designs",
+            "/api/machine-programs",
+            "/api/pedidos",
+            "/api/performance",
+            "/health", 
+            "/swagger",
+            "/profiler"
+        } 
     });
 
-builder.Services.AddAuthorization();
-
-// ===== DATABASE CONFIGURATION =====
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
-{
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), mySqlOptions =>
+    // Initialize database with seed data
+    try 
     {
-        mySqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: null);
-    });
-    options.EnableSensitiveDataLogging(false);
-    options.EnableServiceProviderCaching();
-    options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.RowLimitingOperationWithoutOrderByWarning));
-    options.EnableDetailedErrors(false);
-});
-
-// ===== HEALTH CHECKS =====
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<FlexoAPPDbContext>("database")
-    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy());
-
-// ===== MEMORY CACHE =====
-builder.Services.AddMemoryCache(options =>
-{
-    options.SizeLimit = 1024 * 1024 * 100; // 100MB
-    options.CompactionPercentage = 0.25;
-    options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
-});
-
-// ===== AUTOMAPPER CONFIGURATION =====
-builder.Services.AddAutoMapper(typeof(Program));
-
-// ===== DEPENDENCY INJECTION =====
-// Authentication & Authorization
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-
-// Business Services
-builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
-builder.Services.AddScoped<IActivityService, ActivityService>();
-builder.Services.AddScoped<flexoAPP.Repositories.IMachineProgramRepository, flexoAPP.Repositories.MachineProgramRepository>();
-builder.Services.AddScoped<flexoAPP.Services.IMachineProgramService, flexoAPP.Services.MachineProgramService>();
-builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
-builder.Services.AddScoped<IPedidoService, PedidoService>();
-builder.Services.AddScoped<IDesignRepository, DesignRepository>();
-builder.Services.AddScoped<IDesignService, DesignService>();
-
-// Reports & Backup Services
-builder.Services.AddScoped<IReportsService, ReportsService>();
-builder.Services.AddScoped<IMachineBackupService, MachineBackupService>();
-
-// Automatic Backup Service (Background Service)
-builder.Services.AddAutomaticBackupService();
-
-// Audit & Logging
-builder.Services.AddScoped<FlexoAPP.API.Services.IAuditService, FlexoAPP.API.Services.AuditService>();
-
-// HTTP Context
-builder.Services.AddHttpContextAccessor();
-
-Console.WriteLine("✅ Servicios configurados correctamente");
-
-var app = builder.Build();
-
-Console.WriteLine("🔧 Configurando middleware...");
-
-// Initialize database with seed data
-try 
-{
-    await FlexoAPP.API.Data.SeedData.InitializeAsync(app.Services);
-    await FlexoAPP.API.Data.MachineProgramTableInitializer.InitializeAsync(app.Services);
-    Console.WriteLine("✅ Base de datos inicializada");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"⚠️ Warning: Could not initialize seed data: {ex.Message}");
-}
-
-// CORS middleware
-app.Use(async (context, next) =>
-{
-    context.Response.Headers["Access-Control-Allow-Origin"] = "*";
-    context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
-    context.Response.Headers["Access-Control-Allow-Headers"] = "*";
-    context.Response.Headers["Access-Control-Max-Age"] = "86400";
-    
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        return;
+        await FlexoAPP.API.Data.SeedData.InitializeAsync(app.Services);
+        await FlexoAPP.API.Data.MachineProgramTableInitializer.InitializeAsync(app.Services);
+        Log.Information("✅ Database initialized with seed data");
     }
-    
-    await next();
-});
-
-app.UseCors();
-
-if (app.Environment.IsDevelopment()) 
-{ 
-    app.UseSwagger(); 
-    app.UseSwaggerUI(c =>
+    catch (Exception ex)
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FlexoAPP API v1");
-        c.RoutePrefix = "swagger";
-    }); 
-} 
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-// SignalR Hub
-app.MapHub<flexoAPP.Hubs.MachineProgramHub>("/hubs/machine-programs"); 
-
-// Health Check Endpoints
-app.MapGet("/", () => new { 
-    message = "FlexoAPP API - Sistema de Gestión Flexográfica", 
-    status = "running", 
-    timestamp = DateTime.UtcNow,
-    version = "2.0.0",
-    framework = ".NET 8.0",
-    login = "admin / admin123", 
-    endpoints = new[] { 
-        "/api/auth/login", 
-        "/api/auth/me", 
-        "/api/designs",
-        "/api/machine-programs",
-        "/api/pedidos",
-        "/health", 
-        "/swagger" 
-    } 
-}); 
-
-// Health Checks endpoint
-app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        var response = new
-        {
-            status = report.Status.ToString().ToLower(),
-            timestamp = DateTime.UtcNow,
-            message = "FlexoAPP API Health Check",
-            database = report.Entries.ContainsKey("database") ? 
-                      (report.Entries["database"].Status == Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy ? "Connected" : "Disconnected") : 
-                      "Unknown",
-            authentication = "JWT Enabled",
-            uptime = DateTime.UtcNow.Subtract(System.Diagnostics.Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss"),
-            checks = report.Entries.ToDictionary(
-                kvp => kvp.Key,
-                kvp => new { 
-                    status = kvp.Value.Status.ToString().ToLower(),
-                    description = kvp.Value.Description,
-                    duration = kvp.Value.Duration.TotalMilliseconds
-                }
-            )
-        };
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+        Log.Warning("⚠️ Could not initialize seed data: {Error}", ex.Message);
     }
-});
 
-// Endpoint de health simple para compatibilidad
-app.MapGet("/health-simple", () => new { 
-    status = "healthy", 
-    timestamp = DateTime.UtcNow, 
-    message = "FlexoAPP API is running",
-    database = "Connected",
-    authentication = "JWT Enabled"
-});
+    Log.Information("========================================="); 
+    Log.Information("🚀 FLEXOAPP ENHANCED API - MYSQL READY"); 
+    Log.Information("========================================="); 
+    Log.Information("🌐 Framework: ASP.NET Core 8.0"); 
+    Log.Information("🗄️ Database: MySQL with optimized connection pooling");
+    Log.Information("💾 Caching: Memory Cache with 100MB limit");
+    Log.Information("📝 Logging: Serilog with structured logging");
+    Log.Information("⚡ Profiling: MiniProfiler enabled (/profiler)");
+    Log.Information("🔐 Authentication: JWT Bearer Token"); 
+    Log.Information("🌍 CORS: Enabled for local network"); 
+    Log.Information("📊 Health Checks: /health, /health/ready, /health/live");
+    Log.Information("🗜️ Compression: Brotli + Gzip enabled");
+    Log.Information("👤 Default Login: admin / admin123"); 
+    Log.Information("========================================="); 
 
-app.MapGet("/api/test", () => new { 
-    status = "API working", 
-    timestamp = DateTime.UtcNow, 
-    message = "API endpoint accessible",
-    cors = "enabled",
-    version = "2.0.0"
-});
-
-Console.WriteLine("========================================="); 
-Console.WriteLine("    🚀 FLEXOAPP API - SISTEMA LISTO"); 
-Console.WriteLine("========================================="); 
-Console.WriteLine("🌐 URL Local: http://localhost:7003"); 
-Console.WriteLine("🌐 URL Red: http://192.168.1.6:7003"); 
-Console.WriteLine("🔐 API: http://192.168.1.6:7003/api/auth/login"); 
-Console.WriteLine("📚 Swagger: http://192.168.1.6:7003/swagger"); 
-Console.WriteLine("👤 Login: admin / admin123"); 
-Console.WriteLine("🔄 CORS: Enabled for all origins"); 
-Console.WriteLine("📊 Framework: ASP.NET Core 8.0"); 
-Console.WriteLine("🗄️ Database: MySQL with Entity Framework"); 
-Console.WriteLine("🔑 Auth: JWT Bearer Token"); 
-Console.WriteLine("🌍 Disponible en toda la red local"); 
-Console.WriteLine("========================================="); 
-
-Console.WriteLine("🚀 Iniciando servidor en puerto 7003...");
-
-try 
-{
-    // El servidor se configurará automáticamente desde appsettings.json
     app.Run();
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"❌ Error al iniciar el servidor: {ex.Message}");
-    Console.WriteLine($"Stack trace: {ex.StackTrace}");
-    throw;
+    Log.Fatal("❌ Application terminated unexpectedly: {Error}", ex);
+}
+finally
+{
+    Log.CloseAndFlush();
 }

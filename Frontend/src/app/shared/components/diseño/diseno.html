@@ -1,0 +1,516 @@
+<!-- ===== CONTENEDOR PRINCIPAL DE DISEÑOS ===== -->
+<!-- Sistema completo de gestión de diseños flexográficos con layout optimizado -->
+<!-- Contenedor raíz que ocupa toda la ventana (100vw x 100vh) con flexbox vertical -->
+<div class="design-container">
+
+  <!-- ===== HEADER FIJO ===== -->
+  <!-- Header principal que permanece fijo en la parte superior con estilo del perfil -->
+  <!-- Contenedor del header con fondo blanco translúcido y blur effect -->
+  <div class="design-header">
+    <!-- Contenedor interno del header con flexbox para distribuir contenido -->
+    <div class="header-content">
+      <!-- Sección izquierda: Información del header (título y subtítulo) -->
+      <div class="header-info">
+        <!-- Título principal con icono de diseño y tipografía bold -->
+        <h1 class="page-title">
+          <!-- Icono Material Design para servicios de diseño -->
+          <mat-icon>design_services</mat-icon>
+          <!-- Texto del título principal -->
+          Gestión de Diseños Flexográficos
+        </h1>
+        <!-- Subtítulo descriptivo con información sobre la funcionalidad -->
+        <p class="page-subtitle">
+          Base de datos completa de diseños flexográficos con especificaciones técnicas detalladas
+        </p>
+      </div>
+
+      <!-- Sección derecha: Acciones del header - Solo botones funcionales -->
+      <div class="header-actions">
+        <!-- Botón Carga Masiva Excel - Funcional -->
+        <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn"
+          [disabled]="uploading()" matTooltip="Subir diseños desde Excel">
+          <mat-icon>cloud_upload</mat-icon>
+          <span *ngIf="!uploading()">Importar Excel</span>
+          <span *ngIf="uploading()">{{uploadProgress()}}%</span>
+        </button>
+
+        <!-- Botón Exportar Excel - Funcional -->
+        <button mat-stroked-button color="primary" (click)="exportToExcel()" class="export-btn"
+          matTooltip="Exportar diseños a Excel">
+          <mat-icon>download</mat-icon>
+          Exportar
+        </button>
+
+        <!-- Botón Limpiar BD - Solo para admin -->
+        <button mat-icon-button color="warn" (click)="clearAllDesigns()" class="clear-db-btn"
+          *ngIf="hasPermission('admin_clear_db')" matTooltip="Limpiar base de datos">
+          <mat-icon>delete_sweep</mat-icon>
+        </button>
+      </div>
+    </div>
+    <!-- Fin del contenedor interno del header -->
+
+  </div>
+  <!-- Fin del header fijo -->
+
+
+
+  <!-- ===== ÁREA DE BÚSQUEDA ===== -->
+  <!-- Sección de búsqueda y filtros con diseño optimizado integrado al header -->
+  <!-- Contenedor del área de búsqueda con margen negativo para pegarlo al header -->
+  <div class="search-area">
+    <!-- Tarjeta Material Design para el módulo de búsqueda -->
+    <mat-card class="search-card">
+      <!-- Contenido de la tarjeta de búsqueda -->
+      <mat-card-content>
+        <!-- Sección principal de búsqueda con layout flexbox -->
+        <div class="search-section">
+          <!-- Campo de búsqueda con estilo Material Design outline -->
+          <mat-form-field appearance="outline" class="search-field">
+            <!-- Etiqueta flotante del campo de búsqueda -->
+            <mat-label>Buscar diseños</mat-label>
+            <!-- Input principal con binding bidireccional y evento de búsqueda en tiempo real -->
+            <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
+              placeholder="Buscar por Artículo F, Cliente o Descripción (ej: F204567, ABSORBENTES, PROTECTORES)">
+            <!-- Icono de búsqueda como sufijo del campo -->
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <!-- Botón para limpiar búsqueda - Solo visible cuando hay término de búsqueda -->
+          <!-- Utiliza directiva *ngIf para mostrar/ocultar condicionalmente -->
+          <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm()" class="clear-search-btn"
+            matTooltip="Limpiar búsqueda y mostrar todos los diseños">
+            <!-- Icono de limpiar/cerrar -->
+            <mat-icon>clear</mat-icon>
+          </button>
+        </div>
+
+        <!-- Sección de resultados de búsqueda - Solo visible cuando hay término de búsqueda -->
+        <div class="search-results" *ngIf="searchTerm()">
+          <!-- Contador de resultados con interpolación de datos -->
+          <span class="results-count">
+            {{ filteredDesigns().length }} resultado(s) encontrado(s) para "{{ searchTerm() }}"
+          </span>
+        </div>
+      </mat-card-content>
+      <!-- Fin del contenido de la tarjeta -->
+    </mat-card>
+    <!-- Fin de la tarjeta de búsqueda -->
+  </div>
+  <!-- Fin del área de búsqueda -->
+
+  <!-- ===== ÁREA DE TABLA SCROLLABLE ===== -->
+  <!-- Contenedor principal de la tabla que ocupa el resto del espacio disponible -->
+  <!-- Utiliza flexbox para ocupar todo el espacio restante después del header y búsqueda -->
+  <div class="scrollable-table-area">
+
+    <!-- ===== TARJETA DE TABLA ESTILO EXCEL ===== -->
+    <!-- Tabla principal con diseño profesional estilo Excel y Material Design -->
+    <!-- Contenedor Material Card para la tabla con bordes redondeados y sombra -->
+    <mat-card class="table-card">
+
+      <!-- Header de la tabla con información y estadísticas -->
+      <mat-card-header>
+        <!-- Título del header con icono y contador de registros -->
+        <mat-card-title>
+          <!-- Icono Material Design para vista de tabla -->
+          <mat-icon>table_view</mat-icon>
+          <!-- Título descriptivo de la tabla -->
+          Base de Datos de Diseños Flexográficos
+          <!-- Contador dinámico de registros - Solo visible cuando no está cargando -->
+          <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+            ({{ filteredDesigns().length }} registros)
+          </span>
+        </mat-card-title>
+      </mat-card-header>
+      <!-- Fin del header de la tabla -->
+
+      <!-- Contenido principal de la tabla -->
+      <mat-card-content>
+        <!-- Contenedor de la tabla con scroll independiente -->
+        <!-- Permite scroll horizontal y vertical mientras mantiene el header fijo -->
+        <div class="table-container">
+
+          <!-- ===== TABLA PRINCIPAL ESTILO EXCEL ===== -->
+          <!-- Tabla Angular Material con scroll horizontal y vertical, headers fijos -->
+          <!-- DataSource conectado a la señal reactiva filteredDesigns() -->
+          <table mat-table [dataSource]="filteredDesigns()" class="excel-table">
+
+            <!-- ===== COLUMNA ARTÍCULO F ===== -->
+            <!-- Código único del diseño flexográfico (ej: F204567) -->
+            <!-- Contenedor de columna Angular Material con definición de estructura -->
+            <ng-container matColumnDef="articleF">
+              <!-- Header de la columna con estilo Excel y clase personalizada -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <!-- Contenedor del contenido del header con flexbox -->
+                <div class="header-content">
+                  <!-- Icono Material Design para etiquetas/tags -->
+                  <mat-icon>tag</mat-icon>
+                  <!-- Texto del header de la columna -->
+                  <span>Artículo F</span>
+                </div>
+              </th>
+              <!-- Celda de datos con binding al objeto design -->
+              <td mat-cell *matCellDef="let design" class="excel-cell article-cell">
+                <!-- Código del artículo con estilo monospace para mejor legibilidad -->
+                <!-- Interpolación de datos desde el objeto design -->
+                <span class="article-code">{{ design.articleF }}</span>
+              </td>
+            </ng-container>
+            <!-- Fin de la columna Artículo F -->
+
+            <!-- ===== COLUMNA CLIENTE ===== -->
+            <!-- Nombre de la empresa cliente (ej: ABSORBENTES DE COLOMBIA S.A) -->
+            <!-- Contenedor de columna para información del cliente -->
+            <ng-container matColumnDef="client">
+              <!-- Header de la columna cliente con icono de negocio -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <!-- Contenedor del header con layout flexbox -->
+                <div class="header-content">
+                  <!-- Icono Material Design para empresas/negocios -->
+                  <mat-icon>business</mat-icon>
+                  <!-- Título de la columna -->
+                  <span>Cliente</span>
+                </div>
+              </th>
+              <!-- Celda de datos del cliente con estilo empresarial -->
+              <td mat-cell *matCellDef="let design" class="excel-cell client-cell">
+                <!-- Nombre del cliente con formato empresarial y clase CSS específica -->
+                <span class="client-name">{{ design.client }}</span>
+              </td>
+            </ng-container>
+            <!-- Fin de la columna Cliente -->
+
+            <!-- ===== COLUMNA DESCRIPCIÓN ===== -->
+            <!-- Descripción detallada del producto a imprimir con tooltip para texto completo -->
+            <ng-container matColumnDef="description">
+              <!-- Header con icono de descripción -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <!-- Icono Material Design para documentos/descripción -->
+                  <mat-icon>description</mat-icon>
+                  <span>Descripción</span>
+                </div>
+              </th>
+              <!-- Celda con texto truncado y tooltip para texto completo -->
+              <td mat-cell *matCellDef="let design" class="excel-cell description-cell">
+                <!-- Descripción con tooltip para mostrar texto completo al hacer hover -->
+                <!-- Clase CSS para truncar texto largo y mantener diseño compacto -->
+                <span class="description-text" [matTooltip]="design.description">
+                  {{ design.description }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- ===== COLUMNA SUSTRATO ===== -->
+            <!-- Material base sobre el que se imprime (ej: R PE COEX BCO, BOPP PERLADO) -->
+            <ng-container matColumnDef="substrate">
+              <!-- Header con icono de capas para representar el sustrato -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <!-- Icono Material Design para capas/layers -->
+                  <mat-icon>layers</mat-icon>
+                  <span>Sustrato</span>
+                </div>
+              </th>
+              <!-- Celda con estilo distintivo para el material del sustrato -->
+              <td mat-cell *matCellDef="let design" class="excel-cell substrate-cell">
+                <!-- Material del sustrato con estilo distintivo verde para diferenciación visual -->
+                <span class="substrate-text">{{ design.substrate }}</span>
+              </td>
+            </ng-container>
+
+            <!-- ===== COLUMNA TIPO DE PRODUCTO ===== -->
+            <!-- Tipo de estructura del empaque (LAMINA, TUBULAR, SEMITUBULAR) -->
+            <ng-container matColumnDef="type">
+              <!-- Header con icono de categoría -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <!-- Icono Material Design para categorías -->
+                  <mat-icon>category</mat-icon>
+                  <span>Tipo</span>
+                </div>
+              </th>
+              <!-- Celda con chip colorizado según el tipo -->
+              <td mat-cell *matCellDef="let design" class="excel-cell type-cell">
+                <!-- Chip Material Design con color distintivo según el tipo de producto -->
+                <!-- Clase CSS dinámica basada en el tipo (lamina, tubular, semitubular) -->
+                <mat-chip [class]="'type-chip type-' + design.type.toLowerCase()">
+                  {{ design.type }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- ===== COLUMNA TIPO DE IMPRESIÓN ===== -->
+            <!-- Especifica en qué cara(s) se imprime (CARA, DORSO, CARA_DORSO) -->
+            <ng-container matColumnDef="printType">
+              <!-- Header con icono de impresión -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <!-- Icono Material Design para impresión -->
+                  <mat-icon>print</mat-icon>
+                  <span>Tipo Impresión</span>
+                </div>
+              </th>
+              <!-- Celda con chip colorizado según el tipo de impresión -->
+              <td mat-cell *matCellDef="let design" class="excel-cell print-type-cell">
+                <!-- Chip con color según el tipo de impresión (una cara, dorso, ambas caras) -->
+                <!-- Transformación de clase CSS para manejar guiones bajos en nombres -->
+                <mat-chip [class]="'print-chip print-' + design.printType.toLowerCase().replace('_', '-')">
+                  <!-- Reemplazo de guiones bajos por espacios para mejor legibilidad -->
+                  {{ design.printType.replace('_', ' ') }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- ===== COLUMNA NÚMERO DE COLORES ===== -->
+            <!-- Cantidad total de colores utilizados en la impresión flexográfica -->
+            <ng-container matColumnDef="colorCount">
+              <!-- Header con icono de paleta -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <!-- Icono Material Design para paleta de colores -->
+                  <mat-icon>palette</mat-icon>
+                  <span>N° Colores</span>
+                </div>
+              </th>
+              <!-- Celda con badge circular para el número -->
+              <td mat-cell *matCellDef="let design" class="excel-cell color-count-cell">
+                <!-- Badge circular con el número de colores para fácil identificación visual -->
+                <div class="color-count-badge">
+                  {{ design.colorCount }}
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- ===== COLUMNA COLORES PANTONE - FORMATO TEXTO PALETA ===== -->
+            <!-- Paleta de colores PANTONE mostrada como texto con despliegue lateral interactivo -->
+            <ng-container matColumnDef="colors">
+              <!-- Header de la columna de paleta de colores -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <!-- Icono Material Design para paleta de colores -->
+                  <mat-icon>palette</mat-icon>
+                  <span>Paleta</span>
+                </div>
+              </th>
+              <!-- Celda compleja con sistema de dropdown para mostrar colores -->
+              <td mat-cell *matCellDef="let design" class="excel-cell colors-cell">
+                <!-- Contenedor principal de la celda de colores con atributo de datos -->
+                <div class="colors-cell-container" [attr.data-design-id]="design.id">
+                  <!-- Botón toggle para mostrar/ocultar la paleta de colores -->
+                  <!-- Clase CSS dinámica que cambia según el estado de expansión -->
+                  <button mat-icon-button
+                    [class]="'colors-toggle-btn-modern' + (isColorsExpanded(design.id?.toString() || '') ? ' active' : '')"
+                    (click)="toggleColors(design.id?.toString() || '', $event)"
+                    [attr.title]="'Ver ' + design.colorCount + ' colores'">
+                    <!-- Contenedor del icono con badge de número de colores -->
+                    <div class="colors-icon-container">
+                      <!-- Icono Material Design para lente de color -->
+                      <mat-icon class="colors-icon">color_lens</mat-icon>
+                      <!-- Badge circular con el número de colores -->
+                      <div class="colors-badge">{{ design.colorCount }}</div>
+                    </div>
+                  </button>
+                  
+                  <!-- Dropdown de colores con posición fija para evitar overflow -->
+                  <!-- Clase condicional 'visible' controlada por función isColorsExpanded -->
+                  <div class="colors-dropdown" 
+                       [class.visible]="isColorsExpanded(design.id?.toString() || '')">
+                    <!-- Contenido interno del dropdown -->
+                    <div class="colors-dropdown-content">
+                      <!-- Header del dropdown con información del diseño -->
+                      <div class="colors-dropdown-header">
+                        <!-- Icono de paleta en el header del dropdown -->
+                        <mat-icon>palette</mat-icon>
+                        <!-- Título dinámico con el artículo F del diseño -->
+                        <span>Colores para {{ design.articleF }}</span>
+                        <!-- Botón para cerrar el dropdown -->
+                        <button mat-icon-button (click)="closeColors(design.id?.toString() || '')"
+                          class="close-colors-btn">
+                          <!-- Icono de cerrar -->
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                      <!-- Lista de colores con scroll interno -->
+                      <div class="colors-dropdown-list">
+                        <!-- Iteración sobre el array de colores con índice -->
+                        <div *ngFor="let color of design.colors; let i = index" class="color-item">
+                          <!-- Número del color (índice + 1) -->
+                          <span class="color-number">{{ i + 1 }}</span>
+                          <!-- Nombre del color formateado en mayúsculas -->
+                          <span class="color-name">{{ formatColorName(color) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- ===== COLUMNA ESTADO ===== -->
+            <!-- Estado actual del diseño (ACTIVO/INACTIVO) para control de producción -->
+            <ng-container matColumnDef="status">
+              <!-- Header simple sin icono para la columna de estado -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <span>Estado</span>
+                </div>
+              </th>
+              <!-- Celda con indicador visual de estado -->
+              <td mat-cell *matCellDef="let design" class="excel-cell status-cell">
+                <!-- Indicador de estado con clase CSS dinámica basada en el estado -->
+                <!-- Función getStatusClass() determina el color (verde para ACTIVO, rojo para INACTIVO) -->
+                <div [class]="getStatusClass(design)">
+                  <!-- Texto del estado formateado por la función getDesignStatus() -->
+                  <span class="status-text">{{ getDesignStatus(design) }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- ===== COLUMNA ACCIONES ===== -->
+            <!-- Botones de acción para gestionar cada diseño (editar, duplicar, eliminar) -->
+            <ng-container matColumnDef="actions">
+              <!-- Header con icono de configuración -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <!-- Icono Material Design para configuraciones/ajustes -->
+                  <mat-icon>settings</mat-icon>
+                  <span>Acciones</span>
+                </div>
+              </th>
+              <!-- Celda con grupo de botones de acción -->
+              <td mat-cell *matCellDef="let design" class="excel-cell actions-cell">
+                <!-- Contenedor flexbox para los botones de acción -->
+                <div class="action-buttons">
+                  <!-- Botón Editar: Abre el diálogo de edición del diseño -->
+                  <button mat-icon-button color="primary" (click)="editDesign(design)"
+                    matTooltip="Editar diseño flexográfico">
+                    <!-- Icono Material Design para edición -->
+                    <mat-icon>edit</mat-icon>
+                  </button>
+
+                  <!-- Botón Duplicar: Crea una copia exacta del diseño para nuevo proyecto -->
+                  <button mat-icon-button color="accent" (click)="duplicateDesign(design)"
+                    matTooltip="Duplicar diseño para nuevo proyecto">
+                    <!-- Icono Material Design para copiar contenido -->
+                    <mat-icon>content_copy</mat-icon>
+                  </button>
+
+                  <!-- Botón Eliminar: Elimina permanentemente el diseño con confirmación -->
+                  <button mat-icon-button color="warn" (click)="deleteDesign(design)"
+                    matTooltip="Eliminar diseño permanentemente">
+                    <!-- Icono Material Design para eliminar -->
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- ===== FILAS DE LA TABLA ===== -->
+            <!-- Header fijo que permanece visible durante el scroll vertical -->
+            <!-- Directiva sticky: true mantiene el header fijo en la parte superior -->
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <!-- Filas de datos con efectos hover y selección -->
+            <!-- Cada fila se genera dinámicamente basada en displayedColumns -->
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="excel-row"></tr>
+          </table>
+          <!-- Fin de la tabla principal -->
+
+          <!-- ===== MENSAJE SIN DATOS ===== -->
+          <!-- Mostrado cuando no hay diseños o no se encuentran resultados de búsqueda -->
+          <!-- Condicional: solo visible cuando no hay datos Y no está cargando -->
+          <div *ngIf="filteredDesigns().length === 0 && !loading()" class="no-data">
+            <!-- Icono grande para estado vacío -->
+            <mat-icon>design_services</mat-icon>
+            <!-- Mensaje condicional cuando no hay diseños en la base de datos -->
+            <p *ngIf="!searchTerm()">No hay diseños registrados en la base de datos</p>
+            <!-- Mensaje condicional cuando la búsqueda no arroja resultados -->
+            <p *ngIf="searchTerm()">No se encontraron diseños que coincidan con "{{ searchTerm() }}"</p>
+            <!-- Botón de acción para crear el primer diseño - Solo visible sin búsqueda activa -->
+            <button mat-raised-button (click)="createNewDesign()" *ngIf="!searchTerm()">
+              <!-- Icono de agregar -->
+              <mat-icon>add</mat-icon>
+              Crear Primer Diseño
+            </button>
+          </div>
+
+          <!-- ===== MENSAJE DE CARGA ===== -->
+          <!-- Mostrado mientras se cargan los datos desde la base de datos MySQL -->
+          <!-- Solo visible cuando la señal loading() es true -->
+          <div *ngIf="loading()" class="loading-container">
+            <!-- Icono animado de carga con rotación CSS -->
+            <mat-icon class="loading-icon">refresh</mat-icon>
+            <!-- Mensaje informativo durante la carga -->
+            <p>Cargando diseños desde la base de datos...</p>
+          </div>
+
+        </div>
+        <!-- Fin del contenedor de la tabla -->
+      </mat-card-content>
+      <!-- Fin del contenido de la tarjeta -->
+    </mat-card>
+    <!-- Fin de la tarjeta de la tabla -->
+  </div>
+  <!-- Fin del área de tabla scrollable -->
+
+</div>
+<!-- Fin del contenedor principal de diseños -->
+
+<!-- ===== COMENTARIOS TÉCNICOS ===== -->
+<!--
+ESTRUCTURA DEL COMPONENTE DE DISEÑOS:
+
+1. CONTENEDOR PRINCIPAL (.design-container):
+   - Ocupa toda la ventana (100vw x 100vh)
+   - Sin espacios laterales
+   - Layout flexbox vertical
+
+2. HEADER FIJO (.design-header):
+   - Permanece visible durante el scroll
+   - Contiene título y botón de nuevo diseño
+   - Fondo con blur effect
+
+3. ÁREA DE BÚSQUEDA (.search-area):
+   - Campo de búsqueda con filtrado en tiempo real
+   - Contador de resultados
+   - Botón para limpiar búsqueda
+
+4. TABLA EXCEL (.scrollable-table-area):
+   - Ocupa el resto del espacio disponible
+   - Scroll horizontal y vertical independiente
+   - Headers fijos durante el scroll
+   - Estilos profesionales tipo Excel
+
+5. COLUMNAS DE LA TABLA:
+   - articleF: Código único del diseño
+   - client: Empresa cliente
+   - description: Descripción del producto
+   - substrate: Material base
+   - type: Tipo de estructura (LAMINA/TUBULAR/SEMITUBULAR)
+   - printType: Cara de impresión (CARA/DORSO/CARA_DORSO)
+   - colorCount: Número de colores
+   - colors: Paleta PANTONE con vista expandible
+   - status: Estado ACTIVO/INACTIVO
+   - actions: Botones de gestión
+
+6. CARACTERÍSTICAS TÉCNICAS:
+   - Responsive design para móviles y tablets
+   - Conexión con base de datos MySQL
+   - Fallback a datos mock si no hay conexión
+   - Animaciones suaves y efectos hover
+   - Tooltips informativos
+   - Gestión de estados de carga y error
+
+7. INTEGRACIÓN CON BACKEND:
+   - API REST para CRUD de diseños
+   - Manejo de errores de conexión
+   - Sincronización en tiempo real
+   - Validación de datos
+
+8. ACCESIBILIDAD:
+   - Contraste de colores adecuado
+   - Navegación por teclado
+   - Tooltips descriptivos
+   - Iconos semánticos
+-->
