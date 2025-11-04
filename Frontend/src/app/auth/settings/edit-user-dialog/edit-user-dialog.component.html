@@ -168,11 +168,11 @@
           <mat-slide-toggle 
             formControlName="isActive"
             class="status-toggle"
-            [disabled]="userData.role === 'Administrador'">
+            [disabled]="userData.role === 'admin'">
             Usuario Activo
           </mat-slide-toggle>
           <p class="toggle-description">
-            {{ userData.role === 'Administrador' ? 
+            {{ userData.role === 'admin' ? 
                'Los administradores no pueden ser desactivados' : 
                'El usuario podrá iniciar sesión si está activo' }}
           </p>

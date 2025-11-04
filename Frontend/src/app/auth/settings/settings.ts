@@ -71,8 +71,8 @@ export class SettingsComponent implements OnInit {
   // Configuración de tabla de usuarios - Compacta
   userDisplayedColumns: string[] = ['user', 'contact', 'role', 'status', 'lastLogin', 'actions'];
 
-  // Roles del sistema
-  roles = ['Administrador', 'Supervisor', 'Pre-alistador', 'Matizador', 'Operador'];
+  // Roles estándar del sistema FlexoApp
+  roles = ['admin', 'supervisor', 'pre-alistador', 'matizador', 'operario', 'retornos'];
 
   constructor() {}
 
@@ -109,16 +109,16 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * Verificar permisos
+   * Verificar permisos con nuevos roles estándar
    */
   canManageUsers(): boolean {
     const user = this.currentUser();
-    return user?.role === 'Administrador' || user?.role === 'Supervisor';
+    return ['admin', 'supervisor'].includes(user?.role || '');
   }
 
   canManageSystemConfigs(): boolean {
     const user = this.currentUser();
-    return user?.role === 'Administrador';
+    return user?.role === 'admin';
   }
 
   /**
@@ -237,7 +237,7 @@ export class SettingsComponent implements OnInit {
         lastName: 'Rodríguez',
         email: 'carlos.rodriguez@flexoapp.com',
         phone: '+57 300 123 4567',
-        role: 'Administrador',
+        role: 'admin',
         isActive: true,
         profileImageUrl: undefined,
         lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 horas atrás
@@ -251,7 +251,7 @@ export class SettingsComponent implements OnInit {
         lastName: 'González',
         email: 'maria.gonzalez@flexoapp.com',
         phone: '+57 301 987 6543',
-        role: 'Supervisor',
+        role: 'supervisor',
         isActive: true,
         profileImageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
         lastLogin: new Date(Date.now() - 30 * 60 * 1000), // 30 minutos atrás
@@ -265,7 +265,7 @@ export class SettingsComponent implements OnInit {
         lastName: 'Martínez',
         email: 'juan.martinez@flexoapp.com',
         phone: undefined, // Sin teléfono
-        role: 'Pre-alistador',
+        role: 'pre-alistador',
         isActive: true,
         profileImageUrl: undefined,
         lastLogin: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 horas atrás
@@ -279,7 +279,7 @@ export class SettingsComponent implements OnInit {
         lastName: 'López',
         email: 'ana.lopez@flexoapp.com',
         phone: '+57 302 456 7890',
-        role: 'Matizador',
+        role: 'matizador',
         isActive: true,
         profileImageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
         lastLogin: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hora atrás
@@ -293,7 +293,7 @@ export class SettingsComponent implements OnInit {
         lastName: 'Sánchez',
         email: 'pedro.sanchez@flexoapp.com',
         phone: undefined, // Sin teléfono
-        role: 'Operador',
+        role: 'operario',
         isActive: false,
         profileImageUrl: undefined,
         lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 día atrás
@@ -307,7 +307,7 @@ export class SettingsComponent implements OnInit {
         lastName: 'Fernández',
         email: 'laura.fernandez@flexoapp.com',
         phone: '+57 303 789 0123',
-        role: 'Matizador',
+        role: 'matizador',
         isActive: true,
         profileImageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
         lastLogin: new Date(Date.now() - 15 * 60 * 1000), // 15 minutos atrás
@@ -321,7 +321,7 @@ export class SettingsComponent implements OnInit {
         lastName: 'García',
         email: 'roberto.garcia@flexoapp.com',
         phone: undefined, // Sin teléfono
-        role: 'Pre-alistador',
+        role: 'pre-alistador',
         isActive: true,
         profileImageUrl: undefined,
         lastLogin: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 horas atrás
@@ -335,7 +335,7 @@ export class SettingsComponent implements OnInit {
         lastName: 'Ruiz',
         email: 'carmen.ruiz@flexoapp.com',
         phone: '+57 304 234 5678',
-        role: 'Operador',
+        role: 'operario',
         isActive: true,
         profileImageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
         lastLogin: new Date(Date.now() - 45 * 60 * 1000), // 45 minutos atrás
@@ -449,11 +449,12 @@ export class SettingsComponent implements OnInit {
    */
   getRoleDisplayName(role: string): string {
     const roleNames: { [key: string]: string } = {
-      'Administrador': 'Administrador',
-      'Supervisor': 'Supervisor',
-      'Pre-alistador': 'Pre-alistador',
-      'Matizador': 'Matizador',
-      'Operador': 'Operador'
+      'admin': 'Administrador',
+      'supervisor': 'Supervisor',
+      'pre-alistador': 'Pre-alistador',
+      'matizador': 'Matizador',
+      'operario': 'Operario',
+      'retornos': 'Retornos'
     };
     return roleNames[role] || role;
   }
@@ -702,7 +703,7 @@ export class SettingsComponent implements OnInit {
    */
   async deleteUser(user: User) {
     // Prevenir eliminación de administradores
-    if (user.role === 'Administrador') {
+    if (user.role === 'admin') {
       this.snackBar.open('No se puede eliminar un usuario Administrador', 'Cerrar', {
         duration: 3000,
         panelClass: ['error-snackbar']
@@ -761,7 +762,7 @@ Esta acción NO se puede deshacer.
    */
   async toggleUserStatus(user: User) {
     // Prevenir desactivación de administradores
-    if (user.role === 'Administrador' && user.isActive) {
+    if (user.role === 'admin' && user.isActive) {
       this.snackBar.open('No se puede desactivar un usuario Administrador', 'Cerrar', {
         duration: 3000,
         panelClass: ['error-snackbar']

@@ -137,17 +137,17 @@ export class DesignComponent implements OnInit {
       console.log('👤 Usuario actual:', user);
       console.log('🔑 Rol del usuario:', user.role);
       
-      // Configurar permisos basados en el rol del usuario (roles en español del sistema FlexoApp)
+      // Configurar permisos basados en los nuevos roles estándar de la plataforma
       const permissions: UserPermissions = {
-        // Administrador tiene todos los permisos
-        canCreateDesign: ['Administrador', 'Supervisor', 'Pre-alistador', 'Matizador', 'admin', 'manager', 'designer'].includes(user.role),
-        canBulkUpload: ['Administrador', 'Supervisor', 'admin', 'manager'].includes(user.role),
-        canClearDatabase: ['Administrador', 'admin'].includes(user.role),
-        canEditDesign: ['Administrador', 'Supervisor', 'Pre-alistador', 'Matizador', 'admin', 'manager', 'designer'].includes(user.role),
-        canDeleteDesign: ['Administrador', 'Supervisor', 'admin', 'manager'].includes(user.role),
-        create_design: ['Administrador', 'Supervisor', 'Pre-alistador', 'Matizador', 'admin', 'manager', 'designer'].includes(user.role),
-        bulk_upload: ['Administrador', 'Supervisor', 'admin', 'manager'].includes(user.role),
-        admin_clear_db: ['Administrador', 'admin'].includes(user.role)
+        // Admin tiene todos los permisos, supervisor y pre-alistador pueden crear/editar
+        canCreateDesign: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(user.role),
+        canBulkUpload: ['admin', 'supervisor'].includes(user.role),
+        canClearDatabase: ['admin'].includes(user.role),
+        canEditDesign: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(user.role),
+        canDeleteDesign: ['admin', 'supervisor'].includes(user.role),
+        create_design: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(user.role),
+        bulk_upload: ['admin', 'supervisor'].includes(user.role),
+        admin_clear_db: ['admin'].includes(user.role)
       };
       
       console.log('🔐 Permisos configurados:', permissions);
@@ -171,7 +171,7 @@ export class DesignComponent implements OnInit {
    */
   isAdmin(): boolean {
     const user = this.currentUser();
-    const isAdmin = user?.role === 'Administrador' || user?.role === 'admin';
+    const isAdmin = user?.role === 'admin';
     console.log('👑 ¿Es administrador?:', isAdmin, '- Rol:', user?.role);
     return isAdmin;
   }

@@ -86,11 +86,12 @@ export class EditUserDialogComponent implements OnInit {
   // Array de opciones de roles disponibles en el sistema FlexoApp
   // Cada rol tiene un valor, etiqueta descriptiva e icono de Material Design
   availableRoles: RoleOption[] = [
-    { value: 'Administrador', label: 'Administrador', icon: 'admin_panel_settings' },  // Acceso completo al sistema
-    { value: 'Supervisor', label: 'Supervisor', icon: 'supervisor_account' },          // Supervisión de operaciones
-    { value: 'Pre-alistador', label: 'Pre-alistador', icon: 'list_alt' },            // Preparación de pedidos
-    { value: 'Matizador', label: 'Matizador', icon: 'palette' },                     // Gestión de colores y tintas
-    { value: 'Operador', label: 'Operador', icon: 'person' }                         // Operación básica de máquinas
+    { value: 'admin', label: 'Administrador', icon: 'admin_panel_settings' },        // Acceso completo al sistema
+    { value: 'supervisor', label: 'Supervisor', icon: 'supervisor_account' },        // Supervisión de operaciones
+    { value: 'pre-alistador', label: 'Pre-alistador', icon: 'list_alt' },          // Preparación de pedidos
+    { value: 'matizador', label: 'Matizador', icon: 'palette' },                    // Gestión de colores y tintas
+    { value: 'operario', label: 'Operario', icon: 'person' },                       // Operación básica de máquinas
+    { value: 'retornos', label: 'Retornos', icon: 'assignment_return' }             // Gestión de retornos
   ];
 
   // ===== CONSTRUCTOR =====

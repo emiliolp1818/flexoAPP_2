@@ -149,7 +149,7 @@
                         <mat-slide-toggle
                           [checked]="user.isActive"
                           (change)="toggleUserStatus(user)"
-                          [disabled]="loading() || user.role === 'Administrador'"
+                          [disabled]="loading() || user.role === 'admin'"
                           class="compact-toggle">
                         </mat-slide-toggle>
                         <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
@@ -206,7 +206,7 @@
                           mat-icon-button 
                           color="warn" 
                           (click)="deleteUser(user)"
-                          [disabled]="loading() || user.role === 'Administrador'"
+                          [disabled]="loading() || user.role === 'admin'"
                           matTooltip="Eliminar usuario"
                           class="action-btn delete-btn">
                           <mat-icon>delete</mat-icon>
@@ -338,13 +338,15 @@
 
               <div class="roles-permissions">
                 <mat-accordion multi="true">
-                  <mat-expansion-panel *ngFor="let role of roles" [expanded]="role === 'Administrador'">
+                  <mat-expansion-panel *ngFor="let role of roles" [expanded]="role === 'admin'">
                     <mat-expansion-panel-header>
                       <mat-panel-title>
-                        <mat-icon>{{ role === 'Administrador' ? 'admin_panel_settings' : 
-                                     role === 'Supervisor' ? 'supervisor_account' : 
-                                     role === 'Pre-alistador' ? 'list_alt' :
-                                     role === 'Matizador' ? 'palette' : 'person' }}
+                        <mat-icon>{{ role === 'admin' ? 'admin_panel_settings' : 
+                                     role === 'supervisor' ? 'supervisor_account' : 
+                                     role === 'pre-alistador' ? 'list_alt' :
+                                     role === 'matizador' ? 'palette' : 
+                                     role === 'operario' ? 'person' :
+                                     role === 'retornos' ? 'assignment_return' : 'person' }}
                         </mat-icon>
                         {{ getRoleDisplayName(role) }}
                       </mat-panel-title>
@@ -356,16 +358,16 @@
                     <div class="permissions-grid">
                       <div class="permission-category">
                         <h4>Usuarios</h4>
-                        <mat-checkbox [checked]="role === 'Administrador' || role === 'Supervisor'">
+                        <mat-checkbox [checked]="role === 'admin' || role === 'supervisor'">
                           Ver usuarios
                         </mat-checkbox>
-                        <mat-checkbox [checked]="role === 'Administrador'">
+                        <mat-checkbox [checked]="role === 'admin'">
                           Crear usuarios
                         </mat-checkbox>
-                        <mat-checkbox [checked]="role === 'Administrador'">
+                        <mat-checkbox [checked]="role === 'admin'">
                           Editar usuarios
                         </mat-checkbox>
-                        <mat-checkbox [checked]="role === 'Administrador'">
+                        <mat-checkbox [checked]="role === 'admin'">
                           Eliminar usuarios
                         </mat-checkbox>
                       </div>
@@ -374,11 +376,11 @@
 
                       <div class="permission-category">
                         <h4>Configuraciones</h4>
-                        <mat-checkbox [checked]="role === 'Administrador'">
+                        <mat-checkbox [checked]="role === 'admin'">
                           Configuraciones del sistema
                         </mat-checkbox>
 
-                        <mat-checkbox [checked]="role === 'Administrador'">
+                        <mat-checkbox [checked]="role === 'admin'">
                           Gestión de permisos
                         </mat-checkbox>
                       </div>
@@ -388,10 +390,10 @@
                         <mat-checkbox [checked]="true">
                           Ver reportes básicos
                         </mat-checkbox>
-                        <mat-checkbox [checked]="role === 'Administrador' || role === 'Supervisor'">
+                        <mat-checkbox [checked]="role === 'admin' || role === 'supervisor'">
                           Reportes avanzados
                         </mat-checkbox>
-                        <mat-checkbox [checked]="role === 'Administrador' || role === 'Supervisor'">
+                        <mat-checkbox [checked]="role === 'admin' || role === 'supervisor'">
                           Exportar reportes
                         </mat-checkbox>
                       </div>

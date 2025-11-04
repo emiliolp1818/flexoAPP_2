@@ -741,7 +741,7 @@ $gray-900: #0f172a;  // Gris máximo
   height: auto !important;
   min-height: auto !important;
 
-  &.role-administrador {
+  &.role-admin {
     background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     color: white;
     border-color: #991b1b;
@@ -765,10 +765,16 @@ $gray-900: #0f172a;  // Gris máximo
     border-color: $primary-blue-700;
   }
 
-  &.role-operador {
+  &.role-operario {
     background: linear-gradient(135deg, $gray-500 0%, $gray-600 100%);
     color: white;
     border-color: $gray-700;
+  }
+
+  &.role-retornos {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white;
+    border-color: #065f46;
   }
 }
 
