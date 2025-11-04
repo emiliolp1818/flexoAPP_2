@@ -197,7 +197,88 @@
             </mat-form-field>
           </div>
 
-          <!-- Fila 5: Estado -->
+          <!-- Fila 5: Selección de Colores Pantone Live -->
+          <div class="form-row colors-section" *ngIf="createDesignForm.get('colorCount')?.value > 0">
+            <div class="colors-header">
+              <h4>
+                <mat-icon>palette</mat-icon>
+                Colores Pantone Live
+              </h4>
+              <p class="colors-description">
+                Selecciona los colores Pantone para cada posición (P = Pantone Live)
+              </p>
+            </div>
+
+            <!-- Colores más utilizados -->
+            <div class="most-used-colors">
+              <span class="section-label">Más utilizados:</span>
+              <div class="color-chips">
+                <div 
+                  *ngFor="let color of getMostUsedColors()" 
+                  class="color-chip"
+                  [style.background-color]="color.hex"
+                  [title]="color.displayName + ' - ' + color.hex"
+                  (click)="selectPantoneColor(0, color)">
+                  <span class="color-code">{{ color.displayName }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selector de colores por posición -->
+            <div class="color-selectors">
+              <div 
+                *ngFor="let color of selectedColors(); let i = index" 
+                class="color-selector">
+                <label class="color-label">Color {{ i + 1 }}:</label>
+                
+                <mat-form-field appearance="outline" class="color-field">
+                  <mat-label>Buscar Pantone</mat-label>
+                  <input 
+                    matInput 
+                    [value]="color.displayName"
+                    (input)="searchPantoneColors($event.target.value)"
+                    [matAutocomplete]="colorAuto"
+                    placeholder="Ej: P 209, P Black">
+                  <mat-icon matSuffix>search</mat-icon>
+                  
+                  <mat-autocomplete 
+                    #colorAuto="matAutocomplete"
+                    (optionSelected)="selectPantoneColor(i, $event.option.value)">
+                    <mat-option 
+                      *ngFor="let pantoneColor of availablePantoneColors()" 
+                      [value]="pantoneColor"
+                      class="color-option">
+                      <div class="color-option-content">
+                        <div 
+                          class="color-preview" 
+                          [style.background-color]="pantoneColor.hex">
+                        </div>
+                        <div class="color-info">
+                          <span class="color-name">{{ pantoneColor.displayName }}</span>
+                          <span class="color-hex">{{ pantoneColor.hex }}</span>
+                        </div>
+                      </div>
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+
+                <!-- Vista previa del color seleccionado -->
+                <div class="selected-color-preview">
+                  <div 
+                    class="color-swatch" 
+                    [style.background-color]="color.hex"
+                    [title]="color.displayName + ' - ' + color.hex">
+                  </div>
+                  <div class="color-details">
+                    <span class="color-code">{{ color.displayName }}</span>
+                    <span class="color-hex">{{ color.hex }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fila 6: Estado -->
           <div class="form-row">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Estado *</mat-label>

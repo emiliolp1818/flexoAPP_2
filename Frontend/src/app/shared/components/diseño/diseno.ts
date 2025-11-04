@@ -12,10 +12,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { PantoneLiveService, PantoneColor } from '../../services/pantone-live.service';
 
 interface FlexographicDesign {
   id?: number;
@@ -61,6 +63,7 @@ interface UserPermissions {
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatTableModule,
+    MatAutocompleteModule,
     ReactiveFormsModule,
     FormsModule
   ],
@@ -73,6 +76,7 @@ export class DesignComponent implements OnInit {
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
+  private pantoneService = inject(PantoneLiveService);
   
   // Señales reactivas
   currentUser = signal<User | null>(null);
@@ -87,6 +91,11 @@ export class DesignComponent implements OnInit {
   
   // Formulario para crear diseño
   createDesignForm: FormGroup;
+  
+  // Colores Pantone
+  availablePantoneColors = signal<PantoneColor[]>([]);
+  selectedColors = signal<PantoneColor[]>([]);
+  colorSearchTerm = signal<string>('');
 
   // Configuración de tabla
   displayedColumns: string[] = [
@@ -124,6 +133,16 @@ export class DesignComponent implements OnInit {
   ngOnInit() {
     this.loadCurrentUser();
     this.loadDesigns();
+    this.loadPantoneColors();
+  }
+
+  /**
+   * Cargar colores Pantone disponibles
+   */
+  loadPantoneColors() {
+    const colors = this.pantoneService.getAllColors();
+    this.availablePantoneColors.set(colors);
+    console.log('🎨 Colores Pantone cargados:', colors.length);
   }
 
   /**
@@ -513,21 +532,64 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    */
   updateColors() {
     const colorCount = this.createDesignForm.get('colorCount')?.value || 1;
-    const currentColors = this.createDesignForm.get('colors')?.value || [];
+    const currentSelectedColors = this.selectedColors();
     
-    const newColors = [...currentColors];
+    // Ajustar la lista de colores seleccionados
+    const newSelectedColors = [...currentSelectedColors];
     
-    // Agregar colores si se necesitan más
-    while (newColors.length < colorCount) {
-      newColors.push('Color ' + (newColors.length + 1));
+    // Si necesitamos más colores, agregar colores por defecto
+    while (newSelectedColors.length < colorCount) {
+      const defaultColor = this.pantoneService.getColorByCode('Black');
+      if (defaultColor) {
+        newSelectedColors.push(defaultColor);
+      }
     }
     
-    // Remover colores si hay demasiados
-    while (newColors.length > colorCount) {
-      newColors.pop();
+    // Si hay demasiados colores, remover los últimos
+    while (newSelectedColors.length > colorCount) {
+      newSelectedColors.pop();
     }
     
-    this.createDesignForm.patchValue({ colors: newColors });
+    this.selectedColors.set(newSelectedColors);
+    
+    // Actualizar el formulario con los códigos de los colores
+    const colorCodes = newSelectedColors.map(color => color.displayName);
+    this.createDesignForm.patchValue({ colors: colorCodes });
+  }
+
+  /**
+   * Buscar colores Pantone
+   */
+  searchPantoneColors(searchTerm: string) {
+    this.colorSearchTerm.set(searchTerm);
+    if (searchTerm.trim()) {
+      const filteredColors = this.pantoneService.searchByCode(searchTerm);
+      this.availablePantoneColors.set(filteredColors);
+    } else {
+      this.availablePantoneColors.set(this.pantoneService.getAllColors());
+    }
+  }
+
+  /**
+   * Seleccionar color Pantone para una posición específica
+   */
+  selectPantoneColor(colorIndex: number, color: PantoneColor) {
+    const currentColors = [...this.selectedColors()];
+    currentColors[colorIndex] = color;
+    this.selectedColors.set(currentColors);
+    
+    // Actualizar formulario
+    const colorCodes = currentColors.map(c => c.displayName);
+    this.createDesignForm.patchValue({ colors: colorCodes });
+    
+    console.log(`🎨 Color ${colorIndex + 1} seleccionado:`, color.displayName, color.hex);
+  }
+
+  /**
+   * Obtener colores más utilizados
+   */
+  getMostUsedColors(): PantoneColor[] {
+    return this.pantoneService.getMostUsedColors();
   }
 
   /**
