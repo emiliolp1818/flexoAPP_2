@@ -72,6 +72,7 @@ export class DesignComponent implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private snackBar = inject(MatSnackBar);
+  private fb = inject(FormBuilder);
   
   // Señales reactivas
   currentUser = signal<User | null>(null);
@@ -82,6 +83,10 @@ export class DesignComponent implements OnInit {
   allDesigns = signal<FlexographicDesign[]>([]);
   filteredDesigns = signal<FlexographicDesign[]>([]);
   expandedColors = signal<Set<string>>(new Set());
+  showCreateForm = signal<boolean>(false);
+  
+  // Formulario para crear diseño
+  createDesignForm: FormGroup;
 
   // Configuración de tabla
   displayedColumns: string[] = [
@@ -101,7 +106,20 @@ export class DesignComponent implements OnInit {
     admin_clear_db: false
   });
 
-  constructor() {}
+  constructor() {
+    // Inicializar formulario de creación de diseño
+    this.createDesignForm = this.fb.group({
+      articleF: ['', [Validators.required, Validators.maxLength(50)]],
+      client: ['', [Validators.required, Validators.maxLength(100)]],
+      description: ['', [Validators.required, Validators.maxLength(200)]],
+      substrate: ['', [Validators.required, Validators.maxLength(50)]],
+      type: ['LAMINA', Validators.required],
+      printType: ['CARA', Validators.required],
+      colorCount: [1, [Validators.required, Validators.min(1), Validators.max(12)]],
+      colors: [['Negro'], Validators.required],
+      status: ['ACTIVO', Validators.required]
+    });
+  }
 
   ngOnInit() {
     this.loadCurrentUser();
@@ -116,18 +134,26 @@ export class DesignComponent implements OnInit {
     this.currentUser.set(user);
     
     if (user) {
-      // Configurar permisos basados en el rol del usuario
+      console.log('👤 Usuario actual:', user);
+      console.log('🔑 Rol del usuario:', user.role);
+      
+      // Configurar permisos basados en el rol del usuario (roles en español del sistema FlexoApp)
       const permissions: UserPermissions = {
-        canCreateDesign: ['admin', 'manager', 'designer'].includes(user.role),
-        canBulkUpload: ['admin', 'manager'].includes(user.role),
-        canClearDatabase: user.role === 'admin',
-        canEditDesign: ['admin', 'manager', 'designer'].includes(user.role),
-        canDeleteDesign: ['admin', 'manager'].includes(user.role),
-        create_design: ['admin', 'manager', 'designer'].includes(user.role),
-        bulk_upload: ['admin', 'manager'].includes(user.role),
-        admin_clear_db: user.role === 'admin'
+        // Administrador tiene todos los permisos
+        canCreateDesign: ['Administrador', 'Supervisor', 'Pre-alistador', 'Matizador', 'admin', 'manager', 'designer'].includes(user.role),
+        canBulkUpload: ['Administrador', 'Supervisor', 'admin', 'manager'].includes(user.role),
+        canClearDatabase: ['Administrador', 'admin'].includes(user.role),
+        canEditDesign: ['Administrador', 'Supervisor', 'Pre-alistador', 'Matizador', 'admin', 'manager', 'designer'].includes(user.role),
+        canDeleteDesign: ['Administrador', 'Supervisor', 'admin', 'manager'].includes(user.role),
+        create_design: ['Administrador', 'Supervisor', 'Pre-alistador', 'Matizador', 'admin', 'manager', 'designer'].includes(user.role),
+        bulk_upload: ['Administrador', 'Supervisor', 'admin', 'manager'].includes(user.role),
+        admin_clear_db: ['Administrador', 'admin'].includes(user.role)
       };
+      
+      console.log('🔐 Permisos configurados:', permissions);
       this.userPermissions.set(permissions);
+    } else {
+      console.log('❌ No hay usuario logueado');
     }
   }
 
@@ -135,7 +161,19 @@ export class DesignComponent implements OnInit {
    * Verificar si el usuario tiene un permiso específico
    */
   hasPermission(permission: keyof UserPermissions): boolean {
-    return this.userPermissions()[permission];
+    const hasPermission = this.userPermissions()[permission];
+    console.log(`🔍 Verificando permiso '${permission}':`, hasPermission);
+    return hasPermission;
+  }
+
+  /**
+   * Verificar si el usuario es administrador
+   */
+  isAdmin(): boolean {
+    const user = this.currentUser();
+    const isAdmin = user?.role === 'Administrador' || user?.role === 'admin';
+    console.log('👑 ¿Es administrador?:', isAdmin, '- Rol:', user?.role);
+    return isAdmin;
   }
 
   /**
@@ -355,11 +393,131 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    * Crear nuevo diseño
    */
   async createNewDesign() {
-    // TODO: Implementar modal de creación de diseño
-    this.snackBar.open('Función de crear diseño en desarrollo', 'Cerrar', {
-      duration: 3000,
-      panelClass: ['info-snackbar']
+    const user = this.currentUser();
+    console.log('🎨 Intentando crear nuevo diseño...');
+    console.log('👤 Usuario:', user?.firstName, user?.lastName);
+    console.log('🔑 Rol:', user?.role);
+    console.log('🔐 Permisos actuales:', this.userPermissions());
+    
+    // Verificar permisos - Administrador siempre puede crear
+    if (!this.hasPermission('canCreateDesign') && !this.isAdmin()) {
+      console.log('❌ Sin permisos para crear diseño');
+      this.snackBar.open(`Sin permisos para crear diseños. Rol actual: ${user?.role}`, 'Cerrar', {
+        duration: 5000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    console.log('✅ Permisos verificados - Mostrando formulario de creación');
+    
+    // Mostrar formulario de creación
+    this.showCreateForm.set(true);
+    this.resetCreateForm();
+  }
+
+  /**
+   * Resetear formulario de creación
+   */
+  resetCreateForm() {
+    this.createDesignForm.reset({
+      articleF: '',
+      client: '',
+      description: '',
+      substrate: '',
+      type: 'LAMINA',
+      printType: 'CARA',
+      colorCount: 1,
+      colors: ['Negro'],
+      status: 'ACTIVO'
     });
+  }
+
+  /**
+   * Cancelar creación de diseño
+   */
+  cancelCreateDesign() {
+    this.showCreateForm.set(false);
+    this.resetCreateForm();
+  }
+
+  /**
+   * Guardar nuevo diseño
+   */
+  async saveNewDesign() {
+    if (!this.createDesignForm.valid) {
+      this.snackBar.open('Por favor completa todos los campos requeridos', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    this.loading.set(true);
+    try {
+      const formData = this.createDesignForm.value;
+      console.log('💾 Guardando nuevo diseño:', formData);
+
+      const response = await this.http.post<FlexographicDesign>(`${environment.apiUrl}/designs`, formData).toPromise();
+
+      if (response) {
+        console.log('✅ Diseño creado exitosamente:', response);
+        
+        // Agregar el nuevo diseño a la lista
+        const currentDesigns = this.allDesigns();
+        this.allDesigns.set([response, ...currentDesigns]);
+        this.filteredDesigns.set([response, ...currentDesigns]);
+
+        this.snackBar.open(`Diseño "${formData.articleF}" creado exitosamente`, 'Cerrar', {
+          duration: 4000,
+          panelClass: ['success-snackbar']
+        });
+
+        // Ocultar formulario y resetear
+        this.showCreateForm.set(false);
+        this.resetCreateForm();
+      }
+    } catch (error: any) {
+      console.error('❌ Error creando diseño:', error);
+      
+      let errorMessage = 'Error al crear el diseño';
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.status === 400) {
+        errorMessage = 'Datos inválidos o artículo ya existe';
+      } else if (error.status === 500) {
+        errorMessage = 'Error interno del servidor';
+      }
+
+      this.snackBar.open(errorMessage, 'Cerrar', {
+        duration: 5000,
+        panelClass: ['error-snackbar']
+      });
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Actualizar colores basado en el número de colores
+   */
+  updateColors() {
+    const colorCount = this.createDesignForm.get('colorCount')?.value || 1;
+    const currentColors = this.createDesignForm.get('colors')?.value || [];
+    
+    const newColors = [...currentColors];
+    
+    // Agregar colores si se necesitan más
+    while (newColors.length < colorCount) {
+      newColors.push('Color ' + (newColors.length + 1));
+    }
+    
+    // Remover colores si hay demasiados
+    while (newColors.length > colorCount) {
+      newColors.pop();
+    }
+    
+    this.createDesignForm.patchValue({ colors: newColors });
   }
 
   /**

@@ -26,6 +26,15 @@
 
       <!-- Sección derecha: Acciones del header - Solo botones funcionales -->
       <div class="header-actions">
+        <!-- Botón Crear Diseño - Principal y siempre visible para usuarios con permisos -->
+        <button mat-raised-button color="primary" (click)="createNewDesign()" class="create-design-btn"
+          [disabled]="loading()" 
+          matTooltip="Crear nuevo diseño flexográfico"
+          *ngIf="hasPermission('canCreateDesign') || isAdmin()">
+          <mat-icon>add</mat-icon>
+          Crear Diseño
+        </button>
+
         <!-- Botón Carga Masiva Excel - Funcional -->
         <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn"
           [disabled]="uploading()" matTooltip="Subir diseños desde Excel">
@@ -98,6 +107,127 @@
     <!-- Fin de la tarjeta de búsqueda -->
   </div>
   <!-- Fin del área de búsqueda -->
+
+  <!-- ===== FORMULARIO DE CREACIÓN DE DISEÑO ===== -->
+  <!-- Formulario desplegable para crear nuevos diseños -->
+  <div class="create-design-area" *ngIf="showCreateForm()">
+    <mat-card class="create-design-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>add_circle</mat-icon>
+          Crear Nuevo Diseño Flexográfico
+        </mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="createDesignForm" class="create-design-form">
+          
+          <!-- Fila 1: Artículo F y Cliente -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Artículo F *</mat-label>
+              <input matInput formControlName="articleF" placeholder="Ej: F204567">
+              <mat-icon matSuffix>article</mat-icon>
+              <mat-error *ngIf="createDesignForm.get('articleF')?.hasError('required')">
+                El artículo F es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Cliente *</mat-label>
+              <input matInput formControlName="client" placeholder="Ej: ABSORBENTES S.A.">
+              <mat-icon matSuffix>business</mat-icon>
+              <mat-error *ngIf="createDesignForm.get('client')?.hasError('required')">
+                El cliente es requerido
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Fila 2: Descripción -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Descripción *</mat-label>
+              <textarea matInput formControlName="description" rows="2" 
+                placeholder="Descripción detallada del diseño"></textarea>
+              <mat-icon matSuffix>description</mat-icon>
+              <mat-error *ngIf="createDesignForm.get('description')?.hasError('required')">
+                La descripción es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Fila 3: Sustrato y Tipo -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Sustrato *</mat-label>
+              <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
+              <mat-icon matSuffix>layers</mat-icon>
+              <mat-error *ngIf="createDesignForm.get('substrate')?.hasError('required')">
+                El sustrato es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Tipo *</mat-label>
+              <mat-select formControlName="type">
+                <mat-option value="LAMINA">LÁMINA</mat-option>
+                <mat-option value="TUBULAR">TUBULAR</mat-option>
+                <mat-option value="SEMITUBULAR">SEMITUBULAR</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>category</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Fila 4: Tipo de Impresión y Número de Colores -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Tipo de Impresión *</mat-label>
+              <mat-select formControlName="printType">
+                <mat-option value="CARA">CARA</mat-option>
+                <mat-option value="DORSO">DORSO</mat-option>
+                <mat-option value="CARA_DORSO">CARA Y DORSO</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>print</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Número de Colores *</mat-label>
+              <input matInput type="number" formControlName="colorCount" 
+                min="1" max="12" (change)="updateColors()">
+              <mat-icon matSuffix>palette</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Fila 5: Estado -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Estado *</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="ACTIVO">ACTIVO</mat-option>
+                <mat-option value="INACTIVO">INACTIVO</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>toggle_on</mat-icon>
+            </mat-form-field>
+          </div>
+
+        </form>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-button (click)="cancelCreateDesign()" [disabled]="loading()">
+          <mat-icon>cancel</mat-icon>
+          Cancelar
+        </button>
+        <button mat-raised-button color="primary" (click)="saveNewDesign()" 
+          [disabled]="!createDesignForm.valid || loading()">
+          <mat-icon *ngIf="loading()">refresh</mat-icon>
+          <mat-icon *ngIf="!loading()">save</mat-icon>
+          {{ loading() ? 'Guardando...' : 'Guardar Diseño' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+  <!-- Fin del formulario de creación -->
 
   <!-- ===== ÁREA DE TABLA SCROLLABLE ===== -->
   <!-- Contenedor principal de la tabla que ocupa el resto del espacio disponible -->

@@ -386,6 +386,129 @@ $header-blue-900: #1e3a8a;     // Tono 900
   }
 }
 
+// ===== ÁREA DE FORMULARIO DE CREACIÓN =====
+// Contenedor para el formulario de creación de diseños
+.create-design-area {
+  padding: 0px 12px 12px 12px; // Alineado con header y search-area
+  background: transparent;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 40;
+
+  .create-design-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+
+    // Borde superior verde para diferenciarlo
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: $success-emerald;
+    }
+
+    mat-card-header {
+      background: linear-gradient(135deg, $success-emerald 0%, #059669 100%);
+      color: white;
+      padding: 16px 24px;
+      margin: 0;
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+
+    mat-card-content {
+      padding: 24px;
+    }
+
+    mat-card-actions {
+      padding: 16px 24px;
+      background: $gray-50;
+      border-top: 1px solid $gray-200;
+    }
+  }
+
+  .create-design-form {
+    .form-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .full-width {
+        flex: 1;
+      }
+
+      .half-width {
+        flex: 1;
+      }
+    }
+
+    mat-form-field {
+      .mat-mdc-text-field-wrapper {
+        background: rgba($gray-50, 0.8);
+        border: 2px solid transparent;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: rgba($gray-100, 0.9);
+          border-color: rgba($success-emerald, 0.2);
+        }
+      }
+
+      &.mat-focused .mat-mdc-text-field-wrapper {
+        background: white;
+        border-color: $success-emerald;
+        box-shadow: 0 0 0 4px rgba($success-emerald, 0.1);
+      }
+
+      .mat-mdc-floating-label {
+        color: $gray-500;
+        font-weight: 600;
+      }
+
+      &.mat-focused .mat-mdc-floating-label {
+        color: $success-emerald;
+      }
+
+      .mat-mdc-input-element {
+        color: $gray-800;
+        font-weight: 500;
+      }
+
+      .mat-icon {
+        color: $success-emerald;
+      }
+    }
+  }
+}
+
 // ===== ÁREA DE TABLA SCROLLABLE - ALINEADA CON HEADER Y BÚSQUEDA =====
 // Contenedor con padding lateral igual al header (12px) y search-area para alineación perfecta
 .scrollable-table-area {
@@ -1773,9 +1896,21 @@ $header-blue-900: #1e3a8a;     // Tono 900
   }
 
   .search-area,
+  .create-design-area,
   .scrollable-table-area {
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .create-design-form {
+    .form-row {
+      flex-direction: column;
+      gap: 8px;
+
+      .half-width {
+        width: 100%;
+      }
+    }
   }
 
   .excel-table {
