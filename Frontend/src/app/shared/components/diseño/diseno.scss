@@ -94,7 +94,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
   overflow: visible;                     // Permitir que el contenido sea visible
   z-index: 100;                          // Z-index alto para asegurar visibilidad
   display: block;                        // Asegurar que se muestre como bloque
-  
+  margin-top: 55px;
   // Borde superior azul como en el perfil - Elemento decorativo
   &::before {
     content: '';                         // Contenido vacío para pseudo-elemento
@@ -386,11 +386,11 @@ $header-blue-900: #1e3a8a;     // Tono 900
   }
 }
 
-// ===== ÁREA DE TABLA SCROLLABLE - PANTALLA COMPLETA =====
-// Contenedor con estilo del perfil
+// ===== ÁREA DE TABLA SCROLLABLE - ALINEADA CON HEADER Y BÚSQUEDA =====
+// Contenedor con padding lateral igual al header (12px) y search-area para alineación perfecta
 .scrollable-table-area {
   flex: 1;
-  padding: 0px 32px 0px 32px; // Eliminar padding inferior para que llegue hasta el final
+  padding: 0px 12px 0px 12px; // Padding lateral igual al header y search-area (12px) para alineación perfecta
   overflow: hidden;
   display: flex;
   flex-direction: column;

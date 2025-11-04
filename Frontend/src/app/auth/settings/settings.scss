@@ -72,6 +72,7 @@ $gray-900: #0f172a;  // Gris máximo
   overflow: visible;
   z-index: 100;              // Z-index alto para mantenerse sobre otros elementos
   display: block;
+  margin-top: 68px;
 
   // Borde superior azul
   &::before {
@@ -278,20 +279,22 @@ $gray-900: #0f172a;  // Gris máximo
   }
 }
 
-// ===== CONTENIDO DE PESTAÑAS - ESPACIADO MEJORADO =====
+// ===== CONTENIDO DE PESTAÑAS - ESPACIADO ALINEADO CON HEADER =====
 .tab-content {
-  padding: 24px 20px 20px 20px;  // Padding superior aumentado para mejor visibilidad
+  padding: 24px 12px 20px 12px;  // Padding lateral igual al header (12px) para alineación perfecta
   height: 100%;
   overflow: auto;
 }
 
-// ===== ENCABEZADO DE SECCIÓN - ESPACIADO CORREGIDO =====
+// ===== ENCABEZADO DE SECCIÓN - ALINEADO CON HEADER =====
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
   margin-top: 8px;              // Margen superior para separar del borde de la pestaña
+  margin-left: 0px;             // Sin margen lateral - alineado con header mediante padding del tab-content
+  margin-right: 0px;            // Sin margen lateral - consistente con módulo de diseño
   padding-bottom: 16px;
   border-bottom: 2px solid $gray-200;
 
@@ -345,7 +348,7 @@ $gray-900: #0f172a;  // Gris máximo
   }
 }
 
-// ===== TABLA DE USUARIOS COMPACTA - ESTILO EXCEL CON FOTOS =====
+// ===== TABLA DE USUARIOS - ALINEADA CON HEADER Y COMPONENTE BUSCAR =====
 .users-table-container {
   background: white;
   border-radius: 12px;
@@ -357,6 +360,8 @@ $gray-900: #0f172a;  // Gris máximo
   display: flex;
   flex-direction: column;
   margin-top: 8px;
+  margin-left: 0px;   // Sin margen lateral adicional - el padding del tab-content ya maneja la alineación
+  margin-right: 0px;  // Sin margen lateral adicional - consistente con el diseño del módulo diseño
 }
 
 .users-table.compact-table {
