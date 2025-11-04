@@ -298,6 +298,12 @@ $gray-900: #0f172a;  // Gris máximo
   padding-bottom: 16px;
   border-bottom: 2px solid $gray-200;
 
+  .header-actions {
+    display: flex;
+    gap: 12px;                  // Espaciado entre botones
+    align-items: center;
+  }
+
   div {
     flex: 1;
 

@@ -78,8 +78,26 @@ export class SettingsComponent implements OnInit {
 
   ngOnInit() {
     this.loadCurrentUser();
+    this.checkDatabaseConnection();
     this.loadUsers();
     this.loadSystemConfigs();
+  }
+
+  /**
+   * Verificar conexión a la base de datos y mostrar estado
+   */
+  private async checkDatabaseConnection() {
+    console.log('🔍 Verificando conexión a la base de datos...');
+    console.log(`📡 URL principal: ${environment.apiUrl}`);
+    console.log(`🔄 URLs de fallback:`, environment.fallbackUrls);
+    
+    // Mostrar información de red en consola para debug
+    if (environment.enableDebugMode) {
+      console.log('🐛 Modo debug activado - Información de conexión:');
+      console.log('   - Timeout de cache:', environment.cacheTimeout);
+      console.log('   - Intentos de reintento:', environment.retryAttempts);
+      console.log('   - Modo red:', environment.networkMode);
+    }
   }
 
   /**
@@ -111,44 +129,100 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * Cargar usuarios desde la base de datos
+   * Cargar usuarios desde la base de datos con fallback automático
    */
   async loadUsers() {
     if (!this.canManageUsers()) return;
 
     this.loading.set(true);
-    try {
-      console.log('🔄 Cargando usuarios desde la base de datos...');
-      
-      const response = await this.http.get<User[]>(`${environment.apiUrl}/users`).toPromise();
-      
-      if (response && response.length > 0) {
-        console.log(`✅ ${response.length} usuarios cargados desde la base de datos`);
-        this.users.set(response);
-        
-        this.snackBar.open(`${response.length} usuarios cargados`, 'Cerrar', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
-      } else {
-        console.log('⚠️ No se encontraron usuarios, cargando datos de ejemplo...');
-        // Cargar usuarios de ejemplo si no hay datos
-        this.loadMockUsers();
-      }
-    } catch (error) {
-      console.error('❌ Error cargando usuarios desde la base de datos:', error);
-      
-      // Fallback a usuarios de ejemplo
+    
+    // Intentar cargar desde la base de datos con múltiples URLs
+    const success = await this.tryLoadUsersFromDatabase();
+    
+    if (!success) {
+      // Si falla, cargar usuarios de ejemplo
       console.log('🔄 Cargando usuarios de ejemplo como fallback...');
       this.loadMockUsers();
       
-      this.snackBar.open('Cargando usuarios de ejemplo (sin conexión a BD)', 'Cerrar', {
+      this.snackBar.open('Usando datos de ejemplo - Servidor no disponible', 'Cerrar', {
         duration: 4000,
         panelClass: ['warning-snackbar']
       });
-    } finally {
-      this.loading.set(false);
     }
+    
+    this.loading.set(false);
+  }
+
+  /**
+   * Intentar cargar usuarios desde diferentes URLs de API
+   */
+  private async tryLoadUsersFromDatabase(): Promise<boolean> {
+    // Lista de URLs para intentar
+    const urlsToTry = [
+      environment.apiUrl,
+      ...environment.fallbackUrls
+    ];
+
+    for (let i = 0; i < urlsToTry.length; i++) {
+      const apiUrl = urlsToTry[i];
+      
+      try {
+        console.log(`🔄 Intentando cargar usuarios desde: ${apiUrl} (${i + 1}/${urlsToTry.length})`);
+        
+        // Agregar timeout personalizado para evitar esperas largas
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        );
+        
+        const requestPromise = this.http.get<User[]>(`${apiUrl}/users`).toPromise();
+        
+        const response = await Promise.race([requestPromise, timeoutPromise]) as User[];
+        
+        if (response && response.length > 0) {
+          console.log(`✅ ${response.length} usuarios cargados desde: ${apiUrl}`);
+          this.users.set(response);
+          
+          this.snackBar.open(`✅ ${response.length} usuarios cargados desde base de datos`, 'Cerrar', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+          
+          return true; // Éxito
+        } else if (response && response.length === 0) {
+          console.log(`⚠️ Base de datos vacía en: ${apiUrl}`);
+          this.users.set([]);
+          
+          this.snackBar.open('Base de datos conectada pero sin usuarios', 'Cerrar', {
+            duration: 3000,
+            panelClass: ['info-snackbar']
+          });
+          
+          return true; // Conexión exitosa aunque sin datos
+        }
+      } catch (error: any) {
+        console.error(`❌ Error conectando a ${apiUrl}:`, error);
+        
+        // Mostrar información detallada del error
+        let errorType = 'Error desconocido';
+        if (error.name === 'TimeoutError' || error.message === 'Timeout') {
+          errorType = 'Timeout (servidor no responde)';
+        } else if (error.status === 0) {
+          errorType = 'Sin conexión (CORS o servidor apagado)';
+        } else if (error.status === 404) {
+          errorType = 'Endpoint no encontrado';
+        } else if (error.status >= 500) {
+          errorType = 'Error del servidor';
+        }
+        
+        console.error(`   Tipo de error: ${errorType}`);
+        console.error(`   Status: ${error.status || 'N/A'}`);
+        console.error(`   Mensaje: ${error.message || 'Sin mensaje'}`);
+      }
+    }
+    
+    console.log('❌ No se pudo conectar a ningún servidor de base de datos');
+    console.log('📋 URLs intentadas:', urlsToTry);
+    return false; // Falló en todas las URLs
   }
 
   /**
@@ -390,6 +464,14 @@ export class SettingsComponent implements OnInit {
   getOptionDisplayName(configId: string, option: string): string {
     // Personalizar según sea necesario
     return option;
+  }
+
+  /**
+   * Recargar usuarios manualmente
+   */
+  async reloadUsers() {
+    console.log('🔄 Recarga manual de usuarios solicitada');
+    await this.loadUsers();
   }
 
   /**

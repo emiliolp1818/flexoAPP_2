@@ -37,14 +37,25 @@
                   <h3>Gestión de Usuarios</h3>
                   <p class="section-description">Administra los usuarios del sistema FlexoApp</p>
                 </div>
-                <button 
-                  mat-raised-button 
-                  color="primary" 
-                  (click)="openCreateUserDialog()"
-                  [disabled]="loading()">
-                  <mat-icon>person_add</mat-icon>
-                  Agregar Usuario
-                </button>
+                <div class="header-actions">
+                  <button 
+                    mat-stroked-button 
+                    color="accent" 
+                    (click)="reloadUsers()"
+                    [disabled]="loading()"
+                    matTooltip="Recargar usuarios desde base de datos">
+                    <mat-icon>refresh</mat-icon>
+                    Recargar
+                  </button>
+                  <button 
+                    mat-raised-button 
+                    color="primary" 
+                    (click)="openCreateUserDialog()"
+                    [disabled]="loading()">
+                    <mat-icon>person_add</mat-icon>
+                    Agregar Usuario
+                  </button>
+                </div>
               </div>
 
               <div class="users-table-container">
