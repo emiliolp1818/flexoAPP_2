@@ -137,17 +137,18 @@ export class DesignComponent implements OnInit {
       console.log('👤 Usuario actual:', user);
       console.log('🔑 Rol del usuario:', user.role);
       
-      // Configurar permisos basados en los nuevos roles estándar de la plataforma
+      // Configurar permisos basados en los roles (soporta tanto mayúsculas como minúsculas)
+      const userRole = user.role.toLowerCase(); // Normalizar a minúsculas
       const permissions: UserPermissions = {
         // Admin tiene todos los permisos, supervisor y pre-alistador pueden crear/editar
-        canCreateDesign: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(user.role),
-        canBulkUpload: ['admin', 'supervisor'].includes(user.role),
-        canClearDatabase: ['admin'].includes(user.role),
-        canEditDesign: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(user.role),
-        canDeleteDesign: ['admin', 'supervisor'].includes(user.role),
-        create_design: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(user.role),
-        bulk_upload: ['admin', 'supervisor'].includes(user.role),
-        admin_clear_db: ['admin'].includes(user.role)
+        canCreateDesign: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(userRole),
+        canBulkUpload: ['admin', 'supervisor'].includes(userRole),
+        canClearDatabase: ['admin'].includes(userRole),
+        canEditDesign: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(userRole),
+        canDeleteDesign: ['admin', 'supervisor'].includes(userRole),
+        create_design: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(userRole),
+        bulk_upload: ['admin', 'supervisor'].includes(userRole),
+        admin_clear_db: ['admin'].includes(userRole)
       };
       
       console.log('🔐 Permisos configurados:', permissions);
@@ -167,12 +168,13 @@ export class DesignComponent implements OnInit {
   }
 
   /**
-   * Verificar si el usuario es administrador
+   * Verificar si el usuario es administrador (soporta mayúsculas y minúsculas)
    */
   isAdmin(): boolean {
     const user = this.currentUser();
-    const isAdmin = user?.role === 'admin';
-    console.log('👑 ¿Es administrador?:', isAdmin, '- Rol:', user?.role);
+    const userRole = user?.role?.toLowerCase() || '';
+    const isAdmin = userRole === 'admin';
+    console.log('👑 ¿Es administrador?:', isAdmin, '- Rol original:', user?.role, '- Rol normalizado:', userRole);
     return isAdmin;
   }
 
@@ -399,8 +401,16 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     console.log('🔑 Rol:', user?.role);
     console.log('🔐 Permisos actuales:', this.userPermissions());
     
-    // Verificar permisos - Administrador siempre puede crear
-    if (!this.hasPermission('canCreateDesign') && !this.isAdmin()) {
+    // Administrador siempre tiene acceso completo
+    if (this.isAdmin()) {
+      console.log('👑 Usuario administrador - Acceso completo garantizado');
+      this.showCreateForm.set(true);
+      this.resetCreateForm();
+      return;
+    }
+    
+    // Verificar permisos para otros roles
+    if (!this.hasPermission('canCreateDesign')) {
       console.log('❌ Sin permisos para crear diseño');
       this.snackBar.open(`Sin permisos para crear diseños. Rol actual: ${user?.role}`, 'Cerrar', {
         duration: 5000,

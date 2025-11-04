@@ -26,11 +26,10 @@
 
       <!-- Sección derecha: Acciones del header - Solo botones funcionales -->
       <div class="header-actions">
-        <!-- Botón Crear Diseño - Principal y siempre visible para usuarios con permisos -->
+        <!-- Botón Crear Diseño - Siempre visible para administradores -->
         <button mat-raised-button color="primary" (click)="createNewDesign()" class="create-design-btn"
           [disabled]="loading()" 
-          matTooltip="Crear nuevo diseño flexográfico"
-          *ngIf="hasPermission('canCreateDesign') || isAdmin()">
+          matTooltip="Crear nuevo diseño flexográfico">
           <mat-icon>add</mat-icon>
           Crear Diseño
         </button>
