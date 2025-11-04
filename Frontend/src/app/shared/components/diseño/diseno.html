@@ -227,7 +227,7 @@
             <!-- Selector de colores por posición -->
             <div class="color-selectors">
               <div 
-                *ngFor="let color of selectedColors(); let i = index" 
+                *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" 
                 class="color-selector">
                 <label class="color-label">Color {{ i + 1 }}:</label>
                 
@@ -445,8 +445,8 @@
               <td mat-cell *matCellDef="let design" class="excel-cell type-cell">
                 <!-- Chip Material Design con color distintivo según el tipo de producto -->
                 <!-- Clase CSS dinámica basada en el tipo (lamina, tubular, semitubular) -->
-                <mat-chip [class]="'type-chip type-' + design.type.toLowerCase()">
-                  {{ design.type }}
+                <mat-chip [class]="'type-chip type-' + (design.type || 'unknown').toLowerCase()">
+                  {{ design.type || 'N/A' }}
                 </mat-chip>
               </td>
             </ng-container>
@@ -466,9 +466,9 @@
               <td mat-cell *matCellDef="let design" class="excel-cell print-type-cell">
                 <!-- Chip con color según el tipo de impresión (una cara, dorso, ambas caras) -->
                 <!-- Transformación de clase CSS para manejar guiones bajos en nombres -->
-                <mat-chip [class]="'print-chip print-' + design.printType.toLowerCase().replace('_', '-')">
+                <mat-chip [class]="'print-chip print-' + (design.printType || 'unknown').toLowerCase().replace('_', '-')">
                   <!-- Reemplazo de guiones bajos por espacios para mejor legibilidad -->
-                  {{ design.printType.replace('_', ' ') }}
+                  {{ (design.printType || 'N/A').replace('_', ' ') }}
                 </mat-chip>
               </td>
             </ng-container>

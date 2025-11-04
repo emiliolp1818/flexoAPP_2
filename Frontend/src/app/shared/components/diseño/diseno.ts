@@ -457,9 +457,15 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       type: 'LAMINA',
       printType: 'CARA',
       colorCount: 1,
-      colors: ['Negro'],
+      colors: ['P Black'],
       status: 'ACTIVO'
     });
+    
+    // Inicializar con color negro por defecto
+    const defaultColor = this.pantoneService.getColorByCode('Black');
+    if (defaultColor) {
+      this.selectedColors.set([defaultColor]);
+    }
   }
 
   /**
@@ -590,6 +596,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    */
   getMostUsedColors(): PantoneColor[] {
     return this.pantoneService.getMostUsedColors();
+  }
+
+  /**
+   * TrackBy function para optimizar el ngFor de colores
+   */
+  trackByIndex(index: number, item: any): number {
+    return index;
   }
 
   /**
