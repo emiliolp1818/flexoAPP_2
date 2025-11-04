@@ -53,24 +53,24 @@ $gray-900: #0f172a;  // Gris máximo
   padding: 0px;
   background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
   overflow: visible;
-  padding-top: 16px;
   position: relative;
 }
 
-// ===== HEADER FIJO - MISMO ESTILO QUE DISEÑO =====
+// ===== HEADER FIJO - CORREGIDO PARA EVITAR SUPERPOSICIÓN =====
+// El header ahora usa position: sticky para mantenerse visible sin tapar el contenido
 .settings-header {
-  position: relative;
+  position: sticky;           // Sticky en lugar de fixed para mejor comportamiento
+  top: 0;                    // Se mantiene en la parte superior al hacer scroll
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 16px;
-  margin: 12px;
-  margin-bottom: 12px;
+  margin: 12px 12px 0px 12px;  // Margen inferior eliminado para mejor espaciado
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
   overflow: visible;
-  z-index: 100;
+  z-index: 100;              // Z-index alto para mantenerse sobre otros elementos
   display: block;
 
   // Borde superior azul
@@ -171,10 +171,11 @@ $gray-900: #0f172a;  // Gris máximo
   }
 }
 
-// ===== CONTENIDO PRINCIPAL - MISMO ESTILO QUE DISEÑO =====
+// ===== CONTENIDO PRINCIPAL - AJUSTADO PARA EVITAR SUPERPOSICIÓN =====
+// Padding superior agregado para dar espacio después del header sticky
 .settings-content {
   flex: 1;
-  padding: 0px 12px 0px 12px;
+  padding: 12px 12px 0px 12px;  // Padding superior para separar del header
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -231,6 +232,7 @@ $gray-900: #0f172a;  // Gris máximo
       border-bottom: 2px solid $primary-blue;
       flex-shrink: 0;
       z-index: 2;
+      margin-top: 4px;
 
       .mat-mdc-tab-label {
         color: $gray-600;
@@ -276,17 +278,20 @@ $gray-900: #0f172a;  // Gris máximo
   }
 }
 
+// ===== CONTENIDO DE PESTAÑAS - ESPACIADO MEJORADO =====
 .tab-content {
-  padding: 20px;
+  padding: 24px 20px 20px 20px;  // Padding superior aumentado para mejor visibilidad
   height: 100%;
   overflow: auto;
 }
 
+// ===== ENCABEZADO DE SECCIÓN - ESPACIADO CORREGIDO =====
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
+  margin-top: 8px;              // Margen superior para separar del borde de la pestaña
   padding-bottom: 16px;
   border-bottom: 2px solid $gray-200;
 
@@ -348,9 +353,10 @@ $gray-900: #0f172a;  // Gris máximo
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 2px solid $gray-200;
   border-top: 3px solid $primary-blue;
-  height: 100%;
+  height: calc(100vh - 280px);
   display: flex;
   flex-direction: column;
+  margin-top: 8px;
 }
 
 .users-table.compact-table {
