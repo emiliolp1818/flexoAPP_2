@@ -6,6 +6,7 @@ namespace FlexoAPP.API.Repositories
     public interface IDesignRepository
     {
         Task<IEnumerable<Design>> GetAllDesignsAsync();
+        Task<int> GetDesignsCountAsync();
         Task<Design?> GetDesignByIdAsync(int id);
         Task<Design?> GetDesignByArticleFAsync(string articleF);
         Task<Design> CreateDesignAsync(Design design);

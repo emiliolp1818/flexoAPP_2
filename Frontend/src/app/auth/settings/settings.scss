@@ -300,8 +300,133 @@ $gray-900: #0f172a;  // Gris máximo
 
   .header-actions {
     display: flex;
-    gap: 12px;                  // Espaciado entre botones
+    gap: 16px;                  // Mayor espaciado entre botones
     align-items: center;
+    justify-content: flex-end;  // Alinear botones a la derecha
+    margin-right: 8px;          // Margen derecho para separar del borde
+    flex-wrap: wrap;            // Permitir wrap en pantallas pequeñas
+    
+    .debug-btn {
+      width: 40px !important;   // Botones más grandes
+      height: 40px !important;
+      background: linear-gradient(135deg, $error-red 0%, #dc2626 100%) !important;
+      box-shadow: 0 2px 6px rgba($error-red, 0.3) !important;
+      transition: all 0.3s ease;
+      margin-right: 4px;        // Separación adicional
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: white;
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+        transform: translateY(-1px) scale(1.05);
+        box-shadow: 0 3px 10px rgba($error-red, 0.4) !important;
+      }
+    }
+
+    .compact-refresh-btn {
+      width: 44px !important;   // Botones más grandes
+      height: 44px !important;
+      background: linear-gradient(135deg, $warning-amber 0%, #d97706 100%) !important;
+      box-shadow: 0 2px 8px rgba($warning-amber, 0.3) !important;
+      transition: all 0.3s ease;
+      margin-right: 4px;        // Separación adicional
+      
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: white;
+        transition: transform 0.3s ease;
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba($warning-amber, 0.4) !important;
+        
+        mat-icon {
+          transform: rotate(180deg);
+        }
+      }
+      
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        
+        &:hover {
+          transform: none;
+          box-shadow: 0 2px 8px rgba($warning-amber, 0.3) !important;
+          
+          mat-icon {
+            transform: none;
+          }
+        }
+      }
+    }
+    
+    .compact-add-btn {
+      width: 56px !important;   // Botón principal más grande
+      height: 56px !important;
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%) !important;
+      box-shadow: 0 3px 12px rgba($primary-blue, 0.4) !important;
+      transition: all 0.3s ease;
+      margin-right: 0px;        // Sin margen derecho para el último botón
+      
+      mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+        color: white;
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, $primary-blue-dark 0%, $primary-blue-800 100%) !important;
+        transform: translateY(-3px) scale(1.1);
+        box-shadow: 0 6px 20px rgba($primary-blue, 0.5) !important;
+      }
+      
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        
+        &:hover {
+          transform: none;
+          box-shadow: 0 3px 12px rgba($primary-blue, 0.4) !important;
+        }
+      }
+    }
+    
+    // Responsive para móviles
+    @media (max-width: 768px) {
+      gap: 12px;
+      margin-right: 4px;
+      
+      .debug-btn {
+        width: 36px !important;
+        height: 36px !important;
+      }
+      
+      .compact-refresh-btn {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      
+      .compact-add-btn {
+        width: 48px !important;
+        height: 48px !important;
+        
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
   }
 
   div {
@@ -459,30 +584,63 @@ $gray-900: #0f172a;  // Gris máximo
   }
 }
 
-// ===== CELDA DE USUARIO CON FOTO DE PERFIL =====
+// ===== CELDA DE USUARIO CON FOTO DE PERFIL - MEJORADA PARA MOSTRAR IMÁGENES =====
 .user-cell {
-  min-width: 200px;
-  max-width: 250px;
+  min-width: 220px;
+  max-width: 280px;
 
   .user-profile {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
 
     .user-avatar {
       flex-shrink: 0;
-      width: 32px;
-      height: 32px;
+      width: 48px;              // Avatar más grande
+      height: 48px;
       border-radius: 50%;
       overflow: hidden;
-      border: 2px solid $gray-200;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border: 3px solid $gray-200;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      position: relative;
+      background: $gray-100;    // Fondo por defecto mientras carga
+
+      &:hover {
+        transform: scale(1.15);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        border-color: $primary-blue;
+      }
 
       .profile-image {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        object-position: center;
         display: block;
+        transition: all 0.3s ease;
+        background: $gray-100;
+        
+        // Mejorar la carga de imágenes
+        &[src=""], &[src="null"], &[src="undefined"] {
+          display: none !important;
+        }
+        
+        // Asegurar que la imagen se muestre correctamente
+        &:not([src=""]):not([src="null"]):not([src="undefined"]) {
+          display: block !important;
+        }
+        
+        &:hover {
+          transform: scale(1.08);
+        }
+        
+        // Indicador de carga
+        &:not([complete]) {
+          background: linear-gradient(90deg, $gray-200 25%, $gray-100 50%, $gray-200 75%);
+          background-size: 200% 100%;
+          animation: loading-shimmer 1.5s infinite;
+        }
       }
 
       .default-avatar {
@@ -493,8 +651,55 @@ $gray-900: #0f172a;  // Gris máximo
         justify-content: center;
         color: white;
         font-weight: 700;
-        font-size: 12px;
+        font-size: 16px;          // Texto más grande
         text-transform: uppercase;
+        background: linear-gradient(135deg, var(--avatar-color, #{$primary-blue}) 0%, var(--avatar-color-dark, #{$primary-blue-dark}) 100%);
+        position: relative;
+        
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+          pointer-events: none;
+        }
+      }
+
+      // Indicador de estado online mejorado
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 12px;
+        height: 12px;
+        background: $success-emerald;
+        border: 2px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      // Mostrar indicador online en hover
+      &:hover::after {
+        opacity: 1;
+      }
+      
+      // Estado de error de imagen
+      &.image-error {
+        border-color: $warning-amber;
+        
+        .profile-image {
+          display: none;
+        }
+        
+        .default-avatar {
+          background: linear-gradient(135deg, $warning-amber 0%, #d97706 100%);
+        }
       }
     }
 
@@ -505,24 +710,37 @@ $gray-900: #0f172a;  // Gris máximo
       .user-name {
         display: block;
         font-weight: 600;
-        font-size: 12px;
+        font-size: 13px;
         color: $gray-800;
         line-height: 1.2;
-        margin-bottom: 2px;
+        margin-bottom: 3px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        transition: color 0.2s ease;
+        
+        &:hover {
+          color: $primary-blue;
+        }
       }
 
       .user-code {
-        display: block;
+        display: inline-block;
         font-size: 10px;
         color: $gray-500;
         font-family: 'SF Mono', 'Monaco', monospace;
-        background: $gray-100;
-        padding: 1px 4px;
-        border-radius: 4px;
-        display: inline-block;
+        background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%);
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid $gray-200;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
+          border-color: $primary-blue-200;
+          color: $primary-blue-700;
+        }
       }
     }
   }
@@ -647,58 +865,111 @@ $gray-900: #0f172a;  // Gris máximo
   }
 }
 
-// ===== CELDA DE ACCIONES =====
+// ===== CELDA DE ACCIONES - BOTONES MEJORADOS Y SEPARADOS =====
 .actions-cell {
-  min-width: 120px;
+  min-width: 160px;           // Más ancho para acomodar botones más grandes
   text-align: center;
+  padding-right: 12px;        // Separación del borde derecho
 
   .action-buttons {
     display: flex;
-    gap: 4px;
+    gap: 10px;                // Mayor separación entre botones
     justify-content: center;
     align-items: center;
+    margin-right: 8px;        // Margen derecho adicional
 
     .action-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      transition: all 0.2s ease;
+      width: 42px;            // Botones más grandes
+      height: 42px;
+      border-radius: 10px;    // Bordes más redondeados
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
 
+      // Iconos más grandes
       mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+        transition: all 0.2s ease;
+      }
+
+      // Iconos extra grandes para acciones principales
+      &.large-icon {
+        .large-action-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
       }
 
       &:hover {
-        transform: translateY(-1px) scale(1.1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transform: translateY(-3px) scale(1.2);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        
+        mat-icon {
+          transform: scale(1.15);
+        }
       }
 
-      &.edit-btn:hover {
-        background: rgba($primary-blue, 0.1);
-        color: $primary-blue;
+      // Efectos específicos por tipo de botón - Mejorados
+      &.edit-btn {
+        background: rgba($primary-blue, 0.12);
+        border: 2px solid rgba($primary-blue, 0.25);
+        
+        &:hover {
+          background: rgba($primary-blue, 0.2);
+          color: $primary-blue;
+          border-color: $primary-blue;
+          box-shadow: 0 6px 16px rgba($primary-blue, 0.35);
+        }
       }
 
-      &.reset-btn:hover {
-        background: rgba($warning-amber, 0.1);
-        color: $warning-amber;
+      &.reset-btn {
+        background: rgba($warning-amber, 0.12);
+        border: 2px solid rgba($warning-amber, 0.25);
+        
+        &:hover {
+          background: rgba($warning-amber, 0.2);
+          color: $warning-amber;
+          border-color: $warning-amber;
+          box-shadow: 0 6px 16px rgba($warning-amber, 0.35);
+        }
       }
 
-      &.delete-btn:hover {
-        background: rgba($error-red, 0.1);
-        color: $error-red;
+      &.delete-btn {
+        background: rgba($error-red, 0.12);
+        border: 2px solid rgba($error-red, 0.25);
+        
+        &:hover {
+          background: rgba($error-red, 0.2);
+          color: $error-red;
+          border-color: $error-red;
+          box-shadow: 0 6px 16px rgba($error-red, 0.35);
+        }
       }
 
       &:disabled {
-        opacity: 0.5;
+        opacity: 0.4;
         cursor: not-allowed;
         transform: none;
+        background: rgba($gray-300, 0.1);
+        border-color: rgba($gray-300, 0.2);
 
         &:hover {
           transform: none;
           box-shadow: none;
+          background: rgba($gray-300, 0.1);
+          
+          mat-icon {
+            transform: none;
+          }
         }
+      }
+
+      // Efecto de ondas al hacer clic
+      &:active {
+        transform: translateY(-1px) scale(1.1);
       }
     }
   }
@@ -1118,5 +1389,77 @@ $gray-900: #0f172a;  // Gris máximo
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
     font-weight: 500;
+  }
+}
+
+// ===== ANIMACIONES PARA CARGA DE IMÁGENES =====
+@keyframes loading-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// ===== MEJORAS ADICIONALES PARA FOTOS DE PERFIL =====
+.user-avatar {
+  // Indicador de carga de imagen
+  &.loading {
+    .profile-image {
+      opacity: 0.7;
+      background: linear-gradient(90deg, $gray-200 25%, $gray-100 50%, $gray-200 75%);
+      background-size: 200% 100%;
+      animation: loading-shimmer 1.5s infinite;
+    }
+  }
+  
+  // Estado cuando la imagen se carga exitosamente
+  &.loaded {
+    .profile-image {
+      opacity: 1;
+      animation: none;
+    }
+  }
+  
+  // Estado de error mejorado
+  &.error {
+    border-color: $warning-amber !important;
+    
+    .default-avatar {
+      background: linear-gradient(135deg, $warning-amber 0%, #d97706 100%) !important;
+      
+      &::after {
+        content: '!';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 12px;
+        font-weight: 900;
+        color: white;
+      }
+    }
+  }
+  
+  // Estilos para botones FAB compactos
+  .settings-container {
+    .mat-mdc-fab.compact-refresh-btn {
+      .mat-mdc-button-persistent-ripple {
+        border-radius: 50%;
+      }
+    }
+    
+    .mat-mdc-fab.compact-add-btn {
+      .mat-mdc-button-persistent-ripple {
+        border-radius: 50%;
+      }
+    }
+    
+    .mat-mdc-mini-fab.compact-refresh-btn {
+      .mat-mdc-button-persistent-ripple {
+        border-radius: 50%;
+      }
+    }
   }
 }

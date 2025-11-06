@@ -83,15 +83,15 @@ export class EditUserDialogComponent implements OnInit {
   userForm!: FormGroup;
 
   // ===== CONFIGURACIÓN DE ROLES =====
-  // Array de opciones de roles disponibles en el sistema FlexoApp
+  // Array de opciones de roles disponibles en el sistema FlexoApp - ACTUALIZADOS PARA MYSQL
   // Cada rol tiene un valor, etiqueta descriptiva e icono de Material Design
   availableRoles: RoleOption[] = [
-    { value: 'admin', label: 'Administrador', icon: 'admin_panel_settings' },        // Acceso completo al sistema
-    { value: 'supervisor', label: 'Supervisor', icon: 'supervisor_account' },        // Supervisión de operaciones
-    { value: 'pre-alistador', label: 'Pre-alistador', icon: 'list_alt' },          // Preparación de pedidos
-    { value: 'matizador', label: 'Matizador', icon: 'palette' },                    // Gestión de colores y tintas
-    { value: 'operario', label: 'Operario', icon: 'person' },                       // Operación básica de máquinas
-    { value: 'retornos', label: 'Retornos', icon: 'assignment_return' }             // Gestión de retornos
+    { value: 'Admin', label: 'Administrador', icon: 'admin_panel_settings' },        // Acceso completo al sistema
+    { value: 'Supervisor', label: 'Supervisor', icon: 'supervisor_account' },        // Supervisión de operaciones
+    { value: 'Prealistador', label: 'Pre-alistador', icon: 'list_alt' },          // Preparación de pedidos
+    { value: 'Matizadores', label: 'Matizador', icon: 'palette' },                    // Gestión de colores y tintas
+    { value: 'Operario', label: 'Operario', icon: 'person' },                       // Operación básica de máquinas
+    { value: 'Retornos', label: 'Retornos', icon: 'assignment_return' }             // Gestión de retornos
   ];
 
   // ===== CONSTRUCTOR =====
@@ -372,8 +372,8 @@ export class EditUserDialogComponent implements OnInit {
     try {
       console.log(`🔐 Restableciendo contraseña para usuario: ${this.userData.userCode}`);
       
-      // Llamada a API para restablecer contraseña
-      const response = await this.http.post(`${environment.apiUrl}/users/${this.userData.id}/reset-password`, {}).toPromise();
+      // Llamada a API para restablecer contraseña en MySQL
+      const response = await this.http.post(`${environment.apiUrl}/auth/users/${this.userData.id}/reset-password`, {}).toPromise();
       
       if (response) {
         console.log(`✅ Contraseña restablecida para: ${this.userData.userCode}`);
@@ -455,22 +455,25 @@ export class EditUserDialogComponent implements OnInit {
         firstName: formData.firstName.trim(),                  // Nombre sin espacios
         lastName: formData.lastName.trim(),                    // Apellido sin espacios
         role: formData.role,                                   // Rol seleccionado
-        email: formData.email?.trim() || null,                // Email limpio o null
+        email: formData.email && formData.email.trim() ? formData.email.trim() : null, // Email limpio o null
         phone: formData.phone?.trim() || null,                // Teléfono limpio o null
-        isActive: formData.isActive                            // Estado activo
+        isActive: formData.isActive,                           // Estado activo
+        profileImage: this.profileImagePreview() || undefined // Imagen base64 si hay una nueva
       };
 
       console.log('🔄 Actualizando usuario:', updateUserDto);
+      console.log('📧 Email a actualizar:', updateUserDto.email);
+      console.log('📱 Teléfono a actualizar:', updateUserDto.phone);
 
-      // ===== LLAMADA A API PARA ACTUALIZAR USUARIO =====
-      const response = await this.http.put<any>(`${environment.apiUrl}/users/${this.userData.id}`, updateUserDto).toPromise();
+      // ===== LLAMADA A API PARA ACTUALIZAR USUARIO EN MYSQL =====
+      const response = await this.http.put<any>(`${environment.apiUrl}/auth/users/${this.userData.id}`, updateUserDto).toPromise();
 
       if (response) {
         console.log('✅ Usuario actualizado exitosamente:', response);
 
-        // ===== SUBIDA DE IMAGEN DE PERFIL (SI APLICA) =====
-        if (this.selectedFile()) {
-          await this.uploadProfileImage(this.userData.id);
+        // ===== IMAGEN DE PERFIL YA INCLUIDA EN updateUserDto =====
+        if (this.profileImagePreview()) {
+          console.log('✅ Imagen de perfil actualizada como base64');
         }
 
         // ===== NOTIFICACIÓN DE ÉXITO =====
@@ -527,9 +530,10 @@ export class EditUserDialogComponent implements OnInit {
       const formData = new FormData();
       formData.append('profileImage', file); // Agregar archivo con clave esperada por API
 
-      // ===== SUBIDA A SERVIDOR =====
-      await this.http.post(`${environment.apiUrl}/users/${userId}/profile-image`, formData).toPromise();
-      console.log('✅ Imagen de perfil actualizada exitosamente');
+      // ===== SUBIDA A SERVIDOR MYSQL =====
+      console.log('📤 Subiendo imagen de perfil para usuario ID:', userId);
+      const response = await this.http.post(`${environment.apiUrl}/users/${userId}/profile-image`, formData).toPromise();
+      console.log('✅ Imagen de perfil actualizada exitosamente:', response);
       
     } catch (error) {
       console.error('❌ Error actualizando imagen de perfil:', error);

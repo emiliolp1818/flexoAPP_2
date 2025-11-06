@@ -49,6 +49,27 @@
           Exportar
         </button>
 
+        <!-- BOTÓN DE PRUEBA TEMPORAL - REMOVER EN PRODUCCIÓN -->
+        <button mat-stroked-button color="warn" (click)="testAllEndpoint()" class="test-btn"
+          matTooltip="Probar endpoint /all (TEMPORAL)">
+          <mat-icon>bug_report</mat-icon>
+          Test /all
+        </button>
+
+        <!-- BOTÓN CREAR DATOS DE PRUEBA - TEMPORAL -->
+        <button mat-stroked-button color="accent" (click)="createSampleData()" class="sample-btn"
+          matTooltip="Crear datos de prueba (TEMPORAL)">
+          <mat-icon>add_circle</mat-icon>
+          Crear Datos
+        </button>
+
+        <!-- BOTÓN CARGAR DATOS DIRECTAMENTE - TEMPORAL -->
+        <button mat-stroked-button color="primary" (click)="loadDataDirectly()" class="load-btn"
+          matTooltip="Cargar datos directamente (TEMPORAL)">
+          <mat-icon>refresh</mat-icon>
+          Cargar Datos
+        </button>
+
         <!-- Botón Limpiar BD - Solo para admin -->
         <button mat-icon-button color="warn" (click)="clearAllDesigns()" class="clear-db-btn"
           *ngIf="hasPermission('admin_clear_db')" matTooltip="Limpiar base de datos">
@@ -107,207 +128,7 @@
   </div>
   <!-- Fin del área de búsqueda -->
 
-  <!-- ===== FORMULARIO DE CREACIÓN DE DISEÑO ===== -->
-  <!-- Formulario desplegable para crear nuevos diseños -->
-  <div class="create-design-area" *ngIf="showCreateForm()">
-    <mat-card class="create-design-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>add_circle</mat-icon>
-          Crear Nuevo Diseño Flexográfico
-        </mat-card-title>
-      </mat-card-header>
-      
-      <mat-card-content>
-        <form [formGroup]="createDesignForm" class="create-design-form">
-          
-          <!-- Fila 1: Artículo F y Cliente -->
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Artículo F *</mat-label>
-              <input matInput formControlName="articleF" placeholder="Ej: F204567">
-              <mat-icon matSuffix>article</mat-icon>
-              <mat-error *ngIf="createDesignForm.get('articleF')?.hasError('required')">
-                El artículo F es requerido
-              </mat-error>
-            </mat-form-field>
 
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Cliente *</mat-label>
-              <input matInput formControlName="client" placeholder="Ej: ABSORBENTES S.A.">
-              <mat-icon matSuffix>business</mat-icon>
-              <mat-error *ngIf="createDesignForm.get('client')?.hasError('required')">
-                El cliente es requerido
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Fila 2: Descripción -->
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Descripción *</mat-label>
-              <textarea matInput formControlName="description" rows="2" 
-                placeholder="Descripción detallada del diseño"></textarea>
-              <mat-icon matSuffix>description</mat-icon>
-              <mat-error *ngIf="createDesignForm.get('description')?.hasError('required')">
-                La descripción es requerida
-              </mat-error>
-            </mat-form-field>
-          </div>
-
-          <!-- Fila 3: Sustrato y Tipo -->
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Sustrato *</mat-label>
-              <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
-              <mat-icon matSuffix>layers</mat-icon>
-              <mat-error *ngIf="createDesignForm.get('substrate')?.hasError('required')">
-                El sustrato es requerido
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Tipo *</mat-label>
-              <mat-select formControlName="type">
-                <mat-option value="LAMINA">LÁMINA</mat-option>
-                <mat-option value="TUBULAR">TUBULAR</mat-option>
-                <mat-option value="SEMITUBULAR">SEMITUBULAR</mat-option>
-              </mat-select>
-              <mat-icon matSuffix>category</mat-icon>
-            </mat-form-field>
-          </div>
-
-          <!-- Fila 4: Tipo de Impresión y Número de Colores -->
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Tipo de Impresión *</mat-label>
-              <mat-select formControlName="printType">
-                <mat-option value="CARA">CARA</mat-option>
-                <mat-option value="DORSO">DORSO</mat-option>
-                <mat-option value="CARA_DORSO">CARA Y DORSO</mat-option>
-              </mat-select>
-              <mat-icon matSuffix>print</mat-icon>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Número de Colores *</mat-label>
-              <input matInput type="number" formControlName="colorCount" 
-                min="1" max="12" (change)="updateColors()">
-              <mat-icon matSuffix>palette</mat-icon>
-            </mat-form-field>
-          </div>
-
-          <!-- Fila 5: Selección de Colores Pantone Live -->
-          <div class="form-row colors-section" *ngIf="createDesignForm.get('colorCount')?.value > 0">
-            <div class="colors-header">
-              <h4>
-                <mat-icon>palette</mat-icon>
-                Colores Pantone Live
-              </h4>
-              <p class="colors-description">
-                Selecciona los colores Pantone para cada posición (P = Pantone Live)
-              </p>
-            </div>
-
-            <!-- Colores más utilizados -->
-            <div class="most-used-colors">
-              <span class="section-label">Más utilizados:</span>
-              <div class="color-chips">
-                <div 
-                  *ngFor="let color of getMostUsedColors()" 
-                  class="color-chip"
-                  [style.background-color]="color.hex"
-                  [title]="color.displayName + ' - ' + color.hex"
-                  (click)="selectPantoneColor(0, color)">
-                  <span class="color-code">{{ color.displayName }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Selector de colores por posición -->
-            <div class="color-selectors">
-              <div 
-                *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" 
-                class="color-selector">
-                <label class="color-label">Color {{ i + 1 }}:</label>
-                
-                <mat-form-field appearance="outline" class="color-field">
-                  <mat-label>Buscar Pantone</mat-label>
-                  <input 
-                    matInput 
-                    [value]="color.displayName"
-                    (input)="searchPantoneColors($event.target.value)"
-                    [matAutocomplete]="colorAuto"
-                    placeholder="Ej: P 209, P Black">
-                  <mat-icon matSuffix>search</mat-icon>
-                  
-                  <mat-autocomplete 
-                    #colorAuto="matAutocomplete"
-                    (optionSelected)="selectPantoneColor(i, $event.option.value)">
-                    <mat-option 
-                      *ngFor="let pantoneColor of availablePantoneColors()" 
-                      [value]="pantoneColor"
-                      class="color-option">
-                      <div class="color-option-content">
-                        <div 
-                          class="color-preview" 
-                          [style.background-color]="pantoneColor.hex">
-                        </div>
-                        <div class="color-info">
-                          <span class="color-name">{{ pantoneColor.displayName }}</span>
-                          <span class="color-hex">{{ pantoneColor.hex }}</span>
-                        </div>
-                      </div>
-                    </mat-option>
-                  </mat-autocomplete>
-                </mat-form-field>
-
-                <!-- Vista previa del color seleccionado -->
-                <div class="selected-color-preview">
-                  <div 
-                    class="color-swatch" 
-                    [style.background-color]="color.hex"
-                    [title]="color.displayName + ' - ' + color.hex">
-                  </div>
-                  <div class="color-details">
-                    <span class="color-code">{{ color.displayName }}</span>
-                    <span class="color-hex">{{ color.hex }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Fila 6: Estado -->
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Estado *</mat-label>
-              <mat-select formControlName="status">
-                <mat-option value="ACTIVO">ACTIVO</mat-option>
-                <mat-option value="INACTIVO">INACTIVO</mat-option>
-              </mat-select>
-              <mat-icon matSuffix>toggle_on</mat-icon>
-            </mat-form-field>
-          </div>
-
-        </form>
-      </mat-card-content>
-
-      <mat-card-actions align="end">
-        <button mat-button (click)="cancelCreateDesign()" [disabled]="loading()">
-          <mat-icon>cancel</mat-icon>
-          Cancelar
-        </button>
-        <button mat-raised-button color="primary" (click)="saveNewDesign()" 
-          [disabled]="!createDesignForm.valid || loading()">
-          <mat-icon *ngIf="loading()">refresh</mat-icon>
-          <mat-icon *ngIf="!loading()">save</mat-icon>
-          {{ loading() ? 'Guardando...' : 'Guardar Diseño' }}
-        </button>
-      </mat-card-actions>
-    </mat-card>
-  </div>
-  <!-- Fin del formulario de creación -->
 
   <!-- ===== ÁREA DE TABLA SCROLLABLE ===== -->
   <!-- Contenedor principal de la tabla que ocupa el resto del espacio disponible -->
@@ -345,6 +166,28 @@
           <!-- Tabla Angular Material con scroll horizontal y vertical, headers fijos -->
           <!-- DataSource conectado a la señal reactiva filteredDesigns() -->
           <table mat-table [dataSource]="filteredDesigns()" class="excel-table">
+
+            <!-- ===== COLUMNA ID ===== -->
+            <!-- ID autoincremental del diseño (1, 2, 3, etc.) -->
+            <!-- Contenedor de columna Angular Material para el ID -->
+            <ng-container matColumnDef="id">
+              <!-- Header de la columna con estilo Excel y clase personalizada -->
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <!-- Contenedor del contenido del header con flexbox -->
+                <div class="header-content">
+                  <!-- Icono Material Design para números/ID -->
+                  <mat-icon>numbers</mat-icon>
+                  <!-- Texto del header de la columna -->
+                  <span>ID</span>
+                </div>
+              </th>
+              <!-- Celda de datos con binding al objeto design -->
+              <td mat-cell *matCellDef="let design" class="excel-cell id-cell">
+                <!-- ID del diseño con estilo numérico -->
+                <span class="design-id">{{ design.id }}</span>
+              </td>
+            </ng-container>
+            <!-- Fin de la columna ID -->
 
             <!-- ===== COLUMNA ARTÍCULO F ===== -->
             <!-- Código único del diseño flexográfico (ej: F204567) -->
@@ -666,6 +509,216 @@
 
 </div>
 <!-- Fin del contenedor principal de diseños -->
+
+<!-- ===== DIÁLOGO MODAL PARA CREAR DISEÑO ===== -->
+<!-- Diálogo modal scrollable con todos los campos dinámicos -->
+<div class="dialog-overlay" *ngIf="showCreateForm()" (click)="cancelCreateDesign()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    
+    <!-- Header del diálogo -->
+    <div class="dialog-header">
+      <div class="dialog-title">
+        <mat-icon>add_circle</mat-icon>
+        <h2>Crear Nuevo Diseño Flexográfico</h2>
+      </div>
+      <button mat-icon-button (click)="cancelCreateDesign()" class="dialog-close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Contenido scrollable del diálogo -->
+    <div class="dialog-content">
+      <form [formGroup]="createDesignForm" class="create-design-form">
+        
+        <!-- Fila 1: Artículo F y Cliente -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Artículo F *</mat-label>
+            <input matInput formControlName="articleF" placeholder="Ej: F204567">
+            <mat-icon matSuffix>article</mat-icon>
+            <mat-error *ngIf="createDesignForm.get('articleF')?.hasError('required')">
+              El artículo F es requerido
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Cliente *</mat-label>
+            <input matInput formControlName="client" placeholder="Ej: ABSORBENTES S.A.">
+            <mat-icon matSuffix>business</mat-icon>
+            <mat-error *ngIf="createDesignForm.get('client')?.hasError('required')">
+              El cliente es requerido
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Fila 2: Descripción -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descripción *</mat-label>
+            <textarea matInput formControlName="description" rows="3" 
+              placeholder="Descripción detallada del diseño"></textarea>
+            <mat-icon matSuffix>description</mat-icon>
+            <mat-error *ngIf="createDesignForm.get('description')?.hasError('required')">
+              La descripción es requerida
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Fila 3: Sustrato y Tipo -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Sustrato *</mat-label>
+            <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
+            <mat-icon matSuffix>layers</mat-icon>
+            <mat-error *ngIf="createDesignForm.get('substrate')?.hasError('required')">
+              El sustrato es requerido
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Tipo *</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="LAMINA">LÁMINA</mat-option>
+              <mat-option value="TUBULAR">TUBULAR</mat-option>
+              <mat-option value="SEMITUBULAR">SEMITUBULAR</mat-option>
+            </mat-select>
+            <mat-icon matSuffix>category</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- Fila 4: Tipo de Impresión y Número de Colores -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Tipo de Impresión *</mat-label>
+            <mat-select formControlName="printType">
+              <mat-option value="CARA">CARA</mat-option>
+              <mat-option value="DORSO">DORSO</mat-option>
+              <mat-option value="CARA_DORSO">CARA Y DORSO</mat-option>
+            </mat-select>
+            <mat-icon matSuffix>print</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Número de Colores *</mat-label>
+            <input matInput type="number" formControlName="colorCount" 
+              min="1" max="12" (change)="updateColors()">
+            <mat-icon matSuffix>palette</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- Fila 5: Selección de Colores Pantone Live -->
+        <div class="form-row colors-section" *ngIf="createDesignForm.get('colorCount')?.value > 0">
+          <div class="colors-header">
+            <h4>
+              <mat-icon>palette</mat-icon>
+              Colores Pantone Live
+            </h4>
+            <p class="colors-description">
+              Selecciona los colores Pantone para cada posición (P = Pantone Live)
+            </p>
+          </div>
+
+          <!-- Colores más utilizados -->
+          <div class="most-used-colors">
+            <span class="section-label">Más utilizados:</span>
+            <div class="color-chips">
+              <div 
+                *ngFor="let color of getMostUsedColors()" 
+                class="color-chip"
+                [style.background-color]="color.hex"
+                [title]="color.displayName + ' - ' + color.hex"
+                (click)="selectPantoneColor(0, color)">
+                <span class="color-code">{{ color.displayName }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selector de colores por posición -->
+          <div class="color-selectors">
+            <div 
+              *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" 
+              class="color-selector">
+              <label class="color-label">Color {{ i + 1 }}:</label>
+              
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Buscar Pantone</mat-label>
+                <input 
+                  matInput 
+                  [value]="color.displayName"
+                  (input)="searchPantoneColors($any($event.target).value)"
+                  [matAutocomplete]="colorAuto"
+                  placeholder="Ej: P 209, P Black">
+                <mat-icon matSuffix>search</mat-icon>
+                
+                <mat-autocomplete 
+                  #colorAuto="matAutocomplete"
+                  (optionSelected)="selectPantoneColor(i, $event.option.value)">
+                  <mat-option 
+                    *ngFor="let pantoneColor of availablePantoneColors()" 
+                    [value]="pantoneColor"
+                    class="color-option">
+                    <div class="color-option-content">
+                      <div 
+                        class="color-preview" 
+                        [style.background-color]="pantoneColor.hex">
+                      </div>
+                      <div class="color-info">
+                        <span class="color-name">{{ pantoneColor.displayName }}</span>
+                        <span class="color-hex">{{ pantoneColor.hex }}</span>
+                      </div>
+                    </div>
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+
+              <!-- Vista previa del color seleccionado -->
+              <div class="selected-color-preview">
+                <div 
+                  class="color-swatch" 
+                  [style.background-color]="color.hex"
+                  [title]="color.displayName + ' - ' + color.hex">
+                </div>
+                <div class="color-details">
+                  <span class="color-code">{{ color.displayName }}</span>
+                  <span class="color-hex">{{ color.hex }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila 6: Estado -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Estado *</mat-label>
+            <mat-select formControlName="status">
+              <mat-option value="ACTIVO">ACTIVO</mat-option>
+              <mat-option value="INACTIVO">INACTIVO</mat-option>
+            </mat-select>
+            <mat-icon matSuffix>toggle_on</mat-icon>
+          </mat-form-field>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Footer del diálogo con botones de acción -->
+    <div class="dialog-footer">
+      <button mat-button (click)="cancelCreateDesign()" [disabled]="loading()" class="cancel-btn">
+        <mat-icon>cancel</mat-icon>
+        Cancelar
+      </button>
+      <button mat-raised-button color="primary" (click)="saveNewDesign()" 
+        [disabled]="!createDesignForm.valid || loading()" class="save-btn">
+        <mat-icon *ngIf="loading()">refresh</mat-icon>
+        <mat-icon *ngIf="!loading()">save</mat-icon>
+        {{ loading() ? 'Guardando...' : 'Guardar Diseño' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+<!-- Fin del diálogo modal -->
 
 <!-- ===== COMENTARIOS TÉCNICOS ===== -->
 <!--

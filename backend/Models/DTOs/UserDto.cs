@@ -45,6 +45,8 @@ namespace FlexoAPP.API.Models.DTOs
         public List<string>? Permissions { get; set; }
         public string? ProfileImage { get; set; }
         public string? ProfileImageUrl { get; set; }
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string? Email { get; set; }                     // ✅ AGREGADO
         [Phone(ErrorMessage = "Teléfono inválido")]
         public string? Phone { get; set; }
         public bool IsActive { get; set; } = true;
@@ -65,6 +67,8 @@ namespace FlexoAPP.API.Models.DTOs
         public List<string>? Permissions { get; set; }
         public string? ProfileImage { get; set; }
         public string? ProfileImageUrl { get; set; }
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string? Email { get; set; }                     // ✅ AGREGADO
         [Phone(ErrorMessage = "Teléfono inválido")]
         public string? Phone { get; set; }
         public bool? IsActive { get; set; }

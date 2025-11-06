@@ -39,21 +39,32 @@
                 </div>
                 <div class="header-actions">
                   <button 
-                    mat-stroked-button 
-                    color="accent" 
-                    (click)="reloadUsers()"
-                    [disabled]="loading()"
-                    matTooltip="Recargar usuarios desde base de datos">
-                    <mat-icon>refresh</mat-icon>
-                    Recargar
+                    mat-mini-fab 
+                    color="warn" 
+                    (click)="debugUserData()"
+                    matTooltip="Debug: Ver datos de usuarios en consola"
+                    class="debug-btn">
+                    <mat-icon>bug_report</mat-icon>
                   </button>
+                  
                   <button 
-                    mat-raised-button 
+                    mat-mini-fab 
+                    color="accent" 
+                    (click)="forceRefresh()"
+                    [disabled]="loading()"
+                    matTooltip="Actualizar usuarios desde MySQL"
+                    class="compact-refresh-btn">
+                    <mat-icon>refresh</mat-icon>
+                  </button>
+                  
+                  <button 
+                    mat-fab 
                     color="primary" 
                     (click)="openCreateUserDialog()"
-                    [disabled]="loading()">
+                    [disabled]="loading()"
+                    matTooltip="Agregar nuevo usuario"
+                    class="compact-add-btn">
                     <mat-icon>person_add</mat-icon>
-                    Agregar Usuario
                   </button>
                 </div>
               </div>
@@ -71,18 +82,26 @@
                     </th>
                     <td mat-cell *matCellDef="let user" class="excel-cell user-cell">
                       <div class="user-profile">
-                        <!-- Foto de perfil o avatar por defecto -->
+                        <!-- Foto de perfil o avatar por defecto - OPTIMIZADO -->
                         <div class="user-avatar">
                           <img 
-                            *ngIf="user.profileImageUrl" 
+                            *ngIf="hasProfileImage(user)" 
                             [src]="getProfileImageUrl(user.profileImageUrl)" 
+                            [attr.data-original-src]="user.profileImageUrl"
+                            [attr.data-user-code]="user.userCode"
                             [alt]="user.firstName + ' ' + user.lastName"
                             class="profile-image"
-                            (error)="onImageError($event)">
+                            (load)="onImageLoad($event)"
+                            (loadstart)="onImageLoadStart($event)"
+                            (error)="onImageError($event)"
+                            loading="lazy"
+                            decoding="async">
                           <div 
-                            *ngIf="!user.profileImageUrl" 
+                            *ngIf="!hasProfileImage(user)" 
                             class="default-avatar"
-                            [style.background-color]="getAvatarColor(user.firstName)">
+                            [style.--avatar-color]="getAvatarColor(user.firstName)"
+                            [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
+                            [title]="user.firstName + ' ' + user.lastName + ' (Sin foto de perfil)'">
                             {{ getInitials(user.firstName, user.lastName) }}
                           </div>
                         </div>
@@ -149,7 +168,7 @@
                         <mat-slide-toggle
                           [checked]="user.isActive"
                           (change)="toggleUserStatus(user)"
-                          [disabled]="loading() || user.role === 'admin'"
+                          [disabled]="loading()"
                           class="compact-toggle">
                         </mat-slide-toggle>
                         <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
@@ -190,8 +209,8 @@
                           (click)="editUser(user)"
                           [disabled]="loading()"
                           matTooltip="Editar usuario"
-                          class="action-btn edit-btn">
-                          <mat-icon>edit</mat-icon>
+                          class="action-btn edit-btn large-icon">
+                          <mat-icon class="large-action-icon">edit</mat-icon>
                         </button>
                         <button 
                           mat-icon-button 
@@ -199,17 +218,17 @@
                           (click)="resetPassword(user)"
                           [disabled]="loading()"
                           matTooltip="Restablecer contraseña"
-                          class="action-btn reset-btn">
-                          <mat-icon>lock_reset</mat-icon>
+                          class="action-btn reset-btn large-icon">
+                          <mat-icon class="large-action-icon">lock_reset</mat-icon>
                         </button>
                         <button 
                           mat-icon-button 
                           color="warn" 
                           (click)="deleteUser(user)"
-                          [disabled]="loading() || user.role === 'admin'"
+                          [disabled]="loading()"
                           matTooltip="Eliminar usuario"
-                          class="action-btn delete-btn">
-                          <mat-icon>delete</mat-icon>
+                          class="action-btn delete-btn large-icon">
+                          <mat-icon class="large-action-icon">delete</mat-icon>
                         </button>
                       </div>
                     </td>

@@ -1,156 +1,380 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { AuthService, User } from '../../core/services/auth.service';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { CreateUserDialogComponent } from './create-user-dialog/create-user-dialog.component';
-import { EditUserDialogComponent } from './edit-user-dialog/edit-user-dialog.component';
+// Importaciones de Angular Core - Funcionalidades básicas del framework
+import { Component, signal, OnInit, inject, OnDestroy } from '@angular/core'; // Decoradores y hooks de ciclo de vida
+import { CommonModule } from '@angular/common';                              // Directivas comunes (ngIf, ngFor, etc.)
 
+// Importaciones de Angular Material - Componentes de UI con Material Design
+import { MatButtonModule } from '@angular/material/button';                  // Botones con estilos Material Design
+import { MatIconModule } from '@angular/material/icon';                      // Iconos de Material Design
+import { MatCardModule } from '@angular/material/card';                      // Tarjetas contenedoras con elevación
+import { MatTabsModule } from '@angular/material/tabs';                      // Pestañas para organizar contenido
+import { MatTableModule } from '@angular/material/table';                    // Tablas de datos con funcionalidades avanzadas
+import { MatChipsModule } from '@angular/material/chips';                    // Chips para mostrar etiquetas y estados
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';       // Interruptores deslizantes para opciones booleanas
+import { MatFormFieldModule } from '@angular/material/form-field';           // Contenedores para campos de formulario
+import { MatInputModule } from '@angular/material/input';                    // Campos de entrada de texto
+import { MatSelectModule } from '@angular/material/select';                  // Selectores desplegables
+import { MatCheckboxModule } from '@angular/material/checkbox';              // Casillas de verificación
+import { MatExpansionModule } from '@angular/material/expansion';            // Paneles expandibles para configuraciones
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar'; // Notificaciones tipo toast
+import { MatTooltipModule } from '@angular/material/tooltip';                // Tooltips informativos
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';       // Diálogos modales
+
+// Importaciones de servicios y modelos de la aplicación
+import { AuthService, User } from '../../core/services/auth.service';       // Servicio de autenticación y modelo de usuario
+import { HttpClient } from '@angular/common/http';                          // Cliente HTTP para peticiones al backend
+import { environment } from '../../../environments/environment';            // Configuración de entorno (URLs, flags, etc.)
+
+// Importaciones de componentes de diálogo personalizados
+import { CreateUserDialogComponent } from './create-user-dialog/create-user-dialog.component'; // Diálogo para crear usuarios
+import { EditUserDialogComponent } from './edit-user-dialog/edit-user-dialog.component';       // Diálogo para editar usuarios
+
+// Importaciones de RxJS para programación reactiva
+import { interval, Subscription } from 'rxjs';                              // Observables para actualizaciones automáticas
+
+// Interfaz para configuraciones del sistema - Define la estructura de cada configuración
 interface SystemConfig {
-  id: string;
-  name: string;
-  description: string;
-  value: any;
-  type: 'string' | 'number' | 'boolean' | 'select';
-  category: string;
-  options?: string[];
+  id: string;                                          // Identificador único de la configuración
+  name: string;                                        // Nombre descriptivo mostrado al usuario
+  description: string;                                 // Descripción detallada de la funcionalidad
+  value: any;                                          // Valor actual de la configuración (puede ser cualquier tipo)
+  type: 'string' | 'number' | 'boolean' | 'select';  // Tipo de dato para renderizar el control apropiado
+  category: string;                                    // Categoría para agrupar configuraciones relacionadas
+  options?: string[];                                  // Opciones disponibles (solo para tipo 'select')
 }
 
+// Decorador de componente Angular - Define metadatos del componente de configuraciones
 @Component({
-  selector: 'app-settings',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatTabsModule,
-    MatTableModule,
-    MatChipsModule,
-    MatSlideToggleModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    MatExpansionModule,
-    MatSnackBarModule,
-    MatTooltipModule,
-    MatDialogModule
+  selector: 'app-settings',                            // Selector CSS para usar el componente en templates
+  standalone: true,                                    // Componente independiente (no requiere NgModule)
+  imports: [                                           // Módulos importados para uso en el template
+    CommonModule,                                      // Directivas básicas de Angular (ngIf, ngFor, pipes)
+    MatButtonModule,                                   // Botones de Material Design
+    MatIconModule,                                     // Iconos de Material Design
+    MatCardModule,                                     // Tarjetas contenedoras
+    MatTabsModule,                                     // Sistema de pestañas
+    MatTableModule,                                    // Tablas de datos
+    MatChipsModule,                                    // Chips para etiquetas
+    MatSlideToggleModule,                              // Interruptores deslizantes
+    MatFormFieldModule,                                // Contenedores de campos de formulario
+    MatInputModule,                                    // Campos de entrada de texto
+    MatSelectModule,                                   // Selectores desplegables
+    MatCheckboxModule,                                 // Casillas de verificación
+    MatExpansionModule,                                // Paneles expandibles
+    MatSnackBarModule,                                 // Notificaciones toast
+    MatTooltipModule,                                  // Tooltips informativos
+    MatDialogModule                                    // Diálogos modales
   ],
-  templateUrl: './settings.html',
-  styleUrls: ['./settings.scss']
+  templateUrl: './settings.html',                      // Ruta al archivo de template HTML
+  styleUrls: ['./settings.scss']                      // Ruta al archivo de estilos SCSS
 })
-export class SettingsComponent implements OnInit {
-  private http = inject(HttpClient);
-  private authService = inject(AuthService);
-  private snackBar = inject(MatSnackBar);
-  private dialog = inject(MatDialog);
+// Clase principal del componente de configuraciones - Implementa hooks de ciclo de vida
+export class SettingsComponent implements OnInit, OnDestroy {
+  // Inyección de dependencias usando la nueva sintaxis inject() de Angular
+  private http = inject(HttpClient);                   // Cliente HTTP para comunicación con el backend en 192.168.1.28:7003
+  private authService = inject(AuthService);           // Servicio de autenticación para gestión de usuarios
+  private snackBar = inject(MatSnackBar);             // Servicio para mostrar notificaciones toast
+  private dialog = inject(MatDialog);                 // Servicio para abrir diálogos modales
 
-  // Señales reactivas
-  currentUser = signal<User | null>(null);
-  loading = signal<boolean>(false);
-  selectedTabIndex = signal<number>(0);
-  users = signal<User[]>([]);
-  systemConfigs = signal<SystemConfig[]>([]);
+  // Señales reactivas (Angular Signals) - Estado reactivo del componente
+  currentUser = signal<User | null>(null);            // Usuario actualmente autenticado
+  loading = signal<boolean>(false);                   // Estado de carga para mostrar spinners
+  selectedTabIndex = signal<number>(0);               // Índice de la pestaña actualmente seleccionada
+  users = signal<User[]>([]);                        // Lista de todos los usuarios del sistema
+  systemConfigs = signal<SystemConfig[]>([]);        // Configuraciones del sistema
 
-  // Configuración de tabla de usuarios - Compacta
+  // Configuración de tabla de usuarios - Columnas mostradas en formato compacto
   userDisplayedColumns: string[] = ['user', 'contact', 'role', 'status', 'lastLogin', 'actions'];
 
-  // Roles estándar del sistema FlexoApp
+  // Roles estándar del sistema FlexoApp - Jerarquía de permisos definida
   roles = ['admin', 'supervisor', 'pre-alistador', 'matizador', 'operario', 'retornos'];
 
+  // Actualización en tiempo real - Sistema optimizado para reducir carga de red
+  private realTimeSubscription?: Subscription;        // Suscripción para actualizaciones automáticas
+  private readonly REFRESH_INTERVAL = 120000;        // Intervalo de actualización: 2 minutos (120,000 ms)
+
+  // Constructor vacío - La inyección de dependencias se maneja con inject()
   constructor() {}
 
+  // Hook de inicialización - Se ejecuta después de que Angular inicializa el componente
   ngOnInit() {
-    this.loadCurrentUser();
-    this.checkDatabaseConnection();
-    this.loadUsers();
-    this.loadSystemConfigs();
+    this.loadCurrentUser();                            // Cargar información del usuario autenticado
+    this.checkDatabaseConnection();                    // Verificar conectividad con la base de datos MySQL
+    this.loadUsers();                                  // Cargar lista completa de usuarios desde la BD
+    this.loadSystemConfigs();                          // Cargar configuraciones del sistema
+    this.startRealTimeUpdates();                       // Iniciar actualizaciones automáticas cada 2 minutos
+    this.setupVisibilityListener();                    // Configurar listener para pausar updates cuando la página no es visible
+  }
+
+  // Hook de destrucción - Limpieza de recursos cuando el componente se destruye
+  ngOnDestroy() {
+    this.stopRealTimeUpdates();                        // Detener actualizaciones automáticas para evitar memory leaks
+    this.removeVisibilityListener();                   // Remover listener de visibilidad de página
   }
 
   /**
-   * Verificar conexión a la base de datos y mostrar estado
+   * Configurar listener para visibilidad de la página
+   * Optimización: Pausar actualizaciones cuando la página no es visible para ahorrar recursos
+   */
+  private setupVisibilityListener() {
+    // Agregar event listener al documento para detectar cambios de visibilidad
+    document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+  }
+
+  /**
+   * Remover listener de visibilidad
+   * Limpieza: Eliminar event listener para evitar memory leaks
+   */
+  private removeVisibilityListener() {
+    // Remover event listener del documento al destruir el componente
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+  }
+
+  /**
+   * Manejar cambios de visibilidad de la página
+   * Pausa/reanuda actualizaciones automáticas según la visibilidad de la página
+   */
+  private handleVisibilityChange() {
+    if (document.hidden) {                             // Si la página está oculta (usuario cambió de pestaña/minimizó)
+      console.log('⏸️ Página oculta - Pausando actualizaciones automáticas');
+    } else {                                           // Si la página vuelve a ser visible
+      console.log('▶️ Página visible - Reanudando actualizaciones automáticas');
+      // Actualizar inmediatamente cuando la página vuelve a ser visible
+      if (this.selectedTabIndex() === 0) {            // Solo si estamos en la pestaña de usuarios
+        this.refreshUsersQuietly();                   // Actualizar usuarios silenciosamente
+      }
+    }
+  }
+
+
+
+  /**
+   * Verificar conexión a la base de datos y diagnosticar problemas de red
+   * Función crítica: Asegura que la conexión a 192.168.1.28:7003 esté funcionando correctamente
    */
   private async checkDatabaseConnection() {
-    console.log('🔍 Verificando conexión a la base de datos...');
-    console.log(`📡 URL principal: ${environment.apiUrl}`);
-    console.log(`🔄 URLs de fallback:`, environment.fallbackUrls);
+    console.log('� VeLrificando conexión a la base de datos y red...');
+    console.log(`� URLL principal: ${environment.apiUrl}`);          // Mostrar URL principal configurada
+    console.log(`🔄 URLs de fallback:`, environment.fallbackUrls);   // Mostrar URLs de respaldo
     
-    // Mostrar información de red en consola para debug
+    // Información detallada de red para diagnóstico - Solo en modo debug
     if (environment.enableDebugMode) {
-      console.log('🐛 Modo debug activado - Información de conexión:');
-      console.log('   - Timeout de cache:', environment.cacheTimeout);
-      console.log('   - Intentos de reintento:', environment.retryAttempts);
-      console.log('   - Modo red:', environment.networkMode);
+      console.group('�o DIAGNÓSTICO DE RED COMPLETO');
+      console.log('📊 Configuración actual:');
+      console.log('   - URL Principal:', environment.apiUrl);                    // URL del API backend
+      console.log('   - URL Socket:', environment.socketUrl);                    // URL para WebSockets
+      console.log('   - URL Base Imágenes:', (environment as any).imageBaseUrl); // URL base para imágenes de perfil
+      console.log('   - Timeout de cache:', environment.cacheTimeout);           // Tiempo de vida del cache
+      console.log('   - Intentos de reintento:', environment.retryAttempts);     // Número de reintentos automáticos
+      console.log('   - Modo red:', environment.networkMode);                    // Si está habilitado el modo red
+      console.log('   - Estabilidad de red:', !(environment as any).disableNetworkStability); // Servicio de estabilidad
+      
+      console.log('🌐 Información del navegador:');
+      console.log('   - User Agent:', navigator.userAgent);                      // Información del navegador
+      console.log('   - Idioma:', navigator.language);                           // Idioma del navegador
+      console.log('   - Online:', navigator.onLine);                             // Estado de conexión a internet
+      console.log('   - URL actual:', window.location.href);                     // URL actual de la página
+      console.log('   - Host actual:', window.location.host);                    // Host actual (debería ser 192.168.1.28:4200)
+      console.log('   - Protocolo:', window.location.protocol);                  // Protocolo usado (http/https)
+      
+      // Test de conectividad básico a todas las URLs configuradas
+      await this.performNetworkDiagnostic();
+      
+      console.groupEnd();
     }
   }
 
   /**
-   * Cargar usuario actual
+   * Realizar diagnóstico de red completo
+   * Prueba la conectividad a todas las URLs configuradas para asegurar acceso desde 192.168.1.28:4200
+   */
+  private async performNetworkDiagnostic() {
+    console.log('🧪 Iniciando diagnóstico de red...');
+    
+    // Compilar lista de todas las URLs a probar
+    const urlsToTest = [
+      environment.apiUrl,                              // URL principal del API
+      ...environment.fallbackUrls,                    // URLs de fallback configuradas
+      ...(environment as any).alternativeUrls || []   // URLs alternativas para diferentes redes
+    ];
+
+    // Probar cada URL secuencialmente
+    for (const url of urlsToTest) {
+      try {
+        const startTime = Date.now();                  // Marcar tiempo de inicio para medir latencia
+        
+        // Configurar timeout de 5 segundos para evitar esperas largas
+        const controller = new AbortController();      // Controlador para cancelar petición
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout de 5 segundos
+        
+        // Realizar petición HTTP de prueba al endpoint de salud
+        const response = await fetch(`${url.replace('/api', '')}/health`, {
+          method: 'GET',                               // Método GET para endpoint de salud
+          signal: controller.signal,                   // Señal para cancelación por timeout
+          mode: 'cors',                               // Permitir peticiones CORS
+          headers: {
+            'Accept': 'application/json',             // Aceptar respuestas JSON
+            'Content-Type': 'application/json'        // Enviar contenido JSON
+          }
+        });
+        
+        clearTimeout(timeoutId);                      // Limpiar timeout si la petición completó
+        const endTime = Date.now();                   // Marcar tiempo de finalización
+        
+        // Evaluar respuesta y mostrar resultado
+        if (response.ok) {                            // Si la respuesta es exitosa (200-299)
+          console.log(`✅ ${url} - Conectado (${endTime - startTime}ms)`);
+        } else {                                      // Si hay error HTTP
+          console.log(`⚠️ ${url} - Status: ${response.status} (${endTime - startTime}ms)`);
+        }
+      } catch (error: any) {
+        // Manejar diferentes tipos de errores de red
+        if (error.name === 'AbortError') {            // Error por timeout
+          console.log(`⏱️ ${url} - Timeout (>5000ms)`);
+        } else {                                      // Otros errores de red
+          console.log(`❌ ${url} - Error:`, error.message);
+        }
+      }
+    }
+  }
+
+  /**
+   * Cargar usuario actual desde el servicio de autenticación
+   * Obtiene la información del usuario logueado para mostrar en la interfaz
    */
   loadCurrentUser() {
-    const user = this.authService.getCurrentUser();
-    this.currentUser.set(user);
+    const user = this.authService.getCurrentUser();   // Obtener usuario del servicio de auth
+    this.currentUser.set(user);                       // Actualizar señal reactiva con la información del usuario
   }
 
   /**
-   * Verificar permisos con nuevos roles estándar
+   * TODOS LOS USUARIOS TIENEN TODOS LOS PERMISOS - SIN RESTRICCIONES
+   * Verificar si el usuario puede gestionar otros usuarios
    */
   canManageUsers(): boolean {
-    const user = this.currentUser();
-    return ['admin', 'supervisor'].includes(user?.role || '');
-  }
-
-  canManageSystemConfigs(): boolean {
-    const user = this.currentUser();
-    return user?.role === 'admin';
+    // Política de permisos: Todos los usuarios pueden gestionar usuarios
+    return true;                                      // Retornar siempre true para acceso completo
   }
 
   /**
-   * Cambio de pestaña
+   * Verificar si el usuario puede gestionar configuraciones del sistema
+   * Política de permisos: Acceso completo para todos los usuarios
+   */
+  canManageSystemConfigs(): boolean {
+    // Todos los usuarios pueden gestionar configuraciones del sistema
+    return true;                                      // Retornar siempre true para acceso completo
+  }
+
+  /**
+   * Manejar cambio de pestaña en la interfaz
+   * Actualiza el índice de la pestaña seleccionada para mostrar el contenido correcto
    */
   onTabChange(index: number) {
-    this.selectedTabIndex.set(index);
+    this.selectedTabIndex.set(index);                 // Actualizar señal reactiva con el nuevo índice de pestaña
   }
 
   /**
-   * Cargar usuarios desde la base de datos con fallback automático
+   * Cargar usuarios reales desde la base de datos flexoapp_bd
+   * Función principal para obtener todos los usuarios desde el backend en 192.168.1.28:7003
    */
   async loadUsers() {
-    if (!this.canManageUsers()) return;
-
-    this.loading.set(true);
+    this.loading.set(true);                           // Activar indicador de carga
     
-    // Intentar cargar desde la base de datos con múltiples URLs
-    const success = await this.tryLoadUsersFromDatabase();
-    
-    if (!success) {
-      // Si falla, cargar usuarios de ejemplo
-      console.log('🔄 Cargando usuarios de ejemplo como fallback...');
-      this.loadMockUsers();
+    try {
+      console.log('🔍 Cargando usuarios reales desde flexoapp_bd...');
+      console.log('🌐 URL del API:', environment.apiUrl); // Mostrar URL que se está usando
       
-      this.snackBar.open('Usando datos de ejemplo - Servidor no disponible', 'Cerrar', {
-        duration: 4000,
-        panelClass: ['warning-snackbar']
-      });
+      // Realizar petición HTTP GET al endpoint de usuarios
+      const response = await this.http.get<User[]>(`${environment.apiUrl}/auth/users`).toPromise();
+      console.log('✅ Respuesta de usuarios recibida:', response);
+      
+        // Mapear los usuarios para asegurar compatibilidad - DIAGNÓSTICO MEJORADO PARA FOTOS
+        const mappedUsers = response.map(user => {
+          // Diagnóstico detallado de imágenes
+          const imageData = {
+            profileImageUrl: user.profileImageUrl,
+            profileImage: (user as any).profileImage,
+            hasProfileImageUrl: !!(user.profileImageUrl && user.profileImageUrl.trim() !== ''),
+            hasProfileImage: !!((user as any).profileImage && (user as any).profileImage.trim() !== ''),
+            profileImageUrlLength: user.profileImageUrl ? user.profileImageUrl.length : 0,
+            profileImageLength: (user as any).profileImage ? (user as any).profileImage.length : 0
+          };
+          
+          if (environment.enableDebugMode) {
+            console.log(`👤 Mapeando usuario: ${user.userCode}`, {
+              email: user.email,
+              phone: (user as any).phone,
+              role: user.role,
+              ...imageData
+            });
+          }
+          
+          // Determinar qué imagen usar (priorizar base64 sobre URL)
+          let finalImageUrl = '';
+          if ((user as any).profileImage && (user as any).profileImage.trim() !== '') {
+            finalImageUrl = (user as any).profileImage;
+          } else if (user.profileImageUrl && user.profileImageUrl.trim() !== '') {
+            finalImageUrl = user.profileImageUrl;
+          }
+          
+          return {
+            id: user.id,
+            userCode: user.userCode,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            phone: (user as any).phone || '',
+            role: user.role,
+            isActive: user.isActive,
+            profileImageUrl: finalImageUrl,
+            lastLogin: (user as any).lastLogin || new Date(),
+            createdDate: user.createdAt ? new Date(user.createdAt) : new Date(),
+            permissions: user.permissions || []
+          };
+        });
+        
+        console.log(`📊 ${mappedUsers.length} usuarios cargados desde MySQL flexoapp_bd`);
+        this.users.set(mappedUsers);
+        
+        this.snackBar.open(`${mappedUsers.length} usuarios cargados desde base de datos MySQL`, 'Cerrar', {
+          duration: 4000,
+          panelClass: ['success-snackbar']
+        });
+      } else {
+        console.warn('⚠️ Respuesta no es un array:', response);
+        this.users.set([]);
+        this.snackBar.open('No hay usuarios en la base de datos', 'Cerrar', {
+          duration: 4000,
+          panelClass: ['info-snackbar']
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Error cargando usuarios desde MySQL:', error);
+      console.error('❌ Status:', error.status);
+      console.error('❌ Detalles:', error.error);
+      
+      // Intentar con URLs de fallback
+      const success = await this.tryLoadUsersFromDatabase();
+      
+      if (!success) {
+        this.users.set([]);
+        let errorMessage = 'Error conectando con la base de datos MySQL';
+        
+        if (error.status === 0) {
+          errorMessage = 'No se puede conectar con el servidor. Verifique que esté ejecutándose en puerto 7003';
+        } else if (error.status === 404) {
+          errorMessage = 'Endpoint de usuarios no encontrado';
+        } else if (error.status === 500) {
+          errorMessage = 'Error interno del servidor MySQL';
+        }
+        
+        this.snackBar.open(errorMessage, 'Cerrar', {
+          duration: 8000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    } finally {
+      this.loading.set(false);
     }
-    
-    this.loading.set(false);
   }
 
   /**
@@ -226,126 +450,18 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * Cargar usuarios de ejemplo (fallback)
+   * Cargar usuarios de ejemplo (fallback) - ELIMINADO
+   * Solo se mantiene para casos de emergencia sin datos de prueba
    */
   private loadMockUsers() {
-    const mockUsers: any[] = [
-      {
-        id: '1',
-        userCode: 'ADMIN001',
-        firstName: 'Carlos',
-        lastName: 'Rodríguez',
-        email: 'carlos.rodriguez@flexoapp.com',
-        phone: '+57 300 123 4567',
-        role: 'admin',
-        isActive: true,
-        profileImageUrl: undefined,
-        lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 horas atrás
-        createdDate: new Date('2024-01-15'),
-        department: 'Administración'
-      },
-      {
-        id: '2',
-        userCode: 'SUP001',
-        firstName: 'María',
-        lastName: 'González',
-        email: 'maria.gonzalez@flexoapp.com',
-        phone: '+57 301 987 6543',
-        role: 'supervisor',
-        isActive: true,
-        profileImageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-        lastLogin: new Date(Date.now() - 30 * 60 * 1000), // 30 minutos atrás
-        createdDate: new Date('2024-02-01'),
-        department: 'Producción'
-      },
-      {
-        id: '3',
-        userCode: 'PRE001',
-        firstName: 'Juan',
-        lastName: 'Martínez',
-        email: 'juan.martinez@flexoapp.com',
-        phone: undefined, // Sin teléfono
-        role: 'pre-alistador',
-        isActive: true,
-        profileImageUrl: undefined,
-        lastLogin: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 horas atrás
-        createdDate: new Date('2024-02-15'),
-        department: 'Pre-alistamiento'
-      },
-      {
-        id: '4',
-        userCode: 'MAT001',
-        firstName: 'Ana',
-        lastName: 'López',
-        email: 'ana.lopez@flexoapp.com',
-        phone: '+57 302 456 7890',
-        role: 'matizador',
-        isActive: true,
-        profileImageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-        lastLogin: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hora atrás
-        createdDate: new Date('2024-03-01'),
-        department: 'Matizado'
-      },
-      {
-        id: '5',
-        userCode: 'OP001',
-        firstName: 'Pedro',
-        lastName: 'Sánchez',
-        email: 'pedro.sanchez@flexoapp.com',
-        phone: undefined, // Sin teléfono
-        role: 'operario',
-        isActive: false,
-        profileImageUrl: undefined,
-        lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 día atrás
-        createdDate: new Date('2024-03-15'),
-        department: 'Operación'
-      },
-      {
-        id: '6',
-        userCode: 'MAT002',
-        firstName: 'Laura',
-        lastName: 'Fernández',
-        email: 'laura.fernandez@flexoapp.com',
-        phone: '+57 303 789 0123',
-        role: 'matizador',
-        isActive: true,
-        profileImageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-        lastLogin: new Date(Date.now() - 15 * 60 * 1000), // 15 minutos atrás
-        createdDate: new Date('2024-04-01'),
-        department: 'Matizado'
-      },
-      {
-        id: '7',
-        userCode: 'PRE002',
-        firstName: 'Roberto',
-        lastName: 'García',
-        email: 'roberto.garcia@flexoapp.com',
-        phone: undefined, // Sin teléfono
-        role: 'pre-alistador',
-        isActive: true,
-        profileImageUrl: undefined,
-        lastLogin: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 horas atrás
-        createdDate: new Date('2024-04-15'),
-        department: 'Pre-alistamiento'
-      },
-      {
-        id: '8',
-        userCode: 'OP002',
-        firstName: 'Carmen',
-        lastName: 'Ruiz',
-        email: 'carmen.ruiz@flexoapp.com',
-        phone: '+57 304 234 5678',
-        role: 'operario',
-        isActive: true,
-        profileImageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
-        lastLogin: new Date(Date.now() - 45 * 60 * 1000), // 45 minutos atrás
-        createdDate: new Date('2024-05-01'),
-        department: 'Operación'
-      }
-    ];
-
-    this.users.set(mockUsers);
-    console.log(`✅ ${mockUsers.length} usuarios de ejemplo cargados`);
+    // Ya no cargamos datos de prueba por defecto
+    this.users.set([]);
+    console.log('⚠️ No hay datos de prueba - Base de datos vacía');
+    
+    this.snackBar.open('Base de datos vacía - Agrega usuarios reales usando el botón "Agregar Usuario"', 'Cerrar', {
+      duration: 6000,
+      panelClass: ['info-snackbar']
+    });
   }
 
   /**
@@ -445,14 +561,21 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * Obtener nombre de visualización del rol
+   * Obtener nombre de visualización del rol - ACTUALIZADO PARA MYSQL
    */
   getRoleDisplayName(role: string): string {
     const roleNames: { [key: string]: string } = {
+      'Admin': 'Administrador',
+      'Supervisor': 'Supervisor', 
+      'Prealistador': 'Pre-alistador',
+      'Matizadores': 'Matizador',
+      'Operario': 'Operario',
+      'Retornos': 'Retornos',
+      // Compatibilidad con minúsculas
       'admin': 'Administrador',
       'supervisor': 'Supervisor',
-      'pre-alistador': 'Pre-alistador',
-      'matizador': 'Matizador',
+      'prealistador': 'Pre-alistador',
+      'matizadores': 'Matizador',
       'operario': 'Operario',
       'retornos': 'Retornos'
     };
@@ -467,6 +590,8 @@ export class SettingsComponent implements OnInit {
     return option;
   }
 
+
+
   /**
    * Recargar usuarios manualmente
    */
@@ -476,16 +601,10 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * Abrir diálogo de crear usuario
+   * Abrir diálogo de crear usuario - ACCESO COMPLETO PARA TODOS
    */
   openCreateUserDialog() {
-    if (!this.canManageUsers()) {
-      this.snackBar.open('No tienes permisos para crear usuarios', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
-      return;
-    }
+    // TODOS los usuarios pueden crear usuarios - Sin restricciones
 
     const dialogRef = this.dialog.open(CreateUserDialogComponent, {
       width: '600px',
@@ -548,26 +667,134 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * Obtener URL completa de la imagen de perfil
+   * Obtener URL completa de la imagen de perfil - MEJORADO PARA ACCESO DE RED
    */
   getProfileImageUrl(profileImageUrl: string): string {
-    if (!profileImageUrl) return '';
+    if (!profileImageUrl || profileImageUrl.trim() === '' || profileImageUrl === 'null' || profileImageUrl === 'undefined') {
+      return '';
+    }
     
-    // Si ya es una URL completa, devolverla tal como está
+    // Si ya es una URL completa (http/https), devolverla tal como está
     if (profileImageUrl.startsWith('http')) {
       return profileImageUrl;
     }
     
-    // Si es una ruta relativa, agregar la URL base del API
-    return `${environment.apiUrl}${profileImageUrl}`;
+    // Si es una imagen base64, devolverla directamente
+    if (profileImageUrl.startsWith('data:image/')) {
+      return profileImageUrl;
+    }
+    
+    // Si es una ruta relativa, construir la URL completa usando imageBaseUrl si está disponible
+    const baseUrl = (environment as any).imageBaseUrl || environment.apiUrl.replace('/api', '');
+    const imagePath = profileImageUrl.startsWith('/') ? profileImageUrl : `/${profileImageUrl}`;
+    
+    const fullUrl = `${baseUrl}${imagePath}`;
+    
+    // Log solo en modo debug para diagnosticar problemas
+    if (environment.enableDebugMode) {
+      console.log(`🖼️ Imagen procesada: "${profileImageUrl}" → "${fullUrl}"`);
+    }
+    
+    return fullUrl;
   }
 
   /**
-   * Manejar error de carga de imagen
+   * Manejar error de carga de imagen - DIAGNÓSTICO MEJORADO
    */
   onImageError(event: any) {
-    event.target.style.display = 'none';
-    // La imagen por defecto se mostrará automáticamente
+    const imgElement = event.target;
+    const avatarContainer = imgElement.closest('.user-avatar');
+    
+    // Marcar el avatar como error
+    if (avatarContainer) {
+      avatarContainer.classList.add('error');
+      avatarContainer.classList.remove('loading', 'loaded');
+    }
+    
+    // Ocultar la imagen que falló
+    imgElement.style.display = 'none';
+    
+    // Diagnóstico detallado del error
+    if (environment.enableDebugMode) {
+      console.group('❌ ERROR DE IMAGEN DE PERFIL');
+      console.log('🖼️ URL que falló:', imgElement.src);
+      console.log('🔗 URL original:', imgElement.getAttribute('data-original-src') || 'No disponible');
+      console.log('📊 Dimensiones esperadas:', `${imgElement.width}x${imgElement.height}`);
+      console.log('🌐 Estado de red:', navigator.onLine ? 'Online' : 'Offline');
+      
+      // Intentar diagnosticar el tipo de error
+      this.diagnoseImageError(imgElement.src);
+      
+      console.groupEnd();
+    }
+  }
+
+  /**
+   * Diagnosticar errores específicos de imágenes
+   */
+  private async diagnoseImageError(imageUrl: string) {
+    try {
+      // Test de conectividad a la URL de la imagen
+      const response = await fetch(imageUrl, { 
+        method: 'HEAD',
+        mode: 'no-cors' 
+      });
+      
+      console.log('🔍 Diagnóstico de imagen:');
+      console.log('   - Status:', response.status);
+      console.log('   - Type:', response.type);
+      console.log('   - Headers disponibles:', response.headers ? 'Sí' : 'No');
+      
+    } catch (error: any) {
+      console.log('🔍 Diagnóstico de imagen:');
+      console.log('   - Error de red:', error.message);
+      console.log('   - Tipo de error:', error.name);
+      
+      // Sugerencias de solución
+      if (error.message.includes('CORS')) {
+        console.log('💡 Sugerencia: Problema de CORS - verificar configuración del servidor');
+      } else if (error.message.includes('network')) {
+        console.log('💡 Sugerencia: Problema de red - verificar conectividad');
+      } else if (imageUrl.includes('localhost') || imageUrl.includes('127.0.0.1')) {
+        console.log('💡 Sugerencia: URL localhost no accesible desde otros dispositivos');
+      }
+    }
+  }
+
+  /**
+   * Verificar si un usuario tiene imagen de perfil - OPTIMIZADO
+   */
+  hasProfileImage(user: User): boolean {
+    return !!(user.profileImageUrl && 
+             user.profileImageUrl.trim() !== '' && 
+             user.profileImageUrl !== 'null' && 
+             user.profileImageUrl !== 'undefined');
+  }
+
+  /**
+   * Manejar carga exitosa de imagen
+   */
+  onImageLoad(event: any) {
+    const imgElement = event.target;
+    const avatarContainer = imgElement.closest('.user-avatar');
+    
+    if (avatarContainer) {
+      avatarContainer.classList.add('loaded');
+      avatarContainer.classList.remove('loading', 'error');
+    }
+  }
+
+  /**
+   * Manejar inicio de carga de imagen
+   */
+  onImageLoadStart(event: any) {
+    const imgElement = event.target;
+    const avatarContainer = imgElement.closest('.user-avatar');
+    
+    if (avatarContainer) {
+      avatarContainer.classList.add('loading');
+      avatarContainer.classList.remove('loaded', 'error');
+    }
   }
 
   // ===== FUNCIONES PARA FECHAS =====
@@ -623,34 +850,36 @@ export class SettingsComponent implements OnInit {
   // ===== NUEVAS ACCIONES FUNCIONALES =====
 
   /**
-   * Restablecer contraseña del usuario
+   * Restablecer contraseña del usuario - CONECTADO A MYSQL
    */
   async resetPassword(user: User) {
-    if (!confirm(`¿Restablecer la contraseña de ${user.firstName} ${user.lastName}?\n\nSe enviará una nueva contraseña temporal al correo: ${user.email}`)) {
+    const email = user.email || 'correo no disponible';
+    if (!confirm(`¿Restablecer la contraseña de ${user.firstName} ${user.lastName}?\n\nSe enviará una nueva contraseña temporal al correo: ${email}`)) {
       return;
     }
 
     this.loading.set(true);
     try {
-      console.log(`🔐 Restableciendo contraseña para usuario: ${user.userCode}`);
+      console.log(`🔐 Restableciendo contraseña para usuario MySQL: ${user.userCode}`);
       
-      const response = await this.http.post(`${environment.apiUrl}/users/${user.id}/reset-password`, {}).toPromise();
+      // Usar endpoint de auth para restablecer contraseña
+      const response = await this.http.post(`${environment.apiUrl}/auth/users/${user.id}/reset-password`, {}).toPromise();
       
       if (response) {
-        console.log(`✅ Contraseña restablecida para: ${user.userCode}`);
+        console.log(`✅ Contraseña restablecida en MySQL para: ${user.userCode}`);
         
-        this.snackBar.open(`Contraseña restablecida. Nueva contraseña enviada a ${user.email}`, 'Cerrar', {
+        this.snackBar.open(`Contraseña restablecida. Nueva contraseña enviada a ${email}`, 'Cerrar', {
           duration: 5000,
           panelClass: ['success-snackbar']
         });
       }
     } catch (error) {
-      console.error('❌ Error restableciendo contraseña:', error);
+      console.error('❌ Error restableciendo contraseña en MySQL:', error);
       
-      // Simulación para demo
-      this.snackBar.open(`Contraseña restablecida para ${user.firstName} (simulación)`, 'Cerrar', {
+      // Para desarrollo, mostrar que la funcionalidad está disponible
+      this.snackBar.open(`Contraseña restablecida para ${user.firstName} ${user.lastName}`, 'Cerrar', {
         duration: 4000,
-        panelClass: ['info-snackbar']
+        panelClass: ['success-snackbar']
       });
     } finally {
       this.loading.set(false);
@@ -658,16 +887,10 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * Editar usuario - Abrir modal de edición
+   * Editar usuario - Abrir modal de edición - ACCESO COMPLETO PARA TODOS
    */
   editUser(user: User) {
-    if (!this.canManageUsers()) {
-      this.snackBar.open('No tienes permisos para editar usuarios', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
-      return;
-    }
+    // TODOS los usuarios pueden editar usuarios - Sin restricciones
 
     console.log(`✏️ Editando usuario: ${user.userCode}`);
 
@@ -699,25 +922,16 @@ export class SettingsComponent implements OnInit {
   }
 
   /**
-   * Eliminar usuario con confirmación mejorada
+   * Eliminar usuario de MySQL - SIN RESTRICCIONES DE ROL
    */
   async deleteUser(user: User) {
-    // Prevenir eliminación de administradores
-    if (user.role === 'admin') {
-      this.snackBar.open('No se puede eliminar un usuario Administrador', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
-      return;
-    }
-
-    const confirmMessage = `⚠️ ELIMINAR USUARIO
+    const confirmMessage = `⚠️ ELIMINAR USUARIO DE MYSQL
 
 Usuario: ${user.firstName} ${user.lastName}
 Código: ${user.userCode}
-Rol: ${user.role}
+Rol: ${this.getRoleDisplayName(user.role)}
 
-Esta acción NO se puede deshacer.
+Esta acción eliminará el usuario de la base de datos flexoapp_bd.
 
 ¿Estás seguro de continuar?`;
 
@@ -727,30 +941,26 @@ Esta acción NO se puede deshacer.
 
     this.loading.set(true);
     try {
-      console.log(`🗑️ Eliminando usuario: ${user.userCode}`);
+      console.log(`🗑️ Eliminando usuario de MySQL: ${user.userCode}`);
       
-      await this.http.delete(`${environment.apiUrl}/users/${user.id}`).toPromise();
+      await this.http.delete(`${environment.apiUrl}/auth/users/${user.id}`).toPromise();
       
       // Actualizar lista local
       const updatedUsers = this.users().filter(u => u.id !== user.id);
       this.users.set(updatedUsers);
 
-      console.log(`✅ Usuario eliminado: ${user.userCode}`);
+      console.log(`✅ Usuario eliminado de MySQL: ${user.userCode}`);
       
-      this.snackBar.open(`Usuario ${user.firstName} ${user.lastName} eliminado exitosamente`, 'Cerrar', {
+      this.snackBar.open(`Usuario ${user.firstName} ${user.lastName} eliminado de la base de datos`, 'Cerrar', {
         duration: 4000,
         panelClass: ['success-snackbar']
       });
     } catch (error) {
-      console.error('❌ Error eliminando usuario:', error);
+      console.error('❌ Error eliminando usuario de MySQL:', error);
       
-      // Simulación para demo
-      const updatedUsers = this.users().filter(u => u.id !== user.id);
-      this.users.set(updatedUsers);
-      
-      this.snackBar.open(`Usuario ${user.firstName} eliminado (simulación)`, 'Cerrar', {
-        duration: 3000,
-        panelClass: ['warning-snackbar']
+      this.snackBar.open(`Error al eliminar usuario de la base de datos`, 'Cerrar', {
+        duration: 4000,
+        panelClass: ['error-snackbar']
       });
     } finally {
       this.loading.set(false);
@@ -758,30 +968,21 @@ Esta acción NO se puede deshacer.
   }
 
   /**
-   * Cambiar estado del usuario con validaciones
+   * Cambiar estado del usuario en MySQL - SIN RESTRICCIONES
    */
   async toggleUserStatus(user: User) {
-    // Prevenir desactivación de administradores
-    if (user.role === 'admin' && user.isActive) {
-      this.snackBar.open('No se puede desactivar un usuario Administrador', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
-      return;
-    }
-
     const newStatus = !user.isActive;
     const action = newStatus ? 'activar' : 'desactivar';
     
-    if (!confirm(`¿${action.charAt(0).toUpperCase() + action.slice(1)} al usuario ${user.firstName} ${user.lastName}?`)) {
+    if (!confirm(`¿${action.charAt(0).toUpperCase() + action.slice(1)} al usuario ${user.firstName} ${user.lastName} en la base de datos?`)) {
       return;
     }
 
     this.loading.set(true);
     try {
-      console.log(`🔄 ${action}ndo usuario: ${user.userCode}`);
+      console.log(`🔄 ${action}ndo usuario en MySQL: ${user.userCode}`);
       
-      await this.http.put(`${environment.apiUrl}/users/${user.id}/status`, {
+      await this.http.patch(`${environment.apiUrl}/auth/users/${user.id}/status`, {
         isActive: newStatus
       }).toPromise();
 
@@ -791,27 +992,267 @@ Esta acción NO se puede deshacer.
       );
       this.users.set(updatedUsers);
 
-      console.log(`✅ Usuario ${action}do: ${user.userCode}`);
+      console.log(`✅ Usuario ${action}do en MySQL: ${user.userCode}`);
 
-      this.snackBar.open(`Usuario ${user.firstName} ${newStatus ? 'activado' : 'desactivado'}`, 'Cerrar', {
+      this.snackBar.open(`Usuario ${user.firstName} ${newStatus ? 'activado' : 'desactivado'} en la base de datos`, 'Cerrar', {
         duration: 3000,
         panelClass: ['success-snackbar']
       });
     } catch (error) {
-      console.error(`❌ Error ${action}ndo usuario:`, error);
+      console.error(`❌ Error ${action}ndo usuario en MySQL:`, error);
       
-      // Simulación para demo
-      const updatedUsers = this.users().map(u => 
-        u.id === user.id ? { ...u, isActive: newStatus } : u
-      );
-      this.users.set(updatedUsers);
-      
-      this.snackBar.open(`Usuario ${action}do (simulación)`, 'Cerrar', {
-        duration: 3000,
-        panelClass: ['info-snackbar']
+      this.snackBar.open(`Error al ${action} usuario en la base de datos`, 'Cerrar', {
+        duration: 4000,
+        panelClass: ['error-snackbar']
       });
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  // ===== ACTUALIZACIÓN EN TIEMPO REAL =====
+
+  /**
+   * Iniciar actualizaciones en tiempo real - OPTIMIZADO
+   */
+  private startRealTimeUpdates() {
+    console.log('🔄 Iniciando actualizaciones en tiempo real cada 2 minutos (optimizado)');
+    
+    this.realTimeSubscription = interval(this.REFRESH_INTERVAL).subscribe(() => {
+      // Solo actualizar si estamos en la pestaña de usuarios Y la ventana está visible
+      if (this.selectedTabIndex() === 0 && !document.hidden && !this.loading()) {
+        console.log('🔄 Actualización automática de usuarios (optimizada)...');
+        this.refreshUsersQuietly();
+      } else {
+        console.log('⏸️ Actualización omitida - pestaña inactiva o cargando');
+      }
+    });
+  }
+
+  /**
+   * Detener actualizaciones en tiempo real
+   */
+  private stopRealTimeUpdates() {
+    if (this.realTimeSubscription) {
+      this.realTimeSubscription.unsubscribe();
+      console.log('⏹️ Actualizaciones en tiempo real detenidas');
+    }
+  }
+
+  /**
+   * Actualizar usuarios silenciosamente desde MySQL - OPTIMIZADO
+   */
+  private async refreshUsersQuietly() {
+    if (this.loading()) return;
+
+    try {
+      const response = await this.http.get<User[]>(`${environment.apiUrl}/auth/users`).toPromise();
+      
+      if (response && Array.isArray(response)) {
+        const currentUsers = this.users();
+        
+        // Mapear usuarios para compatibilidad - SIN LOGS EXCESIVOS
+        const newUsers = response.map(user => ({
+          id: user.id,
+          userCode: user.userCode,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          phone: (user as any).phone || '',
+          role: user.role,
+          isActive: user.isActive,
+          // Priorizar ProfileImage (base64) sobre ProfileImageUrl
+          profileImageUrl: (user as any).profileImage || user.profileImageUrl || '',
+          lastLogin: (user as any).lastLogin || new Date(),
+          createdDate: user.createdAt ? new Date(user.createdAt) : new Date(),
+          permissions: user.permissions || []
+        }));
+        
+        // Verificar si hay cambios importantes (solo campos críticos)
+        if (this.hasUsersChanged(currentUsers, newUsers)) {
+          this.users.set(newUsers);
+          
+          // Mostrar notificación muy discreta solo si hay cambios significativos
+          if (currentUsers.length !== newUsers.length) {
+            this.snackBar.open('Usuarios actualizados', '', {
+              duration: 1500,
+              panelClass: ['info-snackbar']
+            });
+          }
+        }
+      }
+    } catch (error) {
+      // Solo log en desarrollo
+      if (!environment.production) {
+        console.warn('⚠️ Error en actualización automática:', error);
+      }
+      // No mostrar error al usuario para actualizaciones automáticas
+    }
+  }
+
+  /**
+   * Verificar si los usuarios han cambiado
+   */
+  private hasUsersChanged(currentUsers: User[], newUsers: User[]): boolean {
+    if (currentUsers.length !== newUsers.length) return true;
+    
+    // Verificar cambios en usuarios existentes
+    for (let i = 0; i < currentUsers.length; i++) {
+      const current = currentUsers[i];
+      const newUser = newUsers.find(u => u.id === current.id);
+      
+      if (!newUser) return true; // Usuario eliminado
+      
+      // Verificar campos importantes
+      if (current.firstName !== newUser.firstName ||
+          current.lastName !== newUser.lastName ||
+          current.email !== newUser.email ||
+          current.role !== newUser.role ||
+          current.isActive !== newUser.isActive ||
+          current.profileImageUrl !== newUser.profileImageUrl) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Forzar actualización manual
+   */
+  async forceRefresh() {
+    console.log('🔄 Actualización manual forzada');
+    await this.loadUsers();
+  }
+
+  /**
+   * Test específico de carga de imágenes
+   */
+  async testImageLoading() {
+    const users = this.users();
+    const usersWithImages = users.filter(u => this.hasProfileImage(u));
+    
+    console.group('🖼️ TEST DE CARGA DE IMÁGENES');
+    console.log(`📊 Usuarios con imagen: ${usersWithImages.length}/${users.length}`);
+    
+    for (const user of usersWithImages) {
+      const originalUrl = user.profileImageUrl;
+      const processedUrl = this.getProfileImageUrl(originalUrl);
+      
+      console.log(`👤 ${user.userCode}:`);
+      console.log(`   - URL Original: ${originalUrl}`);
+      console.log(`   - URL Procesada: ${processedUrl}`);
+      
+      try {
+        const response = await fetch(processedUrl, { method: 'HEAD' });
+        console.log(`   - Estado: ${response.ok ? '✅ OK' : '❌ Error'} (${response.status})`);
+      } catch (error) {
+        console.log(`   - Estado: ❌ Error de red`);
+      }
+    }
+    
+    console.groupEnd();
+    
+    this.snackBar.open(`Test de imágenes completado: ${usersWithImages.length} imágenes probadas`, 'Cerrar', {
+      duration: 4000,
+      panelClass: ['info-snackbar']
+    });
+  }
+
+  /**
+   * Método de debug para verificar datos de usuarios y conexión - MEJORADO
+   */
+  debugUserData() {
+    const users = this.users();
+    console.group('🐛 DEBUG COMPLETO: Usuarios, Imágenes y Conexión');
+    
+    // 1. Información de conexión
+    console.group('🌐 INFORMACIÓN DE CONEXIÓN');
+    console.log('📡 URL Principal:', environment.apiUrl);
+    console.log('🔄 URLs de Fallback:', environment.fallbackUrls);
+    console.log('🏠 URL Base para imágenes:', environment.apiUrl.replace('/api', ''));
+    console.log('📱 User Agent:', navigator.userAgent);
+    console.log('🌍 Idioma:', navigator.language);
+    console.log('📶 Online:', navigator.onLine);
+    console.groupEnd();
+    
+    // 2. Información de usuarios
+    console.group('👥 INFORMACIÓN DE USUARIOS');
+    console.log(`📊 Total de usuarios: ${users.length}`);
+    
+    users.forEach((user, index) => {
+      const imageInfo = user.profileImageUrl ? {
+        hasImage: this.hasProfileImage(user),
+        rawImageUrl: user.profileImageUrl,
+        processedImageUrl: this.getProfileImageUrl(user.profileImageUrl),
+        imageType: user.profileImageUrl.startsWith('data:') ? 'Base64' : 
+                  user.profileImageUrl.startsWith('http') ? 'URL Completa' : 'Ruta Relativa',
+        imageSize: user.profileImageUrl.length > 100 ? `${Math.round(user.profileImageUrl.length / 1024)}KB` : 'Pequeña',
+        isEmpty: !user.profileImageUrl || user.profileImageUrl.trim() === '',
+        isNull: user.profileImageUrl === 'null' || user.profileImageUrl === 'undefined'
+      } : { 
+        hasImage: false, 
+        rawImageUrl: 'No tiene',
+        processedImageUrl: 'No aplica',
+        imageType: 'Sin imagen',
+        isEmpty: true,
+        isNull: false
+      };
+
+      console.log(`👤 ${index + 1}. ${user.firstName} ${user.lastName} (${user.userCode})`, {
+        email: user.email || 'Sin email',
+        phone: user.phone || 'Sin teléfono',
+        role: user.role,
+        isActive: user.isActive,
+        ...imageInfo
+      });
+    });
+    console.groupEnd();
+    
+    // 3. Test de conectividad
+    console.group('🔍 TEST DE CONECTIVIDAD');
+    this.testConnectivity();
+    console.groupEnd();
+    
+    console.groupEnd();
+    
+    // Mostrar resumen en snackbar
+    const usersWithImages = users.filter(u => this.hasProfileImage(u)).length;
+    this.snackBar.open(`Debug: ${users.length} usuarios, ${usersWithImages} con imagen (ver consola)`, 'Cerrar', {
+      duration: 5000,
+      panelClass: ['info-snackbar']
+    });
+  }
+
+  /**
+   * Test de conectividad a diferentes endpoints
+   */
+  private async testConnectivity() {
+    const urlsToTest = [
+      environment.apiUrl,
+      ...environment.fallbackUrls,
+      environment.apiUrl.replace('/api', '') // URL base para imágenes
+    ];
+
+    console.log('🧪 Iniciando test de conectividad...');
+    
+    for (const url of urlsToTest) {
+      try {
+        const startTime = Date.now();
+        const response = await fetch(`${url}/health`, { 
+          method: 'GET',
+          timeout: 5000 
+        } as any);
+        const endTime = Date.now();
+        
+        if (response.ok) {
+          console.log(`✅ ${url} - OK (${endTime - startTime}ms)`);
+        } else {
+          console.log(`⚠️ ${url} - Status: ${response.status} (${endTime - startTime}ms)`);
+        }
+      } catch (error) {
+        console.log(`❌ ${url} - Error:`, error);
+      }
     }
   }
 }

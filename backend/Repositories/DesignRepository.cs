@@ -31,6 +31,19 @@ namespace FlexoAPP.API.Repositories
             }
         }
 
+        public async Task<int> GetDesignsCountAsync()
+        {
+            try
+            {
+                return await _context.Designs.CountAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error counting designs: {ex.Message}");
+                return 0;
+            }
+        }
+
         public async Task<Design?> GetDesignByIdAsync(int id)
         {
             return await _context.Designs

@@ -7,7 +7,7 @@ namespace FlexoAPP.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [AllowAnonymous] // Temporal para pruebas - cambiar a [Authorize] en producción
     public class UsersController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -18,6 +18,7 @@ namespace FlexoAPP.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllUsers()
         {
             try
@@ -194,6 +195,8 @@ namespace FlexoAPP.API.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
             }
         }
+
+
 
         [HttpGet("stats")]
         public async Task<IActionResult> GetUserStats()

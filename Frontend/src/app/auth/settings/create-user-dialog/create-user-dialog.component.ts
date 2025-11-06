@@ -51,13 +51,14 @@ export class CreateUserDialogComponent implements OnInit {
   // Formulario reactivo
   userForm!: FormGroup;
 
-  // Opciones de roles disponibles
+  // Opciones de roles disponibles - ACTUALIZADAS PARA MYSQL
   availableRoles: RoleOption[] = [
-    { value: 'Administrador', label: 'Administrador', icon: 'admin_panel_settings' },
+    { value: 'Admin', label: 'Administrador', icon: 'admin_panel_settings' },
     { value: 'Supervisor', label: 'Supervisor', icon: 'supervisor_account' },
-    { value: 'Pre-alistador', label: 'Pre-alistador', icon: 'list_alt' },
-    { value: 'Matizador', label: 'Matizador', icon: 'palette' },
-    { value: 'Operador', label: 'Operador', icon: 'person' }
+    { value: 'Prealistador', label: 'Pre-alistador', icon: 'list_alt' },
+    { value: 'Matizadores', label: 'Matizador', icon: 'palette' },
+    { value: 'Operario', label: 'Operario', icon: 'person' },
+    { value: 'Retornos', label: 'Retornos', icon: 'assignment_return' }
   ];
 
   constructor() {}
@@ -201,31 +202,35 @@ export class CreateUserDialogComponent implements OnInit {
     try {
       const formData = this.userForm.value;
       
-      // Preparar datos del usuario
+      // Preparar datos del usuario - CORREGIDO PARA MYSQL CON IMAGEN BASE64
       const createUserDto = {
         userCode: formData.userCode.trim(),
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         role: formData.role,
-        email: formData.email?.trim() || null,
-        phone: formData.phone?.trim() || null,
+        email: formData.email && formData.email.trim() ? formData.email.trim() : null,
+        phone: formData.phone && formData.phone.trim() ? formData.phone.trim() : null,
         password: formData.password,
         isActive: formData.isActive,
-        profileImage: null,
+        profileImage: this.profileImagePreview() || null, // Imagen base64 directamente
         profileImageUrl: null
       };
 
+      console.log('📧 Email a enviar:', createUserDto.email);
+      console.log('📱 Teléfono a enviar:', createUserDto.phone);
+
       console.log('🔄 Creando usuario:', createUserDto);
 
-      // Crear usuario en la base de datos
-      const response = await this.http.post<any>(`${environment.apiUrl}/users`, createUserDto).toPromise();
+      // Crear usuario en la base de datos MySQL
+      console.log('🔄 Enviando datos a:', `${environment.apiUrl}/auth/users`);
+      const response = await this.http.post<any>(`${environment.apiUrl}/auth/users`, createUserDto).toPromise();
 
       if (response) {
         console.log('✅ Usuario creado exitosamente:', response);
 
-        // Si hay imagen seleccionada, subirla
-        if (this.selectedFile()) {
-          await this.uploadProfileImage(response.id);
+        // La imagen ya se envió como base64 en el createUserDto
+        if (this.profileImagePreview()) {
+          console.log('✅ Imagen de perfil incluida como base64 en la creación del usuario');
         }
 
         this.snackBar.open(`Usuario ${formData.firstName} ${formData.lastName} creado exitosamente`, 'Cerrar', {
@@ -268,7 +273,9 @@ export class CreateUserDialogComponent implements OnInit {
       const formData = new FormData();
       formData.append('profileImage', file);
 
-      await this.http.post(`${environment.apiUrl}/users/${userId}/profile-image`, formData).toPromise();
+      console.log('📤 Subiendo imagen de perfil para usuario ID:', userId);
+      const response = await this.http.post(`${environment.apiUrl}/users/${userId}/profile-image`, formData).toPromise();
+      console.log('✅ Respuesta de subida de imagen:', response);
       console.log('✅ Imagen de perfil subida exitosamente');
     } catch (error) {
       console.error('❌ Error subiendo imagen de perfil:', error);

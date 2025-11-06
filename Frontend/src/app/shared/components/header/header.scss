@@ -330,6 +330,22 @@
         color: #374151;
       }
 
+      // Settings item styling
+      &:nth-child(4) { // El botón de configuraciones es el segundo elemento después del divider
+        &:hover {
+          background: rgba(59, 130, 246, 0.12);
+        }
+
+        mat-icon {
+          color: #3b82f6;
+        }
+
+        span {
+          color: #3b82f6;
+          font-weight: 600;
+        }
+      }
+
       // Logout item styling
       &:last-child {
         &:hover {

@@ -5,6 +5,11 @@ namespace FlexoAPP.API.Services
     public interface IDesignService
     {
         Task<IEnumerable<DesignDto>> GetAllDesignsAsync();
+        Task<IEnumerable<Models.Entities.Design>> GetAllDesignsRawAsync();
+        Task<IEnumerable<DesignDto>> GetAllDesignsSafeAsync();
+        Task<int> GetDesignsCountAsync();
+        Task<DesignDto> CreateDesignAsync(Models.Entities.Design design, int userId);
+        Task BulkInsertDesignsAsync(List<Models.Entities.Design> designs);
         Task<DesignDto?> GetDesignByIdAsync(int id);
         Task<DesignDto?> GetDesignByArticleFAsync(string articleF);
         Task<DesignDto> CreateDesignAsync(CreateDesignDto createDto, int userId);
