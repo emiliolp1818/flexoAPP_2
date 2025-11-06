@@ -1,7 +1,7 @@
 -- Script para agregar el campo Email a la tabla users
 -- Ejecutar este script directamente en MySQL
 
-USE flexoapp_db;
+USE flexoapp_bd;
 
 -- Verificar si la columna Email ya existe
 SELECT COUNT(*) as email_exists 

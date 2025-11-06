@@ -7,7 +7,6 @@ namespace FlexoAPP.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous] // Temporal para pruebas
     public class DesignsController : ControllerBase
     {
         private readonly IDesignService _designService;
@@ -29,47 +28,561 @@ namespace FlexoAPP.API.Controllers
         }
 
         /// <summary>
-        /// Test database connection
+        /// Ultra simple test endpoint without dependencies
         /// </summary>
-        [HttpGet("test-db")]
-        public async Task<IActionResult> TestDatabase()
+        [HttpGet("ping")]
+        public IActionResult Ping()
         {
             try
             {
-                var designs = await _designService.GetAllDesignsAsync();
-                return Ok(new { 
-                    message = "Database connection working", 
-                    designCount = designs.Count(),
-                    timestamp = DateTime.UtcNow 
-                });
+                return Ok("PING_OK");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Database test failed");
-                return StatusCode(500, new { 
-                    message = "Database connection failed", 
-                    error = ex.Message,
-                    timestamp = DateTime.UtcNow 
+                return StatusCode(500, $"PING_ERROR: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Even simpler test endpoint
+        /// </summary>
+        [HttpGet("hello")]
+        public string Hello()
+        {
+            return "Hello from DesignsController";
+        }
+
+        /// <summary>
+        /// Test endpoint without any dependencies
+        /// </summary>
+        [HttpGet("status")]
+        public IActionResult GetStatus()
+        {
+            return Ok(new { 
+                controller = "DesignsController",
+                status = "WORKING",
+                timestamp = DateTime.UtcNow,
+                message = "Controller is responding without dependencies"
+            });
+        }
+
+        /// <summary>
+        /// Test dependency injection
+        /// </summary>
+        [HttpGet("check-dependencies")]
+        public IActionResult CheckDependencies()
+        {
+            try
+            {
+                var result = new
+                {
+                    controller = "DesignsController",
+                    designService = _designService != null ? "INJECTED" : "NULL",
+                    logger = _logger != null ? "INJECTED" : "NULL",
+                    timestamp = DateTime.UtcNow,
+                    status = "DEPENDENCY_CHECK_COMPLETE"
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { 
+                    error = "DEPENDENCY_CHECK_FAILED",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
                 });
             }
         }
 
         /// <summary>
-        /// Get all designs
+        /// Simple test endpoint for /all route
+        /// </summary>
+        [HttpGet("all-test")]
+        public IActionResult TestAllRoute()
+        {
+            try
+            {
+                return Ok(new { 
+                    message = "All route is working", 
+                    timestamp = DateTime.UtcNow,
+                    route = "/api/designs/all-test",
+                    status = "SUCCESS"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { 
+                    error = "Test route failed",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow,
+                    status = "ERROR"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Test endpoint to get raw designs from database without DTO mapping
+        /// </summary>
+        [HttpGet("all-raw")]
+        public async Task<IActionResult> GetAllDesignsRaw()
+        {
+            try
+            {
+                _logger.LogInformation("🧪 Testing raw designs from database...");
+                
+                // Obtener diseños directamente del repositorio sin mapeo
+                var designs = await _designService.GetAllDesignsRawAsync();
+                var designsList = designs.ToList();
+                
+                _logger.LogInformation($"✅ Retrieved {designsList.Count} raw designs");
+                
+                return Ok(new { 
+                    count = designsList.Count,
+                    designs = designsList.Take(3).Select(d => new {
+                        d.Id,
+                        d.ArticleF,
+                        d.Client,
+                        d.Description,
+                        d.Substrate,
+                        d.Type,
+                        d.PrintType,
+                        d.ColorCount,
+                        d.Status
+                    }), // Solo los primeros 3 para prueba
+                    message = $"Raw designs retrieved successfully - Total: {designsList.Count}",
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting raw designs: {Message}", ex.Message);
+                return BadRequest(new { 
+                    error = "Error retrieving raw designs",
+                    message = ex.Message,
+                    details = ex.InnerException?.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get count of designs in database
+        /// </summary>
+        [HttpGet("count")]
+        public async Task<IActionResult> GetDesignsCount()
+        {
+            try
+            {
+                var count = await _designService.GetDesignsCountAsync();
+                
+                return Ok(new { 
+                    count = count,
+                    message = $"Total designs in database: {count}",
+                    isEmpty = count == 0,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { 
+                    error = "Error getting designs count",
+                    message = ex.Message,
+                    details = ex.InnerException?.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Simple database test without complex services
+        /// </summary>
+        [HttpGet("db-test")]
+        public async Task<IActionResult> TestDatabase()
+        {
+            try
+            {
+                // Intentar una operación simple en la base de datos
+                var count = await _designService.GetDesignsCountAsync();
+                
+                return Ok(new { 
+                    status = "DB_CONNECTED",
+                    message = "Database connection successful",
+                    designCount = count,
+                    isEmpty = count == 0,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { 
+                    status = "DB_ERROR",
+                    message = "Database connection failed",
+                    error = ex.Message,
+                    details = ex.InnerException?.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Create sample data for testing (only if database is empty)
+        /// </summary>
+        [HttpPost("create-sample-data")]
+        public async Task<IActionResult> CreateSampleData()
+        {
+            try
+            {
+                _logger.LogInformation("🧪 Starting sample data creation...");
+                
+                // Verificar si la BD está vacía
+                var count = await _designService.GetDesignsCountAsync();
+                _logger.LogInformation($"📊 Current design count: {count}");
+                
+                if (count > 0)
+                {
+                    _logger.LogWarning("⚠️ Database is not empty, skipping sample data creation");
+                    return BadRequest(new { 
+                        error = "Database is not empty",
+                        message = $"Database already contains {count} designs. Clear database first or import Excel data.",
+                        currentCount = count,
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+
+                _logger.LogInformation("✅ Database is empty, creating sample data...");
+
+                // Crear un diseño de prueba usando el método de importación
+                var sampleDesigns = new List<Models.Entities.Design>
+                {
+                    new Models.Entities.Design
+                    {
+                        ArticleF = "TEST001",
+                        Client = "Cliente de Prueba",
+                        Description = "Diseño de prueba para verificar funcionamiento",
+                        Substrate = "Sustrato de prueba",
+                        Type = "LAMINA",
+                        PrintType = "CARA",
+                        ColorCount = 2,
+                        Color1 = "Rojo",
+                        Color2 = "Azul",
+                        Status = "ACTIVO",
+                        CreatedDate = DateTime.UtcNow,
+                        LastModified = DateTime.UtcNow
+                    }
+                };
+
+                _logger.LogInformation("💾 Inserting sample design using bulk insert...");
+                
+                // Usar el método de inserción masiva que sabemos que funciona
+                await _designService.BulkInsertDesignsAsync(sampleDesigns);
+                
+                _logger.LogInformation("✅ Sample design created successfully");
+                
+                // Verificar que se creó
+                var newCount = await _designService.GetDesignsCountAsync();
+                
+                return Ok(new { 
+                    message = "Sample data created successfully",
+                    createdCount = newCount - count,
+                    totalCount = newCount,
+                    design = new {
+                        ArticleF = "TEST001",
+                        Client = "Cliente de Prueba",
+                        Description = "Diseño de prueba para verificar funcionamiento"
+                    },
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error creating sample data: {Message}", ex.Message);
+                return BadRequest(new { 
+                    error = "Error creating sample data",
+                    message = ex.Message,
+                    details = ex.InnerException?.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+
+
+        /// <summary>
+        /// Get all designs (OPTIMIZED)
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DesignDto>>> GetAllDesigns()
         {
             try
             {
-                _logger.LogInformation("Getting all designs...");
+                _logger.LogInformation("🚀 Getting all designs with optimizations...");
                 var designs = await _designService.GetAllDesignsAsync();
-                _logger.LogInformation($"Successfully retrieved {designs.Count()} designs");
+                _logger.LogInformation($"✅ Successfully retrieved {designs.Count()} designs");
                 return Ok(designs);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting all designs");
+                _logger.LogError(ex, "❌ Error getting all designs");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get ALL designs without pagination (for post-import loading)
+        /// </summary>
+        [HttpGet("all")]
+        public async Task<ActionResult<IEnumerable<DesignDto>>> GetAllDesignsNoPagination()
+        {
+            try
+            {
+                _logger.LogInformation("🚀 Getting ALL designs without pagination (post-import)...");
+                
+                // Verificar conexión a base de datos primero
+                var designs = await _designService.GetAllDesignsAsync();
+                var designsList = designs.ToList();
+                
+                _logger.LogInformation($"✅ Successfully retrieved ALL {designsList.Count} designs");
+                
+                // Si no hay diseños, devolver lista vacía con mensaje informativo
+                if (designsList.Count == 0)
+                {
+                    _logger.LogWarning("⚠️ No designs found in database");
+                    return Ok(new { 
+                        designs = new List<DesignDto>(),
+                        message = "No designs found in database",
+                        count = 0,
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+                
+                // Log detalles de los primeros diseños para debugging
+                _logger.LogInformation("📊 Primeros 3 diseños: {FirstDesigns}", 
+                    string.Join(", ", designsList.Take(3).Select(d => $"{d.ArticleF} ({d.Client})")));
+                
+                return Ok(designsList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting all designs without pagination: {Message}", ex.Message);
+                _logger.LogError(ex, "❌ Stack trace: {StackTrace}", ex.StackTrace);
+                
+                return BadRequest(new { 
+                    error = "Error retrieving designs",
+                    message = ex.Message,
+                    details = ex.InnerException?.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get ALL designs with safe mapping (for debugging)
+        /// </summary>
+        [HttpGet("all-safe")]
+        public async Task<ActionResult<IEnumerable<DesignDto>>> GetAllDesignsSafe()
+        {
+            try
+            {
+                _logger.LogInformation("🚀 Getting ALL designs with safe mapping...");
+                
+                var designs = await _designService.GetAllDesignsSafeAsync();
+                var designsList = designs.ToList();
+                
+                _logger.LogInformation($"✅ Successfully retrieved ALL {designsList.Count} designs with safe mapping");
+                
+                return Ok(designsList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting designs with safe mapping: {Message}", ex.Message);
+                
+                return BadRequest(new { 
+                    error = "Error retrieving designs with safe mapping",
+                    message = ex.Message,
+                    details = ex.InnerException?.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get designs with pagination (OPTIMIZED FOR LARGE DATASETS)
+        /// </summary>
+        [HttpGet("paginated")]
+        public async Task<ActionResult<PaginatedDesignsDto>> GetDesignsPaginated(
+            [FromQuery] int page = 1, 
+            [FromQuery] int pageSize = 50,
+            [FromQuery] string? search = null,
+            [FromQuery] string? sortBy = "LastModified",
+            [FromQuery] string? sortOrder = "desc")
+        {
+            try
+            {
+                _logger.LogInformation("🚀 Getting paginated designs - Page: {Page}, Size: {PageSize}", page, pageSize);
+                
+                var result = await _designService.GetDesignsPaginatedAsync(page, pageSize, search, sortBy, sortOrder);
+                
+                _logger.LogInformation("✅ Retrieved {Count} designs from page {Page}", result.Items.Count(), page);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting paginated designs");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get designs summary (ULTRA FAST - Only essential fields)
+        /// </summary>
+        [HttpGet("summary")]
+        public async Task<ActionResult<IEnumerable<DesignSummaryDto>>> GetDesignsSummary()
+        {
+            try
+            {
+                _logger.LogInformation("⚡ Getting designs summary (fast load)...");
+                var designs = await _designService.GetDesignsSummaryAsync();
+                _logger.LogInformation($"✅ Retrieved {designs.Count()} design summaries");
+                return Ok(designs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting designs summary");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get designs with lazy loading (Load details on demand)
+        /// </summary>
+        [HttpGet("lazy")]
+        public async Task<ActionResult<IEnumerable<DesignLazyDto>>> GetDesignsLazy()
+        {
+            try
+            {
+                _logger.LogInformation("🔄 Getting designs with lazy loading...");
+                var designs = await _designService.GetDesignsLazyAsync();
+                _logger.LogInformation($"✅ Retrieved {designs.Count()} lazy-loaded designs");
+                return Ok(designs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting lazy designs");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Load colors for a specific design (On-demand loading)
+        /// </summary>
+        [HttpGet("{id}/colors")]
+        public async Task<ActionResult<List<string>>> LoadDesignColors(int id)
+        {
+            try
+            {
+                _logger.LogInformation("🎨 Loading colors for design {DesignId}", id);
+                var colors = await _designService.LoadDesignColorsAsync(id);
+                return Ok(colors);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error loading colors for design {DesignId}", id);
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Load full details for a specific design (On-demand loading)
+        /// </summary>
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<DesignLazyDto>> LoadDesignDetails(int id)
+        {
+            try
+            {
+                _logger.LogInformation("📋 Loading full details for design {DesignId}", id);
+                var design = await _designService.LoadDesignDetailsAsync(id);
+                return Ok(design);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error loading details for design {DesignId}", id);
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Get cache information
+        /// </summary>
+        [HttpGet("cache/info")]
+        public async Task<ActionResult<DesignCacheInfoDto>> GetCacheInfo()
+        {
+            try
+            {
+                var cacheInfo = await _designService.GetCacheInfoAsync();
+                return Ok(cacheInfo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting cache info");
+                return StatusCode(500, new { 
+                    error = "Internal server error",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Clear cache
+        /// </summary>
+        [HttpPost("cache/clear")]
+        public async Task<IActionResult> ClearCache()
+        {
+            try
+            {
+                var result = await _designService.ClearCacheAsync();
+                return Ok(new { 
+                    message = "Cache cleared successfully",
+                    success = result,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error clearing cache");
                 return StatusCode(500, new { 
                     error = "Internal server error",
                     message = ex.Message,
@@ -311,7 +824,7 @@ namespace FlexoAPP.API.Controllers
         /// Import designs from Excel file (MASSIVE DATA UPLOAD)
         /// </summary>
         [HttpPost("import/excel")]
-        [RequestSizeLimit(200_000_000)] // 200MB limit
+        [RequestSizeLimit(300_000_000)] // 300MB limit para importación masiva
         public async Task<IActionResult> ImportFromExcel(IFormFile file)
         {
             try

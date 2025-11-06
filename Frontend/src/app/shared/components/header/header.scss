@@ -14,8 +14,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%);
     z-index: 1;
+  }
+
+  .header-pattern {
+    display: none; // Ocultar cualquier patrón que pueda causar líneas
   }
 
   .header-content {
@@ -26,7 +30,6 @@
     align-items: center;
     padding: 0 24px;
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   }
 }
@@ -325,6 +328,22 @@
       span {
         font-weight: 500;
         color: #374151;
+      }
+
+      // Settings item styling
+      &:nth-child(4) { // El botón de configuraciones es el segundo elemento después del divider
+        &:hover {
+          background: rgba(59, 130, 246, 0.12);
+        }
+
+        mat-icon {
+          color: #3b82f6;
+        }
+
+        span {
+          color: #3b82f6;
+          font-weight: 600;
+        }
       }
 
       // Logout item styling

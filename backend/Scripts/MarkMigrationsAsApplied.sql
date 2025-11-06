@@ -1,7 +1,7 @@
 -- Script para marcar las migraciones como aplicadas
 -- Ejecutar este script en MySQL Workbench o phpMyAdmin
 
-USE flexoapp_db;
+USE flexoapp_bd;
 
 -- Crear la tabla de historial de migraciones si no existe
 CREATE TABLE IF NOT EXISTS `__EFMigrationsHistory` (

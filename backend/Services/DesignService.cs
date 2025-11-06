@@ -20,13 +20,118 @@ namespace FlexoAPP.API.Services
         {
             try
             {
+                _logger.LogInformation("🔍 Getting all designs from repository...");
                 var designs = await _designRepository.GetAllDesignsAsync();
-                return designs.Select(MapToDto);
+                var designsList = designs.ToList();
+                
+                _logger.LogInformation($"✅ Retrieved {designsList.Count} designs from repository");
+                
+                if (designsList.Count == 0)
+                {
+                    _logger.LogWarning("⚠️ No designs found in database");
+                    return new List<DesignDto>();
+                }
+                
+                _logger.LogInformation("🔄 Starting DTO mapping...");
+                var mappedDesigns = designsList.Select(MapToDtoSafe).ToList();
+                _logger.LogInformation($"✅ Successfully mapped {mappedDesigns.Count} designs to DTOs");
+                
+                return mappedDesigns;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting designs from database");
+                _logger.LogError(ex, "❌ Error getting designs from database: {Message}", ex.Message);
                 throw; // Let the controller handle the error
+            }
+        }
+
+        public async Task<IEnumerable<Models.Entities.Design>> GetAllDesignsRawAsync()
+        {
+            try
+            {
+                _logger.LogInformation("🔍 Getting raw designs from repository...");
+                var designs = await _designRepository.GetAllDesignsAsync();
+                _logger.LogInformation($"✅ Retrieved {designs.Count()} raw designs from repository");
+                return designs;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting raw designs from database");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<DesignDto>> GetAllDesignsSafeAsync()
+        {
+            try
+            {
+                _logger.LogInformation("🔍 Getting designs with safe mapping...");
+                var designs = await _designRepository.GetAllDesignsAsync();
+                var mappedDesigns = designs.Select(MapToDtoSafe);
+                _logger.LogInformation($"✅ Mapped {designs.Count()} designs safely");
+                return mappedDesigns;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting designs with safe mapping");
+                throw;
+            }
+        }
+
+        public async Task<int> GetDesignsCountAsync()
+        {
+            try
+            {
+                _logger.LogInformation("🔢 Getting designs count from repository...");
+                var count = await _designRepository.GetDesignsCountAsync();
+                _logger.LogInformation($"✅ Total designs count: {count}");
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting designs count");
+                throw;
+            }
+        }
+
+        public async Task<DesignDto> CreateDesignAsync(Models.Entities.Design design, int userId)
+        {
+            try
+            {
+                _logger.LogInformation("💾 Creating new design: {ArticleF}", design.ArticleF);
+                
+                // Establecer fechas
+                design.CreatedDate = DateTime.UtcNow;
+                design.LastModified = DateTime.UtcNow;
+                design.CreatedByUserId = userId;
+                
+                var createdDesign = await _designRepository.CreateDesignAsync(design);
+                
+                _logger.LogInformation("✅ Design created with ID: {DesignId}", createdDesign.Id);
+                
+                return MapToDtoSafe(createdDesign);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error creating design: {Message}", ex.Message);
+                throw;
+            }
+        }
+
+        public async Task BulkInsertDesignsAsync(List<Models.Entities.Design> designs)
+        {
+            try
+            {
+                _logger.LogInformation("💾 Bulk inserting {Count} designs...", designs.Count);
+                
+                await _designRepository.BulkInsertDesignsAsync(designs);
+                
+                _logger.LogInformation("✅ Successfully bulk inserted {Count} designs", designs.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error bulk inserting designs: {Message}", ex.Message);
+                throw;
             }
         }
 
@@ -431,38 +536,88 @@ namespace FlexoAPP.API.Services
 
         private static DesignDto MapToDto(Design design)
         {
-            var colors = new List<string>();
-            
-            // Convertir las columnas separadas de colores a una lista
-            if (!string.IsNullOrEmpty(design.Color1)) colors.Add(design.Color1);
-            if (!string.IsNullOrEmpty(design.Color2)) colors.Add(design.Color2);
-            if (!string.IsNullOrEmpty(design.Color3)) colors.Add(design.Color3);
-            if (!string.IsNullOrEmpty(design.Color4)) colors.Add(design.Color4);
-            if (!string.IsNullOrEmpty(design.Color5)) colors.Add(design.Color5);
-            if (!string.IsNullOrEmpty(design.Color6)) colors.Add(design.Color6);
-            if (!string.IsNullOrEmpty(design.Color7)) colors.Add(design.Color7);
-            if (!string.IsNullOrEmpty(design.Color8)) colors.Add(design.Color8);
-            if (!string.IsNullOrEmpty(design.Color9)) colors.Add(design.Color9);
-            if (!string.IsNullOrEmpty(design.Color10)) colors.Add(design.Color10);
-
-            return new DesignDto
+            try
             {
-                Id = design.Id,
-                ArticleF = design.ArticleF ?? string.Empty,
-                Client = design.Client ?? string.Empty,
-                Description = design.Description ?? string.Empty,
-                Substrate = design.Substrate ?? string.Empty,
-                Type = design.Type ?? string.Empty,
-                PrintType = design.PrintType ?? string.Empty,
-                ColorCount = design.ColorCount ?? 0,
-                Colors = colors,
-                Status = design.Status ?? "ACTIVO",
-                CreatedDate = design.CreatedDate ?? DateTime.UtcNow,
-                LastModified = design.LastModified ?? DateTime.UtcNow,
+                var colors = new List<string>();
+                
+                // Convertir las columnas separadas de colores a una lista con validación
+                if (!string.IsNullOrEmpty(design.Color1)) colors.Add(design.Color1);
+                if (!string.IsNullOrEmpty(design.Color2)) colors.Add(design.Color2);
+                if (!string.IsNullOrEmpty(design.Color3)) colors.Add(design.Color3);
+                if (!string.IsNullOrEmpty(design.Color4)) colors.Add(design.Color4);
+                if (!string.IsNullOrEmpty(design.Color5)) colors.Add(design.Color5);
+                if (!string.IsNullOrEmpty(design.Color6)) colors.Add(design.Color6);
+                if (!string.IsNullOrEmpty(design.Color7)) colors.Add(design.Color7);
+                if (!string.IsNullOrEmpty(design.Color8)) colors.Add(design.Color8);
+                if (!string.IsNullOrEmpty(design.Color9)) colors.Add(design.Color9);
+                if (!string.IsNullOrEmpty(design.Color10)) colors.Add(design.Color10);
 
-                CreatedByUserId = design.CreatedByUserId ?? 0,
-                CreatedByUserName = design.CreatedBy != null ? $"{design.CreatedBy.FirstName} {design.CreatedBy.LastName}".Trim() : null
-            };
+                return new DesignDto
+                {
+                    Id = design.Id,
+                    ArticleF = design.ArticleF ?? string.Empty,
+                    Client = design.Client ?? string.Empty,
+                    Description = design.Description ?? string.Empty,
+                    Substrate = design.Substrate ?? string.Empty,
+                    Type = design.Type ?? string.Empty,
+                    PrintType = design.PrintType ?? string.Empty,
+                    ColorCount = design.ColorCount ?? 0,
+                    Colors = colors,
+                    Status = design.Status ?? "ACTIVO",
+                    CreatedDate = design.CreatedDate ?? DateTime.UtcNow,
+                    LastModified = design.LastModified ?? DateTime.UtcNow,
+
+                    CreatedByUserId = design.CreatedByUserId ?? 0,
+                    CreatedByUserName = design.CreatedBy != null ? $"{design.CreatedBy.FirstName} {design.CreatedBy.LastName}".Trim() : null
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error mapping design ID {design.Id} to DTO: {ex.Message}", ex);
+            }
+        }
+
+        private static DesignDto MapToDtoSafe(Design design)
+        {
+            try
+            {
+                // Construir lista de colores de forma segura
+                var colors = new List<string>();
+                
+                if (!string.IsNullOrWhiteSpace(design.Color1)) colors.Add(design.Color1);
+                if (!string.IsNullOrWhiteSpace(design.Color2)) colors.Add(design.Color2);
+                if (!string.IsNullOrWhiteSpace(design.Color3)) colors.Add(design.Color3);
+                if (!string.IsNullOrWhiteSpace(design.Color4)) colors.Add(design.Color4);
+                if (!string.IsNullOrWhiteSpace(design.Color5)) colors.Add(design.Color5);
+                if (!string.IsNullOrWhiteSpace(design.Color6)) colors.Add(design.Color6);
+                if (!string.IsNullOrWhiteSpace(design.Color7)) colors.Add(design.Color7);
+                if (!string.IsNullOrWhiteSpace(design.Color8)) colors.Add(design.Color8);
+                if (!string.IsNullOrWhiteSpace(design.Color9)) colors.Add(design.Color9);
+                if (!string.IsNullOrWhiteSpace(design.Color10)) colors.Add(design.Color10);
+
+                // Versión segura con todos los campos correctos
+                return new DesignDto
+                {
+                    Id = design.Id,
+                    ArticleF = design.ArticleF ?? string.Empty,
+                    Client = design.Client ?? string.Empty,
+                    Description = design.Description ?? string.Empty,
+                    Substrate = design.Substrate ?? string.Empty,
+                    Type = design.Type ?? string.Empty,
+                    PrintType = design.PrintType ?? string.Empty,
+                    ColorCount = design.ColorCount ?? colors.Count,
+                    Colors = colors,
+                    Status = design.Status ?? "ACTIVO",
+                    CreatedDate = design.CreatedDate ?? DateTime.UtcNow,
+                    LastModified = design.LastModified ?? DateTime.UtcNow,
+                    CreatedByUserId = 0, // Valor por defecto
+                    CreatedByUserName = null // Sin navegación
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error in safe mapping for design ID {design.Id}: {ex.Message}", ex);
+            }
         }
 
         private static IEnumerable<DesignDto> GetMockDesigns()
@@ -616,10 +771,11 @@ namespace FlexoAPP.API.Services
                     return result;
                 }
 
-                var batchSize = 50; // Process in smaller batches for large files
+                // Procesar en lotes más grandes para importación masiva
+                var batchSize = 1000; // Lotes de 1000 registros para mejor rendimiento
                 var totalBatches = (int)Math.Ceiling((double)(rowCount - 1) / batchSize);
                 
-                _logger.LogInformation("🔄 Processing {TotalBatches} batches of {BatchSize} records each", totalBatches, batchSize);
+                _logger.LogInformation("🔄 Processing {TotalBatches} batches of {BatchSize} records each (MASSIVE IMPORT)", totalBatches, batchSize);
 
                 for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++)
                 {
@@ -690,43 +846,58 @@ namespace FlexoAPP.API.Services
         {
             try
             {
-                // Columna 1: ID (no incremental)
-                var idText = worksheet.Cells[row, 1].Text?.Trim();
-                if (string.IsNullOrEmpty(idText))
-                {
-                    return null; // Skip empty rows
-                }
-
+                // Estructura correcta del Excel según especificación:
+                // ID, ArticuloF, Cliente, Descripcion, Sustrato, TIPO, Tipo Impresion, #Colores, Color1-Color10, ESTADO
+                
+                // Columna 1: ID (opcional - se puede ignorar ya que la BD genera automáticamente)
                 // Columna 2: ArticleF
                 var articleF = worksheet.Cells[row, 2].Text?.Trim();
                 if (string.IsNullOrEmpty(articleF))
                 {
+                    _logger.LogDebug("Fila {Row}: ArticleF vacío, omitiendo fila", row);
                     return null; // Skip rows without ArticleF
+                }
+
+                // Log para debugging
+                _logger.LogDebug("Procesando fila {Row}: ArticleF={ArticleF}", row, articleF);
+
+                // Leer todos los campos con logging detallado (ajustando índices por el ID)
+                var client = worksheet.Cells[row, 3].Text?.Trim() ?? "";                   // Columna 3
+                var description = worksheet.Cells[row, 4].Text?.Trim() ?? "";              // Columna 4
+                var substrate = worksheet.Cells[row, 5].Text?.Trim() ?? "";                // Columna 5
+                var type = worksheet.Cells[row, 6].Text?.Trim() ?? "LAMINA";               // Columna 6
+                var printType = worksheet.Cells[row, 7].Text?.Trim() ?? "CARA";            // Columna 7
+                var colorCountText = worksheet.Cells[row, 8].Text?.Trim();                 // Columna 8
+                var status = worksheet.Cells[row, 19].Text?.Trim() ?? "ACTIVO";            // Columna 19
+
+                // Log detallado para debugging (solo para las primeras 5 filas)
+                if (row <= 6)
+                {
+                    _logger.LogInformation("Fila {Row} - ArticleF: '{ArticleF}', Cliente: '{Client}', Descripción: '{Description}', Sustrato: '{Substrate}', Tipo: '{Type}', TipoImpresión: '{PrintType}', #Colores: '{ColorCount}', Estado: '{Status}'", 
+                        row, articleF, client, description, substrate, type, printType, colorCountText, status);
                 }
 
                 var design = new Models.Entities.Design
                 {
-                    // Usar el ID del Excel si es válido, sino generar uno temporal
-                    Id = int.TryParse(idText, out var parsedId) ? parsedId : 0,
-                    ArticleF = articleF,
-                    Client = worksheet.Cells[row, 3].Text?.Trim() ?? "",
-                    Description = worksheet.Cells[row, 4].Text?.Trim() ?? "",
-                    Substrate = worksheet.Cells[row, 5].Text?.Trim() ?? "",
-                    Type = worksheet.Cells[row, 6].Text?.Trim() ?? "LAMINA",
-                    PrintType = worksheet.Cells[row, 7].Text?.Trim() ?? "CARA",
-                    ColorCount = int.TryParse(worksheet.Cells[row, 8].Text, out var colorCount) ? colorCount : 1,
-                    Color1 = worksheet.Cells[row, 9].Text?.Trim(),
-                    Color2 = worksheet.Cells[row, 10].Text?.Trim(),
-                    Color3 = worksheet.Cells[row, 11].Text?.Trim(),
-                    Color4 = worksheet.Cells[row, 12].Text?.Trim(),
-                    Color5 = worksheet.Cells[row, 13].Text?.Trim(),
-                    Color6 = worksheet.Cells[row, 14].Text?.Trim(),
-                    Color7 = worksheet.Cells[row, 15].Text?.Trim(),
-                    Color8 = worksheet.Cells[row, 16].Text?.Trim(),
-                    Color9 = worksheet.Cells[row, 17].Text?.Trim(),
-                    Color10 = worksheet.Cells[row, 18].Text?.Trim(),
-
-                    Status = worksheet.Cells[row, 20].Text?.Trim() ?? "ACTIVO",
+                    // No usar ID del Excel, dejar que la base de datos genere el ID automáticamente
+                    ArticleF = articleF,                                                    // Columna 2
+                    Client = client,                                                        // Columna 3
+                    Description = description,                                              // Columna 4
+                    Substrate = substrate,                                                  // Columna 5
+                    Type = type,                                                            // Columna 6
+                    PrintType = printType,                                                  // Columna 7 (tipo de impresión)
+                    ColorCount = int.TryParse(colorCountText, out var colorCount) ? colorCount : 1, // Columna 8
+                    Color1 = worksheet.Cells[row, 9].Text?.Trim(),                         // Columna 9
+                    Color2 = worksheet.Cells[row, 10].Text?.Trim(),                        // Columna 10
+                    Color3 = worksheet.Cells[row, 11].Text?.Trim(),                        // Columna 11
+                    Color4 = worksheet.Cells[row, 12].Text?.Trim(),                        // Columna 12
+                    Color5 = worksheet.Cells[row, 13].Text?.Trim(),                        // Columna 13
+                    Color6 = worksheet.Cells[row, 14].Text?.Trim(),                        // Columna 14
+                    Color7 = worksheet.Cells[row, 15].Text?.Trim(),                        // Columna 15
+                    Color8 = worksheet.Cells[row, 16].Text?.Trim(),                        // Columna 16
+                    Color9 = worksheet.Cells[row, 17].Text?.Trim(),                        // Columna 17
+                    Color10 = worksheet.Cells[row, 18].Text?.Trim(),                       // Columna 18
+                    Status = status,                                                        // Columna 19 (estado)
                     CreatedDate = DateTime.UtcNow,
                     LastModified = DateTime.UtcNow
                 };
@@ -748,6 +919,236 @@ namespace FlexoAPP.API.Services
             _logger.LogInformation("✅ Cleared {DeletedCount} designs", deletedCount);
             
             return deletedCount;
+        }
+
+        // ===== OPTIMIZED METHODS FOR FAST LOADING =====
+
+        /// <summary>
+        /// Get designs with pagination (OPTIMIZED)
+        /// </summary>
+        public async Task<PaginatedDesignsDto> GetDesignsPaginatedAsync(
+            int page, int pageSize, string? search = null, string? sortBy = "LastModified", string? sortOrder = "desc")
+        {
+            var startTime = DateTime.UtcNow;
+            
+            try
+            {
+                _logger.LogInformation("🚀 Getting paginated designs - Page: {Page}, Size: {PageSize}", page, pageSize);
+                
+                var (designs, totalCount) = await _designRepository.GetDesignsPaginatedAsync(page, pageSize, search, sortBy, sortOrder);
+                
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+                var loadTime = DateTime.UtcNow - startTime;
+                
+                var result = new PaginatedDesignsDto
+                {
+                    Items = designs.Select(MapToDto),
+                    TotalCount = totalCount,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    HasNextPage = page < totalPages,
+                    HasPreviousPage = page > 1,
+                    LoadTime = loadTime
+                };
+                
+                _logger.LogInformation("✅ Retrieved {Count} designs in {LoadTime}ms", designs.Count(), loadTime.TotalMilliseconds);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting paginated designs");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get designs summary (ULTRA FAST - Only essential fields)
+        /// </summary>
+        public async Task<IEnumerable<DesignSummaryDto>> GetDesignsSummaryAsync()
+        {
+            var startTime = DateTime.UtcNow;
+            
+            try
+            {
+                _logger.LogInformation("⚡ Getting designs summary (ultra fast)...");
+                
+                var designs = await _designRepository.GetDesignsSummaryAsync();
+                
+                var result = designs.Select(d => new DesignSummaryDto
+                {
+                    Id = d.Id,
+                    ArticleF = d.ArticleF ?? string.Empty,
+                    Client = d.Client ?? string.Empty,
+                    Status = d.Status ?? string.Empty,
+                    ColorCount = d.ColorCount ?? 0,
+                    LastModified = d.LastModified ?? DateTime.UtcNow
+                });
+                
+                var loadTime = DateTime.UtcNow - startTime;
+                _logger.LogInformation("✅ Retrieved {Count} design summaries in {LoadTime}ms", result.Count(), loadTime.TotalMilliseconds);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting designs summary");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get designs with lazy loading (Load details on demand)
+        /// </summary>
+        public async Task<IEnumerable<DesignLazyDto>> GetDesignsLazyAsync()
+        {
+            var startTime = DateTime.UtcNow;
+            
+            try
+            {
+                _logger.LogInformation("🔄 Getting designs with lazy loading...");
+                
+                var designs = await _designRepository.GetDesignsLazyAsync();
+                
+                var result = designs.Select(d => new DesignLazyDto
+                {
+                    Id = d.Id,
+                    ArticleF = d.ArticleF ?? string.Empty,
+                    Client = d.Client ?? string.Empty,
+                    Description = d.Description ?? string.Empty,
+                    Status = d.Status ?? string.Empty,
+                    ColorCount = d.ColorCount ?? 0,
+                    LastModified = d.LastModified ?? DateTime.UtcNow,
+                    ColorsLoaded = false,
+                    DetailsLoaded = false
+                });
+                
+                var loadTime = DateTime.UtcNow - startTime;
+                _logger.LogInformation("✅ Retrieved {Count} lazy designs in {LoadTime}ms", result.Count(), loadTime.TotalMilliseconds);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting lazy designs");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Load colors for lazy design
+        /// </summary>
+        public async Task<List<string>> LoadDesignColorsAsync(int designId)
+        {
+            try
+            {
+                _logger.LogInformation("🎨 Loading colors for design {DesignId}", designId);
+                
+                var colors = await _designRepository.GetDesignColorsAsync(designId);
+                
+                _logger.LogInformation("✅ Loaded {ColorCount} colors for design {DesignId}", colors.Count, designId);
+                
+                return colors;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error loading colors for design {DesignId}", designId);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Load full details for lazy design
+        /// </summary>
+        public async Task<DesignLazyDto> LoadDesignDetailsAsync(int designId)
+        {
+            try
+            {
+                _logger.LogInformation("📋 Loading full details for design {DesignId}", designId);
+                
+                var design = await _designRepository.GetDesignWithDetailsAsync(designId);
+                if (design == null)
+                {
+                    throw new KeyNotFoundException($"Design with ID {designId} not found");
+                }
+                
+                var colors = await _designRepository.GetDesignColorsAsync(designId);
+                
+                var result = new DesignLazyDto
+                {
+                    Id = design.Id,
+                    ArticleF = design.ArticleF ?? string.Empty,
+                    Client = design.Client ?? string.Empty,
+                    Description = design.Description ?? string.Empty,
+                    Status = design.Status ?? string.Empty,
+                    ColorCount = design.ColorCount ?? 0,
+                    LastModified = design.LastModified ?? DateTime.UtcNow,
+                    ColorsLoaded = true,
+                    Colors = colors,
+                    DetailsLoaded = true,
+                    Substrate = design.Substrate ?? string.Empty,
+                    Type = design.Type ?? string.Empty,
+                    PrintType = design.PrintType ?? string.Empty
+                };
+                
+                _logger.LogInformation("✅ Loaded full details for design {DesignId}", designId);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error loading details for design {DesignId}", designId);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get cache information (Mock implementation)
+        /// </summary>
+        public async Task<DesignCacheInfoDto> GetCacheInfoAsync()
+        {
+            try
+            {
+                var totalDesigns = await _designRepository.GetDesignStatsAsync();
+                
+                return new DesignCacheInfoDto
+                {
+                    CachedCount = totalDesigns.TotalDesigns,
+                    LastCacheUpdate = DateTime.UtcNow.AddMinutes(-5), // Mock
+                    CacheAge = TimeSpan.FromMinutes(5), // Mock
+                    IsCacheValid = true,
+                    CacheStatus = "Active"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error getting cache info");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Clear cache (Mock implementation)
+        /// </summary>
+        public async Task<bool> ClearCacheAsync()
+        {
+            try
+            {
+                _logger.LogInformation("🧹 Clearing design cache...");
+                
+                // Mock cache clearing
+                await Task.Delay(100);
+                
+                _logger.LogInformation("✅ Design cache cleared");
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error clearing cache");
+                throw;
+            }
         }
     }
 }

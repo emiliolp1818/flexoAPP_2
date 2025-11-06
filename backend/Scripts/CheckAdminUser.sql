@@ -1,5 +1,5 @@
 -- Script para verificar el usuario admin en la base de datos
-USE flexoapp_db;
+USE flexoapp_bd;
 
 -- Verificar si existe la tabla Users
 SELECT 'Verificando tabla Users...' as Status;

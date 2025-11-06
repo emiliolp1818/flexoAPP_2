@@ -1,0 +1,229 @@
+<div class="create-user-dialog">
+  <h2 mat-dialog-title>
+    <mat-icon>person_add</mat-icon>
+    Agregar Nuevo Usuario
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="userForm" class="user-form">
+      
+      <!-- Foto de Perfil -->
+      <div class="profile-section">
+        <div class="profile-image-container">
+          <div class="current-image">
+            <img 
+              *ngIf="profileImagePreview()" 
+              [src]="profileImagePreview()" 
+              alt="Vista previa"
+              class="profile-preview">
+            <div 
+              *ngIf="!profileImagePreview()" 
+              class="default-avatar-preview"
+              [style.background-color]="getPreviewAvatarColor()">
+              {{ getPreviewInitials() }}
+            </div>
+          </div>
+          
+          <div class="image-actions">
+            <input 
+              #fileInput 
+              type="file" 
+              accept="image/*" 
+              (change)="onFileSelected($event)"
+              style="display: none;">
+            
+            <button 
+              type="button"
+              mat-raised-button 
+              color="primary" 
+              (click)="fileInput.click()"
+              class="upload-btn">
+              <mat-icon>upload</mat-icon>
+              Subir Foto
+            </button>
+            
+            <button 
+              *ngIf="profileImagePreview()"
+              type="button"
+              mat-stroked-button 
+              color="warn" 
+              (click)="removeImage()"
+              class="remove-btn">
+              <mat-icon>delete</mat-icon>
+              Quitar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información Básica -->
+      <div class="form-section">
+        <h3>Información Básica</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Código de Usuario *</mat-label>
+            <input 
+              matInput 
+              formControlName="userCode"
+              placeholder="Ej: USR001"
+              maxlength="50">
+            <mat-icon matSuffix>badge</mat-icon>
+            <mat-error *ngIf="userForm.get('userCode')?.hasError('required')">
+              El código de usuario es requerido
+            </mat-error>
+            <mat-error *ngIf="userForm.get('userCode')?.hasError('pattern')">
+              Solo se permiten letras, números y guiones
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Nombre *</mat-label>
+            <input 
+              matInput 
+              formControlName="firstName"
+              placeholder="Nombre"
+              maxlength="50">
+            <mat-icon matSuffix>person</mat-icon>
+            <mat-error *ngIf="userForm.get('firstName')?.hasError('required')">
+              El nombre es requerido
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Apellido *</mat-label>
+            <input 
+              matInput 
+              formControlName="lastName"
+              placeholder="Apellido"
+              maxlength="50">
+            <mat-icon matSuffix>person</mat-icon>
+            <mat-error *ngIf="userForm.get('lastName')?.hasError('required')">
+              El apellido es requerido
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Rol *</mat-label>
+            <mat-select formControlName="role">
+              <mat-option *ngFor="let role of availableRoles" [value]="role.value">
+                <mat-icon>{{ role.icon }}</mat-icon>
+                {{ role.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>work</mat-icon>
+            <mat-error *ngIf="userForm.get('role')?.hasError('required')">
+              El rol es requerido
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Información de Contacto (Opcional) -->
+      <div class="form-section">
+        <h3>Información de Contacto <span class="optional">(Opcional)</span></h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Correo Electrónico</mat-label>
+            <input 
+              matInput 
+              formControlName="email"
+              type="email"
+              placeholder="usuario@empresa.com"
+              maxlength="100">
+            <mat-icon matSuffix>email</mat-icon>
+            <mat-error *ngIf="userForm.get('email')?.hasError('email')">
+              Ingrese un correo válido
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Número de Teléfono</mat-label>
+            <input 
+              matInput 
+              formControlName="phone"
+              type="tel"
+              placeholder="Ej: +57 300 123 4567"
+              maxlength="20">
+            <mat-icon matSuffix>phone</mat-icon>
+            <mat-error *ngIf="userForm.get('phone')?.hasError('pattern')">
+              Formato de teléfono inválido
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Configuración de Acceso -->
+      <div class="form-section">
+        <h3>Configuración de Acceso</h3>
+        
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Contraseña Temporal *</mat-label>
+            <input 
+              matInput 
+              formControlName="password"
+              [type]="hidePassword() ? 'password' : 'text'"
+              placeholder="Contraseña temporal para el usuario"
+              maxlength="50">
+            <button 
+              mat-icon-button 
+              matSuffix 
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="'Hide password'"
+              [attr.aria-pressed]="hidePassword()">
+              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+              La contraseña es requerida
+            </mat-error>
+            <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+              La contraseña debe tener al menos 6 caracteres
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-slide-toggle 
+            formControlName="isActive"
+            class="status-toggle">
+            Usuario Activo
+          </mat-slide-toggle>
+          <p class="toggle-description">
+            El usuario podrá iniciar sesión inmediatamente si está activo
+          </p>
+        </div>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button 
+      mat-button 
+      type="button"
+      (click)="onCancel()"
+      [disabled]="loading()">
+      Cancelar
+    </button>
+    
+    <button 
+      mat-raised-button 
+      color="primary"
+      type="button"
+      (click)="onSave()"
+      [disabled]="!userForm.valid || loading()">
+      <mat-icon *ngIf="loading()">refresh</mat-icon>
+      <mat-icon *ngIf="!loading()">save</mat-icon>
+      {{ loading() ? 'Guardando...' : 'Crear Usuario' }}
+    </button>
+  </mat-dialog-actions>
+</div>

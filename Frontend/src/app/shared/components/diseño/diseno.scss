@@ -1,0 +1,2588 @@
+// ===== ESTILOS COMPLETOS PARA GESTIÓN DE DISEÑOS FLEXOGRÁFICOS =====
+// Sistema completo de gestión de diseños con paleta del perfil aplicada
+// Diseño moderno y profesional copiado del componente de perfil
+// Incluye optimizaciones de rendimiento y carga rápida de datos
+
+// ===== PALETA DE COLORES COPIADA DEL PERFIL =====
+// Colores principales del perfil aplicados consistentemente al diseño
+// Paleta azul empresarial con variaciones tonales para jerarquía visual
+
+$primary-blue: #2563eb;         // Azul principal del perfil - Color primario de la marca
+$primary-blue-light: #3b82f6;   // Azul claro - Para elementos hover y estados activos
+$primary-blue-dark: #1d4ed8;    // Azul oscuro - Para elementos pressed y énfasis
+$primary-blue-50: #eff6ff;      // Azul muy claro para fondos - Backgrounds sutiles
+$primary-blue-100: #dbeafe;     // Azul claro para elementos suaves - Cards y containers
+$primary-blue-200: #bfdbfe;     // Azul medio-claro - Bordes y separadores
+$primary-blue-300: #93c5fd;     // Azul medio - Estados intermedios
+$primary-blue-400: #60a5fa;     // Azul medio-intenso - Elementos interactivos
+$primary-blue-500: #3b82f6;     // Azul intenso - Botones secundarios
+$primary-blue-600: #2563eb;     // Azul vibrante - Botones primarios
+$primary-blue-700: #1d4ed8;     // Azul profundo - Estados pressed
+$primary-blue-800: #1e40af;     // Azul muy profundo - Texto sobre fondos claros
+$primary-blue-900: #1e3a8a;     // Azul empresarial - Headers y elementos importantes
+
+// Colores complementarios del perfil para elementos secundarios
+$accent-gray: #6b7280;          // Gris para contraste - Texto secundario
+$accent-slate: #4b5563;         // Pizarra para elementos secundarios - Subtítulos
+$success-emerald: #10b981;      // Verde esmeralda del perfil - Estados exitosos
+$warning-amber: #f59e0b;        // Ámbar del perfil - Advertencias y alertas
+$error-red: #ef4444;           // Rojo del perfil - Errores y estados críticos
+
+// Escala de grises del perfil para texto y backgrounds
+$gray-50: #f8fafc;   // Gris muy claro - Backgrounds principales
+$gray-100: #f1f5f9;  // Gris claro - Backgrounds secundarios
+$gray-200: #e2e8f0;  // Gris medio-claro - Bordes suaves
+$gray-300: #cbd5e1;  // Gris medio - Bordes definidos
+$gray-400: #94a3b8;  // Gris medio-oscuro - Texto placeholder
+$gray-500: #64748b;  // Gris balanceado - Texto secundario
+$gray-600: #475569;  // Gris oscuro - Texto principal
+$gray-700: #334155;  // Gris muy oscuro - Títulos
+$gray-800: #1e293b;  // Gris profundo - Headers
+$gray-900: #0f172a;  // Gris máximo - Texto crítico
+
+// Colores específicos del header (mantener consistencia con perfil)
+$header-blue: #2563eb;     // Color base del header
+$header-blue-light: #3b82f6;   // Variación clara
+$header-blue-dark: #1d4ed8;    // Variación oscura
+$header-blue-400: #60a5fa;     // Tono 400
+$header-blue-500: #3b82f6;     // Tono 500
+$header-blue-600: #2563eb;     // Tono 600
+$header-blue-700: #1d4ed8;     // Tono 700
+$header-blue-800: #1e40af;     // Tono 800
+$header-blue-900: #1e3a8a;     // Tono 900
+
+// ===== CONTENEDOR PRINCIPAL =====
+// Host principal copiado del perfil - Elemento raíz del componente Angular
+:host {
+  display: block;                    // Comportamiento de bloque para ocupar ancho completo
+  width: 100vw;                     // Ancho completo de la ventana del navegador (viewport width)
+  height: 100vh;                    // Altura completa de la ventana del navegador (viewport height)
+  margin: 0;                        // Sin márgenes externos para ocupar todo el espacio
+  padding: 0;                       // Sin padding interno para control preciso del layout
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente sutil de fondo gris
+  overflow: auto;                   // Permitir scroll si es necesario para ver el header
+}
+
+// ===== CONTENEDOR DE DISEÑO =====
+// Contenedor principal con layout fijo - Solo la tabla hace scroll
+.design-container {
+  display: flex;                    // Flexbox para layout vertical organizado
+  flex-direction: column;           // Dirección vertical: header -> búsqueda -> tabla
+  width: 100%;                      // Ancho completo del contenedor padre
+  height: 100vh;                    // Altura completa de la ventana para ocupar todo el espacio
+  margin: 0;                        // Sin márgenes externos
+  padding: 0px;                     // Sin padding interno inicial
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente de fondo consistente
+  overflow: hidden;                 // Ocultar overflow para evitar scroll de página
+  padding-top: 16px;                // Padding suficiente para mostrar el header
+  position: relative;               // Posicionamiento relativo para z-index
+}
+
+// ===== HEADER FIJO =====
+// Header moderno copiado del perfil - Contenedor principal del encabezado
+.design-header {
+  position: relative;                    // Posicionamiento relativo para elementos absolutos internos
+  background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente para efecto glassmorphism
+  backdrop-filter: blur(20px);           // Filtro de desenfoque para efecto de cristal esmerilado
+  border-radius: 16px;                   // Bordes redondeados compactos
+  padding: 16px;                         // Padding compacto para maximizar espacio
+  margin: 12px;                          // Márgenes mínimos para maximizar espacio de tabla
+  margin-bottom: 12px;                   // Margen inferior mínimo
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); // Sombra suave para elevación visual
+  border: 1px solid rgba(255, 255, 255, 0.3); // Borde sutil semi-transparente
+  flex-shrink: 0;                        // No permitir que se encoja en flexbox
+  overflow: visible;                     // Permitir que el contenido sea visible
+  z-index: 100;                          // Z-index alto para asegurar visibilidad
+  display: block;                        // Asegurar que se muestre como bloque
+  margin-top: 55px;
+  // Borde superior azul como en el perfil - Elemento decorativo
+  &::before {
+    content: '';                         // Contenido vacío para pseudo-elemento
+    position: absolute;                  // Posicionamiento absoluto para colocación precisa
+    top: 0;                             // Alineado al borde superior
+    left: 0;                            // Alineado al borde izquierdo
+    right: 0;                           // Extendido hasta el borde derecho
+    height: 4px;                        // Altura de la línea decorativa
+    background: $primary-blue;          // Color azul primario de la marca
+  }
+
+  // Contenedor interno del header con layout flexbox
+  .header-content {
+    display: flex;                       // Flexbox para distribución horizontal
+    justify-content: space-between;     // Separar contenido: info a la izquierda, acciones a la derecha
+    align-items: center;                // Alineación vertical centrada
+    max-width: none;                    // Sin restricción de ancho máximo
+    margin: 0px;                        // Sin márgenes externos
+    position: relative;                 // Posicionamiento relativo para z-index
+    z-index: 2;                         // Z-index superior al pseudo-elemento ::before
+    min-height: 60px;                   // Altura mínima para asegurar visibilidad
+    width: 100%;                        // Ancho completo
+
+    // Responsive: cambiar a layout vertical en pantallas pequeñas
+    @media (max-width: 768px) {
+      flex-direction: column;           // Cambiar a dirección vertical en móviles
+      gap: 12px;                        // Espaciado reducido entre elementos
+      min-height: 80px;                 // Altura mínima mayor en móviles
+    }
+  }
+
+  // Sección izquierda: información del header (título y subtítulo)
+  .header-info {
+    display: flex;                      // Flexbox para layout vertical
+    flex-direction: column;             // Dirección vertical: título sobre subtítulo
+    gap: 4px;                           // Espaciado mínimo entre título y subtítulo
+    flex: 1;                            // Ocupar espacio disponible (empujar acciones a la derecha)
+    min-width: 0;                       // Permitir que el texto se ajuste
+  }
+
+  // Título principal del header con icono - Versión compacta y visible
+  .page-title {
+    display: flex;                      // Flexbox para alinear icono y texto
+    align-items: center;                // Alineación vertical centrada
+    gap: 8px;                           // Espaciado reducido entre icono y texto
+    margin: 0;                          // Sin márgenes externos
+    color: #1f2937;                     // Color de texto gris oscuro
+    font-size: 1.5rem;                  // Tamaño de fuente visible pero compacto
+    font-weight: 700;                   // Peso de fuente bold
+    letter-spacing: -0.3px;             // Espaciado de letras ajustado
+    white-space: nowrap;                // Evitar que el texto se corte
+    overflow: visible;                  // Asegurar que sea visible
+
+    // Icono Material Design del título - Más pequeño
+    mat-icon {
+      font-size: 24px;                  // Tamaño del icono más pequeño
+      width: 24px;                      // Ancho fijo del icono
+      height: 24px;                     // Altura fija del icono
+      color: $primary-blue;             // Color azul primario de la marca
+      flex-shrink: 0;                   // No permitir que se encoja
+    }
+  }
+
+  // Subtítulo descriptivo del header - Más compacto
+  .page-subtitle {
+    margin: 4px 0 0 0;                  // Margen superior reducido
+    color: #4b5563;                     // Color gris medio para jerarquía visual
+    font-size: 0.9rem;                  // Tamaño de fuente más pequeño
+    font-weight: 500;                   // Peso de fuente medio
+    line-height: 1.3;                   // Altura de línea más compacta
+  }
+
+  // Acciones del header - Solo botones funcionales y compactos
+  .header-actions {
+    display: flex;
+    gap: 8px;                           // Gap reducido para diseño compacto
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+
+    // Botón de importar Excel - Compacto
+    .bulk-upload-btn {
+      padding: 8px 16px;                // Padding reducido
+      border-radius: 12px;              // Bordes más compactos
+      font-size: 0.9rem;                // Texto más pequeño
+      font-weight: 600;
+      transition: all 0.2s ease;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        transform: translateY(-1px);
+      }
+    }
+
+    // Botón de exportar Excel - Compacto
+    .export-btn {
+      padding: 8px 16px;                // Padding reducido
+      border-radius: 12px;              // Bordes más compactos
+      font-size: 0.9rem;                // Texto más pequeño
+      font-weight: 600;
+      transition: all 0.2s ease;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        transform: translateY(-1px);
+      }
+    }
+
+    // Botón de limpiar BD - Solo icono para admin
+    .clear-db-btn {
+      width: 40px;                      // Botón circular compacto
+      height: 40px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        transform: translateY(-1px) scale(1.05);
+      }
+    }
+  }
+
+  // Los estilos específicos de botones están definidos en .header-actions arriba
+}
+
+// ===== ÁREA DE BÚSQUEDA FIJA =====
+// Campo de búsqueda que permanece fijo mientras la tabla hace scroll
+.search-area {
+  padding: 0px 12px 8px 12px;          // Padding lateral y inferior para separación
+  background: transparent;             // Fondo transparente
+  flex-shrink: 0;                      // No permitir que se encoja
+  margin-top: -8px;                    // Margen negativo mínimo para pegar con header
+  position: relative;                  // Posicionamiento relativo
+  z-index: 50;                         // Z-index para estar al frente
+  border-bottom: 1px solid rgba($gray-300, 0.3); // Borde inferior sutil para separar de la tabla
+
+  .search-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+
+    // Borde superior azul como en el perfil
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: $primary-blue;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    &:focus-within {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 0 0 4px rgba($primary-blue, 0.15),
+        0 15px 45px rgba(0, 0, 0, 0.2);
+    }
+
+    .search-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;                        // Gap reducido para diseño compacto
+      padding: 12px;                    // Padding mínimo para diseño compacto
+
+      .search-field {
+        flex: 1;
+
+        // Campo de búsqueda con estilo del perfil
+        .mat-mdc-text-field-wrapper {
+          background: rgba($gray-50, 0.8);
+          border: 2px solid transparent;
+          border-radius: 16px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: rgba($gray-100, 0.9);
+            border-color: rgba($primary-blue, 0.2);
+          }
+        }
+
+        .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+          background: white;
+          border-color: $primary-blue;
+          box-shadow: 0 0 0 4px rgba($primary-blue, 0.1);
+        }
+
+        // Etiqueta del campo
+        .mat-mdc-floating-label {
+          color: $gray-500;
+          font-weight: 600;
+        }
+
+        .mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+          color: $primary-blue;
+        }
+
+        // Input text
+        .mat-mdc-input-element {
+          color: $gray-800;
+          font-weight: 500;
+          font-size: 1rem;
+        }
+
+        // Icono de búsqueda
+        .mat-icon {
+          color: $primary-blue;
+          transition: all 0.3s ease;
+        }
+      }
+
+      // Botón de limpiar búsqueda con estilo del perfil
+      .clear-search-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 2px solid rgba($gray-400, 0.3);
+        color: $gray-600;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: #f9fafb;
+          border-color: $gray-600;
+          color: $gray-700;
+          transform: translateY(-2px);
+        }
+
+        .mat-icon {
+          color: $gray-600;
+          font-size: 20px;
+          width: 20px;
+          height: 2px;
+          transition: all 0.3s ease;
+        }
+
+        &:hover .mat-icon {
+          color: $gray-700;
+        }
+      }
+    }
+
+    .search-results {
+      margin-top: -14px; // Margen muy reducido
+      padding: -10px 10px -0px; // Padding muy reducido
+
+      .results-count {
+        font-size: 0.8rem;
+        color: $gray-800;
+        font-weight: 600;
+        background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+        padding: 0px 12px;
+        border-radius: 20px;
+        border: 1px solid $gray-200;
+        display: inline-block;
+        box-shadow: 0 2px 6px rgba($primary-blue, 0.08);
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba($primary-blue, 0.12);
+        }
+      }
+    }
+  }
+}
+
+// ===== DIÁLOGO MODAL PARA CREAR DISEÑO =====
+// Diálogo modal scrollable con overlay y contenido dinámico
+.dialog-overlay {
+  position: fixed;                      // Posición fija para cubrir toda la pantalla
+  top: 0;                              // Pegado al borde superior
+  left: 0;                             // Pegado al borde izquierdo
+  right: 0;                            // Extendido hasta el borde derecho
+  bottom: 0;                           // Extendido hasta el borde inferior
+  background: rgba(0, 0, 0, 0.6);      // Overlay semi-transparente oscuro
+  backdrop-filter: blur(8px);          // Efecto de desenfoque del fondo
+  z-index: 2000;                       // Z-index muy alto para estar al frente
+  display: flex;                       // Flexbox para centrar el diálogo
+  align-items: center;                 // Centrado vertical
+  justify-content: center;             // Centrado horizontal
+  padding: 20px;                       // Padding para evitar que toque los bordes
+  animation: fadeIn 0.3s ease;         // Animación de entrada
+
+  .dialog-container {
+    background: white;                  // Fondo blanco del diálogo
+    border-radius: 16px;               // Bordes redondeados
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); // Sombra pronunciada
+    max-width: 800px;                  // Ancho máximo del diálogo
+    width: 100%;                       // Ancho completo hasta el máximo
+    max-height: 90vh;                  // Altura máxima del 90% de la ventana
+    display: flex;                     // Flexbox vertical
+    flex-direction: column;            // Dirección vertical
+    overflow: hidden;                  // Ocultar overflow del contenedor
+    position: relative;                // Posicionamiento relativo
+    animation: slideIn 0.3s ease;      // Animación de entrada
+
+    // Header del diálogo
+    .dialog-header {
+      display: flex;                   // Flexbox horizontal
+      justify-content: space-between; // Separar título y botón de cerrar
+      align-items: center;             // Alineación vertical centrada
+      padding: 20px 24px;              // Padding del header
+      background: linear-gradient(135deg, $success-emerald 0%, #059669 100%); // Gradiente verde
+      color: white;                    // Texto blanco
+      border-radius: 16px 16px 0 0;    // Bordes redondeados solo arriba
+      flex-shrink: 0;                  // No permitir que se encoja
+
+      .dialog-title {
+        display: flex;                 // Flexbox para icono y título
+        align-items: center;           // Alineación vertical centrada
+        gap: 12px;                     // Espaciado entre icono y título
+
+        mat-icon {
+          font-size: 28px;             // Icono más grande
+          width: 28px;
+          height: 28px;
+        }
+
+        h2 {
+          margin: 0;                   // Sin márgenes
+          font-size: 1.4rem;           // Tamaño de fuente del título
+          font-weight: 600;            // Peso de fuente semi-bold
+        }
+      }
+
+      .dialog-close-btn {
+        color: white;                  // Color blanco del botón
+        background: rgba(255, 255, 255, 0.1); // Fondo semi-transparente
+        border-radius: 50%;            // Botón circular
+        transition: all 0.2s ease;    // Transición suave
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2); // Fondo más opaco en hover
+          transform: scale(1.1);       // Efecto de crecimiento
+        }
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+
+    // Contenido scrollable del diálogo
+    .dialog-content {
+      flex: 1;                         // Ocupar todo el espacio disponible
+      overflow-y: auto;                // Scroll vertical cuando sea necesario
+      padding: 24px;                   // Padding interno del contenido
+      background: $gray-50;            // Fondo gris claro
+
+      // Estilos personalizados para scrollbar
+      &::-webkit-scrollbar {
+        width: 8px;                    // Ancho del scrollbar
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba($gray-200, 0.5); // Fondo del track
+        border-radius: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba($success-emerald, 0.6); // Color del thumb
+        border-radius: 4px;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba($success-emerald, 0.8); // Color más intenso en hover
+        }
+      }
+    }
+
+    // Footer del diálogo con botones
+    .dialog-footer {
+      display: flex;                   // Flexbox horizontal
+      justify-content: flex-end;       // Alinear botones a la derecha
+      gap: 12px;                       // Espaciado entre botones
+      padding: 20px 24px;              // Padding del footer
+      background: white;               // Fondo blanco
+      border-top: 1px solid $gray-200; // Borde superior sutil
+      flex-shrink: 0;                  // No permitir que se encoja
+
+      .cancel-btn {
+        color: $gray-600;              // Color gris para cancelar
+        border: 1px solid $gray-300;   // Borde gris
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: $gray-100;        // Fondo gris claro en hover
+          border-color: $gray-400;      // Borde más oscuro
+        }
+      }
+
+      .save-btn {
+        background: $success-emerald;   // Fondo verde
+        color: white;                  // Texto blanco
+        box-shadow: 0 4px 12px rgba($success-emerald, 0.3); // Sombra verde
+        transition: all 0.2s ease;
+
+        &:hover:not(:disabled) {
+          background: #059669;          // Verde más oscuro en hover
+          transform: translateY(-1px);  // Efecto de elevación
+          box-shadow: 0 6px 16px rgba($success-emerald, 0.4); // Sombra más intensa
+        }
+
+        &:disabled {
+          opacity: 0.6;                // Opacidad reducida cuando está deshabilitado
+          cursor: not-allowed;         // Cursor de no permitido
+        }
+      }
+    }
+  }
+}
+
+// Formulario dentro del diálogo
+.create-design-form {
+  .form-row {
+    display: flex;                     // Flexbox horizontal
+    gap: 16px;                         // Espaciado entre campos
+    margin-bottom: 20px;               // Margen inferior entre filas
+    align-items: flex-start;           // Alineación superior
+
+    &:last-child {
+      margin-bottom: 0;                // Sin margen en la última fila
+    }
+
+    .full-width {
+      flex: 1;                         // Ocupar todo el ancho
+    }
+
+    .half-width {
+      flex: 1;                         // Ocupar la mitad del ancho
+    }
+
+    // Responsive: cambiar a columna en pantallas pequeñas
+    @media (max-width: 600px) {
+      flex-direction: column;          // Cambiar a dirección vertical
+      gap: 12px;                       // Gap reducido
+
+      .half-width {
+        width: 100%;                   // Ancho completo en móviles
+      }
+    }
+  }
+
+  // Estilos para campos de formulario
+  mat-form-field {
+    .mat-mdc-text-field-wrapper {
+      background: white;               // Fondo blanco
+      border: 2px solid $gray-200;     // Borde gris claro
+      border-radius: 12px;             // Bordes redondeados
+      transition: all 0.3s ease;      // Transición suave
+
+      &:hover {
+        border-color: rgba($success-emerald, 0.3); // Borde verde claro en hover
+        box-shadow: 0 2px 8px rgba($success-emerald, 0.1); // Sombra sutil
+      }
+    }
+
+    &.mat-focused .mat-mdc-text-field-wrapper {
+      border-color: $success-emerald;  // Borde verde cuando está enfocado
+      box-shadow: 0 0 0 4px rgba($success-emerald, 0.15); // Sombra de enfoque
+    }
+
+    .mat-mdc-floating-label {
+      color: $gray-600;                // Color de la etiqueta
+      font-weight: 600;               // Peso de fuente semi-bold
+    }
+
+    &.mat-focused .mat-mdc-floating-label {
+      color: $success-emerald;         // Color verde cuando está enfocado
+    }
+
+    .mat-mdc-input-element {
+      color: $gray-800;                // Color del texto
+      font-weight: 500;               // Peso de fuente medio
+    }
+
+    .mat-icon {
+      color: $success-emerald;         // Color verde para iconos
+    }
+  }
+
+  // ===== SECCIÓN DE COLORES PANTONE =====
+  .colors-section {
+    flex-direction: column !important; // Dirección vertical forzada
+    background: rgba($primary-blue-50, 0.8); // Fondo azul claro
+    border: 2px solid rgba($primary-blue, 0.2); // Borde azul sutil
+    border-radius: 16px;               // Bordes redondeados
+    padding: 24px;                     // Padding interno
+    margin: 20px 0;                    // Margen vertical
+
+    .colors-header {
+      margin-bottom: 20px;             // Margen inferior del header
+
+      h4 {
+        display: flex;                 // Flexbox para icono y título
+        align-items: center;           // Alineación vertical centrada
+        gap: 10px;                     // Espaciado entre icono y título
+        margin: 0 0 10px 0;            // Margen inferior
+        color: $primary-blue;          // Color azul
+        font-size: 1.2rem;             // Tamaño de fuente
+        font-weight: 600;              // Peso de fuente semi-bold
+
+        mat-icon {
+          font-size: 22px;
+          width: 22px;
+          height: 22px;
+        }
+      }
+
+      .colors-description {
+        margin: 0;                     // Sin márgenes
+        color: $gray-600;              // Color gris
+        font-size: 0.95rem;            // Tamaño de fuente
+        font-style: italic;            // Estilo itálico
+      }
+    }
+
+    .most-used-colors {
+      margin-bottom: 24px;             // Margen inferior
+
+      .section-label {
+        display: block;                // Mostrar como bloque
+        font-weight: 600;             // Peso de fuente semi-bold
+        color: $gray-700;              // Color gris oscuro
+        margin-bottom: 12px;           // Margen inferior
+        font-size: 0.95rem;            // Tamaño de fuente
+      }
+
+      .color-chips {
+        display: flex;                 // Flexbox horizontal
+        flex-wrap: wrap;               // Permitir envolver
+        gap: 10px;                     // Espaciado entre chips
+
+        .color-chip {
+          display: flex;               // Flexbox para centrar contenido
+          align-items: center;         // Centrado vertical
+          justify-content: center;     // Centrado horizontal
+          width: 70px;                 // Ancho fijo
+          height: 35px;                // Altura fija
+          border-radius: 8px;          // Bordes redondeados
+          border: 2px solid rgba(255, 255, 255, 0.9); // Borde blanco
+          cursor: pointer;             // Cursor de puntero
+          transition: all 0.3s ease;   // Transición suave
+          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15); // Sombra
+
+          .color-code {
+            font-size: 9px;            // Tamaño de fuente pequeño
+            font-weight: 700;          // Peso de fuente bold
+            color: white;              // Color blanco
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); // Sombra del texto
+            text-align: center;        // Centrado
+            line-height: 1;            // Altura de línea
+          }
+
+          &:hover {
+            transform: translateY(-3px) scale(1.05); // Efecto de elevación y crecimiento
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25); // Sombra más intensa
+            border-color: $primary-blue; // Borde azul en hover
+          }
+        }
+      }
+    }
+
+    .color-selectors {
+      display: flex;                   // Flexbox vertical
+      flex-direction: column;          // Dirección vertical
+      gap: 20px;                       // Espaciado entre selectores
+
+      .color-selector {
+        display: flex;                 // Flexbox horizontal
+        align-items: center;           // Alineación vertical centrada
+        gap: 16px;                     // Espaciado entre elementos
+        padding: 16px;                 // Padding interno
+        background: white;             // Fondo blanco
+        border-radius: 12px;           // Bordes redondeados
+        border: 1px solid $gray-200;   // Borde gris claro
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); // Sombra sutil
+
+        .color-label {
+          min-width: 90px;             // Ancho mínimo de la etiqueta
+          font-weight: 600;            // Peso de fuente semi-bold
+          color: $gray-700;            // Color gris oscuro
+          font-size: 0.95rem;          // Tamaño de fuente
+        }
+
+        .color-field {
+          flex: 1;                     // Ocupar espacio disponible
+          max-width: 350px;            // Ancho máximo
+        }
+
+        .selected-color-preview {
+          display: flex;               // Flexbox horizontal
+          align-items: center;         // Alineación vertical centrada
+          gap: 12px;                   // Espaciado entre elementos
+          min-width: 160px;            // Ancho mínimo
+
+          .color-swatch {
+            width: 45px;               // Ancho del swatch
+            height: 45px;              // Altura del swatch
+            border-radius: 8px;        // Bordes redondeados
+            border: 2px solid rgba(255, 255, 255, 0.9); // Borde blanco
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); // Sombra
+          }
+
+          .color-details {
+            display: flex;             // Flexbox vertical
+            flex-direction: column;    // Dirección vertical
+
+            .color-code {
+              font-weight: 600;        // Peso de fuente semi-bold
+              color: $gray-800;        // Color gris oscuro
+              font-size: 0.95rem;      // Tamaño de fuente
+            }
+
+            .color-hex {
+              font-size: 0.85rem;      // Tamaño de fuente pequeño
+              color: $gray-500;        // Color gris
+              font-family: monospace;  // Fuente monospace
+            }
+          }
+        }
+
+        // Responsive: cambiar layout en pantallas pequeñas
+        @media (max-width: 600px) {
+          flex-direction: column;      // Cambiar a dirección vertical
+          align-items: flex-start;     // Alineación superior
+          gap: 12px;                   // Gap reducido
+
+          .color-label {
+            min-width: auto;           // Sin ancho mínimo
+          }
+
+          .color-field {
+            width: 100%;               // Ancho completo
+            max-width: none;           // Sin ancho máximo
+          }
+
+          .selected-color-preview {
+            width: 100%;               // Ancho completo
+            justify-content: center;   // Centrar contenido
+          }
+        }
+      }
+    }
+  }
+}
+
+// Animaciones para el diálogo
+@keyframes fadeIn {
+  from {
+    opacity: 0;                        // Empezar transparente
+  }
+  to {
+    opacity: 1;                        // Terminar opaco
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;                        // Empezar transparente
+    transform: translateY(-50px) scale(0.9); // Empezar arriba y pequeño
+  }
+  to {
+    opacity: 1;                        // Terminar opaco
+    transform: translateY(0) scale(1); // Terminar en posición normal
+  }
+}
+
+// ===== ESTILOS PARA AUTOCOMPLETE DE COLORES =====
+::ng-deep {
+  .color-option {
+    .color-option-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 0;
+
+      .color-preview {
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+      }
+
+      .color-info {
+        display: flex;
+        flex-direction: column;
+
+        .color-name {
+          font-weight: 600;
+          color: $gray-800;
+          font-size: 0.9rem;
+        }
+
+        .color-hex {
+          font-size: 0.8rem;
+          color: $gray-500;
+          font-family: monospace;
+        }
+      }
+    }
+  }
+}
+
+// ===== ÁREA DE TABLA SCROLLABLE - SOLO LA TABLA HACE SCROLL =====
+// Contenedor que ocupa el espacio restante y permite scroll solo en la tabla
+.scrollable-table-area {
+  flex: 1;                          // Ocupar todo el espacio restante disponible
+  padding: 0px 12px 0px 12px;       // Padding lateral igual al header y search-area (12px) para alineación perfecta
+  overflow: hidden;                 // Sin overflow en el contenedor principal
+  display: flex;                    // Flexbox para controlar el layout interno
+  flex-direction: column;           // Dirección vertical
+  min-height: 0;                    // Importante para que flex funcione correctamente
+  max-height: calc(100vh - 200px);  // Altura máxima calculada para evitar overflow de página
+
+  .table-card {
+    flex: 1;                        // Ocupar todo el espacio disponible
+    display: flex;                  // Flexbox para layout interno
+    flex-direction: column;         // Dirección vertical: header -> contenido
+    background: rgba(255, 255, 255, 0.95); // Fondo semi-transparente
+    backdrop-filter: blur(20px);    // Efecto glassmorphism
+    border-radius: 20px;            // Bordes redondeados completos
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); // Sombra suave
+    border: 1px solid rgba(255, 255, 255, 0.3); // Borde sutil
+    overflow: hidden;               // Ocultar overflow del card
+    height: 100%;                   // Altura completa del contenedor padre
+    position: relative;             // Posicionamiento relativo
+    min-height: 0;                  // Importante para que flex funcione correctamente
+    max-height: 100%;               // No exceder la altura del contenedor
+
+    // Borde superior azul como en el perfil
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: $primary-blue;
+      z-index: 1;
+    }
+
+    mat-card-header {
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba($gray-200, 0.3);
+      padding: 12px 16px;               // Padding reducido para diseño compacto
+      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;                      // Gap reducido
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.3rem;              // Tamaño de fuente más compacto
+        font-weight: 700;
+        letter-spacing: -0.3px;
+
+        mat-icon {
+          font-size: 24px;              // Icono más pequeño
+          width: 24px;
+          height: 24px;
+          color: $primary-blue;
+        }
+
+        span {
+          color: #4b5563;
+          font-size: 0.8rem;            // Texto más pequeño
+          font-weight: 500;
+          letter-spacing: 0.3px;
+        }
+      }
+    }
+
+    mat-card-content {
+      flex: 1;                      // Ocupar todo el espacio restante
+      padding: 0;                   // Sin padding interno
+      overflow: hidden;             // Sin overflow en el contenido del card
+      display: flex;                // Flexbox para el contenedor de tabla
+      flex-direction: column;       // Dirección vertical
+      position: relative;           // Posicionamiento relativo
+      min-height: 0;                // Importante para que flex funcione correctamente
+      height: 100%;                 // Altura completa disponible
+    }
+  }
+}
+
+// ===== CONTENEDOR DE TABLA CON SCROLL EXCLUSIVO =====
+// Solo este contenedor permite scroll - Todo lo demás permanece fijo
+.table-container {
+  flex: 1;                          // Ocupar todo el espacio disponible
+  overflow: auto;                   // Permitir scroll vertical y horizontal SOLO aquí
+  position: relative;               // Posicionamiento relativo
+  height: 100%;                     // Altura completa del contenedor padre
+  min-height: 0;                    // Importante para que flex funcione correctamente
+  max-height: 100%;                 // No exceder la altura disponible
+  
+  // La tabla dentro del contenedor scrollable
+  .mat-mdc-table {
+    position: relative;             // Posicionamiento relativo para la tabla
+    width: 100%;                    // Ancho completo
+    min-width: 1200px;              // Ancho mínimo para evitar compresión
+  }
+
+  // Estilos personalizados para scrollbars - Más visibles y atractivos
+  &::-webkit-scrollbar {
+    width: 14px;                    // Scrollbar vertical más ancho
+    height: 14px;                   // Scrollbar horizontal más alto
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(241, 245, 249, 0.8); // Fondo semi-transparente
+    border-radius: 8px;             // Bordes redondeados
+    margin: 4px;                    // Margen para separar del contenido
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, $primary-blue-300, $primary-blue-500); // Gradiente azul
+    border-radius: 8px;             // Bordes redondeados
+    border: 2px solid rgba(255, 255, 255, 0.3); // Borde sutil
+    box-shadow: 0 2px 8px rgba($primary-blue, 0.2); // Sombra sutil
+    transition: all 0.3s ease;      // Transición suave
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, $primary-blue-400, $primary-blue-600); // Gradiente más intenso en hover
+    box-shadow: 0 4px 12px rgba($primary-blue, 0.3); // Sombra más pronunciada
+    transform: scale(1.05);         // Efecto de crecimiento sutil
+  }
+
+  &::-webkit-scrollbar-corner {
+    background: rgba(241, 245, 249, 0.8); // Esquina con el mismo color del track
+    border-radius: 8px;             // Bordes redondeados
+  }
+
+  // Indicador visual de que el contenido es scrollable
+  &::before {
+    content: '↕️ Scroll para ver más diseños';
+    position: sticky;               // Pegado al top del contenedor
+    top: 0;                         // En la parte superior
+    left: 0;                        // Alineado a la izquierda
+    right: 0;                       // Extendido a la derecha
+    background: rgba($primary-blue-50, 0.9); // Fondo azul claro
+    color: $primary-blue-700;       // Texto azul oscuro
+    font-size: 0.8rem;              // Texto pequeño
+    font-weight: 600;               // Peso medio
+    text-align: center;             // Centrado
+    padding: 4px 8px;               // Padding mínimo
+    border-bottom: 1px solid rgba($primary-blue, 0.2); // Borde inferior sutil
+    z-index: 10;                    // Z-index para estar al frente
+    opacity: 0.8;                   // Semi-transparente
+    transition: opacity 0.3s ease;  // Transición suave
+  }
+
+  // Ocultar el indicador cuando se hace hover sobre la tabla
+  &:hover::before {
+    opacity: 0.3;                   // Más transparente en hover
+  }
+}
+
+// ===== TABLA ESTILO EXCEL =====
+// Estilos para la tabla principal con apariencia de Excel y header fijo
+.excel-table {
+  width: 100%;
+  min-width: 1200px; // Ancho mínimo para evitar compresión
+  background: white;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 2px;
+  overflow: visible; // Cambiar a visible para permitir header fijo
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e2e8f0;
+  position: relative; // Necesario para el header fijo
+
+  // Borde superior con color azul para consistencia
+  border-top: 3px solid $primary-blue;
+
+  // ===== HEADERS DE TABLA FIJOS =====
+  .excel-header {
+    background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%);
+    color: $gray-700;
+    font-family: Arial, sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 12px;
+    border-bottom: 2px solid $primary-blue;
+    border-right: 1px solid $gray-300;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    height: 40px;
+    line-height: 1.2;
+    backdrop-filter: blur(10px);
+
+    // Efecto de brillo en hover
+    &:hover {
+      background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%);
+      color: $primary-blue;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba($primary-blue, 0.2);
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        color: $primary-blue;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+      }
+
+      span {
+        font-family: Arial, sans-serif;
+        font-weight: 700;
+        font-size: 12px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        line-height: 1.2;
+      }
+    }
+
+    // Bordes entre headers
+    &:not(:last-child) {
+      border-right: 1px solid rgba(255, 255, 255, 0.15);
+    }
+  }
+
+  // ===== CELDAS DE TABLA - TEXTO 12PX =====
+  .excel-cell {
+    padding: 12px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    background: white;
+    font-family: Arial, sans-serif;
+    font-size: 12px !important; // Forzar tamaño de texto a 12px
+    line-height: 1.4;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+    height: auto;
+    min-height: 48px;
+
+    // Asegurar que todos los elementos dentro también tengan 12px
+    * {
+      font-size: 12px !important;
+    }
+  }
+
+  // ===== FILAS DE TABLA =====
+  .excel-row {
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba($primary-blue, 0.15);
+      transform: translateY(-1px);
+
+      .excel-cell {
+        background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+        border-color: $gray-200;
+      }
+    }
+
+    &:nth-child(even) {
+      background: rgba($gray-50, 0.3);
+    }
+  }
+}
+
+// ===== ESTILOS ESPECÍFICOS POR COLUMNA =====
+
+// Columna ID
+.id-cell {
+  min-width: 80px;
+  text-align: center;
+
+  .design-id {
+    color: $primary-blue-700;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid $primary-blue-200;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba($primary-blue, 0.1);
+    transition: all 0.2s ease;
+    min-width: 40px;
+
+    &:hover {
+      background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%);
+      border-color: $primary-blue-400;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba($primary-blue, 0.2);
+    }
+  }
+}
+
+// Columna Artículo F
+.article-cell {
+  min-width: 120px;
+  font-weight: 600;
+
+  .article-code {
+    color: $primary-blue;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid $gray-200;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%);
+      border-color: $primary-blue;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba($primary-blue, 0.15);
+    }
+  }
+}
+
+// Columna Cliente
+.client-cell {
+  min-width: 200px;
+
+  .client-name {
+    color: $gray-700;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.3;
+    padding: 4px 8px;
+    background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+    border-radius: 6px;
+    border: 1px solid $gray-200;
+    display: inline-block;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%);
+      color: $primary-blue;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+// Columna Descripción
+.description-cell {
+  min-width: 250px;
+  max-width: 350px;
+
+  .description-text {
+    color: #4b5563;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+  }
+}
+
+// Columna Sustrato
+.substrate-cell {
+  min-width: 140px;
+
+  .substrate-text {
+    color: $success-emerald;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-weight: 600;
+    background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+    padding: 0px 0px;
+    border-radius: 8px;
+    border: 1px solid $gray-200;
+    font-size: 0.875rem;
+    line-height: 1.2;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%);
+      color: #047857;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+    }
+  }
+}
+
+// Columna Tipo
+.type-cell {
+  min-width: 100px;
+  text-align: center;
+
+  .type-chip {
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    padding: 2px 0px !important;
+    border-radius: 12px !important;
+    border: 1px solid !important;
+    line-height: 1.1 !important;
+    height: auto !important;
+    min-height: auto !important;
+
+    &.type-lamina {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #92400e;
+      border-color: #fbbf24;
+    }
+
+    &.type-tubular {
+      background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%);
+      color: $gray-800;
+      border-color: $primary-blue;
+    }
+
+    &.type-semitubular {
+      background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+      color: #7c3aed;
+      border-color: #a78bfa;
+    }
+  }
+}
+
+// Columna Tipo de Impresión
+.print-type-cell {
+  min-width: 120px;
+  text-align: center;
+
+  .print-chip {
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    padding: 2px 0px !important;
+    border-radius: 14px !important;
+    border: 1px solid !important;
+    line-height: 1.1 !important;
+    height: auto !important;
+    min-height: auto !important;
+
+    &.print-cara {
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      color: #065f46;
+      border-color: #34d399;
+    }
+
+    &.print-dorso {
+      background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+      color: #991b1b;
+      border-color: #f87171;
+    }
+
+    &.print-cara-dorso {
+      background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+      color: $gray-800;
+      border-color: $primary-blue;
+    }
+  }
+}
+
+// Columna Número de Colores
+.color-count-cell {
+  min-width: 80px;
+  text-align: center;
+
+  .color-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+    color: white;
+    border-radius: 50%;
+    font-family: Arial, sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba($primary-blue, 0.4);
+  }
+}
+
+// ===== COMPONENTE DROPDOWN DE COLORES =====
+// Dropdown que muestra los colores de cada diseño de manera interactiva (copiado de máquinas)
+.colors-cell {
+  position: relative;
+  overflow: visible !important;
+  z-index: 1; // Z-index base para la celda
+
+  .colors-cell-container {
+    position: relative;
+    display: inline-block;
+    z-index: 2; // Z-index para el contenedor
+
+    .colors-dropdown {
+      position: fixed !important; // Cambiar a fixed para escapar de overflow hidden
+      z-index: 99999 !important; // Z-index extremadamente alto para aparecer al frente
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); // Sombra más pronunciada
+      border: 2px solid $primary-blue;
+      min-width: 250px;
+      max-width: 350px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.2s ease;
+
+      &.visible {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        display: block !important;
+        z-index: 99999 !important; // Forzar z-index cuando está visible
+      }
+
+      &:not(.visible) {
+        display: none;
+      }
+
+      .colors-dropdown-content {
+        padding: 16px;
+
+        .colors-dropdown-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #e2e8f0;
+
+          mat-icon {
+            color: $primary-blue;
+            font-size: 16px;
+          }
+
+          span {
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+            font-size: 12px;
+          }
+
+          .close-colors-btn {
+            width: 24px;
+            height: 24px;
+
+            mat-icon {
+              color: #64748b;
+              font-size: 16px;
+            }
+          }
+        }
+
+        .colors-dropdown-list {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+          gap: 8px;
+          max-height: 200px;
+          overflow-y: auto;
+
+          .color-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+
+            &:hover {
+              background: #f1f5f9;
+              border-color: $primary-blue;
+            }
+
+            .color-number {
+              background: $primary-blue;
+              color: white;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 10px;
+              font-weight: 600;
+              flex-shrink: 0;
+            }
+
+            .color-name {
+              font-size: 11px;
+              font-weight: 500;
+              color: #1e293b;
+              line-height: 1.2;
+            }
+          }
+        }
+      }
+
+      // Flecha del dropdown
+      &::before {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 12px;
+        height: 12px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-bottom: none;
+        border-right: none;
+        transform: translateX(-50%) rotate(45deg);
+      }
+    }
+  }
+}
+
+// ===== BOTÓN DE COLORES =====
+// Botón empresarial llamativo para mostrar colores con estilo plata
+.colors-toggle-btn-modern {
+  background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%) !important;
+  border: 2px solid $gray-300 !important;
+  border-radius: 12px !important;
+  width: 48px !important;
+  height: 48px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: 
+    0 4px 12px rgba($primary-blue, 0.2) !important,
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  // Efecto de brillo rotativo
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, rgba($primary-blue, 0.1), transparent);
+    transition: transform 0.6s ease;
+    transform: rotate(0deg);
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%) !important;
+    border-color: $primary-blue !important;
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 
+      0 8px 20px rgba($primary-blue, 0.3) !important,
+      0 4px 12px rgba($primary-blue, 0.2) !important,
+      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+
+    &::before {
+      transform: rotate(180deg);
+    }
+  }
+
+  &.active {
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%) !important;
+    border-color: $primary-blue !important;
+    box-shadow: 
+      0 6px 16px rgba($primary-blue, 0.4) !important,
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+
+    .colors-icon-container {
+      .colors-icon {
+        color: white !important;
+        transform: scale(1.1) !important;
+      }
+
+      .colors-badge {
+        background: $gray-300 !important;
+        color: $gray-900 !important;
+        border: 2px solid white !important;
+      }
+    }
+  }
+
+  .colors-icon-container {
+    position: relative;
+    z-index: 1;
+
+    .colors-icon {
+      color: $primary-blue;
+      font-size: 26px !important;
+      width: 26px !important;
+      height: 26px !important;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      transition: all 0.3s ease !important;
+    }
+
+    .colors-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+      color: white;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 
+        0 3px 8px rgba($primary-blue, 0.4),
+        0 1px 3px rgba(0, 0, 0, 0.2);
+      border: 2px solid white;
+      transition: all 0.3s ease !important;
+    }
+  }
+}
+
+// ===== COLUMNA ESTADO - TEXTO BRILLANTE CON COLORES FORZADOS =====
+.status-cell {
+  min-width: 100px !important;
+  text-align: center !important;
+
+  .status-text-display {
+    display: inline-block !important;
+    padding: 1px 10px !important;
+    border-radius: 20px !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+
+    // ACTIVO - Verde brillante FORZADO
+    &.status-activo {
+      background-color: #10b981 !important;
+      background: #10b981 !important;
+      color: white !important;
+      border: 2px solid #047857 !important;
+
+      .status-text {
+        color: white !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+      }
+
+      &:hover {
+        background-color: #059669 !important;
+        background: #059669 !important;
+        transform: translateY(-2px) scale(1.05) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+      }
+    }
+
+    // INACTIVO - Rojo brillante FORZADO
+    &.status-inactivo {
+      background-color: #ef4444 !important;
+      background: #ef4444 !important;
+      color: white !important;
+      border: 2px solid #b91c1c !important;
+
+      .status-text {
+        color: white !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+      }
+
+      &:hover {
+        background-color: #dc2626 !important;
+        background: #dc2626 !important;
+        transform: translateY(-2px) scale(1.05) !important;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+      }
+    }
+
+    .status-text {
+      font-weight: 800 !important;
+      letter-spacing: 0.5px !important;
+      text-transform: uppercase !important;
+    }
+  }
+}
+
+// Columna Acciones
+.actions-cell {
+  min-width: 160px;
+  text-align: center;
+
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+
+    button {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      }
+    }
+  }
+}
+
+// ===== MENSAJES DE ESTADO =====
+
+// Mensaje sin datos
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #6b7280;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #d1d5db;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+    color: #4b5563;
+  }
+
+  button {
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba($primary-blue, 0.4);
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba($primary-blue, 0.5);
+    }
+  }
+}
+
+// Mensaje de carga
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+
+  .loading-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: $primary-blue;
+    animation: spin 2s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: #4b5563;
+  }
+}
+
+// ===== ANIMACIONES =====
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes expandColors {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    max-height: 200px;
+    transform: translateY(0);
+  }
+}
+
+// Animación para el popup lateral de colores
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+// Animación para el popup centrado de colores
+@keyframes slideInFromCenter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+// Animación para el modal de paleta
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+// Animación de pulso para el icono activo
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+// Animación de brillo empresarial
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// Animación de glow
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba($primary-blue, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba($primary-blue, 0.8), 0 0 30px rgba($primary-blue-light, 0.6);
+  }
+}
+
+// ===== ESTILOS GLOBALES PARA MATERIAL DESIGN =====
+// Sobrescribir estilos de Angular Material para integración perfecta
+
+::ng-deep {
+
+  // Estilos para diálogos responsivos
+  .responsive-dialog {
+    .mat-mdc-dialog-container {
+      padding: 0;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .mat-mdc-dialog-surface {
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    // Responsivo para móviles
+    @media (max-width: 768px) {
+      .mat-mdc-dialog-container {
+        border-radius: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        max-height: none !important;
+      }
+
+      .mat-mdc-dialog-surface {
+        border-radius: 0;
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+      }
+    }
+  }
+
+  // Estilos para form fields en el área de búsqueda
+  .search-field {
+    .mat-mdc-text-field-wrapper {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: $primary-blue;
+        box-shadow: 0 4px 12px rgba($primary-blue, 0.1);
+      }
+    }
+
+    .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+      border-color: $primary-blue-dark;
+      box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+    }
+  }
+
+  // Estilos para mat-card
+  .mat-mdc-card {
+    --mdc-elevated-card-container-color: transparent;
+    --mdc-elevated-card-container-elevation: 0;
+  }
+
+  // Estilos para mat-table con header fijo
+  .mat-mdc-table {
+    background: transparent;
+    position: relative;
+    
+    // Asegurar que el header sea fijo
+    .mat-mdc-header-row {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 1000 !important;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+      backdrop-filter: blur(15px) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    // Asegurar que las celdas del header mantengan el fondo
+    .mat-mdc-header-cell {
+      background: inherit !important;
+      backdrop-filter: inherit !important;
+    }
+  }
+
+  // Encabezados de tabla FIJOS (no se mueven con el scroll)
+  .mat-mdc-header-row {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+    border-bottom: 2px solid $primary-blue !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .mat-mdc-header-cell {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+    color: #374151 !important;
+    font-weight: 700 !important;
+    font-size: 0.875rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 12px 8px !important;
+    border-bottom: 2px solid $primary-blue !important;
+    border-right: 1px solid #d1d5db !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 101 !important;
+    backdrop-filter: blur(10px) !important;
+
+    &:last-child {
+      border-right: none !important;
+    }
+
+    // Icono en los encabezados
+    mat-icon {
+      color: $primary-blue !important;
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+      margin-right: 6px !important;
+    }
+
+    // Efecto hover en encabezados
+    &:hover {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+      color: $primary-blue !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 12px rgba($primary-blue, 0.2) !important;
+    }
+
+    // Sombra sutil en los encabezados
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(37, 99, 235, 0.3) 50%, transparent 100%);
+    }
+  }
+
+  // Filas de datos con efectos hover mejorados y consistencia con el estilo estándar
+  .mat-mdc-row {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f5f9;
+    background: white;
+    position: relative; // Para asegurar que no interfiera con el header fijo
+
+    &:hover {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+      z-index: 1; // Menor que el header para no interferir
+    }
+
+    &:nth-child(even) {
+      background: rgba(248, 250, 252, 0.3);
+    }
+
+    // Celdas de datos con estilo consistente
+    .mat-mdc-cell {
+      padding: 12px 8px !important;
+      border-right: 1px solid #f1f5f9 !important;
+      font-size: 0.875rem !important;
+      color: #374151 !important;
+      vertical-align: middle !important;
+      height: auto !important;
+      min-height: 48px !important;
+
+      &:last-child {
+        border-right: none !important;
+      }
+
+      // Efecto de enfoque en celdas
+      &:focus {
+        outline: 2px solid $primary-blue !important;
+        outline-offset: -2px !important;
+        background: rgba(37, 99, 235, 0.05) !important;
+      }
+    }
+  }
+
+  // Estilos para form fields
+  .mat-mdc-form-field {
+    --mdc-filled-text-field-container-color: transparent;
+    --mdc-outlined-text-field-outline-color: #e2e8f0;
+    --mdc-outlined-text-field-focus-outline-color: #{$primary-blue};
+    --mdc-outlined-text-field-hover-outline-color: #{$primary-blue};
+  }
+
+  .mat-mdc-form-field-infix {
+    min-height: 40px;
+  }
+
+  // Estilos para botones
+  .mat-mdc-raised-button {
+    --mdc-protected-button-container-elevation: 0;
+    --mdc-protected-button-focus-container-elevation: 0;
+    --mdc-protected-button-hover-container-elevation: 0;
+    --mdc-protected-button-pressed-container-elevation: 0;
+  }
+
+  // Estilos para chips - Sobrescribir Material Design
+  .mat-mdc-chip {
+    --mdc-chip-container-height: 28px;
+    --mdc-chip-label-text-size: 12px;
+    --mdc-chip-label-text-weight: 700;
+    font-family: Arial, sans-serif !important;
+
+    // Sobrescribir estilos específicos para nuestros chips personalizados
+    &.type-chip,
+    &.print-chip {
+      font-size: 12px !important;
+      font-family: Arial, sans-serif !important;
+      font-weight: 700 !important;
+      line-height: 1.1 !important;
+      height: auto !important;
+      min-height: auto !important;
+
+      .mdc-evolution-chip__text-label {
+        font-size: 12px !important;
+        font-family: Arial, sans-serif !important;
+        font-weight: 700 !important;
+        line-height: 1.1 !important;
+      }
+    }
+  }
+
+  // Estilos específicos para el contenido de los chips
+  .type-chip,
+  .print-chip {
+
+    .mdc-evolution-chip__text-label,
+    .mat-mdc-chip-action-label {
+      font-size: 12px !important;
+      font-family: Arial, sans-serif !important;
+      font-weight: 700 !important;
+      line-height: 1.1 !important;
+    }
+  }
+
+  // ===== ESTILOS FORZADOS PARA ESTADO =====
+  .status-text-display {
+    &.status-activo {
+      background-color: #10b981 !important;
+      color: white !important;
+    }
+
+    &.status-inactivo {
+      background-color: #ef4444 !important;
+      color: white !important;
+    }
+  }
+
+  // Forzar con máxima especificidad
+  .mat-mdc-table .status-cell .status-text-display.status-activo {
+    background-color: #10b981 !important;
+    color: white !important;
+  }
+
+  .mat-mdc-table .status-cell .status-text-display.status-inactivo {
+    background-color: #ef4444 !important;
+    color: white !important;
+  }
+
+  // Forzar estilos para los swatches de colores con máxima especificidad
+  .colors-lateral-popup .color-item-lateral .color-swatch-lateral {
+    border: 2px solid rgba(0, 0, 0, 0.3) !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 8px !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+      transform: scale(1.1) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+
+  // Fallbacks específicos para colores comunes
+  .color-swatch-lateral {
+    // Debug: Mostrar un color base para todos los swatches
+    background-color: #ff6b6b !important; // Color de debug rosa/rojo
+
+    // Colores básicos CMYK
+    &[data-color*="CYAN"],
+    &[title*="#00FFFF"],
+    &[title*="CYAN"] {
+      background-color: #00FFFF !important;
+    }
+
+    &[data-color*="MAGENTA"],
+    &[title*="#FF00FF"],
+    &[title*="MAGENTA"] {
+      background-color: #FF00FF !important;
+    }
+
+    &[data-color*="AMARILLO"],
+    &[data-color*="YELLOW"],
+    &[title*="#FFFF00"] {
+      background-color: #FFFF00 !important;
+    }
+
+    &[data-color*="BLACK"],
+    &[data-color*="NEGRO"],
+    &[title*="#000000"] {
+      background-color: #000000 !important;
+    }
+
+    &[data-color*="BLANCO"],
+    &[data-color*="WHITE"],
+    &[title*="#FFFFFF"] {
+      background-color: #FFFFFF !important;
+      border-color: #000000 !important;
+    }
+
+    // Colores adicionales
+    &[data-color*="RED"],
+    &[data-color*="ROJO"],
+    &[title*="#FF0000"] {
+      background-color: #FF0000 !important;
+    }
+
+    &[data-color*="GREEN"],
+    &[data-color*="VERDE"],
+    &[title*="#00FF00"] {
+      background-color: #00FF00 !important;
+    }
+
+    &[data-color*="BLUE"],
+    &[data-color*="AZUL"],
+    &[title*="#0000FF"] {
+      background-color: #0000FF !important;
+    }
+
+    &[data-color*="ORANGE"],
+    &[data-color*="NARANJA"],
+    &[title*="#FFA500"] {
+      background-color: #FFA500 !important;
+    }
+
+    &[data-color*="PURPLE"],
+    &[data-color*="VIOLETA"],
+    &[title*="#800080"] {
+      background-color: #800080 !important;
+    }
+
+    // Pantone colors (algunos ejemplos)
+    &[data-color*="PANTONE"] {
+      background-color: #9b59b6 !important;
+    }
+
+    // Color genérico para Pantone
+  }
+
+  // Estilos para tooltips
+  .mat-mdc-tooltip {
+    --mdc-plain-tooltip-container-color: #1e293b;
+    --mdc-plain-tooltip-supporting-text-color: white;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  // Estilos para iconos
+  .mat-icon {
+    font-family: 'Material Icons', 'Material Icons Outlined', 'Material Icons Round', 'Material Icons Sharp', 'Material Icons Two Tone';
+  }
+}
+
+// ===== RESPONSIVE DESIGN =====
+// Adaptaciones para diferentes tamaños de pantalla
+
+@media (max-width: 1400px) {
+  .excel-table {
+    min-width: 1000px;
+  }
+
+  .description-cell {
+    max-width: 200px;
+  }
+
+  .colors-grid-horizontal {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .design-container {
+    padding: 0;
+  }
+
+  .search-area,
+  .scrollable-table-area {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .excel-table {
+    min-width: 900px;
+  }
+
+  .excel-header {
+    padding: 10px 8px;
+    font-size: 11px;
+    height: 32px;
+  }
+
+  .excel-cell {
+    padding: 7px 8px;
+    font-size: 11px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .design-container {
+    height: 100vh;                      // Asegurar altura completa en móviles
+    overflow: hidden;                   // Sin scroll de página en móviles
+  }
+
+  .design-header {
+    padding: 12px 16px;
+    flex-shrink: 0;                     // No permitir que se encoja
+
+    .header-content {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+
+      mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    .page-subtitle {
+      font-size: 0.85rem;
+    }
+
+    .create-design-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .search-area,
+  .create-design-area {
+    padding-left: 12px;
+    padding-right: 12px;
+    flex-shrink: 0;                     // No permitir que se encojan
+  }
+
+  .scrollable-table-area {
+    padding-left: 12px;
+    padding-right: 12px;
+    flex: 1;                            // Ocupar todo el espacio restante
+    max-height: calc(100vh - 250px);    // Altura máxima ajustada para móviles
+    
+    .table-container {
+      max-height: 100%;                 // Altura máxima del contenedor
+      
+      &::before {
+        font-size: 0.7rem;              // Texto más pequeño en móviles
+        padding: 2px 4px;               // Padding reducido
+      }
+    }
+  }
+
+  .create-design-form {
+    .form-row {
+      flex-direction: column;
+      gap: 8px;
+
+      .half-width {
+        width: 100%;
+      }
+    }
+  }
+
+  .excel-table {
+    min-width: 800px;                   // Ancho mínimo para scroll horizontal
+  }
+
+  .colors-grid-horizontal {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .design-container {
+    padding-top: 8px;                   // Padding superior reducido
+  }
+
+  .design-header {
+    padding: 8px 12px;
+    flex-shrink: 0;                     // No permitir que se encoja
+  }
+
+  .search-area,
+  .create-design-area {
+    padding-left: 8px;
+    padding-right: 8px;
+    flex-shrink: 0;                     // No permitir que se encojan
+  }
+
+  .scrollable-table-area {
+    padding-left: 8px;
+    padding-right: 8px;
+    flex: 1;                            // Ocupar todo el espacio restante
+    max-height: calc(100vh - 200px);    // Altura máxima ajustada para pantallas muy pequeñas
+    
+    .table-container {
+      &::before {
+        content: '↕️ Scroll';           // Texto más corto para pantallas pequeñas
+        font-size: 0.6rem;              // Texto muy pequeño
+        padding: 1px 2px;               // Padding mínimo
+      }
+    }
+  }
+
+  .excel-table {
+    min-width: 700px;                   // Ancho mínimo para scroll horizontal
+  }
+
+  .excel-header {
+    padding: 8px 6px;
+    font-size: 10px;
+    height: 28px;
+  }
+
+  .excel-cell {
+    padding: 6px 6px;
+    font-size: 10px;
+    height: 24px;
+  }
+
+  .color-chip {
+    width: 16px;
+    height: 16px;
+  }
+
+  .action-buttons button {
+    width: 32px;
+    height: 32px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+
+// ===== ANIMACIONES =====
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// ===== ESTILOS PARA SNACKBARS =====
+::ng-deep .success-snackbar {
+  background-color: $success-emerald !important;
+  color: white !important;
+}
+
+::ng-deep .error-snackbar {
+  background-color: $error-red !important;
+  color: white !important;
+}
+
+::ng-deep .warning-snackbar {
+  background-color: $warning-amber !important;
+  color: white !important;
+}
+
+::ng-deep .info-snackbar {
+  background-color: $primary-blue !important;
+  color: white !important;
+}
+
+// ===== ESTILOS FORZADOS PARA COLORES Y ESTADO =====
+// Máxima especificidad para sobrescribir Angular Material
+
+::ng-deep {
+
+  // Forzar estilos de estado con máxima especificidad
+  .design-container .excel-table .status-cell .status-text-display {
+    &.status-activo {
+      background: #10b981 !important;
+      color: white !important;
+
+      .status-text {
+        color: white !important;
+      }
+    }
+
+    &.status-inactivo {
+      background: #ef4444 !important;
+      color: white !important;
+
+      .status-text {
+        color: white !important;
+      }
+    }
+  }
+
+  // Forzar estilos de swatches de colores
+  .colors-lateral-popup .color-item-lateral .color-swatch-lateral {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 8px !important;
+    border: 2px solid rgba(0, 0, 0, 0.3) !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+      transform: scale(1.1) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    // Colores básicos con máxima especificidad
+    &[data-color*="CYAN"] {
+      background: #00FFFF !important;
+    }
+
+    &[data-color*="MAGENTA"] {
+      background: #FF00FF !important;
+    }
+
+    &[data-color*="AMARILLO"] {
+      background: #FFFF00 !important;
+    }
+
+    &[data-color*="BLACK"] {
+      background: #000000 !important;
+    }
+
+    &[data-color*="BLANCO"] {
+      background: #FFFFFF !important;
+      border-color: #000000 !important;
+    }
+
+    &[data-color*="NARANJA"] {
+      background: #FFA500 !important;
+    }
+
+    &[data-color*="VERDE"] {
+      background: #00FF00 !important;
+    }
+
+    &[data-color*="VIOLETA"] {
+      background: #800080 !important;
+    }
+
+    &[data-color*="RED"] {
+      background: #FF0000 !important;
+    }
+
+    &[data-color*="BLUE"] {
+      background: #0000FF !important;
+    }
+
+    &[data-color*="PANTONE"] {
+      background: #9b59b6 !important;
+    }
+  }
+
+  // ===== ESTILOS PARA CONTROLES DE DEBUG =====
+  .header-actions {
+    .toggle-debug-btn {
+      background: rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      color: #374151 !important;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        transform: scale(1.1) !important;
+      }
+    }
+
+    .role-simulation-buttons {
+      display: flex !important;
+      gap: 4px !important;
+      flex-wrap: wrap !important;
+
+      .role-btn {
+        font-size: 0.7rem !important;
+        padding: 4px 8px !important;
+        min-width: auto !important;
+        border-radius: 6px !important;
+
+        &.admin-btn {
+          background: #dc2626 !important;
+          color: white !important;
+
+          &:hover {
+            background: #b91c1c !important;
+          }
+        }
+
+        &.manager-btn {
+          background: #7c3aed !important;
+          color: white !important;
+
+          &:hover {
+            background: #6d28d9 !important;
+          }
+        }
+
+        &.designer-btn {
+          background: #059669 !important;
+          color: white !important;
+
+          &:hover {
+            background: #047857 !important;
+          }
+        }
+
+        &.viewer-btn {
+          background: #6b7280 !important;
+          color: white !important;
+
+          &:hover {
+            background: #4b5563 !important;
+          }
+        }
+
+        &.reset-btn {
+          background: #f59e0b !important;
+          color: white !important;
+
+          &:hover {
+            background: #d97706 !important;
+          }
+        }
+      }
+    }
+  }
+}
