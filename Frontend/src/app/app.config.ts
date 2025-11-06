@@ -5,7 +5,6 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { BrowserModule } from '@angular/platform-browser';
 
 import { routes } from './app.routes';
-import { NetworkStabilityInterceptor } from './core/interceptors/network-stability.interceptor';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -19,11 +18,5 @@ export const appConfig: ApplicationConfig = {
       useClass: AuthInterceptor,
       multi: true
     }
-    // Temporalmente deshabilitado para debugging
-    // {
-    //   provide: HTTP_INTERCEPTORS,
-    //   useClass: NetworkStabilityInterceptor,
-    //   multi: true
-    // }
   ]
 };

@@ -1,0 +1,261 @@
+.edit-user-dialog {
+  .profile-section {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+
+    .profile-image-container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .current-image {
+        .profile-preview {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 3px solid #2563eb;
+        }
+
+        .default-avatar-preview {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          font-size: 24px;
+          border: 3px solid #e9ecef;
+        }
+      }
+
+      .image-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .upload-btn, .remove-btn {
+          min-width: 120px;
+        }
+      }
+    }
+  }
+
+  .form-section {
+    margin-bottom: 24px;
+
+    h3 {
+      margin: 0 0 16px 0;
+      color: #1f2937;
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .optional {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 400;
+      }
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .full-width {
+        flex: 1;
+      }
+
+      .half-width {
+        flex: 1;
+      }
+    }
+
+    .status-toggle {
+      margin-bottom: 8px;
+    }
+
+    .toggle-description, .reset-description {
+      margin: 0;
+      font-size: 14px;
+      color: #6b7280;
+      flex: 1;
+      margin-left: 16px;
+    }
+
+    // Sección de información del sistema
+    &.info-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+
+        .info-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          background: white;
+          border-radius: 6px;
+          border: 1px solid #e9ecef;
+
+          .mat-icon {
+            color: #6b7280;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+
+          .info-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .info-label {
+              font-size: 12px;
+              color: #6b7280;
+              font-weight: 500;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .info-value {
+              font-size: 14px;
+              color: #1f2937;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 600px) {
+    .profile-section {
+      .profile-image-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+
+        .image-actions {
+          flex-direction: row;
+          justify-content: center;
+        }
+      }
+    }
+
+    .form-section {
+      .form-row {
+        flex-direction: column;
+        gap: 8px;
+
+        .half-width {
+          width: 100%;
+        }
+
+        .toggle-description, .reset-description {
+          margin-left: 0;
+          margin-top: 8px;
+        }
+      }
+
+      &.info-section {
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    }
+  }
+}
+
+// Estilos globales para el diálogo
+::ng-deep .mat-mdc-dialog-container {
+  .edit-user-dialog {
+    .mat-mdc-form-field {
+      width: 100%;
+    }
+
+    .mat-mdc-form-field-icon-suffix {
+      color: #6b7280;
+    }
+
+    .mat-mdc-select-panel {
+      .mat-mdc-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    // Deshabilitar campos para administradores
+    .mat-mdc-slide-toggle.mat-disabled {
+      opacity: 0.6;
+    }
+  }
+}
+
+// Estilos para los botones de acción del diálogo
+.mat-mdc-dialog-actions {
+  padding: 16px 24px !important;
+  gap: 8px;
+
+  button {
+    min-width: 100px;
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}
+
+// Estilos para errores de validación
+.mat-mdc-form-field.mat-form-field-invalid {
+  .mat-mdc-text-field-wrapper {
+    .mat-mdc-form-field-flex {
+      .mat-mdc-form-field-infix {
+        border-color: #dc2626;
+      }
+    }
+  }
+}
+
+// Estilos para botones de acción especiales
+.form-section {
+  .form-row {
+    button {
+      &[color="accent"] {
+        border-color: #0891b2;
+        color: #0891b2;
+
+        &:hover {
+          background-color: rgba(8, 145, 178, 0.04);
+        }
+      }
+    }
+  }
+}

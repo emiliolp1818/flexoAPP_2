@@ -92,9 +92,9 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/information']);
   }
 
-  // Permission check
+  // Permission check - ACCESO COMPLETO PARA TODOS LOS USUARIOS
   canManageSettings(): boolean {
-    const user = this.authService.getCurrentUser();
-    return user?.role === 'Admin' || user?.role === 'Supervisor';
+    // TODOS los usuarios pueden acceder a configuraciones
+    return true;
   }
 }

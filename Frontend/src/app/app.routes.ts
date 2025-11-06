@@ -16,6 +16,7 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./auth/login/login').then(c => c.LoginComponent)
   },
+  
   {
     path: 'machines',
     loadComponent: () => import('./shared/components/machines/machines').then(c => c.MachinesComponent),
@@ -23,7 +24,7 @@ export const routes: Routes = [
   },
   {
     path: 'design',
-    loadComponent: () => import('./shared/components/diseño/design').then(c => c.DesignComponent),
+    loadComponent: () => import('./shared/components/diseño/diseno').then(c => c.DesignComponent),
     canActivate: [AuthGuard]
   },
   {

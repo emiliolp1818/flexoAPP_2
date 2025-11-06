@@ -1,7 +1,7 @@
 -- Script para crear la tabla machine_programs en MySQL
 -- Ejecutar este script si la tabla no existe
 
-USE flexoapp_db;
+USE flexoapp_bd;
 
 -- Crear tabla machine_programs si no existe
 CREATE TABLE IF NOT EXISTS `machine_programs` (

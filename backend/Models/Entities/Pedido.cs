@@ -24,9 +24,10 @@ namespace FlexoAPP.API.Models.Entities
         public string Cliente { get; set; } = string.Empty;
 
         [StringLength(500)]
-        public string Descripcion { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
 
         [Required]
+        [Column(TypeName = "DECIMAL(10,2)")]
         public decimal Cantidad { get; set; }
 
         [StringLength(50)]
@@ -34,7 +35,7 @@ namespace FlexoAPP.API.Models.Entities
 
         [Required]
         [StringLength(20)]
-        public string Estado { get; set; } = "PENDIENTE"; // PENDIENTE, EN_PROCESO, COMPLETADO, CANCELADO
+        public string Estado { get; set; } = "PENDIENTE";
 
         [Required]
         public DateTime FechaPedido { get; set; }
@@ -42,15 +43,14 @@ namespace FlexoAPP.API.Models.Entities
         public DateTime? FechaEntrega { get; set; }
 
         [StringLength(20)]
-        public string Prioridad { get; set; } = "NORMAL"; // BAJA, NORMAL, ALTA, URGENTE
+        public string Prioridad { get; set; } = "NORMAL";
 
         [StringLength(1000)]
         public string? Observaciones { get; set; }
 
-        // Información del operario
         [StringLength(100)]
         public string? AsignadoA { get; set; }
-        
+
         public DateTime? FechaAsignacion { get; set; }
 
         public int? CreatedBy { get; set; }

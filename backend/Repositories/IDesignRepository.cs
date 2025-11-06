@@ -6,6 +6,7 @@ namespace FlexoAPP.API.Repositories
     public interface IDesignRepository
     {
         Task<IEnumerable<Design>> GetAllDesignsAsync();
+        Task<int> GetDesignsCountAsync();
         Task<Design?> GetDesignByIdAsync(int id);
         Task<Design?> GetDesignByArticleFAsync(string articleF);
         Task<Design> CreateDesignAsync(Design design);
@@ -35,5 +36,32 @@ namespace FlexoAPP.API.Repositories
         // Massive data operations
         Task BulkInsertDesignsAsync(IEnumerable<Design> designs);
         Task<int> ClearAllDesignsAsync();
+
+        // ===== OPTIMIZED METHODS FOR FAST LOADING =====
+        
+        /// <summary>
+        /// Get designs with pagination (OPTIMIZED)
+        /// </summary>
+        Task<(IEnumerable<Design> designs, int totalCount)> GetDesignsPaginatedAsync(int page, int pageSize, string? search = null, string? sortBy = "LastModified", string? sortOrder = "desc");
+        
+        /// <summary>
+        /// Get designs summary (ULTRA FAST - Only essential fields)
+        /// </summary>
+        Task<IEnumerable<Design>> GetDesignsSummaryAsync();
+        
+        /// <summary>
+        /// Get designs with lazy loading (Load basic info only)
+        /// </summary>
+        Task<IEnumerable<Design>> GetDesignsLazyAsync();
+        
+        /// <summary>
+        /// Get design colors only
+        /// </summary>
+        Task<List<string>> GetDesignColorsAsync(int designId);
+        
+        /// <summary>
+        /// Get design with full details
+        /// </summary>
+        Task<Design?> GetDesignWithDetailsAsync(int designId);
     }
 }

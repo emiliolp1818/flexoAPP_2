@@ -143,4 +143,83 @@ namespace FlexoAPP.API.Models.DTOs
         public TimeSpan ProcessingTime { get; set; }
         public string FileName { get; set; } = string.Empty;
     }
+
+    // ===== OPTIMIZED DTOs FOR FAST LOADING =====
+
+    /// <summary>
+    /// Paginated designs response (OPTIMIZED)
+    /// </summary>
+    public class PaginatedDesignsDto
+    {
+        public IEnumerable<DesignDto> Items { get; set; } = new List<DesignDto>();
+        public int TotalCount { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public bool HasNextPage { get; set; }
+        public bool HasPreviousPage { get; set; }
+        public TimeSpan LoadTime { get; set; }
+    }
+
+    /// <summary>
+    /// Design summary DTO (ULTRA FAST - Only essential fields)
+    /// </summary>
+    public class DesignSummaryDto
+    {
+        public int Id { get; set; }
+        public string ArticleF { get; set; } = string.Empty;
+        public string Client { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public int ColorCount { get; set; }
+        public DateTime LastModified { get; set; }
+    }
+
+    /// <summary>
+    /// Design lazy loading DTO (Load details on demand)
+    /// </summary>
+    public class DesignLazyDto
+    {
+        public int Id { get; set; }
+        public string ArticleF { get; set; } = string.Empty;
+        public string Client { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public int ColorCount { get; set; }
+        public DateTime LastModified { get; set; }
+        
+        // Colors loaded on demand
+        public bool ColorsLoaded { get; set; } = false;
+        public List<string>? Colors { get; set; }
+        
+        // Additional details loaded on demand
+        public bool DetailsLoaded { get; set; } = false;
+        public string? Substrate { get; set; }
+        public string? Type { get; set; }
+        public string? PrintType { get; set; }
+    }
+
+    /// <summary>
+    /// Bulk operations response DTO
+    /// </summary>
+    public class BulkOperationResultDto
+    {
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int TotalProcessed { get; set; }
+        public List<string> Errors { get; set; } = new List<string>();
+        public TimeSpan ProcessingTime { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Design cache info DTO
+    /// </summary>
+    public class DesignCacheInfoDto
+    {
+        public int CachedCount { get; set; }
+        public DateTime LastCacheUpdate { get; set; }
+        public TimeSpan CacheAge { get; set; }
+        public bool IsCacheValid { get; set; }
+        public string CacheStatus { get; set; } = string.Empty;
+    }
 }

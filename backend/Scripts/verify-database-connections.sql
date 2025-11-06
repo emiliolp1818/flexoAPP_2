@@ -9,11 +9,11 @@ SELECT
     USER() as current_user,
     NOW() as connection_time;
 
--- Verificar que la base de datos flexoapp_db existe
-SHOW DATABASES LIKE 'flexoapp_db';
+-- Verificar que la base de datos flexoapp_bd existe
+SHOW DATABASES LIKE 'flexoapp_bd';
 
 -- Usar la base de datos
-USE flexoapp_db;
+USE flexoapp_bd;
 
 -- ===== VERIFICACIÓN DE TABLAS PRINCIPALES =====
 
@@ -160,7 +160,7 @@ SELECT
     ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)',
     table_rows as 'Rows'
 FROM information_schema.TABLES 
-WHERE table_schema = 'flexoapp_db'
+WHERE table_schema = 'flexoapp_bd'
 ORDER BY (data_length + index_length) DESC;
 
 -- Verificar índices importantes
@@ -192,14 +192,14 @@ SELECT
     'charset' as setting,
     DEFAULT_CHARACTER_SET_NAME as value
 FROM information_schema.SCHEMATA 
-WHERE SCHEMA_NAME = 'flexoapp_db'
+WHERE SCHEMA_NAME = 'flexoapp_bd'
 UNION ALL
 SELECT 
     'Configuración Base de Datos',
     'collation',
     DEFAULT_COLLATION_NAME
 FROM information_schema.SCHEMATA 
-WHERE SCHEMA_NAME = 'flexoapp_db';
+WHERE SCHEMA_NAME = 'flexoapp_bd';
 
 -- ===== RESUMEN FINAL =====
 SELECT 

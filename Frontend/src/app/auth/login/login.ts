@@ -1,4 +1,4 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,9 +12,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+
+
 // Services
 import { AuthService, LoginRequest } from '../../core/services/auth.service';
-import { NetworkDiagnosticService, NetworkInfo, DiagnosticResults } from '../../core/services/network-diagnostic.service';
+
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -33,21 +35,22 @@ import { environment } from '../../../environments/environment';
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   hidePassword = signal(true);
   isLoading = signal(false);
   errorMessage = signal('');
-  showNetworkDiagnostic = signal(false);
-  isDiagnosing = signal(false);
-  diagnosticResults = signal<DiagnosticResults | null>(null);
-  networkInfo = signal<NetworkInfo | null>(null);
+
+  
+  // Clock signals
+  currentTime = signal('');
+  currentDate = signal('');
+  private clockInterval: any;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService,
-    private networkDiagnosticService: NetworkDiagnosticService
+    private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
       userCode: ['', [Validators.required]],
@@ -56,13 +59,59 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Cargar información de red
-    this.networkInfo.set(this.networkDiagnosticService.getNetworkInfo());
-    
     // Si ya está logueado, redirigir
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
     }
+
+    // Inicializar reloj
+    this.initializeClock();
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar interval del reloj
+    if (this.clockInterval) {
+      clearInterval(this.clockInterval);
+    }
+  }
+
+  /**
+   * Inicializar reloj en tiempo real
+   */
+  private initializeClock(): void {
+    // Actualizar inmediatamente
+    this.updateClock();
+    
+    // Actualizar cada segundo
+    this.clockInterval = setInterval(() => {
+      this.updateClock();
+    }, 1000);
+  }
+
+  /**
+   * Actualizar hora y fecha actuales
+   */
+  private updateClock(): void {
+    const now = new Date();
+    
+    // Formatear hora (HH:MM:SS)
+    const timeString = now.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    // Formatear fecha (Día, DD de Mes de YYYY)
+    const dateString = now.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    this.currentTime.set(timeString);
+    this.currentDate.set(dateString.charAt(0).toUpperCase() + dateString.slice(1));
   }
 
   onSubmit(): void {
@@ -126,83 +175,5 @@ export class LoginComponent implements OnInit {
     this.hidePassword.set(!this.hidePassword());
   }
 
-  fillTestCredentials(): void {
-    this.loginForm.patchValue({
-      userCode: 'admin',
-      password: 'admin123'
-    });
-    this.errorMessage.set('');
-  }
 
-  toggleNetworkDiagnostic(): void {
-    this.showNetworkDiagnostic.set(!this.showNetworkDiagnostic());
-    
-    // Auto-ejecutar diagnóstico al abrir
-    if (this.showNetworkDiagnostic() && !this.diagnosticResults()) {
-      this.runNetworkDiagnostic();
-    }
-  }
-
-  runNetworkDiagnostic(): void {
-    this.isDiagnosing.set(true);
-    
-    this.networkDiagnosticService.runDiagnostic()
-      .pipe(
-        finalize(() => this.isDiagnosing.set(false))
-      )
-      .subscribe({
-        next: (results) => {
-          this.diagnosticResults.set(results);
-          console.log('🔍 Diagnóstico completado:', results);
-        },
-        error: (error) => {
-          console.error('❌ Error en diagnóstico:', error);
-          this.diagnosticResults.set({
-            connectivityResults: [],
-            networkInfo: this.networkInfo()!
-          });
-        }
-      });
-  }
-
-  testLoginWithUrl(url: string): void {
-    if (!this.loginForm.valid) {
-      this.errorMessage.set('Por favor completa los campos de usuario y contraseña');
-      return;
-    }
-
-    this.isLoading.set(true);
-    this.errorMessage.set('');
-    
-    const credentials = {
-      userCode: this.loginForm.value.userCode,
-      password: this.loginForm.value.password
-    };
-
-    this.networkDiagnosticService.testLoginWithUrl(url, credentials)
-      .pipe(
-        finalize(() => this.isLoading.set(false))
-      )
-      .subscribe({
-        next: (response) => {
-          console.log('✅ Login exitoso con URL:', url, response);
-          // Actualizar el environment temporalmente
-          this.router.navigate(['/dashboard']);
-        },
-        error: (error) => {
-          console.error('❌ Error en login con URL:', url, error);
-          this.errorMessage.set(`Error probando con ${url}: ${error.message || 'Conexión fallida'}`);
-        }
-      });
-  }
-
-  hasWorkingServer(): boolean {
-    const results = this.diagnosticResults();
-    return results?.connectivityResults?.some(r => r.status === 'success') || false;
-  }
-
-  hasRespondingServers(): boolean {
-    const results = this.diagnosticResults();
-    return results?.connectivityResults?.some(r => r.error === '404' || r.error === '404') || false;
-  }
 }

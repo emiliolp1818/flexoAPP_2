@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface MachineProgram {
   id?: number;
@@ -63,6 +64,7 @@ interface MachineStats {
 })
 export class MachinesComponent implements OnInit {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   
   // Señales reactivas
   loading = signal(false);
@@ -126,32 +128,17 @@ export class MachinesComponent implements OnInit {
   async loadPrograms() {
     this.loading.set(true);
     try {
-      // Verificar si hay token antes de hacer la petición
-      const token = localStorage.getItem('flexoapp_token');
-      if (!token) {
-        console.warn('🔐 No hay token de autenticación disponible');
-        const shouldLogin = confirm(`🔐 Sesión requerida
-
-Para acceder a los datos de máquinas necesitas estar autenticado.
-
-¿Quieres ir a la página de login?
-
-✅ SÍ - Ir a login
-❌ NO - Intentar login automático de prueba`);
-
-        if (shouldLogin) {
-          window.location.href = '/login';
-          return;
-        } else {
-          await this.tryAutoLogin();
-          return;
-        }
+      // Verificar autenticación
+      if (!this.authService.isLoggedIn()) {
+        // Redirigir a login si no está autenticado
+        window.location.href = '/login';
+        return;
       }
 
-      console.log('🔄 Cargando programas de máquinas desde:', `${environment.apiUrl}/machine-programs`);
+      console.log('🔄 Cargando programas de máquinas desde:', `${environment.apiUrl}/machines/programs`);
       
       // Llamada al API para obtener todos los programas
-      const response = await firstValueFrom(this.http.get<any>(`${environment.apiUrl}/machine-programs`));
+      const response = await firstValueFrom(this.http.get<any>(`${environment.apiUrl}/machines/programs`));
       
       console.log('📡 Respuesta del servidor:', response);
       
@@ -218,33 +205,9 @@ Para acceder a los datos de máquinas necesitas estar autenticado.
       
       // Manejo específico para error 401 (No autorizado)
       if (error.status === 401) {
-        console.warn('🔐 Error de autenticación detectado');
-        
-        const shouldTryLogin = confirm(`🔐 Sesión no válida o expirada
-
-Para acceder a los datos de máquinas necesitas estar autenticado.
-
-OPCIONES:
-✅ ACEPTAR - Login automático con credenciales de prueba (admin/admin123)
-❌ CANCELAR - Ir a la página de login manual
-
-¿Quieres intentar el login automático?`);
-
-        if (shouldTryLogin) {
-          await this.tryAutoLogin();
-          return; // Salir aquí, tryAutoLogin llamará a loadPrograms() de nuevo si tiene éxito
-        } else {
-          // Redirigir a login
-          alert(`🔐 Redirigiendo al login
-
-Ve a la página de login e ingresa:
-• Usuario: admin  
-• Contraseña: admin123
-
-Después podrás acceder a los datos de máquinas.`);
-          window.location.href = '/login';
-          return;
-        }
+        alert('Sesión expirada. Redirigiendo al login...');
+        window.location.href = '/login';
+        return;
       }
       
       // Mostrar mensaje de error específico y detallado para otros errores
@@ -298,55 +261,47 @@ ${technicalDetails}
    */
   async tryAutoLogin() {
     try {
-      console.log('🔐 Intentando login automático...');
+      console.log('🔐 Intentando login automático con AuthService...');
       
-      // Credenciales de prueba (deberían estar en un servicio de configuración)
+      // Usar AuthService para login
       const loginData = {
         userCode: 'admin',
         password: 'admin123'
       };
       
       const loginResponse = await firstValueFrom(
-        this.http.post<any>(`${environment.apiUrl}/auth/login`, loginData)
+        this.authService.login(loginData)
       );
       
-      if (loginResponse && loginResponse.token) {
-        console.log('✅ Login automático exitoso');
-        
-        // Guardar token en localStorage (simulando el AuthService)
-        localStorage.setItem('flexoapp_token', loginResponse.token);
-        if (loginResponse.user) {
-          localStorage.setItem('flexoapp_user', JSON.stringify(loginResponse.user));
-        }
-        
-        alert(`✅ Login automático exitoso
-
-👤 Usuario: ${loginResponse.user?.firstName || 'Admin'} ${loginResponse.user?.lastName || ''}
-🔑 Token guardado correctamente
-
-Recargando datos de máquinas...`);
-        
-        // Recargar programas ahora que estamos autenticados
-        await this.loadPrograms();
-        
-      } else {
-        throw new Error('Respuesta de login inválida');
-      }
+      console.log('📡 Respuesta de login:', loginResponse);
+      console.log('✅ Login automático exitoso con AuthService');
+      console.log('🔑 Usuario autenticado:', this.authService.getCurrentUser());
+      
+      // Recargar programas ahora que estamos autenticados
+      console.log('🔄 Recargando datos de máquinas...');
+      await this.loadPrograms();
       
     } catch (loginError: any) {
       console.error('❌ Error en login automático:', loginError);
       
-      alert(`❌ Error en login automático
+      // Mostrar opciones al usuario
+      const userChoice = confirm(`🔐 Autenticación requerida
 
-🔧 Detalles:
-• ${loginError.message || 'Error desconocido'}
-• Verifica las credenciales de prueba
-• Confirma que el endpoint /auth/login esté disponible
+No se pudo realizar el login automático.
 
-🌐 Redirigiendo a la página de login...`);
+OPCIONES:
+✅ ACEPTAR - Ir a la página de login
+❌ CANCELAR - Cargar datos de prueba locales (sin guardar en BD)
+
+Error: ${loginError.message || 'Error de conexión'}`);
       
-      // Redirigir a login manual
-      window.location.href = '/login';
+      if (userChoice) {
+        // Redirigir a login manual
+        window.location.href = '/login';
+      } else {
+        // Cargar datos de prueba locales
+        this.loadMockData();
+      }
     }
   }
 

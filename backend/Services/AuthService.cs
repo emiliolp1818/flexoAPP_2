@@ -188,6 +188,9 @@ namespace FlexoAPP.API.Services
             if (updateUserDto.ProfileImageUrl != null)
                 user.ProfileImageUrl = updateUserDto.ProfileImageUrl;
             
+            if (updateUserDto.Email != null)
+                user.Email = updateUserDto.Email;              // ✅ AGREGADO
+            
             if (updateUserDto.Phone != null)
                 user.Phone = updateUserDto.Phone;
             
@@ -235,6 +238,8 @@ namespace FlexoAPP.API.Services
                 Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password),
                 FirstName = createUserDto.FirstName,
                 LastName = createUserDto.LastName,
+                Email = createUserDto.Email,                    // ✅ AGREGADO
+                Phone = createUserDto.Phone,                    // ✅ AGREGADO
                 Permissions = JsonSerializer.Serialize(createUserDto.Permissions ?? new List<string>()),
                 Role = ParseUserRole(createUserDto.Role),
                 ProfileImage = createUserDto.ProfileImage,

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header';
 import { filter } from 'rxjs/operators';
-import { NetworkStabilityService } from './core/services/network-stability.service';
 
 @Component({
   selector: 'app-root',
@@ -18,10 +17,7 @@ export class AppComponent implements OnInit {
   title = 'FlexoAPP';
   isLoginPage = false;
 
-  constructor(
-    private router: Router,
-    private networkService: NetworkStabilityService
-  ) {}
+  constructor(private router: Router) {}
 
   ngOnInit() {
     this.router.events
@@ -30,14 +26,6 @@ export class AppComponent implements OnInit {
         this.isLoginPage = event.url === '/login';
       });
 
-    // Inicializar monitoreo de red
-    console.log('🌐 Inicializando servicios de estabilidad de red...');
-    this.networkService.networkStatus$.subscribe(status => {
-      if (status.isOnline) {
-        console.log('✅ Red disponible:', status.apiUrl, `(${status.responseTime}ms)`);
-      } else {
-        console.warn('❌ Red no disponible. Intentos fallidos:', status.failedAttempts);
-      }
-    });
+    console.log('🚀 FlexoAPP iniciado correctamente');
   }
 }

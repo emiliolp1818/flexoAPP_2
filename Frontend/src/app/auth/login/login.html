@@ -6,21 +6,58 @@
     <div class="floating-orb"></div>
   </div>
 
-  <!-- Login Card -->
-  <div class="login-card">
-    <!-- Logo Section -->
-    <div class="logo-section">
-      <div class="logo-container">
-        <img src="logo.png" alt="Flexo Spring Logo" class="company-logo">
-      </div>
-      <h1 class="logo-text">FLEXO SPRING</h1>
-      <p class="logo-subtitle">Empaques Flexibles</p>
+  <!-- Left Side - Company Information -->
+  <div class="company-info-section">
+    <img src="logo2.3.png" alt="FlexoSpring Logo" class="company-logo-main">
+    
+   
+
+    <!-- Real-time Clock -->
+    <div class="clock-section">
+      <div class="current-time">{{ currentTime() }}</div>
+      <div class="current-date">{{ currentDate() }}</div>
     </div>
 
+    <!-- Mission Section -->
+    <div class="mission-section">
+      <h2 class="section-title">
+        <mat-icon>flag</mat-icon>
+        Misión
+      </h2>
+      <p class="section-text">
+        Brindar soluciones sostenibles de empaques flexibles.
+      </p>
+    </div>
+
+    <!-- Vision Section -->
+    <div class="vision-section">
+      <h2 class="section-title">
+        <mat-icon>visibility</mat-icon>
+        Visión
+      </h2>
+      <p class="section-text">
+        Consolidarnos en el 2030 como la compañía líder en soluciones sostenibles de empaques flexibles en Colombia, 
+        fortaleciendo nuestra presencia en la región y aportando a la construcción de un planeta mejor.
+      </p>
+    </div>
+  </div>
+
+  <!-- Right Side - Login Form -->
+  <div class="login-card">
     <!-- Login Form -->
     <div class="login-form">
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Logo Section -->
+      <div class="logo-container">
+        <img src="usuario.2.0.png" alt="Usuario" class="company-logo">
+      </div>
 
+      <!-- Form Header -->
+      <div class="form-header">
+        <h2>Iniciar Sesión</h2>
+        <p>Accede a tu cuenta FlexoSpring</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
         <!-- Error Message -->
         <div class="error-message" *ngIf="errorMessage()">
           <mat-icon>error_outline</mat-icon>
@@ -31,9 +68,14 @@
         <div class="form-field">
           <mat-form-field appearance="outline">
             <mat-label>Usuario</mat-label>
-            <input matInput formControlName="userCode" autocomplete="username" placeholder="admin" />
+            <input 
+              matInput 
+              formControlName="userCode" 
+              autocomplete="username" 
+              placeholder="admin"
+              type="text"
+              inputmode="text" />
             <mat-icon matSuffix>person</mat-icon>
-            <mat-hint>Usuario de prueba: admin</mat-hint>
           </mat-form-field>
           <mat-error *ngIf="loginForm.get('userCode')?.invalid && loginForm.get('userCode')?.touched">
             Usuario requerido
@@ -44,163 +86,40 @@
         <div class="form-field">
           <mat-form-field appearance="outline">
             <mat-label>Contraseña</mat-label>
-            <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password"
-              autocomplete="current-password" placeholder="admin123" />
-            <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
+            <input 
+              matInput 
+              [type]="hidePassword() ? 'password' : 'text'" 
+              formControlName="password"
+              autocomplete="current-password" 
+              placeholder="admin123" />
+            <button 
+              mat-icon-button 
+              matSuffix 
+              type="button" 
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'">
               <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
-            <mat-hint>Contraseña de prueba: admin123</mat-hint>
           </mat-form-field>
           <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
             Contraseña requerida
           </mat-error>
         </div>
 
+
+
         <!-- Login Button -->
-        <button mat-raised-button type="submit" class="login-button" [disabled]="loginForm.invalid || isLoading()">
+        <button 
+          mat-raised-button 
+          type="submit" 
+          class="login-button" 
+          [disabled]="loginForm.invalid || isLoading()">
           <mat-icon *ngIf="isLoading()" class="spinning">refresh</mat-icon>
-          {{ isLoading() ? 'Iniciando...' : 'Iniciar Sesión' }}
+          <span>{{ isLoading() ? 'Iniciando...' : 'Iniciar Sesión' }}</span>
         </button>
-
-        <!-- Test Credentials Button -->
-        <button mat-button type="button" class="test-credentials-button" (click)="fillTestCredentials()">
-          <mat-icon>account_circle</mat-icon>
-          Usar Credenciales de Prueba
-        </button>
-
-        <!-- Network Diagnostic Button -->
-        <button mat-button type="button" class="diagnostic-button" (click)="toggleNetworkDiagnostic()">
-          <mat-icon>network_check</mat-icon>
-          {{ showNetworkDiagnostic() ? 'Ocultar' : 'Diagnóstico de Red' }}
-        </button>
-
       </form>
     </div>
 
-    <!-- Network Diagnostic Panel -->
-    <mat-expansion-panel *ngIf="showNetworkDiagnostic()" class="diagnostic-panel" [expanded]="true">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon>network_check</mat-icon>
-          Diagnóstico de Conectividad
-        </mat-panel-title>
-        <mat-panel-description>
-          Estado de conexión desde {{ networkInfo()?.hostname || 'este dispositivo' }}
-        </mat-panel-description>
-      </mat-expansion-panel-header>
 
-      <div class="diagnostic-content">
-        <!-- Network Info -->
-        <div class="network-info" *ngIf="networkInfo() as netInfo">
-          <h4>Información de Red</h4>
-          <div class="info-grid">
-            <div class="info-item">
-              <strong>Dispositivo:</strong> {{ netInfo.hostname }}
-            </div>
-            <div class="info-item">
-              <strong>Puerto:</strong> {{ netInfo.port || 'default' }}
-            </div>
-            <div class="info-item">
-              <strong>Acceso de Red:</strong> 
-              <span [class]="netInfo.isNetworkAccess ? 'status-network' : 'status-local'">
-                {{ netInfo.isNetworkAccess ? 'Sí (desde otro dispositivo)' : 'No (localhost)' }}
-              </span>
-            </div>
-            <div class="info-item">
-              <strong>URL Principal:</strong> {{ netInfo.apiUrl }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Diagnostic Results -->
-        <div class="diagnostic-results">
-          <div class="results-header">
-            <h4>Pruebas de Conectividad</h4>
-            <button mat-icon-button (click)="runNetworkDiagnostic()" [disabled]="isDiagnosing()">
-              <mat-icon [class.spinning]="isDiagnosing()">refresh</mat-icon>
-            </button>
-          </div>
-
-          <div *ngIf="isDiagnosing()" class="diagnosing">
-            <mat-spinner diameter="30"></mat-spinner>
-            <span>Probando conexiones...</span>
-          </div>
-
-          <div *ngIf="diagnosticResults() && !isDiagnosing()" class="results-list">
-            <div *ngFor="let result of diagnosticResults()!.connectivityResults" 
-                 class="result-item" 
-                 [class]="'result-' + result.status">
-              <div class="result-status">
-                <mat-icon>{{ result.status === 'success' ? 'check_circle' : 'error' }}</mat-icon>
-              </div>
-              <div class="result-details">
-                <div class="result-url">{{ result.url }}</div>
-                <div class="result-info">
-                  <span *ngIf="result.status === 'success'" class="success-info">
-                    ✅ {{ result.message }} ({{ result.responseTime }}ms)
-                  </span>
-                  <span *ngIf="result.status === 'error'" class="error-info">
-                    ❌ {{ result.message }}
-                    <span *ngIf="result.error" class="error-code">({{ result.error }})</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Actions -->
-          <div *ngIf="diagnosticResults() && !isDiagnosing()" class="quick-actions">
-            <h5>🚀 Acciones Rápidas:</h5>
-            <div class="action-buttons">
-              <!-- Servers that responded successfully -->
-              <button *ngFor="let result of diagnosticResults()!.connectivityResults; let i = index" 
-                      [style.display]="result.status === 'success' ? 'flex' : 'none'"
-                      mat-stroked-button 
-                      class="test-login-btn success"
-                      (click)="testLoginWithUrl(result.url)">
-                <mat-icon>login</mat-icon>
-                Probar Login con {{ result.url.replace('http://', '').replace('https://', '') }}
-              </button>
-              
-              <!-- Servers that responded with 404 (might still work for login) -->
-              <button *ngFor="let result of diagnosticResults()!.connectivityResults; let i = index" 
-                      [style.display]="result.status === 'error' && result.error === '404' ? 'flex' : 'none'"
-                      mat-stroked-button 
-                      class="test-login-btn warning"
-                      (click)="testLoginWithUrl(result.url)">
-                <mat-icon>warning</mat-icon>
-                Probar Login con {{ result.url.replace('http://', '').replace('https://', '') }} (servidor detectado)
-              </button>
-            </div>
-          </div>
-
-          <!-- Recommendations -->
-          <div *ngIf="diagnosticResults() && !isDiagnosing()" class="recommendations">
-            <h5>💡 Recomendaciones:</h5>
-            <ul>
-              <li *ngIf="networkInfo() as netInfo">
-                <span *ngIf="netInfo.isNetworkAccess">
-                  Estás accediendo desde otro dispositivo ({{ netInfo.hostname }}). 
-                  El servidor debe estar ejecutándose en la IP de red correcta.
-                </span>
-                <span *ngIf="!netInfo.isNetworkAccess">
-                  Estás en localhost. Verifica que el servidor backend esté ejecutándose en el puerto 7003.
-                </span>
-              </li>
-              <li *ngIf="hasWorkingServer()">
-                ✅ Servidor detectado. Puedes intentar hacer login normalmente.
-              </li>
-              <li *ngIf="!hasWorkingServer() && hasRespondingServers()">
-                ⚠️ Servidores detectados pero sin endpoints correctos. El backend puede estar ejecutándose en un puerto diferente o sin la API REST.
-              </li>
-              <li *ngIf="!hasWorkingServer() && !hasRespondingServers()">
-                ❌ No se detectó ningún servidor activo. Verifica que el backend esté iniciado.
-              </li>
-              <li>Si accedes desde la red, verifica la configuración del firewall.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </mat-expansion-panel>
   </div>
 </div>
