@@ -1144,7 +1144,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
     
     for (const user of usersWithImages) {
       const originalUrl = user.profileImageUrl;
-      const processedUrl = this.getProfileImageUrl(originalUrl);
+      const processedUrl = this.getProfileImageUrl(originalUrl || '');
       
       console.log(`👤 ${user.userCode}:`);
       console.log(`   - URL Original: ${originalUrl}`);
@@ -1191,10 +1191,10 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
       const imageInfo = user.profileImageUrl ? {
         hasImage: this.hasProfileImage(user),
         rawImageUrl: user.profileImageUrl,
-        processedImageUrl: this.getProfileImageUrl(user.profileImageUrl),
-        imageType: user.profileImageUrl.startsWith('data:') ? 'Base64' : 
-                  user.profileImageUrl.startsWith('http') ? 'URL Completa' : 'Ruta Relativa',
-        imageSize: user.profileImageUrl.length > 100 ? `${Math.round(user.profileImageUrl.length / 1024)}KB` : 'Pequeña',
+        processedImageUrl: this.getProfileImageUrl(user.profileImageUrl || ''),
+        imageType: user.profileImageUrl?.startsWith('data:') ? 'Base64' : 
+                  user.profileImageUrl?.startsWith('http') ? 'URL Completa' : 'Ruta Relativa',
+        imageSize: (user.profileImageUrl?.length || 0) > 100 ? `${Math.round((user.profileImageUrl?.length || 0) / 1024)}KB` : 'Pequeña',
         isEmpty: !user.profileImageUrl || user.profileImageUrl.trim() === '',
         isNull: user.profileImageUrl === 'null' || user.profileImageUrl === 'undefined'
       } : { 
