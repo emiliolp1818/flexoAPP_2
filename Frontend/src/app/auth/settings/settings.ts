@@ -287,61 +287,66 @@ export class SettingsComponent implements OnInit, OnDestroy {
       const response = await this.http.get<User[]>(`${environment.apiUrl}/auth/users`).toPromise();
       console.log('✅ Respuesta de usuarios recibida:', response);
       
+      // Verificar que la respuesta sea válida y sea un array
+      if (response && Array.isArray(response)) {
         // Mapear los usuarios para asegurar compatibilidad - DIAGNÓSTICO MEJORADO PARA FOTOS
         const mappedUsers = response.map(user => {
-          // Diagnóstico detallado de imágenes
+          // Diagnóstico detallado de imágenes de perfil para debug
           const imageData = {
-            profileImageUrl: user.profileImageUrl,
-            profileImage: (user as any).profileImage,
-            hasProfileImageUrl: !!(user.profileImageUrl && user.profileImageUrl.trim() !== ''),
-            hasProfileImage: !!((user as any).profileImage && (user as any).profileImage.trim() !== ''),
-            profileImageUrlLength: user.profileImageUrl ? user.profileImageUrl.length : 0,
-            profileImageLength: (user as any).profileImage ? (user as any).profileImage.length : 0
+            profileImageUrl: user.profileImageUrl,                    // URL de imagen desde BD
+            profileImage: (user as any).profileImage,                // Imagen base64 desde BD
+            hasProfileImageUrl: !!(user.profileImageUrl && user.profileImageUrl.trim() !== ''), // Tiene URL válida
+            hasProfileImage: !!((user as any).profileImage && (user as any).profileImage.trim() !== ''), // Tiene base64 válido
+            profileImageUrlLength: user.profileImageUrl ? user.profileImageUrl.length : 0, // Longitud URL
+            profileImageLength: (user as any).profileImage ? (user as any).profileImage.length : 0 // Longitud base64
           };
           
+          // Mostrar diagnóstico solo en modo debug
           if (environment.enableDebugMode) {
             console.log(`👤 Mapeando usuario: ${user.userCode}`, {
-              email: user.email,
-              phone: (user as any).phone,
-              role: user.role,
-              ...imageData
+              email: user.email,                      // Email del usuario
+              phone: (user as any).phone,            // Teléfono del usuario
+              role: user.role,                       // Rol del usuario
+              ...imageData                           // Datos de imagen para diagnóstico
             });
           }
           
-          // Determinar qué imagen usar (priorizar base64 sobre URL)
+          // Determinar qué imagen usar (priorizar base64 sobre URL para mejor rendimiento)
           let finalImageUrl = '';
           if ((user as any).profileImage && (user as any).profileImage.trim() !== '') {
-            finalImageUrl = (user as any).profileImage;
+            finalImageUrl = (user as any).profileImage;              // Usar imagen base64 si está disponible
           } else if (user.profileImageUrl && user.profileImageUrl.trim() !== '') {
-            finalImageUrl = user.profileImageUrl;
+            finalImageUrl = user.profileImageUrl;                    // Usar URL como fallback
           }
           
+          // Retornar objeto usuario mapeado con todos los campos necesarios
           return {
-            id: user.id,
-            userCode: user.userCode,
-            firstName: user.firstName || '',
-            lastName: user.lastName || '',
-            email: user.email || '',
-            phone: (user as any).phone || '',
-            role: user.role,
-            isActive: user.isActive,
-            profileImageUrl: finalImageUrl,
-            lastLogin: (user as any).lastLogin || new Date(),
-            createdDate: user.createdAt ? new Date(user.createdAt) : new Date(),
-            permissions: user.permissions || []
+            id: user.id,                                             // ID único del usuario
+            userCode: user.userCode,                                 // Código de usuario
+            firstName: user.firstName || '',                         // Nombre (con fallback a string vacío)
+            lastName: user.lastName || '',                           // Apellido (con fallback a string vacío)
+            email: user.email || '',                                 // Email (con fallback a string vacío)
+            phone: (user as any).phone || '',                       // Teléfono (con fallback a string vacío)
+            role: user.role,                                         // Rol del usuario
+            isActive: user.isActive,                                 // Estado activo/inactivo
+            profileImageUrl: finalImageUrl,                          // URL final de imagen de perfil
+            lastLogin: (user as any).lastLogin || new Date(),       // Último login (con fallback a fecha actual)
+            createdDate: user.createdAt ? new Date(user.createdAt) : new Date(), // Fecha de creación
+            permissions: user.permissions || []                      // Permisos (con fallback a array vacío)
           };
         });
         
         console.log(`📊 ${mappedUsers.length} usuarios cargados desde MySQL flexoapp_bd`);
-        this.users.set(mappedUsers);
+        this.users.set(mappedUsers);                  // Actualizar señal reactiva con usuarios cargados
         
+        // Mostrar notificación de éxito
         this.snackBar.open(`${mappedUsers.length} usuarios cargados desde base de datos MySQL`, 'Cerrar', {
           duration: 4000,
           panelClass: ['success-snackbar']
         });
       } else {
         console.warn('⚠️ Respuesta no es un array:', response);
-        this.users.set([]);
+        this.users.set([]);                           // Limpiar lista de usuarios
         this.snackBar.open('No hay usuarios en la base de datos', 'Cerrar', {
           duration: 4000,
           panelClass: ['info-snackbar']
@@ -349,16 +354,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
     } catch (error: any) {
       console.error('❌ Error cargando usuarios desde MySQL:', error);
-      console.error('❌ Status:', error.status);
-      console.error('❌ Detalles:', error.error);
+      console.error('❌ Status:', error.status);      // Código de estado HTTP
+      console.error('❌ Detalles:', error.error);     // Detalles del error
       
-      // Intentar con URLs de fallback
+      // Intentar con URLs de fallback si la URL principal falla
       const success = await this.tryLoadUsersFromDatabase();
       
-      if (!success) {
-        this.users.set([]);
+      if (!success) {                                 // Si todos los intentos fallan
+        this.users.set([]);                           // Limpiar lista de usuarios
         let errorMessage = 'Error conectando con la base de datos MySQL';
         
+        // Personalizar mensaje de error según el tipo de error
         if (error.status === 0) {
           errorMessage = 'No se puede conectar con el servidor. Verifique que esté ejecutándose en puerto 7003';
         } else if (error.status === 404) {
@@ -367,13 +373,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
           errorMessage = 'Error interno del servidor MySQL';
         }
         
+        // Mostrar notificación de error
         this.snackBar.open(errorMessage, 'Cerrar', {
           duration: 8000,
           panelClass: ['error-snackbar']
         });
       }
     } finally {
-      this.loading.set(false);
+      this.loading.set(false);                        // Desactivar indicador de carga
     }
   }
 
