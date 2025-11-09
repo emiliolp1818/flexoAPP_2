@@ -1,14 +1,20 @@
+// Configuración de entorno para producción - FlexoApp Frontend
+// Este archivo se usa cuando la aplicación se despliega en Render
 export const environment = {
   production: true,
-  apiUrl: 'http://192.168.1.6:7003/api',
-  socketUrl: 'http://192.168.1.6:7003',
+  apiUrl: 'https://flexoapp-backend.onrender.com/api',
+  socketUrl: 'https://flexoapp-backend.onrender.com',
   fallbackUrls: [
-    'http://192.168.1.6:7003/api',
-    'http://localhost:7003/api'
+    'https://flexoapp-backend.onrender.com/api'
   ],
-  networkMode: true,
   enableLogging: false,
   enableDebugMode: false,
   cacheTimeout: 10 * 60 * 1000, // 10 minutos
-  retryAttempts: 5
+  retryAttempts: 5,
+  networkMode: false,
+  disableNetworkStability: true,
+  allowCrossOrigin: true,
+  networkInterface: '0.0.0.0',
+  imageBaseUrl: 'https://flexoapp-backend.onrender.com',
+  alternativeUrls: []
 };

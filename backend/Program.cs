@@ -93,6 +93,15 @@ try
                     origin.StartsWith("http://172."))
                     return true;
 
+                // Allow Render.com domains (production)
+                if (origin.Contains(".onrender.com"))
+                    return true;
+
+                // Allow custom domains from environment variable
+                var allowedOrigins = builder.Configuration["CORS_ORIGINS"]?.Split(',') ?? Array.Empty<string>();
+                if (allowedOrigins.Any(allowed => origin.Equals(allowed.Trim(), StringComparison.OrdinalIgnoreCase)))
+                    return true;
+
                 return false;
             })
             .AllowAnyMethod()
