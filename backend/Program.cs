@@ -236,6 +236,12 @@ try
                           ?? builder.Configuration.GetConnectionString("LocalConnection")
                           ?? throw new InvalidOperationException("MySQL connection string is required");
 
+    // Log connection string info (without password) for debugging
+    Log.Information("🔌 Connection String Source: {Source}", 
+        Environment.GetEnvironmentVariable("DATABASE_URL") != null ? "DATABASE_URL env var" : "appsettings.json");
+    Log.Information("🔌 Connection String (masked): {ConnectionString}", 
+        connectionString.Contains("Pwd=") ? connectionString.Substring(0, connectionString.IndexOf("Pwd=")) + "Pwd=***" : connectionString);
+
     builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
     {
         // MySQL optimized configuration
