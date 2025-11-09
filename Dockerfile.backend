@@ -5,13 +5,13 @@ WORKDIR /app
 # Copiar archivo de proyecto y restaurar dependencias
 COPY backend/*.csproj ./backend/
 WORKDIR /app/backend
-RUN dotnet restore
+RUN dotnet restore flexoAPP.csproj
 
 # Copiar el resto del código y compilar
 WORKDIR /app
 COPY backend/ ./backend/
 WORKDIR /app/backend
-RUN dotnet publish -c Release -o out
+RUN dotnet publish flexoAPP.csproj -c Release -o out
 
 # Imagen de runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
