@@ -26,8 +26,8 @@ RUN mkdir -p /app/Database
 EXPOSE 7003
 
 # Variables de entorno por defecto
-ENV ASPNETCORE_URLS=http://0.0.0.0:7003
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV PORT=10000
 
-# Comando de inicio
-ENTRYPOINT ["dotnet", "FlexoAPP.API.dll"]
+# Comando de inicio con puerto dinámico
+CMD ASPNETCORE_URLS=http://*:${PORT} dotnet FlexoAPP.API.dll
