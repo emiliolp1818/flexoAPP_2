@@ -22,6 +22,102 @@ namespace backend.Controllers
             _logger = logger;
         }
 
+        // GET: api/maquinas - Endpoint específico para el módulo de máquinas
+        [HttpGet("../maquinas")]
+        public async Task<ActionResult<object>> GetMaquinas([FromQuery] string? orderBy = "fechaTintaEnMaquina", [FromQuery] string? order = "desc")
+        {
+            try
+            {
+                _logger.LogInformation("🔄 Obteniendo datos de máquinas desde tabla machine_programs (alias: maquinas)");
+
+                var query = _context.MachinePrograms
+                    .Include(p => p.CreatedByUser)
+                    .Include(p => p.UpdatedByUser)
+                    .AsQueryable();
+
+                // Aplicar ordenamiento según parámetros
+                if (orderBy?.ToLower() == "fechatintaenmaquina" || orderBy?.ToLower() == "fechatinta")
+                {
+                    query = order?.ToLower() == "desc" 
+                        ? query.OrderByDescending(p => p.FechaTintaEnMaquina)
+                        : query.OrderBy(p => p.FechaTintaEnMaquina);
+                }
+                else
+                {
+                    // Ordenamiento por defecto: por máquina y fecha de tinta descendente
+                    query = query.OrderBy(p => p.MachineNumber)
+                                 .ThenByDescending(p => p.FechaTintaEnMaquina);
+                }
+
+                var programs = await query.ToListAsync();
+
+                _logger.LogInformation($"✅ {programs.Count} registros de máquinas encontrados");
+
+                var result = programs.Select(p => new
+                {
+                    id = p.Id,
+                    numeroMaquina = p.MachineNumber, // Campo principal para identificar máquina (11-21)
+                    articulo = p.Articulo, // Código del artículo
+                    otSap = p.OtSap, // Orden de trabajo SAP
+                    cliente = p.Cliente, // Nombre del cliente
+                    referencia = p.Referencia, // Referencia del producto
+                    td = p.Td, // Código TD (Tipo de Diseño)
+                    numeroColores = p.NumeroColores, // Número total de colores
+                    colores = p.Colores, // Array de colores (JSON)
+                    kilos = p.Kilos, // Cantidad en kilogramos
+                    fechaTintaEnMaquina = p.FechaTintaEnMaquina, // Fecha y hora de tinta en máquina
+                    sustrato = p.Sustrato, // Tipo de material base
+                    estado = p.Estado, // Estado actual del programa
+                    observaciones = p.Observaciones,
+                    lastActionBy = p.LastActionBy,
+                    lastActionAt = p.LastActionAt,
+                    // Campos adicionales para compatibilidad
+                    machineNumber = p.MachineNumber,
+                    name = p.Name,
+                    fechaInicio = p.FechaInicio,
+                    fechaFin = p.FechaFin,
+                    progreso = p.Progreso,
+                    createdAt = p.CreatedAt,
+                    updatedAt = p.UpdatedAt,
+                    createdByUser = p.CreatedByUser != null ? new
+                    {
+                        id = p.CreatedByUser.Id,
+                        firstName = p.CreatedByUser.FirstName,
+                        lastName = p.CreatedByUser.LastName,
+                        userCode = p.CreatedByUser.UserCode
+                    } : null,
+                    updatedByUser = p.UpdatedByUser != null ? new
+                    {
+                        id = p.UpdatedByUser.Id,
+                        firstName = p.UpdatedByUser.FirstName,
+                        lastName = p.UpdatedByUser.LastName,
+                        userCode = p.UpdatedByUser.UserCode
+                    } : null
+                }).ToList();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"{programs.Count} registros de máquinas obtenidos exitosamente",
+                    data = result,
+                    orderBy = orderBy,
+                    order = order,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error obteniendo datos de máquinas");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error interno del servidor al obtener datos de máquinas",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
         // GET: api/machines/programs
         [HttpGet("programs")]
         public async Task<ActionResult<object>> GetMachinePrograms()
@@ -43,17 +139,20 @@ namespace backend.Controllers
                 {
                     id = p.Id,
                     machineNumber = p.MachineNumber,
+                    numeroMaquina = p.MachineNumber, // Alias para compatibilidad con frontend
                     name = p.Name,
                     articulo = p.Articulo,
                     otSap = p.OtSap,
                     cliente = p.Cliente,
                     referencia = p.Referencia,
                     td = p.Td,
+                    numeroColores = p.NumeroColores, // Número de colores
                     colores = p.Colores, // JSON field
                     sustrato = p.Sustrato,
                     kilos = p.Kilos,
                     estado = p.Estado,
                     fechaInicio = p.FechaInicio,
+                    fechaTintaEnMaquina = p.FechaTintaEnMaquina, // Fecha de tinta en máquina
                     fechaFin = p.FechaFin,
                     progreso = p.Progreso,
                     observaciones = p.Observaciones,
@@ -121,17 +220,20 @@ namespace backend.Controllers
                 {
                     id = p.Id,
                     machineNumber = p.MachineNumber,
+                    numeroMaquina = p.MachineNumber, // Alias para compatibilidad con frontend
                     name = p.Name,
                     articulo = p.Articulo,
                     otSap = p.OtSap,
                     cliente = p.Cliente,
                     referencia = p.Referencia,
                     td = p.Td,
+                    numeroColores = p.NumeroColores, // Número de colores
                     colores = p.Colores,
                     sustrato = p.Sustrato,
                     kilos = p.Kilos,
                     estado = p.Estado,
                     fechaInicio = p.FechaInicio,
+                    fechaTintaEnMaquina = p.FechaTintaEnMaquina, // Fecha de tinta en máquina
                     fechaFin = p.FechaFin,
                     progreso = p.Progreso,
                     observaciones = p.Observaciones,
@@ -303,17 +405,20 @@ namespace backend.Controllers
                 {
                     id = program.Id,
                     machineNumber = program.MachineNumber,
+                    numeroMaquina = program.MachineNumber, // Alias para compatibilidad con frontend
                     name = program.Name,
                     articulo = program.Articulo,
                     otSap = program.OtSap,
                     cliente = program.Cliente,
                     referencia = program.Referencia,
                     td = program.Td,
+                    numeroColores = program.NumeroColores, // Número de colores
                     colores = program.Colores,
                     sustrato = program.Sustrato,
                     kilos = program.Kilos,
                     estado = program.Estado,
                     fechaInicio = program.FechaInicio,
+                    fechaTintaEnMaquina = program.FechaTintaEnMaquina, // Fecha de tinta en máquina
                     fechaFin = program.FechaFin,
                     progreso = program.Progreso,
                     observaciones = program.Observaciones,

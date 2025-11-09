@@ -59,19 +59,19 @@
           "configurations": {
             "production": {
               "buildTarget": "flexoAPP:build:production",
-              "host": "192.168.1.28",
+              "host": "192.168.1.6",
               "port": 4200,
               "allowedHosts": true
             },
             "development": {
               "buildTarget": "flexoAPP:build:development",
-              "host": "192.168.1.28",
+              "host": "192.168.1.6",
               "port": 4200,
               "allowedHosts": true
             },
             "network": {
               "buildTarget": "flexoAPP:build:development",
-              "host": "192.168.1.28",
+              "host": "192.168.1.6",
               "port": 4200,
               "allowedHosts": true
             }

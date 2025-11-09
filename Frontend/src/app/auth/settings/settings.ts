@@ -70,7 +70,7 @@ interface SystemConfig {
 // Clase principal del componente de configuraciones - Implementa hooks de ciclo de vida
 export class SettingsComponent implements OnInit, OnDestroy {
   // Inyección de dependencias usando la nueva sintaxis inject() de Angular
-  private http = inject(HttpClient);                   // Cliente HTTP para comunicación con el backend en 192.168.1.28:7003
+  private http = inject(HttpClient);                   // Cliente HTTP para comunicación con el backend en 192.168.1.6:7003
   private authService = inject(AuthService);           // Servicio de autenticación para gestión de usuarios
   private snackBar = inject(MatSnackBar);             // Servicio para mostrar notificaciones toast
   private dialog = inject(MatDialog);                 // Servicio para abrir diálogos modales
@@ -149,7 +149,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /**
    * Verificar conexión a la base de datos y diagnosticar problemas de red
-   * Función crítica: Asegura que la conexión a 192.168.1.28:7003 esté funcionando correctamente
+   * Función crítica: Asegura que la conexión a 192.168.1.6:7003 esté funcionando correctamente
    */
   private async checkDatabaseConnection() {
     console.log('� VeLrificando conexión a la base de datos y red...');
@@ -173,7 +173,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       console.log('   - Idioma:', navigator.language);                           // Idioma del navegador
       console.log('   - Online:', navigator.onLine);                             // Estado de conexión a internet
       console.log('   - URL actual:', window.location.href);                     // URL actual de la página
-      console.log('   - Host actual:', window.location.host);                    // Host actual (debería ser 192.168.1.28:4200)
+      console.log('   - Host actual:', window.location.host);                    // Host actual (debería ser 192.168.1.6:4200)
       console.log('   - Protocolo:', window.location.protocol);                  // Protocolo usado (http/https)
       
       // Test de conectividad básico a todas las URLs configuradas
@@ -185,7 +185,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /**
    * Realizar diagnóstico de red completo
-   * Prueba la conectividad a todas las URLs configuradas para asegurar acceso desde 192.168.1.28:4200
+   * Prueba la conectividad a todas las URLs configuradas para asegurar acceso desde 192.168.1.6:4200
    */
   private async performNetworkDiagnostic() {
     console.log('🧪 Iniciando diagnóstico de red...');
@@ -274,7 +274,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   /**
    * Cargar usuarios reales desde la base de datos flexoapp_bd
-   * Función principal para obtener todos los usuarios desde el backend en 192.168.1.28:7003
+   * Función principal para obtener todos los usuarios desde el backend en 192.168.1.6:7003
    */
   async loadUsers() {
     this.loading.set(true);                           // Activar indicador de carga
@@ -311,46 +311,43 @@ export class SettingsComponent implements OnInit, OnDestroy {
             });
           }
           
-          // Determinar qué imagen usar (priorizar base64 sobre URL para mejor rendimiento)
+          // Determinar qué imagen usar - UNIFICADO para usar la misma lógica que getProfileImageUrl
           let finalImageUrl = '';
+          
+          // Prioridad 1: ProfileImage (base64) - más rápido, no requiere petición HTTP
           if ((user as any).profileImage && (user as any).profileImage.trim() !== '') {
-            finalImageUrl = (user as any).profileImage;              // Usar imagen base64 si está disponible
-          } else if (user.profileImageUrl && user.profileImageUrl.trim() !== '') {
-            finalImageUrl = user.profileImageUrl;                    // Usar URL como fallback
+            finalImageUrl = (user as any).profileImage;
+          } 
+          // Prioridad 2: ProfileImageUrl - puede ser URL completa o ruta relativa
+          else if (user.profileImageUrl && user.profileImageUrl.trim() !== '') {
+            finalImageUrl = user.profileImageUrl;
           }
           
           // Retornar objeto usuario mapeado con todos los campos necesarios
           return {
-            id: user.id,                                             // ID único del usuario
-            userCode: user.userCode,                                 // Código de usuario
-            firstName: user.firstName || '',                         // Nombre (con fallback a string vacío)
-            lastName: user.lastName || '',                           // Apellido (con fallback a string vacío)
-            email: user.email || '',                                 // Email (con fallback a string vacío)
-            phone: (user as any).phone || '',                       // Teléfono (con fallback a string vacío)
-            role: user.role,                                         // Rol del usuario
-            isActive: user.isActive,                                 // Estado activo/inactivo
-            profileImageUrl: finalImageUrl,                          // URL final de imagen de perfil
-            lastLogin: (user as any).lastLogin || new Date(),       // Último login (con fallback a fecha actual)
-            createdDate: user.createdAt ? new Date(user.createdAt) : new Date(), // Fecha de creación
-            permissions: user.permissions || []                      // Permisos (con fallback a array vacío)
+            id: user.id,
+            userCode: user.userCode,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            phone: (user as any).phone || '',
+            role: user.role,
+            isActive: user.isActive,
+            profileImageUrl: finalImageUrl,  // URL unificada de imagen de perfil
+            lastLogin: (user as any).lastLogin || new Date(),
+            createdDate: user.createdAt ? new Date(user.createdAt) : new Date(),
+            permissions: user.permissions || []
           };
         });
         
         console.log(`📊 ${mappedUsers.length} usuarios cargados desde MySQL flexoapp_bd`);
         this.users.set(mappedUsers);                  // Actualizar señal reactiva con usuarios cargados
         
-        // Mostrar notificación de éxito
-        this.snackBar.open(`${mappedUsers.length} usuarios cargados desde base de datos MySQL`, 'Cerrar', {
-          duration: 4000,
-          panelClass: ['success-snackbar']
-        });
+        // Notificación de éxito eliminada - No mostrar mensajes técnicos molestos
       } else {
         console.warn('⚠️ Respuesta no es un array:', response);
         this.users.set([]);                           // Limpiar lista de usuarios
-        this.snackBar.open('No hay usuarios en la base de datos', 'Cerrar', {
-          duration: 4000,
-          panelClass: ['info-snackbar']
-        });
+        // Notificación eliminada - No mostrar mensajes técnicos molestos
       }
     } catch (error: any) {
       console.error('❌ Error cargando usuarios desde MySQL:', error);
@@ -362,22 +359,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       
       if (!success) {                                 // Si todos los intentos fallan
         this.users.set([]);                           // Limpiar lista de usuarios
-        let errorMessage = 'Error conectando con la base de datos MySQL';
-        
-        // Personalizar mensaje de error según el tipo de error
-        if (error.status === 0) {
-          errorMessage = 'No se puede conectar con el servidor. Verifique que esté ejecutándose en puerto 7003';
-        } else if (error.status === 404) {
-          errorMessage = 'Endpoint de usuarios no encontrado';
-        } else if (error.status === 500) {
-          errorMessage = 'Error interno del servidor MySQL';
-        }
-        
-        // Mostrar notificación de error
-        this.snackBar.open(errorMessage, 'Cerrar', {
-          duration: 8000,
-          panelClass: ['error-snackbar']
-        });
+        // Notificaciones de error eliminadas - No mostrar mensajes técnicos molestos
       }
     } finally {
       this.loading.set(false);                        // Desactivar indicador de carga
@@ -413,20 +395,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
           console.log(`✅ ${response.length} usuarios cargados desde: ${apiUrl}`);
           this.users.set(response);
           
-          this.snackBar.open(`✅ ${response.length} usuarios cargados desde base de datos`, 'Cerrar', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
+          // Notificación eliminada - No mostrar mensajes técnicos molestos
           
           return true; // Éxito
         } else if (response && response.length === 0) {
           console.log(`⚠️ Base de datos vacía en: ${apiUrl}`);
           this.users.set([]);
           
-          this.snackBar.open('Base de datos conectada pero sin usuarios', 'Cerrar', {
-            duration: 3000,
-            panelClass: ['info-snackbar']
-          });
+          // Notificación eliminada - No mostrar mensajes técnicos molestos
           
           return true; // Conexión exitosa aunque sin datos
         }
@@ -676,9 +652,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
   /**
    * Obtener URL completa de la imagen de perfil - MEJORADO PARA ACCESO DE RED
    */
-  getProfileImageUrl(profileImageUrl: string): string {
+  getProfileImageUrl(profileImageUrl: string | undefined): string {
     if (!profileImageUrl || profileImageUrl.trim() === '' || profileImageUrl === 'null' || profileImageUrl === 'undefined') {
       return '';
+    }
+    
+    // Si es una imagen base64, devolverla directamente (PRIORIDAD MÁXIMA)
+    if (profileImageUrl.startsWith('data:image/')) {
+      return profileImageUrl;
     }
     
     // Si ya es una URL completa (http/https), devolverla tal como está
@@ -686,13 +667,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
       return profileImageUrl;
     }
     
-    // Si es una imagen base64, devolverla directamente
-    if (profileImageUrl.startsWith('data:image/')) {
-      return profileImageUrl;
-    }
-    
-    // Si es una ruta relativa, construir la URL completa usando imageBaseUrl si está disponible
+    // Si es una ruta relativa, construir la URL completa
+    // Usar imageBaseUrl del environment si está disponible, sino usar apiUrl sin /api
     const baseUrl = (environment as any).imageBaseUrl || environment.apiUrl.replace('/api', '');
+    
+    // Asegurar que la ruta comience con /
     const imagePath = profileImageUrl.startsWith('/') ? profileImageUrl : `/${profileImageUrl}`;
     
     const fullUrl = `${baseUrl}${imagePath}`;
@@ -711,6 +690,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   onImageError(event: any) {
     const imgElement = event.target;
     const avatarContainer = imgElement.closest('.user-avatar');
+    const userCode = imgElement.getAttribute('data-user-code');
     
     // Marcar el avatar como error
     if (avatarContainer) {
@@ -721,13 +701,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // Ocultar la imagen que falló
     imgElement.style.display = 'none';
     
-    // Diagnóstico detallado del error
+    // Buscar el usuario y marcar que no tiene imagen válida
+    if (userCode) {
+      const users = this.users();
+      const updatedUsers = users.map(u => {
+        if (u.userCode === userCode) {
+          // Limpiar la URL de imagen para que se muestre el avatar por defecto
+          return { ...u, profileImageUrl: '' };
+        }
+        return u;
+      });
+      this.users.set(updatedUsers);
+    }
+    
+    // Diagnóstico detallado del error solo en modo debug
     if (environment.enableDebugMode) {
       console.group('❌ ERROR DE IMAGEN DE PERFIL');
+      console.log('👤 Usuario:', userCode);
       console.log('🖼️ URL que falló:', imgElement.src);
       console.log('🔗 URL original:', imgElement.getAttribute('data-original-src') || 'No disponible');
       console.log('📊 Dimensiones esperadas:', `${imgElement.width}x${imgElement.height}`);
       console.log('🌐 Estado de red:', navigator.onLine ? 'Online' : 'Offline');
+      console.log('💡 Solución: Mostrando avatar por defecto');
       
       // Intentar diagnosticar el tipo de error
       this.diagnoseImageError(imgElement.src);
@@ -920,10 +915,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
         );
         this.users.set(updatedUsers);
 
-        this.snackBar.open(`Usuario ${result.firstName} ${result.lastName} actualizado exitosamente`, 'Cerrar', {
-          duration: 4000,
-          panelClass: ['success-snackbar']
-        });
+        // Notificación eliminada - No mostrar mensajes técnicos molestos
       }
     });
   }
@@ -958,10 +950,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
 
       console.log(`✅ Usuario eliminado de MySQL: ${user.userCode}`);
       
-      this.snackBar.open(`Usuario ${user.firstName} ${user.lastName} eliminado de la base de datos`, 'Cerrar', {
-        duration: 4000,
-        panelClass: ['success-snackbar']
-      });
+      // Notificación eliminada - No mostrar mensajes técnicos molestos
     } catch (error) {
       console.error('❌ Error eliminando usuario de MySQL:', error);
       
@@ -1001,10 +990,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
 
       console.log(`✅ Usuario ${action}do en MySQL: ${user.userCode}`);
 
-      this.snackBar.open(`Usuario ${user.firstName} ${newStatus ? 'activado' : 'desactivado'} en la base de datos`, 'Cerrar', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
+      // Notificación eliminada - No mostrar mensajes técnicos molestos
     } catch (error) {
       console.error(`❌ Error ${action}ndo usuario en MySQL:`, error);
       
@@ -1058,22 +1044,31 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
       if (response && Array.isArray(response)) {
         const currentUsers = this.users();
         
-        // Mapear usuarios para compatibilidad - SIN LOGS EXCESIVOS
-        const newUsers = response.map(user => ({
-          id: user.id,
-          userCode: user.userCode,
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          email: user.email || '',
-          phone: (user as any).phone || '',
-          role: user.role,
-          isActive: user.isActive,
-          // Priorizar ProfileImage (base64) sobre ProfileImageUrl
-          profileImageUrl: (user as any).profileImage || user.profileImageUrl || '',
-          lastLogin: (user as any).lastLogin || new Date(),
-          createdDate: user.createdAt ? new Date(user.createdAt) : new Date(),
-          permissions: user.permissions || []
-        }));
+        // Mapear usuarios para compatibilidad - UNIFICADO con loadUsers
+        const newUsers = response.map(user => {
+          // Determinar qué imagen usar - misma lógica que loadUsers
+          let finalImageUrl = '';
+          if ((user as any).profileImage && (user as any).profileImage.trim() !== '') {
+            finalImageUrl = (user as any).profileImage;
+          } else if (user.profileImageUrl && user.profileImageUrl.trim() !== '') {
+            finalImageUrl = user.profileImageUrl;
+          }
+          
+          return {
+            id: user.id,
+            userCode: user.userCode,
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            phone: (user as any).phone || '',
+            role: user.role,
+            isActive: user.isActive,
+            profileImageUrl: finalImageUrl,
+            lastLogin: (user as any).lastLogin || new Date(),
+            createdDate: user.createdAt ? new Date(user.createdAt) : new Date(),
+            permissions: user.permissions || []
+          };
+        });
         
         // Verificar si hay cambios importantes (solo campos críticos)
         if (this.hasUsersChanged(currentUsers, newUsers)) {
@@ -1166,100 +1161,4 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
     });
   }
 
-  /**
-   * Método de debug para verificar datos de usuarios y conexión - MEJORADO
-   */
-  debugUserData() {
-    const users = this.users();
-    console.group('🐛 DEBUG COMPLETO: Usuarios, Imágenes y Conexión');
-    
-    // 1. Información de conexión
-    console.group('🌐 INFORMACIÓN DE CONEXIÓN');
-    console.log('📡 URL Principal:', environment.apiUrl);
-    console.log('🔄 URLs de Fallback:', environment.fallbackUrls);
-    console.log('🏠 URL Base para imágenes:', environment.apiUrl.replace('/api', ''));
-    console.log('📱 User Agent:', navigator.userAgent);
-    console.log('🌍 Idioma:', navigator.language);
-    console.log('📶 Online:', navigator.onLine);
-    console.groupEnd();
-    
-    // 2. Información de usuarios
-    console.group('👥 INFORMACIÓN DE USUARIOS');
-    console.log(`📊 Total de usuarios: ${users.length}`);
-    
-    users.forEach((user, index) => {
-      const imageInfo = user.profileImageUrl ? {
-        hasImage: this.hasProfileImage(user),
-        rawImageUrl: user.profileImageUrl,
-        processedImageUrl: this.getProfileImageUrl(user.profileImageUrl || ''),
-        imageType: user.profileImageUrl?.startsWith('data:') ? 'Base64' : 
-                  user.profileImageUrl?.startsWith('http') ? 'URL Completa' : 'Ruta Relativa',
-        imageSize: (user.profileImageUrl?.length || 0) > 100 ? `${Math.round((user.profileImageUrl?.length || 0) / 1024)}KB` : 'Pequeña',
-        isEmpty: !user.profileImageUrl || user.profileImageUrl.trim() === '',
-        isNull: user.profileImageUrl === 'null' || user.profileImageUrl === 'undefined'
-      } : { 
-        hasImage: false, 
-        rawImageUrl: 'No tiene',
-        processedImageUrl: 'No aplica',
-        imageType: 'Sin imagen',
-        isEmpty: true,
-        isNull: false
-      };
-
-      console.log(`👤 ${index + 1}. ${user.firstName} ${user.lastName} (${user.userCode})`, {
-        email: user.email || 'Sin email',
-        phone: user.phone || 'Sin teléfono',
-        role: user.role,
-        isActive: user.isActive,
-        ...imageInfo
-      });
-    });
-    console.groupEnd();
-    
-    // 3. Test de conectividad
-    console.group('🔍 TEST DE CONECTIVIDAD');
-    this.testConnectivity();
-    console.groupEnd();
-    
-    console.groupEnd();
-    
-    // Mostrar resumen en snackbar
-    const usersWithImages = users.filter(u => this.hasProfileImage(u)).length;
-    this.snackBar.open(`Debug: ${users.length} usuarios, ${usersWithImages} con imagen (ver consola)`, 'Cerrar', {
-      duration: 5000,
-      panelClass: ['info-snackbar']
-    });
-  }
-
-  /**
-   * Test de conectividad a diferentes endpoints
-   */
-  private async testConnectivity() {
-    const urlsToTest = [
-      environment.apiUrl,
-      ...environment.fallbackUrls,
-      environment.apiUrl.replace('/api', '') // URL base para imágenes
-    ];
-
-    console.log('🧪 Iniciando test de conectividad...');
-    
-    for (const url of urlsToTest) {
-      try {
-        const startTime = Date.now();
-        const response = await fetch(`${url}/health`, { 
-          method: 'GET',
-          timeout: 5000 
-        } as any);
-        const endTime = Date.now();
-        
-        if (response.ok) {
-          console.log(`✅ ${url} - OK (${endTime - startTime}ms)`);
-        } else {
-          console.log(`⚠️ ${url} - Status: ${response.status} (${endTime - startTime}ms)`);
-        }
-      } catch (error) {
-        console.log(`❌ ${url} - Error:`, error);
-      }
-    }
-  }
 }

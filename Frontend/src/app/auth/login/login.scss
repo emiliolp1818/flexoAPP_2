@@ -48,11 +48,11 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
 
   // Logo principal de la empresa en la sección izquierda
   .company-logo-main {
-    width: 150px;                 // Ancho fijo del logo principal
-    height: auto;                 // Altura automática para mantener proporción
+    width: 100%;                 // Ancho fijo del logo principal
+    height: 100%;                 // Altura automática para mantener proporción
     margin-bottom: 30px;          // Espacio inferior antes del siguiente elemento
-    border-radius: 12px;          // Bordes redondeados suaves
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); // Sombra sutil para dar profundidad
+    border-radius: px;          // Bordes redondeados suaves
+    box-shadow: 0 px 0px rgba(0, 0, 0, 0.1); // Sombra sutil para dar profundidad
     transition: transform 0.3s ease; // Transición suave para efectos hover
 
     &:hover {                     // Efecto cuando el usuario pasa el mouse sobre el logo
@@ -158,30 +158,56 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
     flex-direction: column;       // Cambiar de fila a columna (vertical)
     height: 100vh;                // Mantener altura completa del viewport
     overflow-y: auto;             // Permitir scroll vertical si es necesario
+    -webkit-overflow-scrolling: touch; // Scroll suave en iOS
   }
 
   .company-info-section {
     flex: 0 0 auto;               // No crecer ni encogerse, tamaño automático
     padding: 30px 40px 20px 40px; // Reducir padding
     text-align: center;           // Centrar todo el contenido
+    align-items: center;          // Centrar elementos horizontalmente
 
     .company-logo-main {
       width: 120px;               // Reducir tamaño del logo principal
-      margin-bottom: 20px;        // Reducir margen inferior
+      margin: 0 auto 20px;        // Centrar y reducir margen inferior
     }
 
-    .company-header .company-name {
-      font-size: 2.8rem;          // Reducir tamaño de fuente del nombre
-      margin-bottom: 20px;        // Reducir margen inferior
+    .company-header {
+      text-align: center;         // Centrar texto
+      
+      .company-name {
+        font-size: 2.8rem;        // Reducir tamaño de fuente del nombre
+        margin-bottom: 20px;      // Reducir margen inferior
+      }
     }
 
     .clock-section {
-      margin-bottom: 20px;        // Reducir margen inferior
+      margin: 0 auto 20px;        // Centrar y reducir margen inferior
       padding: 20px;              // Reducir padding interno
       min-width: auto;            // Ancho mínimo automático
+      max-width: 90%;             // Ancho máximo para no ocupar todo el espacio
       
       .current-time {
         font-size: 2rem;          // Reducir tamaño de fuente de la hora
+      }
+      
+      .current-date {
+        font-size: 1rem;          // Ajustar tamaño de fecha
+      }
+    }
+
+    .mission-section,
+    .vision-section {
+      margin-bottom: 20px;        // Reducir margen inferior
+      text-align: center;         // Centrar texto
+      
+      .section-title {
+        justify-content: center;  // Centrar título
+      }
+      
+      .section-text {
+        padding-left: 0;          // Eliminar padding izquierdo
+        font-size: 1rem;          // Ajustar tamaño de fuente
       }
     }
   }
@@ -189,25 +215,62 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
   .login-card {
     flex: 1;                      // Tomar el espacio restante
     padding: 20px;                // Reducir padding
+    min-height: auto;             // Altura mínima automática
+  }
+
+  .login-form {
+    padding: 30px;                // Reducir padding del formulario
+    max-width: 100%;              // Ancho máximo completo
   }
 }
 
 // MÓVILES (768px y menos)
 @media (max-width: 768px) {
   .company-info-section {
-    padding: 25px 30px 15px 30px; // Ajustar padding
+    padding: 20px 25px 15px 25px; // Ajustar padding
 
     .company-logo-main {
       width: 100px;               // Reducir más el tamaño del logo
+      margin-bottom: 15px;        // Reducir margen inferior
     }
 
     .company-header .company-name {
-      font-size: 2.4rem;          // Reducir más el tamaño de fuente
+      font-size: 2.2rem;          // Reducir más el tamaño de fuente
+      line-height: 1.2;           // Ajustar altura de línea
     }
 
     .clock-section {
+      padding: 16px;              // Reducir padding
+      margin-bottom: 15px;        // Reducir margen inferior
+      
       .current-time {
         font-size: 1.8rem;        // Reducir tamaño de fuente de la hora
+        letter-spacing: 1px;      // Reducir espaciado entre letras
+      }
+      
+      .current-date {
+        font-size: 0.95rem;       // Reducir tamaño de fecha
+      }
+    }
+
+    .mission-section,
+    .vision-section {
+      margin-bottom: 15px;        // Reducir margen inferior
+      
+      .section-title {
+        font-size: 1.3rem;        // Reducir tamaño de título
+        gap: 8px;                 // Reducir espacio entre icono y texto
+        
+        mat-icon {
+          font-size: 24px;        // Reducir tamaño de icono
+          width: 24px;            // Ajustar ancho
+          height: 24px;           // Ajustar altura
+        }
+      }
+      
+      .section-text {
+        font-size: 0.95rem;       // Reducir tamaño de texto
+        line-height: 1.5;         // Ajustar altura de línea
       }
     }
   }
@@ -215,30 +278,257 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
   .login-card {
     padding: 15px;                // Reducir padding del contenedor
   }
+
+  .login-form {
+    padding: 25px 20px;           // Reducir padding del formulario
+    border-radius: 20px;          // Reducir bordes redondeados
+    
+    .logo-container {
+      width: 80px;                // Reducir tamaño del logo
+      height: 80px;               // Reducir altura del logo
+      margin-bottom: 10px;        // Reducir margen inferior
+    }
+    
+    .form-header {
+      margin-bottom: 24px;        // Reducir margen inferior
+      
+      h2 {
+        font-size: 1.6rem;        // Reducir tamaño de título
+      }
+      
+      p {
+        font-size: 0.9rem;        // Reducir tamaño de subtítulo
+      }
+    }
+    
+    form {
+      gap: 16px;                  // Reducir espacio entre campos
+    }
+  }
+
+  .form-field mat-form-field {
+    .mdc-text-field__input {
+      height: 48px;               // Reducir altura de inputs
+      padding: 12px 16px;         // Reducir padding
+      font-size: 14px;            // Reducir tamaño de fuente
+    }
+  }
+
+  .login-button {
+    height: 48px;                 // Reducir altura del botón
+    font-size: 15px;              // Reducir tamaño de fuente
+    border-radius: 14px;          // Reducir bordes redondeados
+  }
+
+  .error-message {
+    padding: 14px 16px;           // Reducir padding
+    font-size: 13px;              // Reducir tamaño de fuente
+  }
 }
 
 // MÓVILES PEQUEÑOS (480px y menos)
 @media (max-width: 480px) {
   .company-info-section {
-    padding: 20px 20px 10px 20px; // Reducir padding
+    padding: 15px 15px 10px 15px; // Reducir padding
 
     .company-logo-main {
-      width: 0px;                // Reducir más el tamaño del logo
+      width:90%;                // Reducir más el tamaño del logo
+      margin-bottom: 22px;        // Reducir margen inferior
     }
 
     .company-header .company-name {
-      font-size: 2rem;            // Reducir significativamente el tamaño
+      font-size: 1.8rem;          // Reducir significativamente el tamaño
+      line-height: 1.1;           // Ajustar altura de línea
+      letter-spacing: -0.5px;     // Reducir espaciado entre letras
     }
 
     .clock-section {
+      padding: 12px;              // Reducir padding
+      margin-bottom: 12px;        // Reducir margen inferior
+      border-radius: 16px;        // Reducir bordes redondeados
+      
       .current-time {
         font-size: 1.5rem;        // Reducir más el tamaño de la hora
+        letter-spacing: 1px;      // Reducir espaciado
+        margin-bottom: 6px;       // Reducir margen inferior
+      }
+      
+      .current-date {
+        font-size: 0.85rem;       // Reducir tamaño de fecha
+      }
+    }
+
+    .mission-section,
+    .vision-section {
+      margin-bottom: 12px;        // Reducir margen inferior
+      
+      .section-title {
+        font-size: 1.1rem;        // Reducir tamaño de título
+        gap: 6px;                 // Reducir espacio
+        
+        mat-icon {
+          font-size: 20px;        // Reducir tamaño de icono
+          width: 20px;            // Ajustar ancho
+          height: 20px;           // Ajustar altura
+        }
+      }
+      
+      .section-text {
+        font-size: 0.85rem;       // Reducir tamaño de texto
+        line-height: 1.4;         // Ajustar altura de línea
       }
     }
   }
 
   .login-card {
     padding: 10px;                // Reducir padding del contenedor
+  }
+
+  .login-form {
+    padding: 20px 15px;           // Reducir padding del formulario
+    border-radius: 16px;          // Reducir bordes redondeados
+    
+    .logo-container {
+      width: 70px;                // Reducir tamaño del logo
+      height: 70px;               // Reducir altura del logo
+      margin-bottom: 8px;         // Reducir margen inferior
+    }
+    
+    .form-header {
+      margin-bottom: 20px;        // Reducir margen inferior
+      
+      h2 {
+        font-size: 1.4rem;        // Reducir tamaño de título
+        margin-bottom: 8px;       // Reducir margen inferior
+      }
+      
+      p {
+        font-size: 0.85rem;       // Reducir tamaño de subtítulo
+      }
+    }
+    
+    form {
+      gap: 14px;                  // Reducir espacio entre campos
+    }
+  }
+
+  .form-field mat-form-field {
+    .mdc-text-field__input {
+      height: 44px;               // Reducir altura de inputs
+      padding: 10px 14px;         // Reducir padding
+      font-size: 13px;            // Reducir tamaño de fuente
+    }
+    
+    .mat-mdc-text-field-wrapper {
+      border-radius: 12px;        // Reducir bordes redondeados
+    }
+  }
+
+  .login-button {
+    height: 44px;                 // Reducir altura del botón
+    font-size: 14px;              // Reducir tamaño de fuente
+    border-radius: 12px;          // Reducir bordes redondeados
+    letter-spacing: 0.5px;        // Reducir espaciado entre letras
+  }
+
+  .error-message {
+    padding: 12px 14px;           // Reducir padding
+    font-size: 12px;              // Reducir tamaño de fuente
+    border-radius: 10px;          // Reducir bordes redondeados
+    
+    mat-icon {
+      font-size: 18px;            // Reducir tamaño de icono
+      width: 18px;                // Ajustar ancho
+      height: 18px;               // Ajustar altura
+    }
+  }
+
+  // Ajustar elementos flotantes para móviles pequeños
+  .animated-background .floating-orb {
+    &:nth-child(1) {
+      width: 120px;               // Reducir tamaño
+      height: 120px;              // Reducir altura
+    }
+
+    &:nth-child(2) {
+      width: 90px;                // Reducir tamaño
+      height: 90px;               // Reducir altura
+    }
+
+    &:nth-child(3) {
+      width: 60px;                // Reducir tamaño
+      height: 60px;               // Reducir altura
+    }
+  }
+}
+
+// MÓVILES MUY PEQUEÑOS (360px y menos)
+@media (max-width: 360px) {
+  .company-info-section {
+    padding: 12px 12px 8px 12px; // Reducir padding al mínimo
+
+    .company-logo-main {
+      width: 70px;                // Reducir más el tamaño del logo
+      margin-bottom: 10px;        // Reducir margen inferior
+    }
+
+    .company-header .company-name {
+      font-size: 1.5rem;          // Reducir al mínimo legible
+      word-spacing: 0.1em;        // Reducir espaciado entre palabras
+    }
+
+    .clock-section {
+      padding: 10px;              // Reducir padding al mínimo
+      
+      .current-time {
+        font-size: 1.3rem;        // Reducir tamaño de hora
+      }
+      
+      .current-date {
+        font-size: 0.75rem;       // Reducir tamaño de fecha
+      }
+    }
+
+    .mission-section,
+    .vision-section {
+      .section-title {
+        font-size: 1rem;          // Reducir tamaño de título
+      }
+      
+      .section-text {
+        font-size: 0.8rem;        // Reducir tamaño de texto
+      }
+    }
+  }
+
+  .login-form {
+    padding: 16px 12px;           // Reducir padding al mínimo
+    
+    .logo-container {
+      width: 60px;                // Reducir tamaño del logo
+      height: 60px;               // Reducir altura del logo
+    }
+    
+    .form-header {
+      h2 {
+        font-size: 1.2rem;        // Reducir tamaño de título
+      }
+      
+      p {
+        font-size: 0.8rem;        // Reducir tamaño de subtítulo
+      }
+    }
+  }
+
+  .form-field mat-form-field .mdc-text-field__input {
+    height: 42px;                 // Reducir altura de inputs
+    padding: 8px 12px;            // Reducir padding
+    font-size: 12px;              // Reducir tamaño de fuente
+  }
+
+  .login-button {
+    height: 42px;                 // Reducir altura del botón
+    font-size: 13px;              // Reducir tamaño de fuente
   }
 }
 

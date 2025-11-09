@@ -124,14 +124,7 @@ export class CreateUserDialogComponent implements OnInit {
         return;
       }
 
-      // Validar tamaño (máximo 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        this.snackBar.open('La imagen no debe superar los 5MB', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-        return;
-      }
+      // SIN LÍMITE DE TAMAÑO - Validación eliminada para permitir cualquier tamaño de imagen
 
       this.selectedFile.set(file);
 

@@ -35,11 +35,11 @@ export class NetworkDiagnosticService {
    */
   getNetworkInfo(): NetworkInfo {
     return {
-      currentUrl: 'http://192.168.1.28:7003',
+      currentUrl: 'http://192.168.1.6:7003',
       fallbackUrls: [
         'http://localhost:7003',
         'http://127.0.0.1:7003',
-        'http://192.168.1.28:7003'
+        'http://192.168.1.6:7003'
       ],
       networkMode: true,
       lastCheck: new Date()
@@ -66,7 +66,7 @@ export class NetworkDiagnosticService {
     const urls = [
       'http://localhost:7003',
       'http://127.0.0.1:7003',
-      'http://192.168.1.28:7003'
+      'http://192.168.1.6:7003'
     ];
 
     const diagnostics = urls.map(url => this.testConnection(url));

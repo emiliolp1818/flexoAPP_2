@@ -7,9 +7,9 @@
   "private": true,
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --configuration=network --host=192.168.1.28 --port=4200",
-    "start:prod": "ng serve --configuration=production --host=192.168.1.28 --port=4200",
-    "start:network": "ng serve --configuration=network --host=192.168.1.28 --port=4200",
+    "start": "ng serve --configuration=network --host=192.168.1.6 --port=4200",
+    "start:prod": "ng serve --configuration=production --host=192.168.1.6 --port=4200",
+    "start:network": "ng serve --configuration=network --host=192.168.1.6 --port=4200",
     "start:local": "ng serve --configuration=development --host=localhost --port=4200",
     "build": "ng build",
     "build:prod": "ng build --configuration=production",

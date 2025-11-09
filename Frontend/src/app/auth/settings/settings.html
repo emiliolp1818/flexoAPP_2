@@ -39,32 +39,25 @@
                 </div>
                 <div class="header-actions">
                   <button 
-                    mat-mini-fab 
-                    color="warn" 
-                    (click)="debugUserData()"
-                    matTooltip="Debug: Ver datos de usuarios en consola"
-                    class="debug-btn">
-                    <mat-icon>bug_report</mat-icon>
-                  </button>
-                  
-                  <button 
-                    mat-mini-fab 
+                    mat-raised-button 
                     color="accent" 
                     (click)="forceRefresh()"
                     [disabled]="loading()"
                     matTooltip="Actualizar usuarios desde MySQL"
-                    class="compact-refresh-btn">
+                    class="action-refresh-btn">
                     <mat-icon>refresh</mat-icon>
+                    <span>Actualizar</span>
                   </button>
                   
                   <button 
-                    mat-fab 
+                    mat-raised-button 
                     color="primary" 
                     (click)="openCreateUserDialog()"
                     [disabled]="loading()"
                     matTooltip="Agregar nuevo usuario"
-                    class="compact-add-btn">
+                    class="action-add-btn">
                     <mat-icon>person_add</mat-icon>
+                    <span>Nuevo Usuario</span>
                   </button>
                 </div>
               </div>
@@ -86,7 +79,7 @@
                         <div class="user-avatar">
                           <img 
                             *ngIf="hasProfileImage(user)" 
-                            [src]="getProfileImageUrl(user.profileImageUrl)" 
+                            [src]="getProfileImageUrl(user.profileImageUrl || '')" 
                             [attr.data-original-src]="user.profileImageUrl"
                             [attr.data-user-code]="user.userCode"
                             [alt]="user.firstName + ' ' + user.lastName"

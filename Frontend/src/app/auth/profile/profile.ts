@@ -1,120 +1,162 @@
-import { Component, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { AuthService, User } from '../../core/services/auth.service';
+/* ===== IMPORTS DEL FRAMEWORK ANGULAR ===== */
+// Funcionalidades básicas del framework Angular para componentes
+import { Component, signal, OnInit } from '@angular/core';   // Component: decorador para definir componentes
+                                                             // signal: sistema reactivo de Angular para estado
+                                                             // OnInit: interfaz para hook de inicialización
+import { CommonModule } from '@angular/common';              // Directivas comunes (ngIf, ngFor, ngClass, pipes básicos)
 
+/* ===== IMPORTS DE ANGULAR MATERIAL ===== */
+// Componentes de interfaz de usuario con Material Design
+import { MatButtonModule } from '@angular/material/button';  // Botones con estilos Material Design (mat-button, mat-raised-button)
+import { MatIconModule } from '@angular/material/icon';      // Iconos de Material Design (mat-icon)
+import { MatCardModule } from '@angular/material/card';      // Tarjetas contenedoras con elevación (mat-card)
+import { MatFormFieldModule } from '@angular/material/form-field'; // Contenedores para campos de formulario (mat-form-field)
+import { MatInputModule } from '@angular/material/input';    // Campos de entrada de texto (matInput)
+import { MatSelectModule } from '@angular/material/select';  // Selectores desplegables (mat-select)
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar'; // Notificaciones tipo toast (MatSnackBar service)
+import { MatTabsModule } from '@angular/material/tabs';      // Sistema de pestañas para organizar contenido (mat-tab-group)
+import { MatChipsModule } from '@angular/material/chips';    // Chips para mostrar etiquetas y estados (mat-chip)
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Spinners de carga (mat-spinner)
+import { MatTooltipModule } from '@angular/material/tooltip'; // Tooltips informativos (matTooltip directive)
+
+/* ===== IMPORTS DE FORMULARIOS REACTIVOS ===== */
+// Sistema de formularios reactivos de Angular para validación y manejo de datos
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+// FormBuilder: servicio para construir formularios reactivos
+// FormGroup: clase para agrupar controles de formulario
+// Validators: validadores predefinidos (required, email, minLength, etc.)
+// ReactiveFormsModule: módulo para formularios reactivos
+// FormsModule: módulo para formularios basados en templates
+
+/* ===== IMPORTS DE SERVICIOS DE LA APLICACIÓN ===== */
+// Servicios personalizados para lógica de negocio
+import { AuthService, User } from '../../core/services/auth.service'; // AuthService: servicio de autenticación
+                                                                       // User: interfaz/modelo de usuario
+
+/* ===== IMPORTS DE CONFIGURACIÓN DE ENTORNO ===== */
+// Configuración de entorno para URLs, flags de debug y variables globales
+import { environment } from '../../../environments/environment'; // Variables de entorno (apiUrl, enableDebugMode, etc.)
+
+/* ===== INTERFAZ PARA ACTIVIDADES DEL USUARIO ===== */
+// Define la estructura de datos para cada actividad registrada en el sistema
 interface UserAction {
-  id: string;
-  userId: string;
-  userCode: string;
-  action: string;
-  description: string;
-  module: string;
-  component: string;
-  timestamp: Date;
-  expiryDate: Date;
-  daysRemaining: number;
-  isExpiringSoon: boolean;
-  metadata?: any;
+  id: string;                                        // Identificador único de la acción (UUID o timestamp)
+  userId: string;                                    // ID del usuario que realizó la acción (FK a tabla users)
+  userCode: string;                                  // Código del usuario para referencia rápida (ej: "admin", "user001")
+  action: string;                                    // Nombre descriptivo de la acción realizada (ej: "Inicio de sesión")
+  description: string;                               // Descripción detallada de la acción para auditoría
+  module: string;                                    // Módulo del sistema donde se realizó la acción (AUTH, PROFILE, MACHINES, etc.)
+  component: string;                                 // Componente específico que registró la acción (ej: "LoginComponent")
+  timestamp: Date;                                   // Fecha y hora exacta cuando se realizó la acción
+  expiryDate: Date;                                  // Fecha de expiración del registro (para limpieza automática de logs)
+  daysRemaining: number;                             // Días restantes antes de que expire el registro (calculado)
+  isExpiringSoon: boolean;                           // Flag para indicar si el registro expira pronto (< 7 días)
+  metadata?: any;                                    // Datos adicionales específicos de la acción (IP, browser, etc.) - opcional
 }
 
+/* ===== DECORADOR DEL COMPONENTE DE PERFIL ===== */
+// Define los metadatos del componente Angular para el perfil de usuario
 @Component({
-  selector: 'app-profile',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatTabsModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
-    ReactiveFormsModule,
-    FormsModule
+  selector: 'app-profile',                           // Selector CSS para usar el componente en templates (<app-profile></app-profile>)
+  standalone: true,                                  // Componente independiente (no requiere declaración en NgModule)
+  imports: [                                         // Módulos importados que el componente necesita para funcionar
+    CommonModule,                                    // Directivas básicas de Angular (ngIf, ngFor, ngClass, pipes básicos)
+    MatButtonModule,                                 // Botones de Material Design (mat-button, mat-raised-button, mat-stroked-button)
+    MatIconModule,                                   // Iconos de Material Design (mat-icon con iconos de Google Material Icons)
+    MatCardModule,                                   // Tarjetas contenedoras con elevación (mat-card, mat-card-content)
+    MatFormFieldModule,                              // Contenedores para campos de formulario (mat-form-field, mat-label)
+    MatInputModule,                                  // Campos de entrada de texto (matInput directive)
+    MatSelectModule,                                 // Selectores desplegables (mat-select, mat-option)
+    MatSnackBarModule,                               // Notificaciones tipo toast (MatSnackBar service)
+    MatTabsModule,                                   // Sistema de pestañas (mat-tab-group, mat-tab)
+    MatChipsModule,                                  // Chips para etiquetas y estados (mat-chip, mat-chip-set)
+    MatProgressSpinnerModule,                        // Spinners de carga (mat-spinner, mat-progress-spinner)
+    MatTooltipModule,                                // Tooltips informativos (matTooltip directive)
+    ReactiveFormsModule,                             // Formularios reactivos de Angular (formGroup, formControlName)
+    FormsModule                                      // Formularios basados en templates (ngModel, template-driven forms)
   ],
-  templateUrl: './profile.html',
-  styleUrls: ['./profile.scss']
+  templateUrl: './profile.html',                     // Ruta relativa al archivo de template HTML del componente
+  styleUrls: ['./profile.scss']                     // Array de rutas a archivos de estilos SCSS específicos del componente
 })
+
+/* ===== CLASE PRINCIPAL DEL COMPONENTE DE PERFIL ===== */
+// Implementa OnInit para ejecutar lógica de inicialización cuando el componente se carga
 export class ProfileComponent implements OnInit {
-  // Señales para el estado del componente
-  currentUser = signal<User | null>(null);
-  loading = signal<boolean>(false);
-  uploadingPhoto = signal<boolean>(false);
-  profileImagePreview = signal<string>('');
-  userActions = signal<UserAction[]>([]);
+  
+  /* ===== SEÑALES REACTIVAS (ANGULAR SIGNALS) ===== */
+  // Sistema reactivo de Angular para manejo de estado que se actualiza automáticamente en el template
+  currentUser = signal<User | null>(null);          // Usuario actualmente autenticado obtenido del AuthService
+  loading = signal<boolean>(false);                 // Estado de carga global para mostrar spinners durante operaciones
+  uploadingPhoto = signal<boolean>(false);          // Estado específico para carga de fotos de perfil
+  profileImagePreview = signal<string>('');         // URL de preview de imagen seleccionada antes de guardar
+  userActions = signal<UserAction[]>([]);           // Lista de actividades/acciones del usuario para historial
 
+  /* ===== SEÑALES PARA VISIBILIDAD DE CONTRASEÑAS ===== */
+  // Control de mostrar/ocultar contraseñas en los campos de input tipo password
+  showCurrentPassword = signal<boolean>(false);     // Visibilidad de contraseña actual (toggle show/hide)
+  showNewPassword = signal<boolean>(false);         // Visibilidad de nueva contraseña (toggle show/hide)
+  showConfirmPassword = signal<boolean>(false);     // Visibilidad de confirmación de contraseña (toggle show/hide)
 
-  // Señales para visibilidad de contraseñas
-  showCurrentPassword = signal<boolean>(false);
-  showNewPassword = signal<boolean>(false);
-  showConfirmPassword = signal<boolean>(false);
+  /* ===== FORMULARIOS REACTIVOS ===== */
+  // FormGroup para manejo de formularios con validaciones y estado reactivo
+  profileForm: FormGroup;                           // Formulario para editar información personal del usuario
+  passwordForm: FormGroup;                          // Formulario para cambio de contraseña con validaciones
 
-  // Formularios reactivos
-  profileForm: FormGroup;
-  passwordForm: FormGroup;
+  /* ===== MANEJO DE ARCHIVOS ===== */
+  // Variables para gestión de carga de archivos de imagen
+  selectedFile: File | null = null;                 // Archivo de imagen seleccionado por el usuario desde el input file
 
-  // Archivo seleccionado para foto de perfil
-  selectedFile: File | null = null;
-
-  // Roles disponibles
+  /* ===== CONFIGURACIÓN DE ROLES DEL SISTEMA ===== */
+  // Roles disponibles en el sistema FlexoApp con sus etiquetas descriptivas
   availableRoles = [
-    { value: 'admin', label: 'Administrador' },
-    { value: 'manager', label: 'Gerente' },
-    { value: 'designer', label: 'Diseñador' },
-    { value: 'operator', label: 'Operario' },
-    { value: 'viewer', label: 'Visualizador' }
+    { value: 'admin', label: 'Administrador' },      // Acceso completo: gestión de usuarios, configuración, reportes
+    { value: 'operator', label: 'Operario' },        // Operación de máquinas flexográficas y control de producción
+    { value: 'viewer', label: 'Visualizador' }       // Solo lectura: consulta de información sin permisos de edición
   ];
 
+  /* ===== CONSTRUCTOR CON INYECCIÓN DE DEPENDENCIAS ===== */
+  // Constructor que recibe servicios necesarios mediante inyección de dependencias de Angular
   constructor(
-    private authService: AuthService,
-    private snackBar: MatSnackBar,
-    private fb: FormBuilder
+    private authService: AuthService,                // Servicio de autenticación para gestión de usuarios y sesiones
+    private snackBar: MatSnackBar,                   // Servicio de Material Design para mostrar notificaciones toast
+    private fb: FormBuilder                          // Constructor de formularios reactivos de Angular
   ) {
-    // Inicializar formularios
+    /* ===== INICIALIZACIÓN DEL FORMULARIO DE PERFIL ===== */
+    // Crear formulario reactivo para información personal con validaciones
     this.profileForm = this.fb.group({
-      userCode: [{value: '', disabled: true}],
-      role: [{value: '', disabled: true}],
-      firstName: ['', [Validators.required]],
-      lastName: ['', [Validators.required]],
-      phone: ['', [Validators.required]], // Ahora requerido
-      email: ['', [Validators.email]] // Opcional pero con validación de formato
+      userCode: [{value: '', disabled: true}],       // Código de usuario (solo lectura, no editable)
+      role: [{value: '', disabled: true}],           // Rol del usuario (solo lectura, no editable)
+      firstName: ['', [Validators.required]],        // Nombre (requerido)
+      lastName: ['', [Validators.required]],         // Apellidos (requerido)
+      phone: ['', [Validators.required]],            // Teléfono (requerido para contacto)
+      email: ['', [Validators.email]]                // Email (opcional pero con validación de formato)
     });
 
+    /* ===== INICIALIZACIÓN DEL FORMULARIO DE CONTRASEÑA ===== */
+    // Crear formulario reactivo para cambio de contraseña con validaciones personalizadas
     this.passwordForm = this.fb.group({
-      currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]]
-    }, { validators: this.passwordMatchValidator });
+      currentPassword: ['', [Validators.required]],  // Contraseña actual (requerida para verificación)
+      newPassword: ['', [Validators.required, Validators.minLength(6)]], // Nueva contraseña (mínimo 6 caracteres)
+      confirmPassword: ['', [Validators.required]]   // Confirmación de nueva contraseña (requerida)
+    }, { validators: this.passwordMatchValidator }); // Validador personalizado para verificar que las contraseñas coincidan
   }
 
+  /* ===== HOOK DE INICIALIZACIÓN DEL COMPONENTE ===== */
+  // Método que se ejecuta automáticamente cuando el componente se inicializa
   ngOnInit() {
-    this.loadUserProfile();
-    this.loadUserActivity();
+    this.loadUserProfile();                         // Cargar información del perfil del usuario actual
+    this.loadUserActivity();                        // Cargar historial de actividades del usuario
     
-    // Limpiar actividades expiradas cada hora
+    /* ===== CONFIGURACIÓN DE LIMPIEZA AUTOMÁTICA ===== */
+    // Configurar limpieza automática de actividades expiradas cada hora
     setInterval(() => {
-      this.cleanExpiredActivities();
-    }, 60 * 60 * 1000); // 1 hora
+      this.cleanExpiredActivities();                // Eliminar actividades que han expirado
+    }, 60 * 60 * 1000);                            // Intervalo de 1 hora (60 minutos * 60 segundos * 1000 ms)
     
-    // Registrar actividad de acceso al perfil
+    /* ===== REGISTRO DE ACTIVIDAD DE ACCESO ===== */
+    // Registrar que el usuario accedió a su perfil para auditoría
     this.registerActivity(
-      'Acceso al perfil',
+      'Acceso al perfil',                          // Nombre de la acción
       'Usuario accedió a la página de perfil personal',
       'PROFILE',
       'ProfileComponent'
@@ -157,92 +199,28 @@ export class ProfileComponent implements OnInit {
 
 
   /**
-   * Cargar actividad del usuario
+   * Cargar actividad del usuario desde el servidor
+   * En producción, esto consultará la API real de actividades
    */
   loadUserActivity() {
     this.loading.set(true);
     
-    // Simular carga de actividades desde la base de datos
+    // TODO: Implementar llamada real a la API de actividades
+    // this.activityService.getUserActivities(currentUser.id).subscribe(...)
+    
+    // Por ahora, inicializar con array vacío hasta implementar la API
     setTimeout(() => {
-      const currentUser = this.currentUser();
-      if (!currentUser) return;
-
-      const mockActions: UserAction[] = [
-        {
-          id: '1',
-          userId: currentUser.id,
-          userCode: currentUser.userCode,
-          action: 'Inicio de sesión',
-          description: 'Acceso exitoso al sistema FlexoAPP',
-          module: 'AUTH',
-          component: 'LoginComponent',
-          timestamp: new Date(),
-          expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
-          daysRemaining: 30,
-          isExpiringSoon: false,
-          metadata: { ip: '192.168.1.6', browser: 'Chrome' }
-        },
-        {
-          id: '2',
-          userId: currentUser.id,
-          userCode: currentUser.userCode,
-          action: 'Actualización de perfil',
-          description: 'Modificación de información personal - Teléfono actualizado',
-          module: 'PROFILE',
-          component: 'ProfileComponent',
-          timestamp: new Date(Date.now() - 86400000), // Ayer
-          expiryDate: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000), // 29 días
-          daysRemaining: 29,
-          isExpiringSoon: false,
-          metadata: { fields: ['phone', 'email'] }
-        },
-        {
-          id: '3',
-          userId: currentUser.id,
-          userCode: currentUser.userCode,
-          action: 'Gestión de máquinas',
-          description: 'Acceso al módulo de máquinas flexográficas - Máquina 1 programada',
-          module: 'MACHINES',
-          component: 'MachinesComponent',
-          timestamp: new Date(Date.now() - 172800000), // Hace 2 días
-          expiryDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000), // 28 días
-          daysRemaining: 28,
-          isExpiringSoon: false,
-          metadata: { machineNumber: 1, programs: 5 }
-        },
-        {
-          id: '4',
-          userId: currentUser.id,
-          userCode: currentUser.userCode,
-          action: 'Creación de diseño',
-          description: 'Nuevo diseño flexográfico creado - F204567',
-          module: 'DESIGN',
-          component: 'DesignComponent',
-          timestamp: new Date(Date.now() - 259200000), // Hace 3 días
-          expiryDate: new Date(Date.now() + 27 * 24 * 60 * 60 * 1000), // 27 días
-          daysRemaining: 27,
-          isExpiringSoon: false,
-          metadata: { articleF: 'F204567', client: 'ABSORBENTES DE COLOMBIA' }
-        },
-        {
-          id: '5',
-          userId: currentUser.id,
-          userCode: currentUser.userCode,
-          action: 'Consulta de reportes',
-          description: 'Generación de reporte de producción mensual',
-          module: 'REPORTS',
-          component: 'ReportsComponent',
-          timestamp: new Date(Date.now() - 432000000), // Hace 5 días
-          expiryDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000), // 25 días
-          daysRemaining: 25,
-          isExpiringSoon: false,
-          metadata: { reportType: 'production', period: 'monthly' }
-        }
-      ];
-      
-      this.userActions.set(mockActions);
+      this.userActions.set([]);
       this.loading.set(false);
-    }, 1000);
+      
+      // Registrar que se accedió a la sección de actividades
+      this.registerActivity(
+        'Consulta de actividades',
+        'Usuario consultó su historial de actividades',
+        'PROFILE',
+        'ProfileComponent'
+      );
+    }, 500);
   }
 
   /**
@@ -435,19 +413,159 @@ export class ProfileComponent implements OnInit {
   }
 
   /**
-   * Verificar si tiene imagen de perfil
+   * Obtener URL completa de la imagen de perfil - MISMO CÓDIGO QUE CONFIGURACIONES
+   * Maneja diferentes tipos de URLs: completas (http/https), base64 (data:image/), y rutas relativas
+   */
+  getProfileImageUrl(profileImageUrl: string | undefined): string {
+    // Validar que la URL no esté vacía o sea null/undefined
+    if (!profileImageUrl || profileImageUrl.trim() === '' || profileImageUrl === 'null' || profileImageUrl === 'undefined') {
+      return '';
+    }
+    
+    // Si ya es una URL completa (http/https), devolverla tal como está
+    if (profileImageUrl.startsWith('http')) {
+      return profileImageUrl;
+    }
+    
+    // Si es una imagen base64, devolverla directamente
+    if (profileImageUrl.startsWith('data:image/')) {
+      return profileImageUrl;
+    }
+    
+    // Si es una ruta relativa, construir la URL completa usando imageBaseUrl si está disponible
+    const baseUrl = (environment as any).imageBaseUrl || environment.apiUrl.replace('/api', '');
+    const imagePath = profileImageUrl.startsWith('/') ? profileImageUrl : `/${profileImageUrl}`;
+    
+    const fullUrl = `${baseUrl}${imagePath}`;
+    
+    // Log solo en modo debug para diagnosticar problemas
+    if (environment.enableDebugMode) {
+      console.log(`🖼️ Perfil - Imagen procesada: "${profileImageUrl}" → "${fullUrl}"`);
+    }
+    
+    return fullUrl;
+  }
+
+  /**
+   * Verificar si un usuario tiene imagen de perfil - MISMO CÓDIGO QUE CONFIGURACIONES
+   * Valida que la URL de imagen sea válida y no esté vacía
    */
   hasProfileImage(): boolean {
     const user = this.currentUser();
-    return !!(user?.profileImage);
+    return !!(user?.profileImageUrl && 
+             user.profileImageUrl.trim() !== '' && 
+             user.profileImageUrl !== 'null' && 
+             user.profileImageUrl !== 'undefined') ||
+           !!(user?.profileImage && 
+             user.profileImage.trim() !== '' && 
+             user.profileImage !== 'null' && 
+             user.profileImage !== 'undefined');
   }
 
   /**
    * Obtener imagen de perfil del usuario
+   * Utiliza el método getProfileImageUrl para procesar correctamente la URL
    */
   getUserProfileImage(): string {
     const user = this.currentUser();
-    return user?.profileImage || '';
+    if (!user) return '';
+    
+    // Priorizar profileImageUrl sobre profileImage para consistencia con configuraciones
+    const imageUrl = user.profileImageUrl || user.profileImage || '';
+    return this.getProfileImageUrl(imageUrl);
+  }
+
+  /**
+   * Manejar error de carga de imagen
+   * Se ejecuta cuando falla la carga de una imagen de perfil
+   */
+  onImageError(event: any): void {
+    const imgElement = event.target as HTMLImageElement;
+    const avatarContainer = imgElement.closest('.user-avatar, .user-avatar-large, .menu-avatar-container');
+    
+    // Marcar el avatar como error y remover estados de carga
+    if (avatarContainer) {
+      avatarContainer.classList.add('error');
+      avatarContainer.classList.remove('loading', 'loaded');
+    }
+    
+    // Ocultar elemento img que falló
+    imgElement.style.display = 'none';
+    
+    // Diagnóstico detallado del error solo en modo debug
+    if (environment.enableDebugMode) {
+      console.group('❌ ERROR DE IMAGEN DE PERFIL');
+      console.log('🖼️ URL que falló:', imgElement.src);
+      console.log('🔗 URL original:', imgElement.getAttribute('data-original-src') || 'No disponible');
+      console.log('📊 Dimensiones esperadas:', `${imgElement.width}x${imgElement.height}`);
+      console.log('🌐 Estado de red:', navigator.onLine ? 'Online' : 'Offline');
+      
+      // Intentar diagnosticar el tipo de error
+      this.diagnoseImageError(imgElement.src);
+      
+      console.groupEnd();
+    }
+  }
+
+  /**
+   * Diagnosticar errores específicos de imágenes
+   * Ayuda a identificar problemas de conectividad, CORS, etc.
+   */
+  private async diagnoseImageError(imageUrl: string) {
+    try {
+      // Test de conectividad a la URL de la imagen usando HEAD request
+      const response = await fetch(imageUrl, {
+        method: 'HEAD',
+        mode: 'no-cors' // Evita problemas de CORS, solo obtiene el contenido no headers
+      });
+      
+      console.log('   - Status:', response.status);
+      console.log('   - Type:', response.type);
+      console.log('   - Headers disponibles:', response.headers ? 'Sí' : 'No');
+      
+    } catch (error: any) {
+      console.log('🔍 Diagnóstico de error:', error.name);
+      console.log('   - Mensaje:', error.message);
+      
+      // Sugerencias de solución basadas en el tipo de error
+      if (error.name.includes('TypeError')) {
+        console.log('💡 Sugerencia: Verificar conectividad');
+      } else if (error.message.includes('CORS')) {
+        console.log('💡 Sugerencia: Problema de CORS - verificar configuración del servidor');
+      } else {
+        console.log('💡 Sugerencia: Verificar permisos de archivos');
+      }
+    }
+  }
+
+  /**
+   * Manejar carga exitosa de imagen
+   * Se ejecuta cuando una imagen se carga correctamente
+   */
+  onImageLoad(event: any): void {
+    const imgElement = event.target as HTMLImageElement;
+    const avatarContainer = imgElement.closest('.user-avatar, .user-avatar-large, .menu-avatar-container');
+    
+    // Marcar el avatar como cargado exitosamente
+    if (avatarContainer) {
+      avatarContainer.classList.add('loaded');
+      avatarContainer.classList.remove('loading', 'error'); // Remover estados previos
+    }
+  }
+
+  /**
+   * Manejar inicio de carga de imagen
+   * Se ejecuta cuando una imagen comienza a cargarse
+   */
+  onImageLoadStart(event: any): void {
+    const imgElement = event.target as HTMLImageElement;
+    const avatarContainer = imgElement.closest('.user-avatar, .user-avatar-large, .menu-avatar-container');
+    
+    // Marcar el avatar como en proceso de carga
+    if (avatarContainer) {
+      avatarContainer.classList.add('loading');
+      avatarContainer.classList.remove('loaded', 'error'); // Remover estados previos
+    }
   }
 
   /**

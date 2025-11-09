@@ -171,33 +171,14 @@ export class ReportsComponent implements OnInit {
     
     setTimeout(() => {
       const currentUser = this.authService.getCurrentUser();
-      const mockUsers: User[] = [
-        ...(currentUser ? [currentUser] : []),
-        {
-          id: '2',
-          userCode: 'OP001',
-          firstName: 'Operario',
-          lastName: 'Uno',
-          email: 'op001@flexoapp.com',
-          role: 'operator',
-          isActive: true
-        },
-        {
-          id: '3',
-          userCode: 'DIS001',
-          firstName: 'Diseñador',
-          lastName: 'Principal',
-          email: 'dis001@flexoapp.com',
-          role: 'designer',
-          isActive: true
-        }
-      ];
+      
+      // TODO: Implementar llamada real a la API para obtener usuarios
+      // const users = await this.userService.getAllUsers();
+      
+      // Por ahora, solo incluir el usuario actual hasta implementar la API
+      const availableUsers = currentUser ? [currentUser] : [];
 
-      const uniqueUsers = mockUsers.filter((user, index, self) => 
-        index === self.findIndex(u => u.userCode === user.userCode)
-      );
-
-      this.availableUsers.set(uniqueUsers);
+      this.availableUsers.set(availableUsers);
       this.loading.set(false);
     }, 500);
   }
@@ -294,7 +275,9 @@ export class ReportsComponent implements OnInit {
             this.availableUsers.set([...currentUsers, user]);
           }
 
-          const activities = this.generateMockActivities(user, formValue);
+          // TODO: Implementar llamada real a la API de actividades
+          // const activities = await this.activityService.getUserActivities(user.id, formValue);
+          const activities: UserAction[] = [];
           const report: UserReport = {
             user,
             activities,
@@ -318,78 +301,7 @@ export class ReportsComponent implements OnInit {
     });
   }
 
-  /**
-   * Generar actividades simuladas para un usuario
-   */
-  private generateMockActivities(user: User, filters: any): UserAction[] {
-    const baseActivities: Partial<UserAction>[] = [
-      {
-        action: 'Inicio de sesión',
-        description: 'Acceso exitoso al sistema FlexoAPP',
-        module: 'AUTH',
-        component: 'LoginComponent'
-      },
-      {
-        action: 'Actualización de perfil',
-        description: 'Modificación de información personal',
-        module: 'PROFILE',
-        component: 'ProfileComponent'
-      },
-      {
-        action: 'Gestión de máquinas',
-        description: 'Programación de máquina flexográfica',
-        module: 'MACHINES',
-        component: 'MachinesComponent'
-      },
-      {
-        action: 'Creación de diseño',
-        description: 'Nuevo diseño flexográfico registrado',
-        module: 'DESIGN',
-        component: 'DesignComponent'
-      },
-      {
-        action: 'Consulta de reportes',
-        description: 'Generación de reporte del sistema',
-        module: 'REPORTS',
-        component: 'ReportsComponent'
-      }
-    ];
 
-    const activities: UserAction[] = [];
-    const startDate = filters.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const endDate = filters.endDate || new Date();
-
-    for (let i = 0; i < 15; i++) {
-      const baseActivity = baseActivities[Math.floor(Math.random() * baseActivities.length)];
-      const randomDate = new Date(startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime()));
-      
-      if (filters.module !== 'ALL' && baseActivity.module !== filters.module) {
-        continue;
-      }
-
-      const activity: UserAction = {
-        id: `${i + 1}`,
-        userId: user.id,
-        userCode: user.userCode,
-        action: baseActivity.action!,
-        description: baseActivity.description!,
-        module: baseActivity.module!,
-        component: baseActivity.component!,
-        timestamp: randomDate,
-        expiryDate: new Date(randomDate.getTime() + 30 * 24 * 60 * 60 * 1000),
-        daysRemaining: Math.floor((new Date(randomDate.getTime() + 30 * 24 * 60 * 60 * 1000).getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
-        isExpiringSoon: false,
-        metadata: {
-          ip: '192.168.1.' + Math.floor(Math.random() * 255),
-          browser: ['Chrome', 'Firefox', 'Safari'][Math.floor(Math.random() * 3)]
-        }
-      };
-
-      activities.push(activity);
-    }
-
-    return activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }
 
   /**
    * Calcular desglose por módulo
@@ -645,7 +557,7 @@ Sistema FlexoAPP - Gestión Flexográfica
             };
           }
 
-          const machineReport = this.generateMockMachineReport(user, reportDate);
+          const machineReport = this.generateMachineReport(user, reportDate);
           this.machineResults.set(machineReport);
           this.machineLoading.set(false);
 
@@ -659,96 +571,24 @@ Sistema FlexoAPP - Gestión Flexográfica
   }
 
   /**
-   * Generar reporte de máquinas simulado
+   * Generar reporte de máquinas desde datos reales del backend
+   * TODO: Implementar llamada real a la API de reportes de máquinas
    */
-  private generateMockMachineReport(user: User, reportDate: Date): MachineReport {
-    const completedOrders = Math.floor(Math.random() * 8) + 2;
-    const suspendedOrders = Math.floor(Math.random() * 3);
-    const totalMovements = Math.floor(Math.random() * 20) + 10;
-    const activeHours = Math.floor(Math.random() * 6) + 6;
-
-    const completedOrdersList: MachineOrder[] = [];
-    for (let i = 0; i < completedOrders; i++) {
-      const orderTime = new Date(reportDate);
-      orderTime.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60));
-      
-      completedOrdersList.push({
-        orderNumber: `ORD-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-        description: `Impresión flexográfica - Lote ${i + 1}`,
-        machineId: `MAQ-${String(Math.floor(Math.random() * 5) + 1).padStart(2, '0')}`,
-        completedTime: orderTime,
-        duration: Math.floor(Math.random() * 120) + 30,
-        quantity: Math.floor(Math.random() * 5000) + 1000
-      });
-    }
-
-    const suspendedOrdersList: MachineOrder[] = [];
-    const suspensionReasons = [
-      'Falta de material',
-      'Mantenimiento preventivo',
-      'Cambio de especificaciones',
-      'Problema técnico',
-      'Pausa programada'
-    ];
-
-    for (let i = 0; i < suspendedOrders; i++) {
-      const suspendTime = new Date(reportDate);
-      suspendTime.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60));
-      
-      suspendedOrdersList.push({
-        orderNumber: `ORD-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-        description: `Impresión flexográfica - Lote suspendido ${i + 1}`,
-        machineId: `MAQ-${String(Math.floor(Math.random() * 5) + 1).padStart(2, '0')}`,
-        suspendedTime: suspendTime,
-        elapsedTime: Math.floor(Math.random() * 90) + 15,
-        quantity: Math.floor(Math.random() * 5000) + 1000,
-        progress: Math.floor(Math.random() * 70) + 10,
-        suspensionReason: suspensionReasons[Math.floor(Math.random() * suspensionReasons.length)]
-      });
-    }
-
-    const userMovements: UserMovement[] = [];
-    const movementTypes: UserMovement['type'][] = ['START', 'STOP', 'PAUSE', 'CONFIG', 'MAINTENANCE'];
-    const movementActions = {
-      'START': ['Inicio de producción', 'Arranque de máquina', 'Inicio de turno'],
-      'STOP': ['Fin de producción', 'Parada de máquina', 'Fin de turno'],
-      'PAUSE': ['Pausa para mantenimiento', 'Pausa programada', 'Pausa por cambio'],
-      'CONFIG': ['Configuración de parámetros', 'Ajuste de máquina', 'Cambio de configuración'],
-      'MAINTENANCE': ['Mantenimiento preventivo', 'Limpieza de máquina', 'Revisión técnica']
-    };
-
-    for (let i = 0; i < totalMovements; i++) {
-      const movementTime = new Date(reportDate);
-      movementTime.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60));
-      
-      const type = movementTypes[Math.floor(Math.random() * movementTypes.length)];
-      const actions = movementActions[type];
-      const action = actions[Math.floor(Math.random() * actions.length)];
-
-      userMovements.push({
-        id: `mov-${i + 1}`,
-        action,
-        description: `${action} realizada por ${user.userCode}`,
-        type,
-        timestamp: movementTime,
-        machineId: `MAQ-${String(Math.floor(Math.random() * 5) + 1).padStart(2, '0')}`,
-        orderNumber: Math.random() > 0.3 ? `ORD-${String(Math.floor(Math.random() * 9000) + 1000)}` : undefined,
-        module: 'MACHINES'
-      });
-    }
-
-    userMovements.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-
+  private generateMachineReport(user: User, reportDate: Date): MachineReport {
+    // TODO: Implementar llamada real al backend
+    // return this.reportsService.getMachineReport(user.id, reportDate);
+    
+    // Retornar estructura vacía hasta implementar la API
     return {
-      user,
-      reportDate,
-      completedOrders,
-      suspendedOrders,
-      totalMovements,
-      activeHours,
-      completedOrdersList: completedOrdersList.sort((a, b) => a.completedTime!.getTime() - b.completedTime!.getTime()),
-      suspendedOrdersList: suspendedOrdersList.sort((a, b) => a.suspendedTime!.getTime() - b.suspendedTime!.getTime()),
-      userMovements
+      user,                          // Usuario para el cual se genera el reporte
+      reportDate,                    // Fecha del reporte solicitado
+      completedOrders: 0,            // Número de órdenes completadas
+      suspendedOrders: 0,            // Número de órdenes suspendidas
+      totalMovements: 0,             // Total de movimientos registrados
+      activeHours: 0,                // Horas activas de trabajo
+      completedOrdersList: [],       // Lista detallada de órdenes completadas
+      suspendedOrdersList: [],       // Lista detallada de órdenes suspendidas
+      userMovements: []              // Lista de movimientos del usuario
     };
   }
 
@@ -790,33 +630,25 @@ Sistema FlexoAPP - Gestión Flexográfica
   }
 
   /**
-   * Cargar backups disponibles para reportes
+   * Cargar backups disponibles desde el backend
+   * TODO: Implementar llamada real a la API de backups
    */
   loadAvailableBackups() {
-    setTimeout(() => {
-      const mockBackups: MachineBackup[] = [
-        {
-          backupId: 'backup_20241031_143022_a1b2c3d4',
-          description: 'Backup automático diario - 2024-10-31',
-          createdAt: new Date('2024-10-31T14:30:22'),
-          totalRecords: 156,
-          backupSize: 2048576,
-          machineCount: 12,
-          isValid: true
-        },
-        {
-          backupId: 'backup_20241030_143015_e5f6g7h8',
-          description: 'Backup automático diario - 2024-10-30',
-          createdAt: new Date('2024-10-30T14:30:15'),
-          totalRecords: 142,
-          backupSize: 1945600,
-          machineCount: 11,
-          isValid: true
-        }
-      ];
+    // TODO: Implementar llamada real al backend
+    // this.backupService.getAvailableBackups().subscribe({
+    //   next: (backups) => {
+    //     this.availableBackups.set(backups);
+    //   },
+    //   error: (error) => {
+    //     console.error('Error cargando backups:', error);
+    //     this.availableBackups.set([]);
+    //   }
+    // });
 
-      this.availableBackups.set(mockBackups);
-    }, 800);
+    // Mientras se implementa el backend, inicializar con array vacío
+    setTimeout(() => {
+      this.availableBackups.set([]);
+    }, 500);
   }
 
   /**
@@ -876,7 +708,7 @@ Sistema FlexoAPP - Gestión Flexográfica
             isActive: true
           };
 
-          const machineReport = this.generateMockMachineReportFromBackup(backupUser, selectedBackup);
+          const machineReport = this.generateMachineReportFromBackup(backupUser, selectedBackup);
           this.machineResults.set(machineReport);
           this.selectedBackup.set(backupId);
           this.machineLoading.set(false);
@@ -891,99 +723,26 @@ Sistema FlexoAPP - Gestión Flexográfica
   }
 
   /**
-   * Generar reporte de máquinas desde datos de backup
+   * Generar reporte de máquinas desde datos de backup reales
+   * TODO: Implementar llamada real a la API de restauración de backups
    */
-  private generateMockMachineReportFromBackup(user: User, backup: MachineBackup): MachineReport {
-    const reportDate = backup.createdAt;
+  private generateMachineReportFromBackup(user: User, backup: MachineBackup): MachineReport {
+    // TODO: Implementar llamada real al backend para restaurar datos del backup
+    // return this.backupService.restoreMachineReport(backup.backupId, user.id);
     
-    const completedOrders = Math.floor(backup.totalRecords * 0.6);
-    const suspendedOrders = Math.floor(backup.totalRecords * 0.1);
-    const totalMovements = backup.totalRecords * 2;
-    const activeHours = Math.floor(backup.machineCount * 8);
-
-    const completedOrdersList: MachineOrder[] = [];
-    for (let i = 0; i < completedOrders; i++) {
-      const orderTime = new Date(reportDate);
-      orderTime.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60));
-      
-      completedOrdersList.push({
-        orderNumber: `BCK-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-        description: `Pedido desde backup - ${backup.description}`,
-        machineId: `MAQ-${String(Math.floor(Math.random() * backup.machineCount) + 1).padStart(2, '0')}`,
-        completedTime: orderTime,
-        duration: Math.floor(Math.random() * 120) + 30,
-        quantity: Math.floor(Math.random() * 5000) + 1000
-      });
-    }
-
-    const suspendedOrdersList: MachineOrder[] = [];
-    const suspensionReasons = [
-      'Datos de backup - Falta de material',
-      'Datos de backup - Mantenimiento',
-      'Datos de backup - Cambio de especificaciones',
-      'Datos de backup - Problema técnico'
-    ];
-
-    for (let i = 0; i < suspendedOrders; i++) {
-      const suspendTime = new Date(reportDate);
-      suspendTime.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60));
-      
-      suspendedOrdersList.push({
-        orderNumber: `BCK-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-        description: `Pedido suspendido desde backup - ${backup.description}`,
-        machineId: `MAQ-${String(Math.floor(Math.random() * backup.machineCount) + 1).padStart(2, '0')}`,
-        suspendedTime: suspendTime,
-        elapsedTime: Math.floor(Math.random() * 90) + 15,
-        quantity: Math.floor(Math.random() * 5000) + 1000,
-        progress: Math.floor(Math.random() * 70) + 10,
-        suspensionReason: suspensionReasons[Math.floor(Math.random() * suspensionReasons.length)]
-      });
-    }
-
-    const userMovements: UserMovement[] = [];
-    const movementTypes: UserMovement['type'][] = ['START', 'STOP', 'PAUSE', 'CONFIG', 'MAINTENANCE'];
-    const movementActions = {
-      'START': ['Inicio desde backup', 'Arranque desde datos históricos'],
-      'STOP': ['Parada desde backup', 'Fin desde datos históricos'],
-      'PAUSE': ['Pausa desde backup', 'Pausa en datos históricos'],
-      'CONFIG': ['Configuración desde backup', 'Ajuste en datos históricos'],
-      'MAINTENANCE': ['Mantenimiento desde backup', 'Revisión en datos históricos']
-    };
-
-    for (let i = 0; i < totalMovements; i++) {
-      const movementTime = new Date(reportDate);
-      movementTime.setHours(8 + Math.floor(Math.random() * 10), Math.floor(Math.random() * 60));
-      
-      const type = movementTypes[Math.floor(Math.random() * movementTypes.length)];
-      const actions = movementActions[type];
-      const action = actions[Math.floor(Math.random() * actions.length)];
-
-      userMovements.push({
-        id: `backup-mov-${i + 1}`,
-        action,
-        description: `${action} - Datos del backup ${backup.backupId}`,
-        type,
-        timestamp: movementTime,
-        machineId: `MAQ-${String(Math.floor(Math.random() * backup.machineCount) + 1).padStart(2, '0')}`,
-        orderNumber: Math.random() > 0.3 ? `BCK-${String(Math.floor(Math.random() * 9000) + 1000)}` : undefined,
-        module: 'MACHINES'
-      });
-    }
-
-    userMovements.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-
+    // Retornar estructura vacía hasta implementar la API
     return {
-      user,
-      reportDate,
-      completedOrders,
-      suspendedOrders,
-      totalMovements,
-      activeHours,
-      completedOrdersList: completedOrdersList.sort((a, b) => a.completedTime!.getTime() - b.completedTime!.getTime()),
-      suspendedOrdersList: suspendedOrdersList.sort((a, b) => a.suspendedTime!.getTime() - b.suspendedTime!.getTime()),
-      userMovements,
-      backupId: backup.backupId,
-      isFromBackup: true
+      user,                          // Usuario para el cual se genera el reporte
+      reportDate: backup.createdAt,  // Fecha del backup como fecha del reporte
+      completedOrders: 0,            // Número de órdenes completadas desde backup
+      suspendedOrders: 0,            // Número de órdenes suspendidas desde backup
+      totalMovements: 0,             // Total de movimientos desde backup
+      activeHours: 0,                // Horas activas desde backup
+      completedOrdersList: [],       // Lista de órdenes completadas desde backup
+      suspendedOrdersList: [],       // Lista de órdenes suspendidas desde backup
+      userMovements: [],             // Lista de movimientos desde backup
+      backupId: backup.backupId,     // ID del backup utilizado
+      isFromBackup: true             // Flag indicando que es desde backup
     };
   }
 

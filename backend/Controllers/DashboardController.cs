@@ -31,12 +31,12 @@ namespace FlexoAPP.API.Controllers
                 // Create dashboard stats response
                 var dashboardStats = new
                 {
-                    totalUsers = 25, // Mock data - replace with actual user service call
-                    newUsersThisMonth = 3,
+                    totalUsers = 1, // Solo usuario administrador por defecto
+                    newUsersThisMonth = 0,
                     activeOrders = statistics?.TotalPrograms ?? 0,
                     ordersToday = statistics?.RunningPrograms ?? 0,
-                    totalDesigns = 45, // Mock data - replace with actual design service call
-                    totalMachines = 11, // Machines 11-21
+                    totalDesigns = 0, // Sin diseños hasta que se agreguen datos reales
+                    totalMachines = 11, // Máquinas 11-21 (configuración del sistema)
                     activeMachines = statistics?.ActiveMachines ?? 0,
                     completedOrdersToday = statistics?.CompletedPrograms ?? 0,
                     pendingOrders = statistics?.SuspendedPrograms ?? 0,

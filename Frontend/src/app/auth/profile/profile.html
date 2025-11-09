@@ -1,54 +1,109 @@
-<div class="profile-container">
-  <div class="profile-content">
-    <!-- Header Mejorado -->
-    <div class="profile-header-modern">
-      <div class="header-background"></div>
-      <div class="header-content-modern">
-        <div class="user-avatar-section-modern">
-          <div class="user-avatar-large-modern">
-            <img *ngIf="hasProfileImage()" [src]="getUserProfileImage()" alt="Foto de perfil"
-              class="profile-image-modern">
-            <div *ngIf="!hasProfileImage()" class="avatar-placeholder-modern">
-              <mat-icon class="avatar-icon-modern">account_circle</mat-icon>
+<!-- Contenedor principal del perfil - Diseño fijo y responsive -->
+<div class="profile-container-fixed">
+  
+  <!-- Contenido principal con scroll interno para mantener diseño fijo -->
+  <div class="profile-content-scrollable">
+    
+    <!-- Encabezado del perfil - Sección superior con información del usuario -->
+    <div class="profile-header-responsive">
+      
+      <!-- Fondo decorativo del encabezado con gradiente -->
+      <div class="header-background-gradient"></div>
+      
+      <!-- Contenido del encabezado organizado en flexbox -->
+      <div class="header-content-flex">
+        
+        <!-- Sección del avatar del usuario - Lado izquierdo -->
+        <div class="user-avatar-section-responsive">
+          
+          <!-- Contenedor del avatar grande con efectos hover -->
+          <div class="user-avatar-large-responsive">
+            
+            <!-- Imagen de perfil del usuario con manejo completo de errores -->
+            <img *ngIf="hasProfileImage()" 
+                 [src]="getUserProfileImage()" 
+                 [attr.data-original-src]="currentUser()?.profileImageUrl || currentUser()?.profileImage"
+                 [attr.data-user-code]="currentUser()?.userCode"
+                 [alt]="getFullName()"
+                 class="profile-image-responsive"
+                 (load)="onImageLoad($event)"
+                 (loadstart)="onImageLoadStart($event)"
+                 (error)="onImageError($event)"
+                 loading="lazy"
+                 decoding="async">
+            
+            <!-- Placeholder mostrado cuando no hay imagen de perfil -->
+            <div *ngIf="!hasProfileImage()" class="avatar-placeholder-responsive">
+              <mat-icon class="avatar-icon-responsive">account_circle</mat-icon>
             </div>
-            <div class="avatar-overlay">
-              <button mat-mini-fab color="primary" (click)="triggerFileInput()" matTooltip="Cambiar foto"
-                class="avatar-edit-btn">
+            
+            <!-- Overlay para cambiar foto - Aparece al hacer hover -->
+            <div class="avatar-overlay-responsive">
+              <button mat-mini-fab 
+                      color="primary" 
+                      (click)="triggerFileInput()" 
+                      matTooltip="Cambiar foto de perfil"
+                      class="avatar-edit-btn-responsive">
                 <mat-icon>camera_alt</mat-icon>
               </button>
             </div>
           </div>
-          <div class="avatar-actions-modern" *ngIf="hasProfileImage()">
-            <button mat-stroked-button color="warn" (click)="removePhoto()" [disabled]="uploadingPhoto()"
-              matTooltip="Eliminar foto" class="remove-photo-btn">
+          
+          <!-- Acciones del avatar - Botón para eliminar foto -->
+          <div class="avatar-actions-responsive" *ngIf="hasProfileImage()">
+            <button mat-stroked-button 
+                    color="warn" 
+                    (click)="removePhoto()" 
+                    [disabled]="uploadingPhoto()"
+                    matTooltip="Eliminar foto de perfil" 
+                    class="remove-photo-btn-responsive">
+              <!-- Spinner mostrado durante la eliminación -->
               <mat-spinner *ngIf="uploadingPhoto()" diameter="16"></mat-spinner>
+              <!-- Icono de eliminar cuando no está cargando -->
               <mat-icon *ngIf="!uploadingPhoto()">delete_outline</mat-icon>
+              <!-- Texto del botón -->
               <span *ngIf="!uploadingPhoto()">Eliminar</span>
             </button>
           </div>
         </div>
-        <div class="user-info-modern">
-          <h1 class="user-name-modern">{{ getFullName() || 'Usuario' }}</h1>
-          <div class="user-details-modern">
-            <div class="detail-item">
-              <mat-icon class="detail-icon">badge</mat-icon>
-              <span class="detail-text">{{ currentUser()?.userCode }}</span>
+        
+        <!-- Información del usuario - Lado derecho -->
+        <div class="user-info-responsive">
+          
+          <!-- Nombre completo del usuario como título principal -->
+          <h1 class="user-name-responsive">{{ getFullName() || 'Usuario' }}</h1>
+          
+          <!-- Detalles del usuario organizados en lista -->
+          <div class="user-details-responsive">
+            
+            <!-- Código de usuario con icono -->
+            <div class="detail-item-responsive">
+              <mat-icon class="detail-icon-responsive">badge</mat-icon>
+              <span class="detail-text-responsive">{{ currentUser()?.userCode }}</span>
             </div>
-            <div class="detail-item">
-              <mat-icon class="detail-icon">work_outline</mat-icon>
-              <span class="detail-text">{{ getRoleDisplayName(currentUser()?.role || '') }}</span>
+            
+            <!-- Rol del usuario con icono -->
+            <div class="detail-item-responsive">
+              <mat-icon class="detail-icon-responsive">work_outline</mat-icon>
+              <span class="detail-text-responsive">{{ getRoleDisplayName(currentUser()?.role || '') }}</span>
             </div>
-            <div class="detail-item" *ngIf="currentUser()?.phone">
-              <mat-icon class="detail-icon">phone</mat-icon>
-              <span class="detail-text">{{ currentUser()?.phone }}</span>
+            
+            <!-- Teléfono del usuario (solo si existe) -->
+            <div class="detail-item-responsive" *ngIf="currentUser()?.phone">
+              <mat-icon class="detail-icon-responsive">phone</mat-icon>
+              <span class="detail-text-responsive">{{ currentUser()?.phone }}</span>
             </div>
-            <div class="detail-item" *ngIf="currentUser()?.email">
-              <mat-icon class="detail-icon">email</mat-icon>
-              <span class="detail-text">{{ currentUser()?.email }}</span>
+            
+            <!-- Email del usuario (solo si existe) -->
+            <div class="detail-item-responsive" *ngIf="currentUser()?.email">
+              <mat-icon class="detail-icon-responsive">email</mat-icon>
+              <span class="detail-text-responsive">{{ currentUser()?.email }}</span>
             </div>
           </div>
-          <div class="user-status">
-            <mat-chip class="status-chip active">
+          
+          <!-- Estado del usuario con chip visual -->
+          <div class="user-status-responsive">
+            <mat-chip class="status-chip-active-responsive">
               <mat-icon>check_circle</mat-icon>
               Activo
             </mat-chip>
@@ -57,30 +112,61 @@
       </div>
     </div>
 
-    <!-- Hidden file input -->
-    <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+    <!-- Input oculto para selección de archivos de imagen -->
+    <input #fileInput 
+           type="file" 
+           accept="image/*" 
+           (change)="onFileSelected($event)" 
+           style="display: none;">
 
-    <!-- Photo upload section - Mejorada -->
-    <div *ngIf="selectedFile" class="photo-upload-modern">
-      <mat-card class="upload-card-modern" appearance="outlined">
-        <mat-card-content class="upload-content-modern">
-          <div class="upload-preview">
-            <img [src]="profileImagePreview()" alt="Vista previa" class="preview-image">
+    <!-- Sección de carga de foto - Mostrada solo cuando hay archivo seleccionado -->
+    <div *ngIf="selectedFile" class="photo-upload-responsive">
+      
+      <!-- Tarjeta contenedora de la carga de foto -->
+      <mat-card class="upload-card-responsive" appearance="outlined">
+        <mat-card-content class="upload-content-responsive">
+          
+          <!-- Vista previa de la imagen seleccionada -->
+          <div class="upload-preview-responsive">
+            <img [src]="profileImagePreview()" 
+                 alt="Vista previa de la nueva foto" 
+                 class="preview-image-responsive">
           </div>
-          <div class="upload-info-modern">
-            <div class="upload-header">
-              <mat-icon class="upload-icon">photo_camera</mat-icon>
-              <h4>Nueva foto seleccionada</h4>
+          
+          <!-- Información y controles de la carga -->
+          <div class="upload-info-responsive">
+            
+            <!-- Encabezado de la sección de carga -->
+            <div class="upload-header-responsive">
+              <mat-icon class="upload-icon-responsive">photo_camera</mat-icon>
+              <h4 class="upload-title-responsive">Nueva foto seleccionada</h4>
             </div>
-            <p class="upload-description">¿Deseas guardar esta imagen como tu foto de perfil?</p>
-            <div class="upload-actions-modern">
-              <button mat-raised-button color="primary" (click)="uploadPhoto()" [disabled]="uploadingPhoto()"
-                class="save-btn">
+            
+            <!-- Descripción de la acción -->
+            <p class="upload-description-responsive">¿Deseas guardar esta imagen como tu foto de perfil?</p>
+            
+            <!-- Botones de acción para guardar o cancelar -->
+            <div class="upload-actions-responsive">
+              
+              <!-- Botón para guardar la foto -->
+              <button mat-raised-button 
+                      color="primary" 
+                      (click)="uploadPhoto()" 
+                      [disabled]="uploadingPhoto()"
+                      class="save-btn-responsive">
+                <!-- Spinner mostrado durante la carga -->
                 <mat-spinner *ngIf="uploadingPhoto()" diameter="16"></mat-spinner>
+                <!-- Icono de guardar cuando no está cargando -->
                 <mat-icon *ngIf="!uploadingPhoto()">save</mat-icon>
+                <!-- Texto dinámico del botón -->
                 {{ uploadingPhoto() ? 'Guardando...' : 'Guardar Foto' }}
               </button>
-              <button mat-stroked-button (click)="cancelPhotoUpload()" [disabled]="uploadingPhoto()" class="cancel-btn">
+              
+              <!-- Botón para cancelar la carga -->
+              <button mat-stroked-button 
+                      (click)="cancelPhotoUpload()" 
+                      [disabled]="uploadingPhoto()" 
+                      class="cancel-btn-responsive">
                 <mat-icon>close</mat-icon>
                 Cancelar
               </button>
@@ -90,89 +176,132 @@
       </mat-card>
     </div>
 
-    <!-- Tabs -->
-    <mat-card class="profile-card">
-      <mat-tab-group (selectedTabChange)="onTabChange($event.index)" class="profile-tabs">
+    <!-- Tarjeta principal contenedora de las pestañas -->
+    <mat-card class="profile-card-responsive">
+      
+      <!-- Grupo de pestañas con manejo de cambios -->
+      <mat-tab-group (selectedTabChange)="onTabChange($event.index)" class="profile-tabs-responsive">
 
-        <!-- infromacion personal -->
+        <!-- PESTAÑA 1: Información Personal -->
         <mat-tab>
+          <!-- Etiqueta de la pestaña con icono -->
           <ng-template mat-tab-label>
             <mat-icon>person</mat-icon>
             Información Personal
           </ng-template>
-          <div class="tab-content">
-            <form [formGroup]="profileForm" class="profile-form">
-              <h3 class="form-section-title">
+          
+          <!-- Contenido de la pestaña -->
+          <div class="tab-content-responsive">
+            
+            <!-- Formulario reactivo para editar información personal -->
+            <form [formGroup]="profileForm" class="profile-form-responsive">
+              
+              <!-- Título de la sección -->
+              <h3 class="form-section-title-responsive">
                 <mat-icon>edit</mat-icon>
                 Editar Información Personal
               </h3>
 
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="half-width">
+              <!-- Primera fila: Código de usuario y Rol (solo lectura) -->
+              <div class="form-row-responsive">
+                
+                <!-- Campo de código de usuario (deshabilitado) -->
+                <mat-form-field appearance="outline" class="half-width-responsive">
                   <mat-label>Código de Usuario</mat-label>
                   <input matInput formControlName="userCode">
                   <mat-icon matSuffix>badge</mat-icon>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="half-width">
+                <!-- Campo de rol (deshabilitado) -->
+                <mat-form-field appearance="outline" class="half-width-responsive">
                   <mat-label>Rol</mat-label>
-                  <input matInput formControlName="role"
-                    [value]="getRoleDisplayName(profileForm.get('role')?.value || '')">
+                  <input matInput 
+                         formControlName="role"
+                         [value]="getRoleDisplayName(profileForm.get('role')?.value || '')">
                   <mat-icon matSuffix>work</mat-icon>
                 </mat-form-field>
               </div>
 
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="half-width">
+              <!-- Segunda fila: Nombre y Apellidos (editables) -->
+              <div class="form-row-responsive">
+                
+                <!-- Campo de nombre con validación requerida -->
+                <mat-form-field appearance="outline" class="half-width-responsive">
                   <mat-label>Nombre</mat-label>
                   <input matInput formControlName="firstName">
                   <mat-icon matSuffix>person</mat-icon>
+                  <!-- Mensaje de error si el campo es requerido -->
                   <mat-error *ngIf="profileForm.get('firstName')?.hasError('required')">
                     El nombre es requerido
                   </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="half-width">
+                <!-- Campo de apellidos con validación requerida -->
+                <mat-form-field appearance="outline" class="half-width-responsive">
                   <mat-label>Apellidos</mat-label>
                   <input matInput formControlName="lastName">
                   <mat-icon matSuffix>person_outline</mat-icon>
+                  <!-- Mensaje de error si el campo es requerido -->
                   <mat-error *ngIf="profileForm.get('lastName')?.hasError('required')">
                     Los apellidos son requeridos
                   </mat-error>
                 </mat-form-field>
               </div>
 
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="half-width">
+              <!-- Tercera fila: Teléfono y Email -->
+              <div class="form-row-responsive">
+                
+                <!-- Campo de teléfono con validación requerida -->
+                <mat-form-field appearance="outline" class="half-width-responsive">
                   <mat-label>Teléfono</mat-label>
-                  <input matInput formControlName="phone" placeholder="Ej: +57 300 123 4567">
+                  <input matInput 
+                         formControlName="phone" 
+                         placeholder="Ej: +57 300 123 4567">
                   <mat-icon matSuffix>phone</mat-icon>
+                  <!-- Mensaje de error si el campo es requerido -->
                   <mat-error *ngIf="profileForm.get('phone')?.hasError('required')">
                     El teléfono es requerido
                   </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="half-width">
+                <!-- Campo de email opcional con validación de formato -->
+                <mat-form-field appearance="outline" class="half-width-responsive">
                   <mat-label>Email (Opcional)</mat-label>
-                  <input matInput formControlName="email" type="email" placeholder="usuario@ejemplo.com">
+                  <input matInput 
+                         formControlName="email" 
+                         type="email" 
+                         placeholder="usuario@ejemplo.com">
                   <mat-icon matSuffix>email</mat-icon>
+                  <!-- Mensaje de error si el formato de email es inválido -->
                   <mat-error *ngIf="profileForm.get('email')?.hasError('email')">
                     Formato de email inválido
                   </mat-error>
                 </mat-form-field>
               </div>
 
-
-
-              <div class="form-actions-modern">
-                <button mat-raised-button color="primary" (click)="onUpdateProfile()"
-                  [disabled]="profileForm.invalid || loading()" class="update-button-modern">
+              <!-- Botones de acción del formulario -->
+              <div class="form-actions-responsive">
+                
+                <!-- Botón para actualizar el perfil -->
+                <button mat-raised-button 
+                        color="primary" 
+                        (click)="onUpdateProfile()"
+                        [disabled]="profileForm.invalid || loading()" 
+                        class="update-button-responsive">
+                  <!-- Spinner mostrado durante la actualización -->
                   <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+                  <!-- Icono de guardar cuando no está cargando -->
                   <mat-icon *ngIf="!loading()">save</mat-icon>
+                  <!-- Texto dinámico del botón -->
                   {{ loading() ? 'Actualizando...' : 'Actualizar Perfil' }}
                 </button>
-                <button mat-stroked-button type="button" [disabled]="loading()" class="reset-button-modern"
-                  (click)="profileForm.reset(); loadUserProfile()">
+                
+                <!-- Botón para restablecer el formulario -->
+                <button mat-stroked-button 
+                        type="button" 
+                        [disabled]="loading()" 
+                        class="reset-button-responsive"
+                        (click)="profileForm.reset(); loadUserProfile()">
                   <mat-icon>refresh</mat-icon>
                   Restablecer
                 </button>
@@ -181,20 +310,28 @@
           </div>
         </mat-tab>
 
-        <!-- pestaña cambiar contraseña -->
+        <!-- PESTAÑA 2: Cambiar Contraseña -->
         <mat-tab>
+          <!-- Etiqueta de la pestaña con icono de seguridad -->
           <ng-template mat-tab-label>
             <mat-icon>lock</mat-icon>
             Cambiar Contraseña
           </ng-template>
-          <div class="tab-content">
-            <form [formGroup]="passwordForm" class="password-form">
-              <h3 class="form-section-title">
+          
+          <!-- Contenido de la pestaña de contraseña -->
+          <div class="tab-content-responsive">
+            
+            <!-- Formulario reactivo para cambio de contraseña -->
+            <form [formGroup]="passwordForm" class="password-form-responsive">
+              
+              <!-- Título de la sección de seguridad -->
+              <h3 class="form-section-title-responsive">
                 <mat-icon>security</mat-icon>
                 Cambiar Contraseña
               </h3>
 
-              <div class="security-info">
+              <!-- Información de seguridad y requisitos -->
+              <div class="security-info-responsive">
                 <mat-icon>info</mat-icon>
                 <div>
                   <p><strong>Requisitos de contraseña:</strong></p>
@@ -206,65 +343,106 @@
                 </div>
               </div>
 
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="full-width">
+              <!-- Campo de contraseña actual -->
+              <div class="form-row-responsive">
+                <mat-form-field appearance="outline" class="full-width-responsive">
                   <mat-label>Contraseña Actual</mat-label>
-                  <input matInput [type]="showCurrentPassword() ? 'text' : 'password'"
-                    formControlName="currentPassword">
-                  <button mat-icon-button matSuffix type="button" (click)="toggleCurrentPasswordVisibility()"
-                    matTooltip="{{ showCurrentPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña' }}">
+                  <!-- Input con tipo dinámico para mostrar/ocultar contraseña -->
+                  <input matInput 
+                         [type]="showCurrentPassword() ? 'text' : 'password'"
+                         formControlName="currentPassword">
+                  <!-- Botón para alternar visibilidad de contraseña -->
+                  <button mat-icon-button 
+                          matSuffix 
+                          type="button" 
+                          (click)="toggleCurrentPasswordVisibility()"
+                          matTooltip="{{ showCurrentPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña' }}">
                     <mat-icon>{{ showCurrentPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                   </button>
+                  <!-- Mensaje de error para campo requerido -->
                   <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">
                     La contraseña actual es requerida
                   </mat-error>
                 </mat-form-field>
               </div>
 
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="full-width">
+              <!-- Campo de nueva contraseña -->
+              <div class="form-row-responsive">
+                <mat-form-field appearance="outline" class="full-width-responsive">
                   <mat-label>Nueva Contraseña</mat-label>
-                  <input matInput [type]="showNewPassword() ? 'text' : 'password'" formControlName="newPassword">
-                  <button mat-icon-button matSuffix type="button" (click)="toggleNewPasswordVisibility()"
-                    matTooltip="{{ showNewPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña' }}">
+                  <!-- Input con tipo dinámico para mostrar/ocultar contraseña -->
+                  <input matInput 
+                         [type]="showNewPassword() ? 'text' : 'password'" 
+                         formControlName="newPassword">
+                  <!-- Botón para alternar visibilidad de contraseña -->
+                  <button mat-icon-button 
+                          matSuffix 
+                          type="button" 
+                          (click)="toggleNewPasswordVisibility()"
+                          matTooltip="{{ showNewPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña' }}">
                     <mat-icon>{{ showNewPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                   </button>
+                  <!-- Mensaje de error para campo requerido -->
                   <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">
                     La nueva contraseña es requerida
                   </mat-error>
+                  <!-- Mensaje de error para longitud mínima -->
                   <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">
                     Mínimo 6 caracteres
                   </mat-error>
                 </mat-form-field>
               </div>
 
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="full-width">
+              <!-- Campo de confirmación de contraseña -->
+              <div class="form-row-responsive">
+                <mat-form-field appearance="outline" class="full-width-responsive">
                   <mat-label>Confirmar Nueva Contraseña</mat-label>
-                  <input matInput [type]="showConfirmPassword() ? 'text' : 'password'"
-                    formControlName="confirmPassword">
-                  <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPasswordVisibility()"
-                    matTooltip="{{ showConfirmPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña' }}">
+                  <!-- Input con tipo dinámico para mostrar/ocultar contraseña -->
+                  <input matInput 
+                         [type]="showConfirmPassword() ? 'text' : 'password'"
+                         formControlName="confirmPassword">
+                  <!-- Botón para alternar visibilidad de contraseña -->
+                  <button mat-icon-button 
+                          matSuffix 
+                          type="button" 
+                          (click)="toggleConfirmPasswordVisibility()"
+                          matTooltip="{{ showConfirmPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña' }}">
                     <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                   </button>
+                  <!-- Mensaje de error para campo requerido -->
                   <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">
                     Confirma la nueva contraseña
                   </mat-error>
+                  <!-- Mensaje de error para contraseñas que no coinciden -->
                   <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('passwordMismatch')">
                     Las contraseñas no coinciden
                   </mat-error>
                 </mat-form-field>
               </div>
 
-              <div class="form-actions-modern">
-                <button mat-raised-button color="accent" (click)="onChangePassword()"
-                  [disabled]="passwordForm.invalid || loading()" class="change-password-button-modern">
+              <!-- Botones de acción para cambio de contraseña -->
+              <div class="form-actions-responsive">
+                
+                <!-- Botón para cambiar contraseña -->
+                <button mat-raised-button 
+                        color="accent" 
+                        (click)="onChangePassword()"
+                        [disabled]="passwordForm.invalid || loading()" 
+                        class="change-password-button-responsive">
+                  <!-- Spinner mostrado durante el cambio -->
                   <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+                  <!-- Icono de cambio de contraseña cuando no está cargando -->
                   <mat-icon *ngIf="!loading()">lock_reset</mat-icon>
+                  <!-- Texto dinámico del botón -->
                   {{ loading() ? 'Cambiando...' : 'Cambiar Contraseña' }}
                 </button>
-                <button mat-stroked-button type="button" [disabled]="loading()" class="reset-button-modern"
-                  (click)="passwordForm.reset()">
+                
+                <!-- Botón para restablecer el formulario -->
+                <button mat-stroked-button 
+                        type="button" 
+                        [disabled]="loading()" 
+                        class="reset-button-responsive"
+                        (click)="passwordForm.reset()">
                   <mat-icon>refresh</mat-icon>
                   Restablecer
                 </button>
@@ -273,59 +451,95 @@
           </div>
         </mat-tab>
 
-        <!-- Activity History Tab -->
+        <!-- PESTAÑA 3: Historial de Actividad -->
         <mat-tab>
+          <!-- Etiqueta de la pestaña con icono de historial -->
           <ng-template mat-tab-label>
             <mat-icon>history</mat-icon>
             Historial de Actividad
           </ng-template>
-          <div class="tab-content">
-            <div class="activity-header-section">
-              <h3 class="form-section-title">
+          
+          <!-- Contenido de la pestaña de actividad -->
+          <div class="tab-content-responsive">
+            
+            <!-- Encabezado de la sección de actividad -->
+            <div class="activity-header-section-responsive">
+              
+              <!-- Título de la sección -->
+              <h3 class="form-section-title-responsive">
                 <mat-icon>timeline</mat-icon>
                 Historial de Actividad Completo
               </h3>
 
-              <div class="activity-controls">
-                <button mat-raised-button color="primary" (click)="refreshActivities()" [disabled]="loading()"
-                  class="refresh-btn">
+              <!-- Controles de la actividad -->
+              <div class="activity-controls-responsive">
+                <!-- Botón para actualizar la lista de actividades -->
+                <button mat-raised-button 
+                        color="primary" 
+                        (click)="refreshActivities()" 
+                        [disabled]="loading()"
+                        class="refresh-btn-responsive">
                   <mat-icon>refresh</mat-icon>
                   Actualizar
                 </button>
               </div>
             </div>
 
-            <div class="activity-container">
-              <div *ngIf="loading()" class="loading-container">
-                <mat-icon class="loading-icon">refresh</mat-icon>
+            <!-- Contenedor principal de actividades -->
+            <div class="activity-container-responsive">
+              
+              <!-- Estado de carga - Mostrado mientras se cargan las actividades -->
+              <div *ngIf="loading()" class="loading-container-responsive">
+                <mat-icon class="loading-icon-responsive">refresh</mat-icon>
                 <p>Cargando actividad...</p>
               </div>
 
-              <div *ngIf="!loading() && userActions().length > 0" class="activity-list">
-                <div *ngFor="let action of userActions()" class="activity-item">
-                  <div class="activity-icon">
+              <!-- Lista de actividades - Mostrada cuando hay datos -->
+              <div *ngIf="!loading() && userActions().length > 0" class="activity-list-responsive">
+                
+                <!-- Iteración sobre cada actividad del usuario -->
+                <div *ngFor="let action of userActions()" class="activity-item-responsive">
+                  
+                  <!-- Icono de la actividad basado en el módulo -->
+                  <div class="activity-icon-responsive">
                     <mat-icon [class]="'icon-' + action.module.toLowerCase()">
                       {{ getActionIcon(action.module) }}
                     </mat-icon>
                   </div>
-                  <div class="activity-content">
-                    <div class="activity-header">
-                      <h4 class="activity-title">{{ action.action }}</h4>
-                      <div class="activity-meta">
-                        <span class="activity-time">{{ formatTimestamp(action.timestamp) }}</span>
-                        <span class="days-remaining" [class.expiring-soon]="action.isExpiringSoon"
-                          [class.expired]="action.daysRemaining === 0">
-                          <mat-icon class="timer-icon">schedule</mat-icon>
+                  
+                  <!-- Contenido de la actividad -->
+                  <div class="activity-content-responsive">
+                    
+                    <!-- Encabezado de la actividad -->
+                    <div class="activity-header-responsive">
+                      <!-- Título de la acción -->
+                      <h4 class="activity-title-responsive">{{ action.action }}</h4>
+                      
+                      <!-- Metadatos de la actividad -->
+                      <div class="activity-meta-responsive">
+                        <!-- Tiempo de la actividad formateado -->
+                        <span class="activity-time-responsive">{{ formatTimestamp(action.timestamp) }}</span>
+                        <!-- Días restantes con clases condicionales -->
+                        <span class="days-remaining-responsive" 
+                              [class.expiring-soon]="action.isExpiringSoon"
+                              [class.expired]="action.daysRemaining === 0">
+                          <mat-icon class="timer-icon-responsive">schedule</mat-icon>
                           {{ getDaysRemainingText(action.daysRemaining) }}
                         </span>
                       </div>
                     </div>
-                    <p class="activity-description">{{ action.description }}</p>
+                    
+                    <!-- Descripción de la actividad -->
+                    <p class="activity-description-responsive">{{ action.description }}</p>
+                    
+                    <!-- Chips informativos -->
                     <mat-chip-set>
-                      <mat-chip [class]="'module-chip module-' + action.module.toLowerCase()">
+                      <!-- Chip del módulo con clase dinámica -->
+                      <mat-chip [class]="'module-chip-responsive module-' + action.module.toLowerCase()">
                         {{ action.module }}
                       </mat-chip>
-                      <mat-chip *ngIf="action.isExpiringSoon" class="expiring-chip">
+                      <!-- Chip de advertencia si expira pronto -->
+                      <mat-chip *ngIf="action.isExpiringSoon" class="expiring-chip-responsive">
                         <mat-icon>warning</mat-icon>
                         Expira pronto
                       </mat-chip>
@@ -334,7 +548,8 @@
                 </div>
               </div>
 
-              <div *ngIf="!loading() && userActions().length === 0" class="empty-activity">
+              <!-- Estado vacío - Mostrado cuando no hay actividades -->
+              <div *ngIf="!loading() && userActions().length === 0" class="empty-activity-responsive">
                 <mat-icon>history</mat-icon>
                 <h3>Sin actividad reciente</h3>
                 <p>No hay actividad registrada para mostrar</p>
