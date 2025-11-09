@@ -239,7 +239,8 @@ try
     builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
     {
         // MySQL optimized configuration
-        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), mySqlOptions =>
+        // Using MySqlServerVersion instead of AutoDetect to avoid connection during startup
+        options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21)), mySqlOptions =>
         {
             mySqlOptions.CommandTimeout(30);
             mySqlOptions.EnableRetryOnFailure(
