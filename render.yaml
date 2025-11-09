@@ -1,0 +1,42 @@
+services:
+  # Backend .NET Service
+  - type: web
+    name: flexoapp-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile.backend
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:7003
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://flexoapp-frontend.onrender.com
+    healthCheckPath: /health
+
+  # Frontend Angular Service
+  - type: web
+    name: flexoapp-frontend
+    runtime: static
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: cd Frontend && npm install && npm run build:prod
+    staticPublishPath: ./Frontend/dist/flexoapp/browser
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=3600
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
