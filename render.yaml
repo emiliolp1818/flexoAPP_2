@@ -2,7 +2,7 @@ services:
   # Backend .NET Service
   - type: web
     name: flexoapp-backend
-    runtime: docker
+    env: docker
     plan: free
     region: oregon
     branch: main
@@ -23,7 +23,7 @@ services:
   # Frontend Angular Service
   - type: web
     name: flexoapp-frontend
-    runtime: static
+    env: static
     plan: free
     region: oregon
     branch: main
