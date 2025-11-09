@@ -250,7 +250,8 @@ try
             npgsqlOptions.CommandTimeout(30);
             npgsqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(10));
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorCodesToAdd: null);
         });
 
         options.EnableSensitiveDataLogging(false);
