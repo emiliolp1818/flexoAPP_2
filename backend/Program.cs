@@ -25,7 +25,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Log.Information("🚀 Iniciando FlexoAPP Backend - Edición MySQL");
+    Log.Information("🚀 Iniciando FlexoAPP Backend - Edición PostgreSQL (Supabase)");
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -121,9 +121,9 @@ try
     {
         c.SwaggerDoc("v1", new OpenApiInfo
         {
-            Title = "FlexoAPP Enhanced API - MySQL Edition",
-            Version = "v2.1.0",
-            Description = "Enterprise Flexographic Management System - Enhanced with MySQL optimizations, Serilog, and Performance improvements",
+            Title = "FlexoAPP Enhanced API - PostgreSQL Edition",
+            Version = "v2.2.0",
+            Description = "Enterprise Flexographic Management System - Enhanced with PostgreSQL (Supabase), Serilog, and Performance improvements",
             Contact = new OpenApiContact
             {
                 Name = "FlexoAPP Team",
@@ -229,12 +229,12 @@ try
 
     builder.Services.AddAuthorization();
 
-    // ===== MYSQL DATABASE CONFIGURATION =====
-    // Try to get connection string from environment variable first (Render), then from config
+    // ===== POSTGRESQL DATABASE CONFIGURATION (SUPABASE) =====
+    // Try to get connection string from environment variable first (Render/Supabase), then from config
     var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
                           ?? builder.Configuration.GetConnectionString("DefaultConnection") 
                           ?? builder.Configuration.GetConnectionString("LocalConnection")
-                          ?? throw new InvalidOperationException("MySQL connection string is required");
+                          ?? throw new InvalidOperationException("PostgreSQL connection string is required");
 
     // Log connection string info (without password) for debugging
     Log.Information("🔌 Connection String Source: {Source}", 
@@ -244,15 +244,13 @@ try
 
     builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
     {
-        // MySQL optimized configuration
-        // Using MySqlServerVersion instead of AutoDetect to avoid connection during startup
-        options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21)), mySqlOptions =>
+        // PostgreSQL optimized configuration (Supabase compatible)
+        options.UseNpgsql(connectionString, npgsqlOptions =>
         {
-            mySqlOptions.CommandTimeout(30);
-            mySqlOptions.EnableRetryOnFailure(
+            npgsqlOptions.CommandTimeout(30);
+            npgsqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(10),
-                errorNumbersToAdd: null);
+                maxRetryDelay: TimeSpan.FromSeconds(10));
         });
 
         options.EnableSensitiveDataLogging(false);
@@ -262,7 +260,7 @@ try
         options.EnableDetailedErrors(builder.Environment.IsDevelopment());
     });
 
-    Log.Information("✅ MySQL Database configured with optimized connection pooling");
+    Log.Information("✅ PostgreSQL Database configured with optimized connection pooling (Supabase)");
 
     // ===== HEALTH CHECKS =====
     builder.Services.AddHealthChecks()
@@ -364,10 +362,10 @@ try
             {
                 status = report.Status.ToString().ToLower(),
                 timestamp = DateTime.UtcNow,
-                message = "FlexoAPP Enhanced API Health Check - MySQL Edition",
-                version = "2.1.0",
+                message = "FlexoAPP Enhanced API Health Check - PostgreSQL Edition",
+                version = "v2.2.0",
                 database = report.Entries.ContainsKey("database") ? 
-                          (report.Entries["database"].Status == Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy ? "MySQL Connected" : "MySQL Disconnected") : 
+                          (report.Entries["database"].Status == Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy ? "PostgreSQL Connected (Supabase)" : "PostgreSQL Disconnected") : 
                           "Unknown",
                 authentication = "JWT Enabled",
                 caching = "Memory Cache",
@@ -398,13 +396,13 @@ try
 
     // Root endpoint
     app.MapGet("/", () => new { 
-        message = "FlexoAPP Enhanced API - MySQL Edition", 
+        message = "FlexoAPP Enhanced API - PostgreSQL Edition (Supabase)", 
         status = "running", 
         timestamp = DateTime.UtcNow,
-        version = "2.1.0",
+        version = "v2.2.0",
         framework = ".NET 8.0",
         features = new {
-            database = "MySQL with Optimized Connection Pooling",
+            database = "PostgreSQL (Supabase) with Optimized Connection Pooling",
             caching = "Memory Cache",
             logging = "Serilog Structured Logging",
             profiling = "MiniProfiler Enabled",
@@ -440,10 +438,10 @@ try
     }
 
     Log.Information("========================================="); 
-    Log.Information("🚀 FLEXOAPP ENHANCED API - MYSQL READY"); 
+    Log.Information("🚀 FLEXOAPP ENHANCED API - POSTGRESQL READY"); 
     Log.Information("========================================="); 
     Log.Information("🌐 Framework: ASP.NET Core 8.0"); 
-    Log.Information("🗄️ Database: MySQL with optimized connection pooling");
+    Log.Information("🗄️ Database: PostgreSQL (Supabase) with optimized connection pooling");
     Log.Information("💾 Caching: Memory Cache with 100MB limit");
     Log.Information("📝 Logging: Serilog with structured logging");
     Log.Information("⚡ Profiling: MiniProfiler enabled (/profiler)");
