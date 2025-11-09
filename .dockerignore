@@ -13,6 +13,7 @@ backend/Backups/
 backend/Database/*.db
 backend/Database/*.db-shm
 backend/Database/*.db-wal
+backend/*.sln
 
 # Git
 .git/
