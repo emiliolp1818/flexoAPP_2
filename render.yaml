@@ -31,7 +31,7 @@ services:
     staticPublishPath: ./Frontend/dist/flexoapp/browser
     envVars:
       - key: NODE_VERSION
-        value: 18
+        value: 20.19.0
     headers:
       - path: /*
         name: Cache-Control
