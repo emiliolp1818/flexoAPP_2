@@ -227,7 +227,9 @@ try
     builder.Services.AddAuthorization();
 
     // ===== MYSQL DATABASE CONFIGURATION =====
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    // Try to get connection string from environment variable first (Render), then from config
+    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                          ?? builder.Configuration.GetConnectionString("DefaultConnection") 
                           ?? builder.Configuration.GetConnectionString("LocalConnection")
                           ?? throw new InvalidOperationException("MySQL connection string is required");
 
