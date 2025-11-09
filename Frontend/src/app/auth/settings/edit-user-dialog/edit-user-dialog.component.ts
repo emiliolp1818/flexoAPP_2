@@ -183,8 +183,15 @@ export class EditUserDialogComponent implements OnInit {
       this.originalFormData.set({ ...formData });
 
       // Cargar imagen de perfil si el usuario tiene una configurada
-      if ((this.userData as any).profileImageUrl) {
-        this.profileImagePreview.set(this.getProfileImageUrl((this.userData as any).profileImageUrl));
+      const profileImageUrl = (this.userData as any).profileImageUrl;
+      if (profileImageUrl && profileImageUrl.trim() !== '' && profileImageUrl !== 'null') {
+        // Si es base64, usar directamente
+        if (profileImageUrl.startsWith('data:image/')) {
+          this.profileImagePreview.set(profileImageUrl);
+        } else {
+          // Si es URL, construir la ruta completa
+          this.profileImagePreview.set(this.getProfileImageUrl(profileImageUrl));
+        }
       }
     }
   }
@@ -227,15 +234,7 @@ export class EditUserDialogComponent implements OnInit {
         return;
       }
 
-      // ===== VALIDACIÓN DE TAMAÑO DE ARCHIVO =====
-      // Límite máximo de 5MB para evitar problemas de rendimiento
-      if (file.size > 5 * 1024 * 1024) {
-        this.snackBar.open('La imagen no debe superar los 5MB', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
-        return;
-      }
+      // SIN LÍMITE DE TAMAÑO - Validación eliminada para permitir cualquier tamaño de imagen
 
       // Guardar archivo seleccionado en signal reactivo
       this.selectedFile.set(file);
@@ -311,17 +310,24 @@ export class EditUserDialogComponent implements OnInit {
    * @param profileImageUrl URL o ruta de la imagen de perfil
    * @returns URL completa para mostrar la imagen
    */
-  getProfileImageUrl(profileImageUrl: string): string {
+  getProfileImageUrl(profileImageUrl: string | undefined): string {
     // Si no hay URL, retornar cadena vacía
-    if (!profileImageUrl) return '';
+    if (!profileImageUrl || profileImageUrl.trim() === '' || profileImageUrl === 'null') return '';
+    
+    // Si es base64, devolverla directamente
+    if (profileImageUrl.startsWith('data:image/')) {
+      return profileImageUrl;
+    }
     
     // Si ya es una URL completa (http/https), devolverla tal como está
     if (profileImageUrl.startsWith('http')) {
       return profileImageUrl;
     }
     
-    // Si es una ruta relativa, agregar la URL base del API desde environment
-    return `${environment.apiUrl}${profileImageUrl}`;
+    // Si es una ruta relativa, construir URL completa usando imageBaseUrl del environment
+    const baseUrl = (environment as any).imageBaseUrl || environment.apiUrl.replace('/api', '');
+    const imagePath = profileImageUrl.startsWith('/') ? profileImageUrl : `/${profileImageUrl}`;
+    return `${baseUrl}${imagePath}`;
   }
 
   // ===== UTILIDADES DE FORMATEO DE FECHAS =====

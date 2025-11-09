@@ -487,34 +487,14 @@ namespace FlexoAPP.API.Services
         // Nuevos métodos para actividades de usuario
         public async Task<List<UserActivityDto>> GetUserActivitiesAsync(UserActivityFilterDto filter)
         {
-            // Implementación simulada - en producción conectar con tabla de actividades real
-            var activities = new List<UserActivityDto>();
-            var random = new Random();
+            // TODO: Implementar consulta real a la tabla de actividades
+            // var activities = await _context.UserActivities
+            //     .Where(ua => ua.UserCode == filter.UserCode)
+            //     .OrderByDescending(ua => ua.Timestamp)
+            //     .ToListAsync();
             
-            for (int i = 1; i <= 15; i++)
-            {
-                var timestamp = DateTime.Now.AddDays(-i).AddHours(random.Next(8, 18));
-                
-                activities.Add(new UserActivityDto
-                {
-                    Id = i.ToString(),
-                    UserId = filter.UserCode,
-                    UserCode = filter.UserCode,
-                    Action = GetRandomAction(),
-                    Description = GetRandomDescription(),
-                    Module = GetRandomModule(filter.Module),
-                    Component = "Component" + i,
-                    Timestamp = timestamp,
-                    ExpiryDate = timestamp.AddDays(30),
-                    DaysRemaining = 30 - i,
-                    IsExpiringSoon = i > 25,
-                    Metadata = new Dictionary<string, object>
-                    {
-                        ["ip"] = "192.168.1." + random.Next(1, 255),
-                        ["browser"] = GetRandomBrowser()
-                    }
-                });
-            }
+            // Retornar lista vacía hasta implementar consulta real
+            var activities = new List<UserActivityDto>();
 
             return activities.Where(a => 
                 (filter.StartDate == null || a.Timestamp >= filter.StartDate) &&
@@ -523,33 +503,45 @@ namespace FlexoAPP.API.Services
             ).ToList();
         }
 
+        /// <summary>
+        /// Obtener actividades de máquinas por usuario desde datos reales
+        /// TODO: Implementar consulta real a la base de datos
+        /// </summary>
         public async Task<MachineActivityReportDto> GetMachineActivitiesByUserAsync(MachineActivityFilterDto filter)
         {
-            // Implementación simulada - en producción conectar con datos reales
+            // Obtener usuario desde la base de datos
             var user = await GetUserByCodeAsync(filter.UserCode);
-            var random = new Random();
             
-            var completedOrders = GenerateMockOrders(filter.ReportDate, "COMPLETED", random.Next(2, 8));
-            var suspendedOrders = GenerateMockOrders(filter.ReportDate, "SUSPENDED", random.Next(0, 3));
-            var userMovements = GenerateMockMovements(filter.ReportDate, filter.UserCode, random.Next(10, 25));
-
+            // TODO: Implementar consulta real a la base de datos
+            // var completedOrders = await _context.MachinePrograms
+            //     .Where(mp => mp.Estado == "TERMINADO" && mp.CreatedAt.Date == filter.ReportDate.Date)
+            //     .ToListAsync();
+            
+            // Retornar estructura vacía hasta implementar consultas reales
             return new MachineActivityReportDto
             {
-                User = user,
-                ReportDate = filter.ReportDate,
-                CompletedOrders = completedOrders.Count,
-                SuspendedOrders = suspendedOrders.Count,
-                TotalMovements = userMovements.Count,
-                ActiveHours = random.Next(6, 12),
-                CompletedOrdersList = completedOrders,
-                SuspendedOrdersList = suspendedOrders,
-                UserMovements = userMovements
+                User = user,                    // Usuario obtenido de la base de datos
+                ReportDate = filter.ReportDate, // Fecha del reporte solicitado
+                CompletedOrders = 0,            // Órdenes completadas (desde BD real)
+                SuspendedOrders = 0,            // Órdenes suspendidas (desde BD real)
+                TotalMovements = 0,             // Total de movimientos (desde BD real)
+                ActiveHours = 0,                // Horas activas (calculadas desde BD real)
+                CompletedOrdersList = new List<MachineOrderDto>(),  // Lista vacía hasta implementar
+                SuspendedOrdersList = new List<MachineOrderDto>(),  // Lista vacía hasta implementar
+                UserMovements = new List<UserMovementDto>()         // Lista vacía hasta implementar
             };
         }
 
+        /// <summary>
+        /// Obtener actividades de máquinas desde backup real
+        /// TODO: Implementar restauración real desde archivos de backup
+        /// </summary>
         public async Task<MachineActivityReportDto> GetMachineActivitiesFromBackupAsync(string backupId)
         {
-            // Implementación simulada - en producción cargar desde backup real
+            // TODO: Implementar carga real desde archivo de backup
+            // var backupData = await _backupService.RestoreBackup(backupId);
+            
+            // Usuario temporal para representar datos de backup
             var backupUser = new UserDto
             {
                 Id = "backup-user",
@@ -561,37 +553,48 @@ namespace FlexoAPP.API.Services
                 IsActive = true
             };
 
-            var random = new Random();
-            var reportDate = DateTime.Now.AddDays(-random.Next(1, 30));
-            var completedOrders = GenerateMockOrders(reportDate, "COMPLETED", random.Next(5, 15));
-            var suspendedOrders = GenerateMockOrders(reportDate, "SUSPENDED", random.Next(1, 5));
-            var userMovements = GenerateMockMovements(reportDate, "backup_data", random.Next(20, 50));
-
+            // Retornar estructura vacía hasta implementar restauración real
             return new MachineActivityReportDto
             {
-                User = backupUser,
-                ReportDate = reportDate,
-                CompletedOrders = completedOrders.Count,
-                SuspendedOrders = suspendedOrders.Count,
-                TotalMovements = userMovements.Count,
-                ActiveHours = random.Next(8, 16),
-                CompletedOrdersList = completedOrders,
-                SuspendedOrdersList = suspendedOrders,
-                UserMovements = userMovements,
-                BackupId = backupId,
-                IsFromBackup = true
+                User = backupUser,              // Usuario representativo del backup
+                ReportDate = DateTime.Now,      // Fecha actual como placeholder
+                CompletedOrders = 0,            // Órdenes desde backup (implementar)
+                SuspendedOrders = 0,            // Órdenes suspendidas desde backup (implementar)
+                TotalMovements = 0,             // Movimientos desde backup (implementar)
+                ActiveHours = 0,                // Horas activas desde backup (implementar)
+                CompletedOrdersList = new List<MachineOrderDto>(),  // Lista desde backup
+                SuspendedOrdersList = new List<MachineOrderDto>(),  // Lista desde backup
+                UserMovements = new List<UserMovementDto>(),        // Movimientos desde backup
+                BackupId = backupId,            // ID del backup utilizado
+                IsFromBackup = true             // Flag indicando origen desde backup
             };
         }
 
+        /// <summary>
+        /// Obtener lista de usuarios desde la base de datos real
+        /// TODO: Implementar consulta real a la tabla Users
+        /// </summary>
         public async Task<List<UserDto>> GetUsersListAsync()
         {
-            // En producción, obtener de la tabla Users real
+            // TODO: Implementar consulta real a la base de datos
+            // return await _context.Users
+            //     .Where(u => u.IsActive)
+            //     .Select(u => new UserDto { ... })
+            //     .ToListAsync();
+            
+            // Por ahora, retornar solo el usuario administrador que existe
             return new List<UserDto>
             {
-                new UserDto { Id = "1", UserCode = "admin", FirstName = "Admin", LastName = "System", Email = "admin@flexoapp.com", Role = "admin", IsActive = true },
-                new UserDto { Id = "2", UserCode = "OP001", FirstName = "Operario", LastName = "Uno", Email = "op001@flexoapp.com", Role = "operator", IsActive = true },
-                new UserDto { Id = "3", UserCode = "DIS001", FirstName = "Diseñador", LastName = "Principal", Email = "dis001@flexoapp.com", Role = "designer", IsActive = true },
-                new UserDto { Id = "4", UserCode = "SUP001", FirstName = "Supervisor", LastName = "Producción", Email = "sup001@flexoapp.com", Role = "supervisor", IsActive = true }
+                new UserDto 
+                { 
+                    Id = "1", 
+                    UserCode = "admin", 
+                    FirstName = "Administrador", 
+                    LastName = "del Sistema", 
+                    Email = "admin@flexoapp.com", 
+                    Role = "admin", 
+                    IsActive = true 
+                }
             };
         }
 
@@ -612,109 +615,8 @@ namespace FlexoAPP.API.Services
                 };
         }
 
-        private List<MachineOrderDto> GenerateMockOrders(DateTime date, string type, int count)
-        {
-            var orders = new List<MachineOrderDto>();
-            var random = new Random();
-            var suspensionReasons = new[] { "Falta de material", "Mantenimiento", "Cambio de especificaciones", "Problema técnico" };
 
-            for (int i = 0; i < count; i++)
-            {
-                var orderTime = date.AddHours(8 + random.Next(0, 10)).AddMinutes(random.Next(0, 60));
-                
-                var order = new MachineOrderDto
-                {
-                    OrderNumber = $"{(type == "COMPLETED" ? "ORD" : "SUS")}-{random.Next(1000, 9999)}",
-                    Description = $"Impresión flexográfica - {type.ToLower()} {i + 1}",
-                    MachineId = $"MAQ-{random.Next(1, 13):D2}",
-                    Quantity = random.Next(1000, 6000)
-                };
 
-                if (type == "COMPLETED")
-                {
-                    order.CompletedTime = orderTime;
-                    order.Duration = random.Next(30, 150);
-                }
-                else
-                {
-                    order.SuspendedTime = orderTime;
-                    order.ElapsedTime = random.Next(15, 105);
-                    order.Progress = random.Next(10, 80);
-                    order.SuspensionReason = suspensionReasons[random.Next(suspensionReasons.Length)];
-                }
 
-                orders.Add(order);
-            }
-
-            return orders;
-        }
-
-        private List<UserMovementDto> GenerateMockMovements(DateTime date, string userCode, int count)
-        {
-            var movements = new List<UserMovementDto>();
-            var random = new Random();
-            var movementTypes = new[] { "START", "STOP", "PAUSE", "CONFIG", "MAINTENANCE" };
-            var actions = new Dictionary<string, string[]>
-            {
-                ["START"] = new[] { "Inicio de producción", "Arranque de máquina", "Inicio de turno" },
-                ["STOP"] = new[] { "Fin de producción", "Parada de máquina", "Fin de turno" },
-                ["PAUSE"] = new[] { "Pausa para mantenimiento", "Pausa programada", "Pausa por cambio" },
-                ["CONFIG"] = new[] { "Configuración de parámetros", "Ajuste de máquina", "Cambio de configuración" },
-                ["MAINTENANCE"] = new[] { "Mantenimiento preventivo", "Limpieza de máquina", "Revisión técnica" }
-            };
-
-            for (int i = 0; i < count; i++)
-            {
-                var movementTime = date.AddHours(8 + random.Next(0, 10)).AddMinutes(random.Next(0, 60));
-                var type = movementTypes[random.Next(movementTypes.Length)];
-                var actionList = actions[type];
-                var action = actionList[random.Next(actionList.Length)];
-
-                movements.Add(new UserMovementDto
-                {
-                    Id = $"mov-{i + 1}",
-                    Action = action,
-                    Description = $"{action} realizada por {userCode}",
-                    Type = type,
-                    Timestamp = movementTime,
-                    MachineId = $"MAQ-{random.Next(1, 13):D2}",
-                    OrderNumber = random.Next(0, 10) > 3 ? $"ORD-{random.Next(1000, 9999)}" : null,
-                    Module = "MACHINES"
-                });
-            }
-
-            return movements.OrderBy(m => m.Timestamp).ToList();
-        }
-
-        private string GetRandomAction()
-        {
-            var random = new Random();
-            var actions = new[] { "Inicio de sesión", "Actualización de perfil", "Gestión de máquinas", "Creación de diseño", "Consulta de reportes", "Configuración del sistema" };
-            return actions[random.Next(actions.Length)];
-        }
-
-        private string GetRandomDescription()
-        {
-            var random = new Random();
-            var descriptions = new[] { "Acceso exitoso al sistema", "Modificación de información", "Programación de máquina", "Nuevo diseño registrado", "Generación de reporte", "Cambio de configuración" };
-            return descriptions[random.Next(descriptions.Length)];
-        }
-
-        private string GetRandomModule(string? filterModule)
-        {
-            if (!string.IsNullOrEmpty(filterModule) && filterModule != "ALL")
-                return filterModule;
-
-            var random = new Random();
-            var modules = new[] { "AUTH", "PROFILE", "MACHINES", "DESIGN", "REPORTS", "SETTINGS" };
-            return modules[random.Next(modules.Length)];
-        }
-
-        private string GetRandomBrowser()
-        {
-            var random = new Random();
-            var browsers = new[] { "Chrome", "Firefox", "Safari", "Edge" };
-            return browsers[random.Next(browsers.Length)];
-        }
     }
 }

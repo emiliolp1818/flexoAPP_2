@@ -1181,45 +1181,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Crear datos de prueba si la BD está vacía
-   */
-  async createSampleData() {
-    console.log('🧪 Creando datos de prueba...');
-    
-    try {
-      const response = await this.http.post<any>(`${environment.apiUrl}/designs/create-sample-data`, {}).toPromise();
-      console.log('✅ Datos de prueba creados:', response);
-      
-      this.snackBar.open(`${response.createdCount} diseños de prueba creados`, 'Cerrar', {
-        duration: 4000,
-        panelClass: ['success-snackbar']
-      });
-      
-      // Recargar datos
-      await this.loadAllDesignsAfterImport();
-      
-    } catch (error: any) {
-      console.error('❌ Error creando datos de prueba:', error);
-      console.error('❌ Status:', error.status);
-      console.error('❌ Error completo:', error.error);
-      
-      let errorMessage = 'Error creando datos de prueba';
-      if (error.status === 400 && error.error?.message) {
-        errorMessage = error.error.message;
-        if (error.error.details) {
-          errorMessage += ` - ${error.error.details}`;
-        }
-      } else if (error.error?.error) {
-        errorMessage = error.error.error;
-      }
-      
-      this.snackBar.open(errorMessage, 'Cerrar', {
-        duration: 8000,
-        panelClass: ['error-snackbar']
-      });
-    }
-  }
+
 
   /**
    * Exportar diseños a Excel

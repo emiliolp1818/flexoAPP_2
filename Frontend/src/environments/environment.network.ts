@@ -1,9 +1,9 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://192.168.1.28:7003/api',
-  socketUrl: 'http://192.168.1.28:7003',
+  apiUrl: 'http://192.168.1.6:7003/api',
+  socketUrl: 'http://192.168.1.6:7003',
   fallbackUrls: [
-    'http://192.168.1.28:7003/api',
+    'http://192.168.1.6:7003/api',
     'http://localhost:7003/api',
     'http://127.0.0.1:7003/api'
   ],

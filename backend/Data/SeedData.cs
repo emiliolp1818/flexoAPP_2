@@ -6,91 +6,108 @@ using System.Text.Json;
 
 namespace FlexoAPP.API.Data
 {
+    /// <summary>
+    /// Clase para inicializar datos básicos del sistema FlexoAPP
+    /// Crea únicamente el usuario administrador necesario para el funcionamiento del sistema
+    /// </summary>
     public static class SeedData
     {
+        /// <summary>
+        /// Inicializa la base de datos con los datos mínimos necesarios
+        /// Solo crea el usuario administrador si no existe
+        /// </summary>
+        /// <param name="serviceProvider">Proveedor de servicios para acceso al contexto de base de datos</param>
         public static async Task InitializeAsync(IServiceProvider serviceProvider)
         {
+            // Crear scope para acceso a servicios con inyección de dependencias
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<FlexoAPPDbContext>();
             
             try
             {
-                Console.WriteLine("🔄 Initializing database...");
+                Console.WriteLine("🔄 Inicializando base de datos...");
                 
-                // Ensure database is created
+                // Asegurar que la base de datos existe
                 await context.Database.EnsureCreatedAsync();
-                Console.WriteLine("✅ Database created/verified");
+                Console.WriteLine("✅ Base de datos creada/verificada");
                 
-                // Check if we already have users
+                // Verificar si ya existen usuarios en el sistema
                 var userCount = await context.Users.CountAsync();
-                Console.WriteLine($"📊 Current user count: {userCount}");
+                Console.WriteLine($"📊 Usuarios actuales en el sistema: {userCount}");
                 
                 if (userCount > 0)
                 {
-                    // Check if admin user exists and is active
+                    // Verificar si el usuario administrador existe y está activo
                     var adminUser = await context.Users
                         .FirstOrDefaultAsync(u => u.UserCode == "admin");
                     
                     if (adminUser != null)
                     {
-                        Console.WriteLine($"👤 Admin user found - ID: {adminUser.Id}, Active: {adminUser.IsActive}");
+                        Console.WriteLine($"👤 Usuario administrador encontrado - ID: {adminUser.Id}, Activo: {adminUser.IsActive}");
                         
-                        // Always reset the admin password to ensure it works
-                        Console.WriteLine("🔄 Resetting admin password...");
+                        // Resetear contraseña del administrador para asegurar acceso
+                        Console.WriteLine("🔄 Actualizando contraseña del administrador...");
                         adminUser.Password = BCrypt.Net.BCrypt.HashPassword("admin123");
                         adminUser.IsActive = true;
                         adminUser.UpdatedAt = DateTime.UtcNow;
                         await context.SaveChangesAsync();
-                        Console.WriteLine("✅ Admin password reset successfully");
+                        Console.WriteLine("✅ Contraseña del administrador actualizada");
                     }
                     else
                     {
-                        Console.WriteLine("⚠️ Admin user not found, creating...");
+                        Console.WriteLine("⚠️ Usuario administrador no encontrado, creando...");
                         await CreateAdminUser(context);
                     }
                     
                     return;
                 }
                 
-                // Create default admin user
+                // Crear usuario administrador por defecto
                 await CreateAdminUser(context);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error initializing data: {ex.Message}");
+                Console.WriteLine($"❌ Error inicializando datos: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                // Don't throw - let the app continue even if seeding fails
+                // No lanzar excepción - permitir que la aplicación continúe aunque falle la inicialización
             }
         }
         
+        /// <summary>
+        /// Crea el usuario administrador por defecto del sistema
+        /// </summary>
+        /// <param name="context">Contexto de base de datos para operaciones</param>
         private static async Task CreateAdminUser(FlexoAPPDbContext context)
         {
+            // Crear usuario administrador con permisos completos
             var adminUser = new User
             {
-                UserCode = "admin",
-                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
-                FirstName = "Administrador",
-                LastName = "del Sistema",
-                Role = UserRole.Admin,
+                UserCode = "admin",                                    // Código de usuario para login
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"), // Contraseña encriptada con BCrypt
+                FirstName = "Administrador",                           // Nombre del usuario
+                LastName = "del Sistema",                              // Apellido del usuario
+                Role = UserRole.Admin,                                 // Rol de administrador con permisos completos
                 Permissions = JsonSerializer.Serialize(new List<string> 
                 { 
-                    "read", "write", "delete", "admin" 
+                    "read",    // Permiso de lectura
+                    "write",   // Permiso de escritura
+                    "delete",  // Permiso de eliminación
+                    "admin"    // Permiso de administración
                 }),
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                IsActive = true,                                       // Usuario activo
+                CreatedAt = DateTime.UtcNow,                          // Fecha de creación
+                UpdatedAt = DateTime.UtcNow                           // Fecha de última actualización
             };
             
+            // Agregar usuario a la base de datos
             context.Users.Add(adminUser);
             await context.SaveChangesAsync();
             
-            Console.WriteLine("✅ Admin user created successfully");
-            Console.WriteLine("   Username: admin");
-            Console.WriteLine("   Password: admin123");
+            Console.WriteLine("✅ Usuario administrador creado exitosamente");
+            Console.WriteLine("   Usuario: admin");
+            Console.WriteLine("   Contraseña: admin123");
             Console.WriteLine($"   ID: {adminUser.Id}");
-            Console.WriteLine($"   Active: {adminUser.IsActive}");
+            Console.WriteLine($"   Activo: {adminUser.IsActive}");
         }
-
-
     }
 }
