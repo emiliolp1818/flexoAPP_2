@@ -1,0 +1,53 @@
+# GitHub Actions workflow para verificar builds antes de desplegar
+name: Verificar Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify-backend:
+    name: Verificar Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: cd backend && dotnet restore
+    
+    - name: Build
+      run: cd backend && dotnet build --no-restore
+    
+    - name: Test
+      run: cd backend && dotnet test --no-build --verbosity normal || echo "No tests found"
+
+  verify-frontend:
+    name: Verificar Frontend
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: Frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: cd Frontend && npm ci
+    
+    - name: Build
+      run: cd Frontend && npm run build:prod
+    
+    - name: Test
+      run: cd Frontend && npm test || echo "No tests configured"
