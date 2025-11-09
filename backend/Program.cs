@@ -189,7 +189,10 @@ try
 
     // ===== JWT AUTHENTICATION =====
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-    var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is required");
+    // Try to get JWT secret from environment variable first (Render), then from config
+    var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                   ?? jwtSettings["SecretKey"] 
+                   ?? throw new InvalidOperationException("JWT SecretKey is required");
 
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
