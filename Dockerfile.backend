@@ -6,21 +6,10 @@ WORKDIR /app/backend
 COPY backend/flexoAPP.csproj ./
 RUN dotnet restore flexoAPP.csproj
 
-# Copiar el resto del código (excluyendo .sln)
-COPY backend/*.cs ./
-COPY backend/*.json ./
-COPY backend/Controllers/ ./Controllers/
-COPY backend/Services/ ./Services/
-COPY backend/Repositories/ ./Repositories/
-COPY backend/Models/ ./Models/
-COPY backend/Data/ ./Data/
-COPY backend/Hubs/ ./Hubs/
-COPY backend/Extensions/ ./Extensions/
-COPY backend/Migrations/ ./Migrations/
-COPY backend/Properties/ ./Properties/
-COPY backend/wwwroot/ ./wwwroot/
+# Copiar todo el código fuente (el .dockerignore excluirá .sln, bin, obj, etc.)
+COPY backend/ ./
 
-# Compilar
+# Compilar el proyecto específico
 RUN dotnet publish flexoAPP.csproj -c Release -o out
 
 # Imagen de runtime

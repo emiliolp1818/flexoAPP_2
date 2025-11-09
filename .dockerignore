@@ -1,29 +1,33 @@
 # Node
 node_modules/
 npm-debug.log
-Frontend/node_modules/
-Frontend/dist/
-Frontend/.angular/
+Frontend/
 
-# .NET
-backend/bin/
-backend/obj/
-backend/logs/
-backend/Backups/
-backend/Database/*.db
-backend/Database/*.db-shm
-backend/Database/*.db-wal
-backend/*.sln
+# .NET - Archivos de build
+**/bin/
+**/obj/
+**/logs/
+**/Backups/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+# .NET - Archivos de solución
+**/*.sln
+*.sln
 
 # Git
 .git/
 .gitignore
+.github/
 
 # IDEs
 .vscode/
 .idea/
 *.suo
 *.user
+*.userosscache
+*.sln.docstates
 
 # Documentation
 *.md
@@ -34,6 +38,8 @@ backend/*.sln
 **/tests/
 **/*.test.ts
 **/*.spec.ts
+**/*.Test.cs
+**/*.Tests.cs
 
 # Environment
 .env
@@ -47,3 +53,9 @@ Thumbs.db
 # Scripts
 *.bat
 *.sh
+
+# Otros archivos innecesarios
+*.log
+.dockerignore
+Dockerfile*
+render.yaml
