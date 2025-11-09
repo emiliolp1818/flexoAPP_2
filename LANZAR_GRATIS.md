@@ -158,6 +158,10 @@ En **"Advanced"**, busca **"Health Check Path"**:
   Frontend/dist/flexoapp/browser
   ```
 
+**Variables de Entorno (Importante):**
+- Click en **"Advanced"**
+- Añade: `NODE_VERSION` = `20.19.0`
+
 **Plan:**
 - Automáticamente será **Free** ✅ (Static Sites son siempre gratis)
 
