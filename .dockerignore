@@ -1,0 +1,48 @@
+# Node
+node_modules/
+npm-debug.log
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.angular/
+
+# .NET
+backend/bin/
+backend/obj/
+backend/logs/
+backend/Backups/
+backend/Database/*.db
+backend/Database/*.db-shm
+backend/Database/*.db-wal
+
+# Git
+.git/
+.gitignore
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Documentation
+*.md
+!README.md
+
+# Tests
+**/test/
+**/tests/
+**/*.test.ts
+**/*.spec.ts
+
+# Environment
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scripts
+*.bat
+*.sh
