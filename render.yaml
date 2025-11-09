@@ -10,8 +10,6 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
-      - key: ASPNETCORE_URLS
-        value: http://0.0.0.0:7003
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET_KEY
