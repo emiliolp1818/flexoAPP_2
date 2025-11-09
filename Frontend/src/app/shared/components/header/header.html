@@ -22,42 +22,64 @@
                 <span class="time-text">{{ getCurrentTime() }}</span>
             </div>
             <div class="welcome-message">
-                <span class="greeting">{{ getTimeBasedGreeting() }}, {{ userDisplayName() }}</span>
+                <span class="greeting">{{ getTimeBasedGreeting() }}, {{ userFirstName() }}</span>
                 <span class="message">{{ getTimeBasedMessage() }}</span>
             </div>
         </div>
 
         <!-- User Section -->
         <div class="user-section">
-
-
-            <!-- User Info -->
-            <div class="user-info">
-                <div class="user-details">
-                    <span class="user-name">{{ userDisplayName() }}</span>
-                    <span class="user-role">{{ getRoleDisplayName(user.role) }}</span>
+            <!-- Status and Role Section -->
+            <div class="status-section">
+                <div class="status-indicator" [class.loading]="isLoading()">
+                    <div class="led-indicator" [class.loading]="isLoading()"></div>
+                    <span class="status-text">En línea</span>
                 </div>
-
+                <div class="user-role-badge">
+                    <span class="role-text">{{ getRoleDisplayName(user.role) }}</span>
+                </div>
             </div>
 
-            <!-- User Avatar and Menu -->
+            <!-- User Avatar Only (sin nombre) - USANDO MISMO CÓDIGO QUE CONFIGURACIONES -->
             <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-button">
                 <div class="user-avatar-container">
-                    <img *ngIf="user.profileImage" [src]="user.profileImage" alt="Foto de perfil"
-                        class="user-profile-image">
-                    <mat-icon *ngIf="!user.profileImage" class="user-avatar-icon">account_circle</mat-icon>
+                    <!-- Imagen de perfil con manejo completo de errores y estados -->
+                    <img *ngIf="hasProfileImage(user)" 
+                         [src]="getProfileImageUrl(user.profileImageUrl || user.profileImage || '')" 
+                         [attr.data-original-src]="user.profileImageUrl || user.profileImage"
+                         [attr.data-user-code]="user.userCode"
+                         [alt]="user.firstName + ' ' + user.lastName"
+                         class="user-profile-image"
+                         (load)="onImageLoad($event)"
+                         (loadstart)="onImageLoadStart($event)"
+                         (error)="onImageError($event)"
+                         loading="lazy"
+                         decoding="async">
+                    <!-- Ícono por defecto cuando no hay imagen o falla la carga -->
+                    <mat-icon *ngIf="!hasProfileImage(user)" class="user-avatar-icon">account_circle</mat-icon>
                 </div>
             </button>
 
             <!-- User Menu - UPDATED: Only Profile and Logout -->
             <mat-menu #userMenu="matMenu" class="user-menu">
-                <!-- User Info in Menu -->
+                <!-- User Info in Menu - USANDO MISMO CÓDIGO QUE CONFIGURACIONES -->
                 <div class="menu-header">
                     <div class="menu-user-info">
                         <div class="menu-avatar-container">
-                            <img *ngIf="user.profileImage" [src]="user.profileImage" alt="Foto de perfil"
-                                class="menu-profile-image">
-                            <mat-icon *ngIf="!user.profileImage" class="menu-avatar-icon">account_circle</mat-icon>
+                            <!-- Imagen de perfil en menú con manejo completo de errores -->
+                            <img *ngIf="hasProfileImage(user)" 
+                                 [src]="getProfileImageUrl(user.profileImageUrl || user.profileImage || '')" 
+                                 [attr.data-original-src]="user.profileImageUrl || user.profileImage"
+                                 [attr.data-user-code]="user.userCode"
+                                 [alt]="user.firstName + ' ' + user.lastName"
+                                 class="menu-profile-image"
+                                 (load)="onImageLoad($event)"
+                                 (loadstart)="onImageLoadStart($event)"
+                                 (error)="onImageError($event)"
+                                 loading="lazy"
+                                 decoding="async">
+                            <!-- Ícono por defecto en menú cuando no hay imagen -->
+                            <mat-icon *ngIf="!hasProfileImage(user)" class="menu-avatar-icon">account_circle</mat-icon>
                         </div>
                         <div class="menu-user-details">
                             <span class="menu-user-name">{{ userDisplayName() }}</span>

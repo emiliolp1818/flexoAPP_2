@@ -13,37 +13,41 @@ using Serilog;
 using Microsoft.AspNetCore.ResponseCompression;
 using System.IO.Compression;
 
-// ===== SERILOG CONFIGURATION =====
+// ===== CONFIGURACIÓN DE SERILOG =====
+// Configurar sistema de logging estructurado para toda la aplicación FlexoAPP
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .WriteTo.File("logs/flexoapp-.log", 
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 30,
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")  // Salida a consola para desarrollo
+    .WriteTo.File("logs/flexoapp-.log",                                                                        // Archivos de log para producción
+        rollingInterval: RollingInterval.Day,                                                                  // Rotar archivos diariamente
+        retainedFileCountLimit: 30,                                                                            // Mantener 30 días de logs
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
 try
 {
-    Log.Information("🚀 Starting FlexoAPP Enhanced Backend - MySQL Edition");
+    Log.Information("🚀 Iniciando FlexoAPP Backend - Edición MySQL");
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // ===== SERILOG INTEGRATION =====
+    // ===== INTEGRACIÓN DE SERILOG =====
+    // Integrar Serilog como proveedor de logging principal
     builder.Host.UseSerilog();
 
-    // ===== PERFORMANCE CONFIGURATION =====
+    // ===== CONFIGURACIÓN DE RENDIMIENTO =====
+    // Configurar servidor Kestrel para optimizar rendimiento
     builder.WebHost.ConfigureKestrel(options =>
     {
-        // Listen on all network interfaces
+        // Escuchar en todas las interfaces de red en puerto 7003
         options.ListenAnyIP(7003);
         
-        options.Limits.MaxRequestHeadersTotalSize = 1048576; // 1MB
-        options.Limits.MaxRequestHeaderCount = 1000;
-        options.Limits.MaxRequestLineSize = 131072; // 128KB
-        options.Limits.MaxRequestBufferSize = 20971520; // 20MB
-        options.Limits.MaxRequestBodySize = 52428800; // 50MB
-        options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);
-        options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2);
+        // Límites de tamaño para headers y requests
+        options.Limits.MaxRequestHeadersTotalSize = 1048576; // 1MB para headers
+        options.Limits.MaxRequestHeaderCount = 1000;         // Máximo 1000 headers
+        options.Limits.MaxRequestLineSize = 131072;          // 128KB por línea de request
+        options.Limits.MaxRequestBufferSize = 20971520;      // 20MB buffer de request
+        options.Limits.MaxRequestBodySize = 52428800;        // 50MB tamaño máximo de body
+        options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);  // Timeout de keep-alive
+        options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2); // Timeout de headers
     });
 
     // ===== RESPONSE COMPRESSION =====
@@ -365,6 +369,12 @@ try
     app.MapHealthChecks("/health/ready");
     app.MapHealthChecks("/health/live");
 
+    // Simple health check endpoint for network stability checks
+    app.MapGet("/health-simple", () => new { 
+        status = "ok", 
+        timestamp = DateTime.UtcNow 
+    });
+
     // Root endpoint
     app.MapGet("/", () => new { 
         message = "FlexoAPP Enhanced API - MySQL Edition", 
@@ -394,16 +404,18 @@ try
         } 
     });
 
-    // Initialize database with seed data
+    // Inicializar base de datos con datos esenciales del sistema
     try 
     {
+        // Crear usuario administrador si no existe
         await FlexoAPP.API.Data.SeedData.InitializeAsync(app.Services);
+        // Crear tabla de programas de máquinas si no existe
         await FlexoAPP.API.Data.MachineProgramTableInitializer.InitializeAsync(app.Services);
-        Log.Information("✅ Database initialized with seed data");
+        Log.Information("✅ Base de datos inicializada con datos esenciales");
     }
     catch (Exception ex)
     {
-        Log.Warning("⚠️ Could not initialize seed data: {Error}", ex.Message);
+        Log.Warning("⚠️ No se pudieron inicializar los datos esenciales: {Error}", ex.Message);
     }
 
     Log.Information("========================================="); 

@@ -1,1024 +1,953 @@
-// ===== ESTILOS MEJORADOS PARA MÁQUINAS =====
-// Diseño consistente con reportes usando color #2563eb
+// ===== ESTILOS PARA GESTIÓN DE MÁQUINAS FLEXOGRÁFICAS =====
+// Archivo de estilos principal para el componente de gestión de máquinas
 
+// ===== VARIABLES DE COLORES =====
+// Color primario azul - usado para elementos principales y acciones primarias
 $primary-blue: #2563eb;
+// Variante clara del azul primario - para estados hover y elementos secundarios
 $primary-blue-light: #3b82f6;
+// Variante oscura del azul primario - para estados activos y énfasis
 $primary-blue-dark: #1d4ed8;
+// Tonos de azul del 50 al 900 - escala completa para fondos, bordes y textos
 $primary-blue-50: #eff6ff;
 $primary-blue-100: #dbeafe;
 $primary-blue-200: #bfdbfe;
 $primary-blue-300: #93c5fd;
+$primary-blue-400: #60a5fa;
+$primary-blue-500: #3b82f6;
+$primary-blue-600: #2563eb;
+$primary-blue-700: #1d4ed8;
 $primary-blue-800: #1e40af;
+$primary-blue-900: #1e3a8a;
+
+// Color de éxito - usado para estados "listo" y "terminado"
+$success-emerald: #10b981;
+// Color de advertencia - usado para estados de alerta
+$warning-amber: #f59e0b;
+// Color de error - usado para estados "suspendido" y errores
+$error-red: #ef4444;
+
+// Escala de grises del 50 al 900 - para fondos, textos y elementos neutrales
+$gray-50: #f8fafc;
+$gray-100: #f1f5f9;
+$gray-200: #e2e8f0;
+$gray-300: #cbd5e1;
+$gray-400: #94a3b8;
+$gray-500: #64748b;
+$gray-600: #475569;
+$gray-700: #334155;
+$gray-800: #1e293b;
+$gray-900: #0f172a;
+
+// ===== ELEMENTO HOST PRINCIPAL =====
+:host {
+  display: block; // Establece el elemento como bloque para ocupar todo el ancho
+  width: 100vw; // Ancho completo del viewport
+  height: 100vh; // Altura completa del viewport
+  margin: 0; // Sin márgenes externos
+  padding: 0; // Sin relleno interno
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente de fondo gris claro
+  overflow: auto; // Permite scroll si el contenido excede el tamaño
+}
 
 // ===== CONTENEDOR PRINCIPAL =====
 .machines-container {
-  width: 100vw;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding-top: 64px;
-
-  .machines-content {
-    padding: 32px;
-    max-width: 1400px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-  }
+  display: flex; // Contenedor flexible para organizar elementos
+  flex-direction: column; // Organiza los elementos en columna (vertical)
+  width: 100%; // Ancho completo del contenedor padre
+  height: 100vh; // Altura completa del viewport
+  margin: 0; // Sin márgenes externos
+  padding: 0; // Sin relleno interno base
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente de fondo gris claro
+  overflow: hidden; // Oculta el contenido que excede el contenedor
+  padding-top: 16px; // Espacio superior de 16px
+  position: relative; // Posicionamiento relativo para elementos hijos absolutos
 }
 
-// ===== HEADER DEL MÓDULO HOMOGENEIZADO =====
+// ===== HEADER FIJO =====
 .machines-header {
-  margin-bottom: 32px;
+  position: relative; // Posicionamiento relativo para el pseudo-elemento ::before
+  background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
+  backdrop-filter: blur(20px); // Efecto de desenfoque del fondo (glassmorphism)
+  border-radius: 16px; // Bordes redondeados de 16px
+  padding: 16px; // Relleno interno de 16px en todos los lados
+  margin: 12px; // Margen externo de 12px
+  margin-bottom: 12px; // Margen inferior específico de 12px
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); // Sombra suave para efecto de elevación
+  border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
+  flex-shrink: 0; // Evita que el header se reduzca en contenedores flex
+  z-index: 100; // Apilamiento alto para mantener el header sobre otros elementos
+  margin-top: 55px; // Margen superior de 55px para espacio del navbar
+  
+  &::before {
+    content: ''; // Pseudo-elemento vacío para la barra superior
+    position: absolute; // Posicionamiento absoluto respecto al header
+    top: 0; // Alineado al borde superior
+    left: 0; // Alineado al borde izquierdo
+    right: 0; // Alineado al borde derecho
+    height: 4px; // Altura de 4px para la barra decorativa
+    background: $primary-blue; // Color azul primario para la barra
+  }
 
   .header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 24px;
+    display: flex; // Contenedor flexible para organizar título y acciones
+    justify-content: space-between; // Distribuye elementos con espacio entre ellos
+    align-items: center; // Alinea verticalmente al centro
+    width: 100%; // Ancho completo del header
+    min-height: 60px; // Altura mínima de 60px para el contenido
 
-    .header-info {
-      flex: 1;
-
-      .page-title {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #1e293b;
-        margin: 0 0 12px 0;
-
-        mat-icon {
-          font-size: 2.5rem;
-          width: 2.5rem;
-          height: 2.5rem;
-          color: $primary-blue;
-        }
-      }
-
-      .page-subtitle {
-        font-size: 1.1rem;
-        color: #64748b;
-        margin: 0;
-        font-weight: 500;
-        line-height: 1.5;
-      }
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-
-      button {
-        border-radius: 12px;
-        font-weight: 600;
-        text-transform: none;
-        padding: 12px 24px;
-        transition: all 0.3s ease;
-        min-height: 44px;
-
-        &.create-design-btn {
-          background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-          color: white;
-          border: none;
-          box-shadow: 0 4px 16px rgba($primary-blue, 0.3);
-
-          &:hover:not(:disabled) {
-            background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba($primary-blue, 0.4);
-          }
-
-          &:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: 0 2px 8px rgba($primary-blue, 0.2);
-          }
-        }
-
-        &.template-btn, &.ff459-btn {
-          border: 2px solid #e2e8f0;
-          color: #64748b;
-          background: white;
-
-          &:hover:not(:disabled) {
-            border-color: $primary-blue;
-            color: $primary-blue;
-            background: $primary-blue-50;
-            transform: translateY(-1px);
-          }
-
-          &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-        }
-
-        &.clear-btn {
-          border: 2px solid #fca5a5;
-          color: #dc2626;
-          background: white;
-
-          &:hover:not(:disabled) {
-            background: #fef2f2;
-            border-color: #dc2626;
-            transform: translateY(-1px);
-          }
-
-          &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-        }
-
-        &.debug-btn {
-          border: 2px solid #a855f7;
-          color: #7c3aed;
-          background: white;
-
-          &:hover:not(:disabled) {
-            background: #faf5ff;
-            border-color: #7c3aed;
-            transform: translateY(-1px);
-          }
-
-          &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-        }
-
-        &.mock-data-btn {
-          border: 2px solid #f59e0b;
-          color: #d97706;
-          background: white;
-
-          &:hover:not(:disabled) {
-            background: #fffbeb;
-            border-color: #d97706;
-            transform: translateY(-1px);
-          }
-
-          &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-        }
-
-        mat-icon {
-          margin-right: 8px;
-        }
-      }
-    }
-  }
-}
-
-// ===== LAYOUT DOS COLUMNAS =====
-.machines-layout-two-columns {
-  display: flex;
-  gap: 24px;
-  width: 100%;
-  min-height: calc(100vh - 200px);
-}
-
-// ===== SECCIÓN DE MÁQUINAS (COLUMNA IZQUIERDA) =====
-.machines-section {
-  width: 300px;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba($primary-blue, 0.12);
-  border: 2px solid rgba($primary-blue, 0.2);
-  transition: all 0.3s ease;
-
-  &:hover {
-    border-color: $primary-blue;
-    box-shadow: 0 12px 40px rgba($primary-blue, 0.2);
-    transform: translateY(-2px);
-  }
-
-  mat-card-header {
-    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-    color: white;
-    padding: 20px 24px;
-    border-radius: 16px 16px 0 0;
-
-    mat-card-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 0;
-      font-size: 1.3rem;
-      font-weight: 700;
-
-      mat-icon {
-        font-size: 1.5rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        color: rgba(255, 255, 255, 0.9);
-      }
-    }
-
-    .card-actions {
-      .machines-count {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 500;
-      }
+    @media (max-width: 768px) { // Responsive: pantallas menores a 768px
+      flex-direction: column; // Cambia a disposición vertical en móviles
+      gap: 12px; // Espacio de 12px entre elementos en móviles
     }
   }
 
-  mat-card-content {
-    padding: 24px;
-
-    .machines-grid-vertical {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-
-      .machine-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 2px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 16px;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-
-        // LED indicador
-        &::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 6px;
-          height: 20px;
-          border-radius: 0 10px 10px 0;
-          z-index: 10;
-          transition: all 0.3s ease;
-        }
-
-        &:hover {
-          border-color: $primary-blue-light;
-          transform: translateX(4px) translateY(-2px);
-          box-shadow: 0 8px 25px rgba($primary-blue-light, 0.2);
-          background: linear-gradient(135deg, #ffffff 0%, $primary-blue-50 100%);
-
-          .machine-icon {
-            transform: scale(1.1);
-            color: $primary-blue-light;
-          }
-
-          .machine-number {
-            color: $primary-blue-800;
-          }
-        }
-
-        &.selected {
-          border-color: $primary-blue;
-          background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-          color: white;
-          box-shadow: 0 8px 32px rgba($primary-blue, 0.4);
-          transform: translateX(6px) translateY(-3px);
-
-          .machine-icon {
-            color: $primary-blue-100;
-            transform: scale(1.15);
-          }
-
-          .machine-number {
-            color: white;
-            font-weight: 700;
-          }
-        }
-
-        // Estados del LED
-        &.machine-status-critical::before {
-          background: #dc2626;
-          box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
-          animation: ledBlinkRed 1s infinite;
-        }
-
-        &.machine-status-warning::before {
-          background: #f59e0b;
-          box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
-          animation: ledBlinkOrange 1.5s infinite;
-        }
-
-        &.machine-status-good::before {
-          background: #10b981;
-          box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
-          animation: ledBlinkGreen 2s infinite;
-        }
-
-        .machine-card-content {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          position: relative;
-          z-index: 2;
-
-          .machine-icon-wrapper {
-            .machine-icon {
-              font-size: 28px;
-              width: 28px;
-              height: 28px;
-              color: $primary-blue;
-              transition: all 0.4s ease;
-            }
-          }
-
-          .machine-info {
-            .machine-number {
-              font-size: 18px;
-              font-weight: 700;
-              color: #1e293b;
-              transition: all 0.3s ease;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-// ===== SECCIÓN DE PROGRAMACIÓN (COLUMNA DERECHA) =====
-.programming-section {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba($primary-blue, 0.12);
-  border: 2px solid rgba($primary-blue, 0.2);
-  transition: all 0.3s ease;
-
-  &:hover {
-    border-color: $primary-blue;
-    box-shadow: 0 12px 40px rgba($primary-blue, 0.2);
-    transform: translateY(-2px);
+  .header-info {
+    display: flex; // Contenedor flexible para título y subtítulo
+    flex-direction: column; // Organiza título y subtítulo en columna
+    gap: 4px; // Espacio de 4px entre título y subtítulo
+    flex: 1; // Ocupa el espacio disponible en el header
   }
 
-  mat-card-header {
-    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-    color: white;
-    padding: 20px 24px;
-    border-radius: 16px 16px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .page-title {
+    display: flex; // Contenedor flexible para icono y texto del título
+    align-items: center; // Alinea icono y texto verticalmente al centro
+    gap: 8px; // Espacio de 8px entre icono y texto
+    margin: 0; // Sin márgenes externos
+    color: #1f2937; // Color gris oscuro para el texto del título
+    font-size: 1.5rem; // Tamaño de fuente de 1.5rem (24px aprox)
+    font-weight: 700; // Peso de fuente bold (negrita)
 
-    mat-card-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 0;
-      font-size: 1.3rem;
-      font-weight: 700;
-
-      mat-icon {
-        font-size: 1.5rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        color: rgba(255, 255, 255, 0.9);
-      }
-    }
-
-    .card-actions {
-      .programming-stats {
-        display: flex;
-        gap: 20px;
-
-        .stat-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-
-          .stat-icon {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            mat-icon {
-              font-size: 20px;
-            }
-          }
-
-          .stat-content {
-            .stat-number {
-              display: block;
-              font-size: 1.5rem;
-              font-weight: 700;
-              color: white;
-              line-height: 1;
-            }
-
-            .stat-label {
-              display: block;
-              font-size: 0.8rem;
-              color: rgba(255, 255, 255, 0.8);
-              font-weight: 500;
-            }
-          }
-        }
-      }
+    mat-icon {
+      font-size: 24px; // Tamaño del icono de 24px
+      width: 24px; // Ancho del icono de 24px
+      height: 24px; // Altura del icono de 24px
+      color: $primary-blue; // Color azul primario para el icono
     }
   }
 
-  mat-card-content {
-    padding: 0;
-
-    .table-content {
-      .table-container {
-        overflow: auto;
-        max-height: calc(100vh - 400px);
-
-        .excel-table {
-          width: 100%;
-          background: white;
-
-          .excel-header {
-            background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
-            border-bottom: 3px solid $primary-blue;
-            padding: 12px 8px;
-            font-weight: 700;
-            color: $primary-blue-800;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-
-            .header-content {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-
-              mat-icon {
-                color: $primary-blue;
-                font-size: 16px;
-              }
-
-              span {
-                font-size: 12px;
-                font-weight: 700;
-              }
-            }
-          }
-
-          .excel-cell {
-            padding: 12px 8px;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: middle;
-            font-size: 12px;
-
-            &.article-cell .article-code {
-              font-weight: 700;
-              color: $primary-blue;
-              background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
-              padding: 4px 8px;
-              border-radius: 6px;
-              border: 1px solid $primary-blue-200;
-              display: inline-block;
-            }
-
-            &.operario-cell {
-              .operario-info {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-
-                .operario-avatar mat-icon {
-                  color: $primary-blue;
-                  font-size: 16px;
-                }
-
-                .operario-details {
-                  .operario-name {
-                    font-weight: 500;
-                    color: #1e293b;
-                    font-size: 12px;
-                  }
-
-                  .operario-time {
-                    color: #64748b;
-                    font-size: 10px;
-                  }
-                }
-              }
-
-              .no-operario {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                color: #94a3b8;
-                font-style: italic;
-                font-size: 12px;
-              }
-            }
-
-            &.estado-cell {
-              .estado-container {
-                .status-main .status-text {
-                  padding: 3px 8px;
-                  border-radius: 16px;
-                  font-size: 10px;
-                  font-weight: 600;
-                  text-transform: uppercase;
-
-                  &.status-listo {
-                    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-                    color: #166534;
-                    border: 1px solid #22c55e;
-                  }
-
-                  &.status-corriendo {
-                    background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%);
-                    color: $primary-blue-800;
-                    border: 1px solid $primary-blue;
-                  }
-
-                  &.status-suspendido {
-                    background: linear-gradient(135deg, #fed7d7 0%, #fca5a5 100%);
-                    color: #991b1b;
-                    border: 1px solid #ef4444;
-                  }
-
-                  &.status-terminado {
-                    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-                    color: #065f46;
-                    border: 1px solid #10b981;
-                  }
-                }
-              }
-            }
-
-            &.actions-cell {
-              .action-buttons-inline {
-                display: flex;
-                gap: 4px;
-                justify-content: center;
-
-                .action-btn-inline {
-                  width: 28px;
-                  height: 28px;
-                  border-radius: 6px;
-                  border: none;
-                  transition: all 0.3s ease;
-
-                  &:hover:not(:disabled) {
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                  }
-
-                  mat-icon {
-                    font-size: 14px;
-                  }
-                }
-              }
-            }
-          }
-
-          .excel-row {
-            transition: all 0.2s ease;
-
-            &:hover {
-              background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            }
-
-            &.status-row-corriendo {
-              border-left: 4px solid $primary-blue;
-              background: linear-gradient(90deg, rgba($primary-blue, 0.05) 0%, transparent 100%);
-            }
-
-            &.status-row-listo {
-              border-left: 4px solid #16a34a;
-            }
-
-            &.status-row-suspendido {
-              border-left: 4px solid #dc2626;
-            }
-
-            &.status-row-terminado {
-              border-left: 4px solid #059669;
-            }
-          }
-        }
-
-        .no-data {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 80px 20px;
-          text-align: center;
-          color: #64748b;
-
-          mat-icon {
-            font-size: 64px;
-            width: 64px;
-            height: 64px;
-            color: #cbd5e1;
-            margin-bottom: 16px;
-          }
-
-          p {
-            font-size: 16px;
-            font-weight: 500;
-            margin: 0 0 16px 0;
-          }
-
-          .no-data-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-
-            .reload-btn {
-              background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-              color: white;
-              border: none;
-              border-radius: 8px;
-              padding: 12px 24px;
-              font-weight: 600;
-
-              &:hover {
-                background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%);
-                transform: translateY(-1px);
-              }
-            }
-
-            .load-excel-btn {
-              border: 2px solid $primary-blue;
-              color: $primary-blue;
-              background: white;
-              border-radius: 8px;
-              padding: 12px 24px;
-              font-weight: 600;
-
-              &:hover {
-                background: $primary-blue-50;
-                transform: translateY(-1px);
-              }
-            }
-          }
-
-          .loading-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-
-            mat-icon.spinning {
-              animation: spin 1s linear infinite;
-              color: $primary-blue;
-            }
-
-            p {
-              color: $primary-blue;
-              font-weight: 500;
-            }
-          }
-        }
-
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      }
-    }
+  .page-subtitle {
+    margin: 4px 0 0 0; // Margen superior de 4px, resto en 0
+    color: #4b5563; // Color gris medio para el subtítulo
+    font-size: 0.9rem; // Tamaño de fuente de 0.9rem (14.4px aprox)
+    font-weight: 500; // Peso de fuente medio
   }
-}
 
-// ===== DROPDOWN DE COLORES =====
-.colors-cell {
-  position: relative;
-  overflow: visible !important;
+  .header-actions {
+    display: flex; // Contenedor flexible para los botones de acción
+    gap: 8px; // Espacio de 8px entre botones
+    align-items: center; // Alinea botones verticalmente al centro
 
-  .colors-cell-container {
-    position: relative;
-
-    .colors-toggle-btn-modern {
-      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
-      border: 2px solid #e2e8f0 !important;
-      border-radius: 8px !important;
-      transition: all 0.3s ease !important;
-      width: 40px !important;
-      height: 40px !important;
+    button {
+      padding: 8px 16px; // Relleno interno: 8px vertical, 16px horizontal
+      border-radius: 12px; // Bordes redondeados de 12px
+      font-size: 0.9rem; // Tamaño de fuente de 0.9rem (14.4px aprox)
+      font-weight: 600; // Peso de fuente semi-bold
+      transition: all 0.2s ease; // Transición suave de 0.2s para todas las propiedades
 
       &:hover {
-        background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%) !important;
-        border-color: $primary-blue !important;
+        transform: translateY(-1px); // Eleva el botón 1px al pasar el mouse
       }
 
-      &.active {
-        background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%) !important;
-        border-color: $primary-blue !important;
-
-        .colors-icon-container .colors-icon {
-          color: white !important;
-        }
-
-        .colors-badge {
-          background: white !important;
-          color: $primary-blue !important;
-        }
-      }
-
-      .colors-icon-container {
-        .colors-icon {
-          color: $primary-blue;
-          font-size: 20px;
-        }
-
-        .colors-badge {
-          position: absolute;
-          top: -6px;
-          right: -6px;
-          background: $primary-blue;
-          color: white;
-          border-radius: 50%;
-          width: 16px;
-          height: 16px;
-          font-size: 10px;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
+      mat-icon {
+        font-size: 20px; // Tamaño del icono de 20px
+        width: 20px; // Ancho del icono de 20px
+        height: 20px; // Altura del icono de 20px
       }
     }
 
-    .colors-dropdown {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      z-index: 1000;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-      border: 2px solid $primary-blue;
-      min-width: 250px;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.2s ease;
+    .refresh-btn {
+      width: 40px; // Ancho fijo de 40px para botón circular
+      height: 40px; // Altura fija de 40px para botón circular
+      border-radius: 50%; // Bordes completamente redondeados (círculo)
+      padding: 0; // Sin relleno interno para centrar el icono
 
-      &.visible {
-        opacity: 1;
-        visibility: visible;
-      }
-
-      .colors-dropdown-content {
-        padding: 16px;
-
-        .colors-dropdown-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 12px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #e2e8f0;
-
-          mat-icon {
-            color: $primary-blue;
-          }
-
-          span {
-            font-weight: 600;
-            color: #1e293b;
-            flex: 1;
-          }
-        }
-
-        .colors-dropdown-list {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-          gap: 8px;
-
-          .color-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 8px;
-            background: #f8fafc;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
-
-            &:hover {
-              background: $primary-blue-50;
-              border-color: $primary-blue;
-            }
-
-            .color-number {
-              background: $primary-blue;
-              color: white;
-              width: 16px;
-              height: 16px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 10px;
-              font-weight: 600;
-            }
-
-            .color-name {
-              font-size: 11px;
-              font-weight: 500;
-              color: #1e293b;
-            }
-          }
-        }
+      &:hover {
+        transform: translateY(-1px) scale(1.05); // Eleva y agranda ligeramente al hover
       }
     }
   }
 }
 
-// ===== DIÁLOGO DE SUSPENSIÓN =====
-.suspend-dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+// ===== ÁREA DE CONTENIDO SCROLLABLE =====
+.scrollable-content-area {
+  flex: 1; // Ocupa todo el espacio disponible en el contenedor padre
+  padding: 0 12px; // Relleno horizontal de 12px, sin relleno vertical
+  overflow: hidden; // Oculta el contenido que excede el área
+  display: flex; // Contenedor flexible para organizar el layout
+  flex-direction: column; // Organiza elementos en columna
+  min-height: 0; // Permite que el contenedor se reduzca correctamente en flex
+  max-height: calc(100vh - 200px); // Altura máxima: viewport menos 200px para header y márgenes
 
-  .suspend-dialog {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    width: 90%;
-    overflow: hidden;
+  .machines-layout {
+    display: grid; // Layout de cuadrícula para máquinas y programación
+    grid-template-columns: 350px 1fr; // Columna izquierda fija de 350px, derecha flexible
+    gap: 24px; // Espacio de 24px entre columnas
+    flex: 1; // Ocupa todo el espacio disponible
+    overflow: hidden; // Oculta el contenido que excede el layout
 
-    .suspend-dialog-header {
-      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-      color: white;
-      padding: 20px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    @media (max-width: 1200px) { // Responsive: pantallas menores a 1200px
+      grid-template-columns: 300px 1fr; // Reduce columna izquierda a 300px
+      gap: 20px; // Reduce espacio entre columnas a 20px
+    }
 
-      h3 {
-        margin: 0;
+    @media (max-width: 768px) { // Responsive: pantallas menores a 768px (móviles)
+      grid-template-columns: 1fr; // Una sola columna en móviles
+      gap: 16px; // Reduce espacio entre elementos a 16px
+    }
+  }
+}
+
+// ===== SECCIÓN DE MÁQUINAS =====
+.machines-section {
+  display: flex; // Contenedor flexible para la lista de máquinas
+  flex-direction: column; // Organiza elementos en columna vertical
+  overflow: hidden; // Oculta el contenido que excede el área
+  height: 100%; // Altura completa del contenedor padre
+  width: 270px; // Ancho fijo de 250px
+  //transform: scale(0.8); // Reduce el tamaño al 80% para ajustar visualmente
+  //margin: 0px; // Margen externo de 5px en todos los lados
+//  padding: 0px; // Relleno interno de 5px en todos los lados
+  //width: 80%; // Ancho del 50% (sobrescribe el width anterior)
+  //font-size: 1em; // Tamaño de fuente base de 1em
+
+  .machines-card {
+    flex: 1; // Ocupa todo el espacio disponible en la sección
+    display: flex; // Contenedor flexible para header y contenido
+    flex-direction: column; // Organiza header y contenido en columna
+    background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
+    backdrop-filter: blur(20px); // Efecto de desenfoque del fondo (glassmorphism)
+    border-radius: 20px; // Bordes redondeados de 20px
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); // Sombra suave para efecto de elevación
+    border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
+    overflow: hidden; // Oculta el contenido que excede la tarjeta
+    position: relative; // Posicionamiento relativo para el pseudo-elemento
+
+    &::before {
+      content: ''; // Pseudo-elemento vacío para la barra superior
+      position: absolute; // Posicionamiento absoluto respecto a la tarjeta
+      top: 0; // Alineado al borde superior
+      left: 0; // Alineado al borde izquierdo
+      right: 0; // Alineado al borde derecho
+      height: 4px; // Altura de 4px para la barra decorativa
+      background: $primary-blue; // Color azul primario para la barra
+      z-index: 1; // Apilamiento para mantener la barra visible
+    }
+
+    mat-card-header {
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba($gray-200, 0.3);
+      padding: 12px 16px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
+
+      mat-card-title {
         display: flex;
         align-items: center;
         gap: 12px;
-        font-size: 18px;
-        font-weight: 600;
-      }
-    }
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.3rem;
+        font-weight: 700;
 
-    .suspend-dialog-content {
-      padding: 24px;
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+          color: $primary-blue;
+        }
 
-      .reason-section {
-        .predefined-reasons {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 16px;
-
-          .reason-chip {
-            background: #f1f5f9;
-            border: 2px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 14px;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.3s ease;
-
-            &:hover {
-              border-color: $primary-blue;
-              color: $primary-blue;
-            }
-
-            &.selected {
-              background: $primary-blue;
-              border-color: $primary-blue;
-              color: white;
-            }
-          }
+        span {
+          color: #4b5563;
+          font-size: 0.8rem;
+          font-weight: 500;
         }
       }
     }
 
-    .suspend-dialog-actions {
-      padding: 16px 24px;
-      border-top: 1px solid #e2e8f0;
+    mat-card-content {
+      flex: 1;
+      padding: 0;
+      overflow: hidden;
       display: flex;
-      gap: 12px;
-      justify-content: flex-end;
+      flex-direction: column;
     }
   }
-}
 
-// ===== ANIMACIONES LED =====
-@keyframes ledBlinkRed {
-  0%, 100% {
-    opacity: 1;
-    background: #dc2626;
-  }
-  50% {
-    opacity: 0.3;
-    background: rgba(220, 38, 38, 0.3);
-  }
-}
+  .machines-container-inner {
+    flex: 1;      //el espacio ble en el conten
+    overflow: auto; // Permite scroll vertical y horizontal si es necesario
+    padding: 16px; // Relleno interno en todos los lados
 
-@keyframes ledBlinkOrange {
-  0%, 100% {
-    opacity: 1;
-    background: #f59e0b;
-  }
-  50% {
-    opacity: 0.3;
-    background: rgba(245, 158, 11, 0.3);
-  }
-}
+    &::-webkit-scrollbar {
+      width: 8px; //  de la barra de scroll de 8px
+    }
 
-@keyframes ledBlinkGreen {
-  0%, 100% {
-    opacity: 1;
-    background: #10b981;
-  }
-  50% {
-    opacity: 0.3;
-    background: rgba(16, 185, 129, 0.3);
-  }
-}
+    &::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.8); // Fondo gris claro semi-transparente para el track
+      border-radius: 4px; // Bordes redondeados de 4px para el track
+    }
 
-// ===== RESPONSIVE DESIGN =====
-@media (max-width: 1200px) {
-  .machines-layout-two-columns {
-    gap: 16px;
-  }
+    &::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, $primary-blue-300, $primary-blue-500); // Gradiente azul para el thumb
+      border-radius: 4px; // Bordes redondeados de 4px para el thumb
+      transition: all 0.3s ease; // Transición suave de 0.3s para efectos hover
+    }
 
-  .machines-section {
-    width: 280px;
-  }
-}
+    .machines-grid {
+      display: grid; // Layout de cuadrícula para las tarjetas de máquinas
+      grid-template-columns: 1fr; // Una sola columna que ocupa todo el ancho
+      gap: 12px; // Espacio de 12px entre tarjetas
 
-@media (max-width: 768px) {
-  .machines-container .machines-content {
-    padding: 16px;
-  }
+      .excel-machine-card {
+        background: #f8fafc !important; // Fondo gris muy claro (estilo Excel)
+        border: 2px solid #e2e8f0 !important; // Borde gris claro de 2px
+        border-radius: 12px !important; // Bordes redondeados de 12px
+        padding: 16px !important; // Relleno interno de 16px en todos los lados
+        transition: all 0.3s ease !important; // Transición suave de 0.3s para todos los cambios
+        text-align: left !important; // Alineación del texto a la izquierda
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); // Sombra suave para efecto de elevación
 
-  .machines-layout-two-columns {
-    flex-direction: column;
-    gap: 16px;
-  }
+        &:hover {
+          background: $primary-blue-50 !important; // Fondo azul muy claro al pasar el mouse
+          border-color: $primary-blue !important; // Borde azul primario al hover
+          transform: translateY(-2px); // Eleva la tarjeta 2px al hover
+          box-shadow: 0 4px 12px rgba($primary-blue, 0.2); // Sombra azul más pronunciada al hover
+        }
 
-  .machines-section {
-    width: 100%;
+        &.selected {
+          background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%) !important; // Gradiente azul para máquina seleccionada
+          border-color: $primary-blue !important; // Borde azul primario para selección
+          color: white !important; // Texto blanco para contraste en selección
+          box-shadow: 0 6px 20px rgba($primary-blue, 0.4); // Sombra azul intensa para selección
 
-    .machines-grid-vertical {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
+          .machine-card-content {
+            .machine-icon-wrapper .machine-icon,
+            .machine-info .machine-number,
+            .machine-info .machine-status {
+              color: white !important; // Texto e iconos blancos cuando está seleccionada
+            }
+          }
+        }
 
-      .machine-card {
         .machine-card-content {
-          flex-direction: column;
-          gap: 8px;
-          text-align: center;
+          display: flex; // Contenedor flexible para icono, info y LED
+          align-items: center; // Alinea elementos verticalmente al centro
+          gap: 12px; // Espacio de 12px entre elementos
 
           .machine-icon-wrapper .machine-icon {
-            font-size: 24px;
+            color: $primary-blue; // Color azul primario para el icono de máquina
+            font-size: 24px; // Tamaño del icono de 24px
+            width: 24px; // Ancho del icono de 24px
+            height: 24px; // Altura del icono de 24px
           }
 
-          .machine-info .machine-number {
-            font-size: 16px;
+          .machine-info {
+            flex: 1; // Ocupa el espacio disponible entre icono y LED
+
+            .machine-number {
+              display: block; // Elemento de bloque para ocupar línea completa
+              font-weight: 600 ;//eso de fuente semi-bold para el número
+              font-size: 14px; // Tamaño de fuente de 14px
+              color: #1e293b; // Color gris oscuro para el número de máquina
+              margin-bottom: 4px; // Margen inferior de 4px para separar del estado
+            }
+
+            .machine-status {
+              display: block; // Elemento de bloque para par línea completa
+              font-size: 12px; // Tamaño de fuente de 12px para el estado
+              color: #64748b; // Color gris medio para el texto del estado
+            }
           }
+
+          // ===== INDICADOR LED DE ESTADO =====
+          .machine-status-indicator {
+            width: 12px; // Ancho del LED de 12px
+            height: 12px; // Altura del LED de 12px
+            border-radius: 50%; // Bordes completamente redondeados (círculo)
+            background: #10b981; // Color verde para estado bueno por defecto
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); // Sombra verde brillante para efecto LED
+            flex-shrink: 0; // Evita que el LED se reduzca en contenedores flex
+            animation: ledBlinkGood 2s infinite; // Animación de parpadeo lento (2s) infinita
+          }
+        }
+
+        // Estados del indicador LED basados en cantidad de pedidos listos
+        &.machine-status-critical .machine-status-indicator {
+          background: #dc2626; // Color rojo para estado crítico (muchos pedidos listos)
+          box-shadow: 0 0 8px rgba(220, 38, 38, 0.5); // Sombra roja brillante
+          animation: ledBlinkCritical 1s infinite; // Parpadeo rápido (1s) para urgencia
+        }
+
+        &.machine-status-warning .machine-status-indicator {
+          background: #f59e0b; // Color ámbar para estado de advertencia (algunos pedidos listos)
+          box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); // Sombra ámbar brillante
+          animation: ledBlinkWarning 1.5s infinite; // Parpadeo medio (1.5s) para alerta
+        }
+
+        &.machine-status-good .machine-status-indicator {
+          background: #10b981; // Color verde para estado bueno (pocos pedidos listos)
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); // Sombra verde brillante
+          animation: ledBlinkGood 2s infinite; // Parpadeo lento (2s) para estado normal
         }
       }
     }
   }
 
-  .programming-section {
-    mat-card-header {
-      flex-direction: column;
-      gap: 16px;
-      align-items: stretch;
+  .selected-machine-info {
+    margin-top: 16px; // Margen superior de 16px para separar de la lista
+    flex-shrink: 0; // Evita que la info se reduzca en contenedores flex
+  }
+}
 
-      .card-actions .programming-stats {
-        justify-content: center;
+// ===== SECCIÓN DE PROGRAMACIÓN =====
+.programming-section {
+  display: flex; // Contenedor flexible para la tabla de programación
+  flex-direction: column; // Organiza elementos en columna vertical
+  overflow: hidden; // Oculta el contenido que excede el área
+  height: 100%; // Altura completa del contenedor padre
+
+  .programming-card {
+    flex: 1; // Ocupa todo el espacio disponible en la sección
+    display: flex; // Contenedor flexible para header y tabla
+    flex-direction: column; // Organiza header y tabla en columna
+    background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
+    backdrop-filter: blur(20px); // Efecto de desenfoque del fondo (glassmorphism)
+    border-radius: 20px; // Bordes redondeados de 20px
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); // Sombra suave para efecto de elevación
+    border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
+    overflow: hidden; // Oculta el contenido que excede la tarjeta
+    position: relative; // Posicionamiento relativo para el pseudo-elemento
+
+    &::before {
+      content: ''; // Pseudo-elemento vacío para la barra superior
+      position: absolute; // Posicionamiento absoluto respecto a la tarjeta
+      top: 0; // Alineado al borde superior
+      left: 0; // Alineado al borde izquierdo
+      right: 0; // Alineado al borde derecho
+      height: 4px; // Altura de 4px para la barra decorativa
+      background: $primary-blue; // Color azul primario para la barra
+      z-index: 1; // Apilamiento para mantener la barra visible
+    }
+
+    mat-card-header {
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba($gray-200, 0.3);
+      padding: 12px 16px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
+
+      mat-card-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.3rem;
+        font-weight: 700;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+          color: $primary-blue;
+        }
+
+        span {
+          color: #4b5563;
+          font-size: 0.8rem;
+          font-weight: 500;
+        }
       }
     }
+
+    mat-card-content {
+      flex: 1;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  .programming-table-container {
+    flex: 1; // Ocupa todo el espacio disponible para la tabla
+    overflow: auto; // Permite scroll vertical y horizontal si es necesario
+    position: relative; // Posicionamiento relativo para elementos hijos
+
+    &::-webkit-scrollbar {
+      width: 14px; // Ancho de la barra de scroll vertical de 14px
+      height: 14px; // Altura de la barra de scroll horizontal de 14px
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.8); // Fondo gris claro semi-transparente para el track
+      border-radius: 8px; // Bordes redondeados de 8px para el track
+      margin: 4px; // Margen de 4px alrededor del track
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, $primary-blue-300, $primary-blue-500); // Gradiente azul para el thumb
+      border-radius: 8px; // Bordes redondeados de 8px para el thumb
+      border: 2px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
+      transition: all 0.3s ease; // Transición suave de 0.3s para efectos hover
+    }
+
+    .programs-table {
+      .excel-table {
+        width: 100%; // Ancho completo del contenedor
+        min-width: 1000px; // Ancho mínimo de 1000px para mantener columnas legibles
+        background: white; // Fondo blanco para la tabla
+        border-collapse: separate; // Bordes separados para permitir border-radius
+        border-spacing: 0; // Sin espacio entre celdas
+        border-radius: 2px; // Bordes ligeramente redondeados de 2px
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); // Sombra suave para efecto de elevación
+        border: 2px solid #e2e8f0; // Borde gris claro de 2px
+        border-top: 3px solid $primary-blue; // Borde superior azul de 3px para destacar
+
+        .excel-header {
+          background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%); // Gradiente gris para el header
+          color: $gray-700; // Color gris oscuro para el texto del header
+          font-family: Arial, sans-serif; // Fuente Arial para estilo Excel
+          font-weight: 700; // Peso de fuente bold (negrita)
+          font-size: 12px; // Tamaño de fuente de 12px
+          text-transform: uppercase; // Texto en mayúsculas para el header
+          padding: 14px 12px; // Relleno: 14px vertical, 12px horizontal
+          border-bottom: 2px solid $primary-blue; // Borde inferior azul de 2px
+          border-right: 1px solid $gray-300; // Borde derecho gris para separar columnas
+          position: sticky !important; // Posición fija al hacer scroll (importante)
+          top: 0 !important; // Fijado en la parte superior (importante)
+          z-index: 100 !important; // Apilamiento alto para mantener visible (importante)
+          backdrop-filter: blur(10px); // Efecto de desenfoque del fondo
+
+          .header-content {
+            display: flex; // Contenedor flexible para icono y texto
+            align-items: center; // Alinea icono y texto verticalmente al centro
+            gap: 4px; // Espacio de 4px entre icono y texto
+
+            mat-icon {
+              font-size: 14px; // Tamaño del icono de 14px
+              width: 14px; // Ancho del icono de 14px
+              height: 14px; // Altura del icono de 14px
+              color: $primary-blue; // Color azul primario para el icono
+            }
+
+            span {
+              font-size: 12px; // Tamaño de fuente de 12px para el texto
+              font-weight: 700; // Peso de fuente bold (negrita)
+            }
+          }
+        }
+
+        .excel-cell {
+          padding: 12px 10px; // Relleno: 12px vertical, 10px horizontal
+          border-bottom: 1px solid #e2e8f0; // Borde inferior gris claro de 1px
+          border-right: 1px solid #f1f5f9; // Borde derecho gris muy claro de 1px
+          background: white; // Fondo blanco para las celdas
+          font-size: 12px !important; // Tamaño de fuente de 12px (importante)
+          vertical-align: middle; // Alineación vertical centrada del contenido
+          transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+          min-height: 48px; // Altura mínima de 48px para las celdas
+        }
+
+        .excel-row {
+          transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+          &:hover {
+            box-shadow: 0 4px 12px rgba($primary-blue, 0.15); // Sombra azul al pasar el mouse
+            transform: translateY(-1px); // Eleva la fila 1px al hover
+
+            .excel-cell {
+              background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente gris para celdas al hover
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// ===== ESTILOS ESPECÍFICOS POR COLUMNA =====
+.article-cell .article-code {
+  color: $primary-blue; // Color azul primario para el código de artículo
+  font-weight: 700; // Peso de fuente bold (negrita)
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente gris para el fondo
+  padding: 6px 10px; // Relleno: 6px vertical, 10px horizontal
+  border-radius: 8px; // Bordes redondeados de 8px
+  border: 1px solid $gray-200; // Borde gris claro de 1px
+  display: inline-block; // Elemento inline-block para ajustar al contenido
+  transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+  &:hover {
+    background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%); // Gradiente gris más oscuro al hover
+    border-color: $primary-blue; // Borde azul al hover
+    transform: translateY(-1px); // Eleva el elemento 1px al hover
+  }
+}
+
+.otsap-cell .otsap-code {
+  color: $primary-blue; // Color azul primario para el código OTSAP
+  font-weight: 700; // Peso de fuente bold (negrita)
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente gris para el fondo
+  padding: 6px 10px; // Relleno: 6px vertical, 10px horizontal
+  border-radius: 8px; // Bordes redondeados de 8px
+  border: 1px solid $gray-200; // Borde gris claro de 1px
+  display: inline-block; // Elemento inline-block para ajustar al contenido
+  transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+  &:hover {
+    background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%); // Gradiente gris más oscuro al hover
+    border-color: $primary-blue; // Borde azul al hover
+    transform: translateY(-1px); // Eleva el elemento 1px al hover
+  }
+}
+
+.client-cell .client-name {
+  color: $gray-700; // Color gris oscuro para el nombre del cliente
+  font-weight: 600; // Peso de fuente semi-bold
+  padding: 4px 8px; // Relleno: 4px vertical, 8px horizontal
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente gris para el fondo
+  border-radius: 6px; // Bordes redondeados de 6px
+  border: 1px solid $gray-200; // Borde gris claro de 1px
+  display: inline-block; // Elemento inline-block para ajustar al contenido
+  transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+  &:hover {
+    background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%); // Gradiente gris más oscuro al hover
+    color: $primary-blue; // Cambia el texto a azul al hover
+    transform: translateY(-1px); // Eleva el elemento 1px al hover
+  }
+}
+
+.kilos-cell {
+  text-align: center; // Alineación centrada del contenido de la celda
+
+  .kilos-info {
+    display: flex; // Contenedor flexible para número y unidad
+    align-items: center; // Alinea número y unidad verticalmente al centro
+    justify-content: center; // Centra horizontalmente el contenido
+    gap: 4px; // Espacio de 4px entre número y unidad
+
+    .kilos-number {
+      font-weight: 700; // Peso de fuente bold (negrita) para el número
+      color: #1e293b; // Color gris oscuro para el número de kilos
+    }
+
+    .kilos-unit {
+      font-size: 0.75rem; // Tamaño de fuente de 0.75rem (12px aprox) para la unidad
+      color: #64748b; // Color gris medio para la unidad "kg"
+      font-weight: 500; // Peso de fuente medio
+    }
+  }
+}
+
+// Estados con colores brillantes
+.status-cell {
+  text-align: center; // Alineación centrada del contenido de la celda
+
+  .estado-container .status-main .status-text-display {
+    display: inline-block; // Elemento inline-block para ajustar al contenido
+    padding: 4px 12px; // Relleno: 4px vertical, 12px horizontal
+    border-radius: 20px; // Bordes muy redondeados (píldora) de 20px
+    font-size: 12px; // Tamaño de fuente de 12px
+    font-weight: 800; // Peso de fuente extra-bold (muy negrita)
+    text-transform: uppercase; // Texto en mayúsculas para énfasis
+    transition: all 0.3s ease; // Transición suave de 0.3s para efectos hover
+
+    &.status-listo {
+      background: #10b981 !important; // Fondo verde para estado "Listo" (importante)
+      color: white !important; // Texto blanco para contraste (importante)
+      border: 2px solid #047857; // Borde verde oscuro de 2px
+
+      &:hover {
+        background: #059669 !important; // Fondo verde más oscuro al hover (importante)
+        transform: translateY(-2px) scale(1.05); // Eleva 2px y agranda 5% al hover
+      }
+    }
+
+    &.status-corriendo {
+      background: $primary-blue !important; // Fondo azul para estado "Corriendo" (importante)
+      color: white !important; // Texto blanco para contraste (importante)
+      border: 2px solid $primary-blue-dark; // Borde azul oscuro de 2px
+
+      &:hover {
+        background: $primary-blue-light !important; // Fondo azul más claro al hover (importante)
+        transform: translateY(-2px) scale(1.05); // Eleva 2px y agranda 5% al hover
+      }
+    }
+
+    &.status-suspendido {
+      background: #ef4444 !important; // Fondo rojo para estado "Suspendido" (importante)
+      color: white !important; // Texto blanco para contraste (importante)
+      border: 2px solid #b91c1c; // Borde rojo oscuro de 2px
+
+      &:hover {
+        background: #dc2626 !important; // Fondo rojo más oscuro al hover (importante)
+        transform: translateY(-2px) scale(1.05); // Eleva 2px y agranda 5% al hover
+      }
+    }
+
+    &.status-terminado {
+      background: #059669 !important; // Fondo verde oscuro para estado "Terminado" (importante)
+      color: white !important; // Texto blanco para contraste (importante)
+      border: 2px solid #047857; // Borde verde muy oscuro de 2px
+
+      &:hover {
+        background: #047857 !important; // Fondo verde aún más oscuro al hover (importante)
+        transform: translateY(-2px) scale(1.05); // Eleva 2px y agranda 5% al hover
+      }
+    }
+  }
+
+  .motivo-suspendido {
+    margin-top: 4px; // Margen superior de 4px para separar del estado
+    font-style: italic; // Texto en cursiva para el motivo
+    color: #dc2626; // Color rojo para el motivo de suspensión
+    font-size: 11px; // Tamaño de fuente pequeño de 11px
+  }
+}
+
+.actions-cell {
+  text-align: center; // Alineación centrada del contenido de la celda
+
+  .action-buttons {
+    display: flex; // Contenedor flexible para los botones de acción
+    gap: 6px; // Espacio de 6px entre botones
+    justify-content: center; // Centra horizontalmente los botones
+
+    .action-btn {
+      width: 36px; // Ancho fijo de 36px para botones cuadrados
+      height: 36px; // Altura fija de 36px para botones cuadrados
+      border-radius: 8px; // Bordes redondeados de 8px
+      border: none; // Sin borde para los botones
+      transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px); // Eleva el botón 1px al hover (si no está deshabilitado)
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); // Sombra al hover para efecto de elevación
+      }
+
+      mat-icon {
+        font-size: 18px; // Tamaño del icono de 18px
+        width: 18px; // Ancho del icono de 18px
+        height: 18px; // Altura del icono de 18px
+      }
+
+      &.listo-btn {
+        background: #dcfce7; // Fondo verde claro para botón "Listo"
+        color: #166534; // Color verde oscuro para el icono
+
+        &:hover:not(:disabled) {
+          background: #bbf7d0; // Fondo verde más intenso al hover
+        }
+      }
+
+      &.corriendo-btn {
+        background: $primary-blue-100; // Fondo azul claro para botón "Corriendo"
+        color: $primary-blue-800; // Color azul oscuro para el icono
+
+        &:hover:not(:disabled) {
+          background: $primary-blue-200; // Fondo azul más intenso al hover
+        }
+      }
+
+      &.suspendido-btn {
+        background: #fed7d7; // Fondo rojo claro para botón "Suspendido"
+        color: #991b1b; // Color rojo oscuro para el icono
+
+        &:hover:not(:disabled) {
+          background: #fca5a5; // Fondo rojo más intenso al hover
+        }
+      }
+
+      &.terminado-btn {
+        background: #d1fae5; // Fondo verde agua claro para botón "Terminado"
+        color: #065f46; // Color verde oscuro para el icono
+
+        &:hover:not(:disabled) {
+          background: #a7f3d0; // Fondo verde agua más intenso al hover
+        }
+      }
+    }
+  }
+}
+
+// Filas con indicadores de estado
+.status-row-corriendo {
+  border-left: 4px solid $primary-blue; // Borde izquierdo azul de 4px para estado "Corriendo"
+  background: linear-gradient(90deg, rgba($primary-blue, 0.05) 0%, transparent 100%); // Gradiente azul sutil de izquierda a derecha
+}
+
+.status-row-listo {
+  border-left: 4px solid #16a34a; // Borde izquierdo verde de 4px para estado "Listo"
+  background: linear-gradient(90deg, rgba(22, 163, 74, 0.05) 0%, transparent 100%); // Gradiente verde sutil de izquierda a derecha
+}
+
+.status-row-suspendido {
+  border-left: 4px solid #dc2626; // Borde izquierdo rojo de 4px para estado "Suspendido"
+  background: linear-gradient(90deg, rgba(220, 38, 38, 0.05) 0%, transparent 100%); // Gradiente rojo sutil de izquierda a derecha
+}
+
+.status-row-terminado {
+  border-left: 4px solid #059669; // Borde izquierdo verde oscuro de 4px para estado "Terminado"
+  background: linear-gradient(90deg, rgba(5, 150, 105, 0.05) 0%, transparent 100%); // Gradiente verde oscuro sutil de izquierda a derecha
+}
+
+// Mensajes de estado
+.no-data {
+  display: flex; // Contenedor flexible para centrar el mensaje
+  flex-direction: column; // Organiza elementos en columna vertical
+  align-items: center; // Centra horizontalmente los elementos
+  justify-content: center; // Centra verticalmente los elementos
+  padding: 80px 20px; // Relleno: 80px vertical, 20px horizontal
+  text-align: center; // Alineación centrada del texto
+  color: #64748b; // Color gris medio para el texto
+
+  mat-icon {
+    font-size: 64px; // Tamaño del icono grande de 64px
+    width: 64px; // Ancho del icono de 64px
+    height: 64px; // Altura del icono de 64px
+    color: #cbd5e1; // Color gris claro para el icono
+    margin-bottom: 16px; // Margen inferior de 16px para separar del texto
+  }
+
+  h3 {
+    font-size: 18px; // Tamaño de fuente de 18px para el título
+    font-weight: 600; // Peso de fuente semi-bold
+    margin: 0 0 8px 0; // Margen inferior de 8px, resto en 0
+    color: #1e293b; // Color gris oscuro para el título
+  }
+
+  p {
+    font-size: 14px; // Tamaño de fuente de 14px para el párrafo
+    margin: 0 0 16px 0; // Margen inferior de 16px, resto en 0
+  }
+
+  .loading-indicator {
+    display: flex; // Contenedor flexible para el indicador de carga
+    flex-direction: column; // Organiza icono y texto en columna
+    align-items: center; // Centra horizontalmente los elementos
+    gap: 16px; // Espacio de 16px entre icono y texto
+
+    mat-icon.spinning {
+      animation: spin 1s linear infinite; // Animación de rotación continua de 1s
+      color: $primary-blue; // Color azul primario para el icono giratorio
+    }
+
+    p {
+      color: $primary-blue; // Color azul primario para el texto de carga
+      font-weight: 500; // Peso de fuente medio
+    }
+  }
+}
+
+// ===== ANIMACIONES DEL INDICADOR LED =====
+@keyframes ledBlinkCritical {
+  0%, 50% { // Del 0% al 50% del ciclo: LED encendido
+    opacity: 1; // Opacidad completa (LED brillante)
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.8); // Sombra roja intensa
+  }
+  51%, 100% { // Del 51% al 100% del ciclo: LED apagado
+    opacity: 0.3; // Opacidad reducida (LED tenue)
+    box-shadow: 0 0 4px rgba(220, 38, 38, 0.3); // Sombra roja suave
+  }
+}
+
+@keyframes ledBlinkWarning {
+  0%, 60% { // Del 0% al 60% del ciclo: LED encendido
+    opacity: 1; // Opacidad completa (LED brillante)
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.8); // Sombra ámbar intensa
+  }
+  61%, 100% { // Del 61% al 100% del ciclo: LED apagado
+    opacity: 0.4; // Opacidad reducida (LED tenue)
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.3); // Sombra ámbar suave
+  }
+}
+
+@keyframes ledBlinkGood {
+  0%, 70% { // Del 0% al 70% del ciclo: LED encendido
+    opacity: 1; // Opacidad completa (LED brillante)
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.8); // Sombra verde intensa
+  }
+  71%, 100% { // Del 71% al 100% del ciclo: LED apagado
+    opacity: 0.5; // Opacidad reducida (LED tenue)
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.3); // Sombra verde suave
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); } // Inicio: sin rotación
+  100% { transform: rotate(360deg); } // Fin: rotación completa de 360 grados
+}
+
+// Responsive design
+@media (max-width: 768px) { // Estilos para pantallas menores a 768px (móviles y tablets)
+  .machines-container {
+    padding-top: 8px; // Reduce el relleno superior a 8px en móviles
+  }
+
+  .machines-header {
+    padding: 12px 16px; // Reduce el relleno del header en móviles
+    margin: 8px; // Reduce el margen del header a 8px
+
+    .header-actions .load-programming-btn {
+      width: 100%; // Botón ocupa todo el ancho en móviles
+      justify-content: center; // Centra el contenido del botón
+    }
+  }
+
+  .scrollable-content-area {
+    padding-left: 8px; // Reduce el relleno izquierdo a 8px
+    padding-right: 8px; // Reduce el relleno derecho a 8px
+    max-height: calc(100vh - 180px); // Ajusta la altura máxima para móviles
+
+    .machines-layout {
+      .machines-section,
+      .programming-section {
+        height: auto; // Altura automática en móviles
+        max-height: 400px; // Altura máxima de 400px para cada sección
+      }
+    }
+  }
+
+  .excel-table {
+    min-width: 700px; // Reduce el ancho mínimo de la tabla a 700px en móviles
+  }
+
+  .excel-header {
+    padding: 8px 6px; // Reduce el relleno del header de tabla en móviles
+    font-size: 10px; // Reduce el tamaño de fuente del header a 10px
+  }
+
+  .excel-cell {
+    padding: 6px 4px; // Reduce el relleno de las celdas en móviles
+    font-size: 10px; // Reduce el tamaño de fuente de las celdas a 10px
+  }
+}
+
+// Estilos forzados para Angular Material
+::ng-deep { // Selector profundo para sobrescribir estilos de Angular Material
+  .mat-mdc-card {
+    --mdc-elevated-card-container-color: transparent; // Fondo transparente para las tarjetas Material
+    --mdc-elevated-card-container-elevation: 0; // Sin elevación por defecto para las tarjetas
+  }
+
+  .mat-mdc-header-row {
+    position: sticky !important; // Posición fija al hacer scroll (importante)
+    top: 0 !important; // Fijado en la parte superior (importante)
+    z-index: 100 !important; // Apilamiento alto para mantener visible (importante)
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important; // Gradiente gris para el header (importante)
+  }
+
+  .mat-mdc-header-cell {
+    background: inherit !important; // Hereda el fondo del header-row (importante)
+    color: #374151 !important; // Color gris oscuro para el texto del header (importante)
+    font-weight: 700 !important; // Peso de fuente bold para el header (importante)
+  }
+
+  .mat-mdc-row:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important; // Gradiente gris al hover en filas (importante)
   }
 }

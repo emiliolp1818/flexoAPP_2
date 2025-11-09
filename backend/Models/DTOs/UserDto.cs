@@ -20,6 +20,21 @@ namespace FlexoAPP.API.Models.DTOs
         // Computed property for full name
         public string FullName => $"{FirstName} {LastName}".Trim();
     }
+
+    /// <summary>
+    /// DTO básico de usuario para referencias en otras entidades
+    /// Contiene solo información esencial del usuario
+    /// </summary>
+    public class UserBasicDto
+    {
+        public int Id { get; set; }
+        public string UserCode { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        
+        // Computed property for full name
+        public string FullName => $"{FirstName} {LastName}".Trim();
+    }
     
     public class CreateUserDto
     {
