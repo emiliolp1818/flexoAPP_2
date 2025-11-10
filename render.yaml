@@ -12,5 +12,5 @@ services:
   - type: web
     name: flexoAPP-frontend
     env: static
-    buildCommand: cd Frontend && npm install && npm run build
-    staticPublishPath: Frontend/dist/flexo-app/browser
+    buildCommand: cd Frontend && npm install && npm run build:prod
+    staticPublishPath: Frontend/dist/flexoAPP/browser
