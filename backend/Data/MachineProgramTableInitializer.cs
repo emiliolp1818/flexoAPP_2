@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FlexoAPP.API.Data
 {
     /// <summary>
-    /// Inicializador de la tabla de programas de máquinas flexográficas
+    /// Inicializador de la tabla de programas de máquinas flexográficas - PostgreSQL Edition
     /// Se encarga de crear la tabla y sus índices si no existen en la base de datos
     /// </summary>
     public static class MachineProgramTableInitializer
@@ -15,7 +15,6 @@ namespace FlexoAPP.API.Data
         /// <param name="serviceProvider">Proveedor de servicios para acceso al contexto de base de datos</param>
         public static async Task InitializeAsync(IServiceProvider serviceProvider)
         {
-            // Crear scope para acceso a servicios con inyección de dependencias
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<FlexoAPPDbContext>();
 
@@ -27,76 +26,91 @@ namespace FlexoAPP.API.Data
                 bool tableExists = false;
                 try
                 {
-                    // Intentar contar registros para verificar existencia de tabla
                     await context.MachinePrograms.CountAsync();
                     tableExists = true;
                     Console.WriteLine("📊 Tabla machine_programs ya existe");
                 }
                 catch (Exception)
                 {
-                    // Si falla el conteo, la tabla no existe
                     tableExists = false;
                     Console.WriteLine("📊 Tabla machine_programs no existe, creándola...");
                 }
 
                 if (!tableExists)
                 {
-                    Console.WriteLine("📊 Creando tabla machine_programs...");
+                    Console.WriteLine("📊 Creando tabla machine_programs con PostgreSQL...");
 
-                    // Crear la tabla con estructura completa para programas de máquinas flexográficas
+                    // Crear la tabla con sintaxis PostgreSQL
                     await context.Database.ExecuteSqlRawAsync(@"
-                        CREATE TABLE `machine_programs` (
-                            `Id` int NOT NULL AUTO_INCREMENT,                                    -- Identificador único del programa
-                            `MachineNumber` int NOT NULL,                                        -- Número de máquina flexográfica
-                            `Name` varchar(200) CHARACTER SET utf8mb4 NOT NULL,                 -- Nombre descriptivo del programa
-                            `Articulo` varchar(50) CHARACTER SET utf8mb4 NOT NULL,              -- Código del artículo a producir
-                            `OtSap` varchar(50) CHARACTER SET utf8mb4 NOT NULL,                 -- Orden de trabajo SAP
-                            `Cliente` varchar(200) CHARACTER SET utf8mb4 NOT NULL,              -- Nombre del cliente
-                            `Referencia` varchar(500) CHARACTER SET utf8mb4 DEFAULT '',         -- Referencia del producto
-                            `Td` varchar(3) CHARACTER SET utf8mb4 DEFAULT '',                   -- Tipo de documento (ETQ, BOL, etc.)
-                            `Colores` JSON NOT NULL,                                            -- Array JSON con colores utilizados
-                            `Sustrato` varchar(200) CHARACTER SET utf8mb4 DEFAULT '',           -- Material del sustrato
-                            `Kilos` DECIMAL(10,2) NOT NULL,                                     -- Cantidad en kilogramos
-                            `Estado` varchar(20) CHARACTER SET utf8mb4 NOT NULL DEFAULT 'LISTO', -- Estado del programa (LISTO, CORRIENDO, etc.)
-                            `FechaInicio` datetime(6) NOT NULL,                                  -- Fecha y hora de inicio programada
-                            `FechaFin` datetime(6) NULL,                                         -- Fecha y hora de finalización (opcional)
-                            `Progreso` int NOT NULL DEFAULT 0,                                   -- Porcentaje de progreso (0-100)
-                            `Observaciones` varchar(1000) CHARACTER SET utf8mb4 NULL,           -- Observaciones adicionales
-                            `LastActionBy` varchar(100) CHARACTER SET utf8mb4 NULL,             -- Usuario que realizó la última acción
-                            `LastActionAt` datetime(6) NULL,                                     -- Fecha de la última acción
-                            `LastAction` varchar(200) CHARACTER SET utf8mb4 NULL,               -- Descripción de la última acción
-                            `OperatorName` varchar(100) CHARACTER SET utf8mb4 NULL,             -- Nombre del operario asignado
-                            `CreatedBy` int NULL,                                                -- ID del usuario que creó el registro
-                            `UpdatedBy` int NULL,                                                -- ID del usuario que actualizó el registro
-                            `CreatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),      -- Fecha de creación automática
-                            `UpdatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), -- Fecha de actualización automática
-                            CONSTRAINT `PK_machine_programs` PRIMARY KEY (`Id`),                -- Clave primaria
-                            CONSTRAINT `FK_machine_programs_users_CreatedBy` FOREIGN KEY (`CreatedBy`) REFERENCES `users` (`id`) ON DELETE SET NULL, -- Relación con usuario creador
-                            CONSTRAINT `FK_machine_programs_users_UpdatedBy` FOREIGN KEY (`UpdatedBy`) REFERENCES `users` (`id`) ON DELETE SET NULL  -- Relación con usuario actualizador
-                        ) CHARACTER SET=utf8mb4
+                        CREATE TABLE IF NOT EXISTS machine_programs (
+                            ""Id"" SERIAL PRIMARY KEY,
+                            ""MachineNumber"" INTEGER NOT NULL,
+                            ""Name"" VARCHAR(200) NOT NULL,
+                            ""Articulo"" VARCHAR(50) NOT NULL,
+                            ""OtSap"" VARCHAR(50) NOT NULL UNIQUE,
+                            ""Cliente"" VARCHAR(200) NOT NULL,
+                            ""Referencia"" VARCHAR(500) DEFAULT '',
+                            ""Td"" VARCHAR(3) DEFAULT '',
+                            ""Colores"" JSONB NOT NULL,
+                            ""Sustrato"" VARCHAR(200) DEFAULT '',
+                            ""Kilos"" DECIMAL(10,2) NOT NULL,
+                            ""Estado"" VARCHAR(20) NOT NULL DEFAULT 'LISTO',
+                            ""FechaInicio"" TIMESTAMP NOT NULL,
+                            ""FechaFin"" TIMESTAMP NULL,
+                            ""Progreso"" INTEGER NOT NULL DEFAULT 0,
+                            ""Observaciones"" VARCHAR(1000) NULL,
+                            ""LastActionBy"" VARCHAR(100) NULL,
+                            ""LastActionAt"" TIMESTAMP NULL,
+                            ""LastAction"" VARCHAR(200) NULL,
+                            ""OperatorName"" VARCHAR(100) NULL,
+                            ""CreatedBy"" INTEGER NULL,
+                            ""UpdatedBy"" INTEGER NULL,
+                            ""CreatedAt"" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            ""UpdatedAt"" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            CONSTRAINT ""FK_machine_programs_users_CreatedBy"" FOREIGN KEY (""CreatedBy"") REFERENCES ""Users""(""Id"") ON DELETE SET NULL,
+                            CONSTRAINT ""FK_machine_programs_users_UpdatedBy"" FOREIGN KEY (""UpdatedBy"") REFERENCES ""Users""(""Id"") ON DELETE SET NULL
+                        )
                     ");
 
-                    // Crear índices para optimizar consultas frecuentes
+                    // Crear índices para optimizar consultas
                     await context.Database.ExecuteSqlRawAsync(@"
-                        CREATE INDEX `IX_machine_programs_MachineNumber` ON `machine_programs` (`MachineNumber`)
+                        CREATE INDEX IF NOT EXISTS ""IX_machine_programs_MachineNumber"" ON machine_programs (""MachineNumber"")
                     ");
                     
                     await context.Database.ExecuteSqlRawAsync(@"
-                        CREATE INDEX `IX_machine_programs_Estado` ON `machine_programs` (`Estado`)
+                        CREATE INDEX IF NOT EXISTS ""IX_machine_programs_Estado"" ON machine_programs (""Estado"")
                     ");
                     
                     await context.Database.ExecuteSqlRawAsync(@"
-                        CREATE INDEX `IX_machine_programs_FechaInicio` ON `machine_programs` (`FechaInicio`)
+                        CREATE INDEX IF NOT EXISTS ""IX_machine_programs_FechaInicio"" ON machine_programs (""FechaInicio"")
                     ");
                     
                     await context.Database.ExecuteSqlRawAsync(@"
-                        CREATE INDEX `IX_machine_programs_MachineNumber_Estado` ON `machine_programs` (`MachineNumber`, `Estado`)
+                        CREATE INDEX IF NOT EXISTS ""IX_machine_programs_MachineNumber_Estado"" ON machine_programs (""MachineNumber"", ""Estado"")
                     ");
 
-                    Console.WriteLine("✅ Tabla machine_programs creada exitosamente");
+                    // Crear trigger para actualización automática de UpdatedAt
+                    await context.Database.ExecuteSqlRawAsync(@"
+                        CREATE OR REPLACE FUNCTION update_machine_programs_updated_at()
+                        RETURNS TRIGGER AS $$
+                        BEGIN
+                            NEW.""UpdatedAt"" = CURRENT_TIMESTAMP;
+                            RETURN NEW;
+                        END;
+                        $$ language 'plpgsql';
+                    ");
+
+                    await context.Database.ExecuteSqlRawAsync(@"
+                        DROP TRIGGER IF EXISTS update_machine_programs_updated_at_trigger ON machine_programs;
+                        CREATE TRIGGER update_machine_programs_updated_at_trigger
+                        BEFORE UPDATE ON machine_programs
+                        FOR EACH ROW EXECUTE FUNCTION update_machine_programs_updated_at();
+                    ");
+
+                    Console.WriteLine("✅ Tabla machine_programs creada exitosamente con PostgreSQL");
                 }
 
-                // Verificar si hay datos existentes (solo si la tabla existe)
+                // Verificar si hay datos existentes
                 if (tableExists)
                 {
                     var count = await context.MachinePrograms.CountAsync();
@@ -107,12 +121,12 @@ namespace FlexoAPP.API.Data
                     }
                 }
 
-                // La tabla está lista para uso en producción - sin datos demo
                 Console.WriteLine("✅ Tabla machine_programs lista para uso en producción");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error inicializando tabla machine_programs: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
     }
