@@ -1,24 +1,16 @@
 services:
-  # Backend .NET Service
   - type: web
-    name: flexoapp-backend
+    name: flexoAPP-backend
     env: docker
     plan: free
-    dockerfilePath: ./backend/Dockerfile
+    dockerfilePath: ./Dockerfile.backend
     healthCheckPath: /health
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
-        key: MYSQL_CONNECTION_STRING
-        sync: false
 
-    
-
-  # Frontend Angular Service
   - type: web
-    name: flexoapp-frontend
+    name: flexoAPP-frontend
     env: static
     buildCommand: cd Frontend && npm install && npm run build
-    staticPublishPath: Frontend/build
-
-
+    staticPublishPath: Frontend/dist/flexo-app/browser
