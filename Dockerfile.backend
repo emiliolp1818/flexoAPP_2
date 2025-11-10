@@ -1,6 +1,6 @@
 # Dockerfile para Backend .NET
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app/backend
+WORKDIR /app
 
 # Copiar solo el archivo .csproj y restaurar dependencias
 COPY backend/flexoAPP.csproj ./
@@ -15,7 +15,7 @@ RUN dotnet publish flexoAPP.csproj -c Release -o out
 # Imagen de runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/backend/out .
+COPY --from=build /app/out .
 
 # Crear directorios necesarios
 RUN mkdir -p /app/Backups/Machines
