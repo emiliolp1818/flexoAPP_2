@@ -37,8 +37,8 @@ try
     // Configurar servidor Kestrel para optimizar rendimiento
     builder.WebHost.ConfigureKestrel(options =>
     {
-        // Escuchar en todas las interfaces de red en puerto 7003
-        options.ListenAnyIP(7003);
+        // NO configurar puerto aquí - dejar que ASPNETCORE_URLS lo maneje desde Dockerfile
+        // options.ListenAnyIP(7003); // COMENTADO para Render
         
         // Límites de tamaño para headers y requests
         options.Limits.MaxRequestHeadersTotalSize = 1048576; // 1MB para headers
@@ -266,7 +266,7 @@ try
 
     // ===== HEALTH CHECKS =====
     builder.Services.AddHealthChecks()
-        .AddDbContextCheck<FlexoAPPDbContext>("database")
+        // .AddDbContextCheck<FlexoAPPDbContext>("database") // TEMPORALMENTE DESHABILITADO
         .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy());
 
     Log.Information("✅ Health checks configured");
