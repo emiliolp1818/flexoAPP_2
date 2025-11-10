@@ -3,12 +3,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copiar solo el archivo .csproj y restaurar dependencias
+COPY backend/flexoAPP.csproj ./
+RUN dotnet restore flexoAPP.csproj
 
-
-# Copiar todo el código fuente (el .dockerignore excluirá .sln, bin, obj, etc.)
+# Copiar todo el código fuente
 COPY backend/ ./
 
-# Compilar el proyecto específico
+# Compilar el proyecto
 RUN dotnet publish flexoAPP.csproj -c Release -o out
 
 # Imagen de runtime
@@ -21,12 +22,11 @@ RUN mkdir -p /app/Backups/Machines
 RUN mkdir -p /app/logs
 RUN mkdir -p /app/Database
 
-# Exponer puerto
-EXPOSE 7003
+# Exponer puerto (Render usa la variable PORT automáticamente)
+EXPOSE 10000
 
 # Variables de entorno por defecto
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV PORT=7003
 
-# Comando de inicio con puerto dinámico
-CMD ASPNETCORE_URLS=http://*:${PORT} dotnet FlexoAPP.API.dll
+# Comando de inicio - Render inyecta la variable PORT
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet FlexoAPP.API.dll
