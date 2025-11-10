@@ -7,10 +7,11 @@
   "private": true,
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --configuration=network --host=192.168.1.6 --port=4200",
+    "start": "ng serve --configuration=hybrid --host=0.0.0.0 --port=4200",
     "start:prod": "ng serve --configuration=production --host=192.168.1.6 --port=4200",
     "start:network": "ng serve --configuration=network --host=192.168.1.6 --port=4200",
-    "start:local": "ng serve --configuration=development --host=localhost --port=4200",
+    "start:local": "ng serve --configuration=local --host=localhost --port=4200",
+    "start:hybrid": "ng serve --configuration=hybrid --host=0.0.0.0 --port=4200",
     "build": "ng build",
     "build:prod": "ng build --configuration=production",
     "watch": "ng build --watch --configuration=development",
