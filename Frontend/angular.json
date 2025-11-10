@@ -56,36 +56,11 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "serve": {
-          "builder": "@angular/build:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "flexoAPP:build:production",
-              "host": "192.168.1.6",
-              "port": 4200,
-              "allowedHosts": true
-            },
-            "development": {
-              "buildTarget": "flexoAPP:build:development",
-              "host": "192.168.1.6",
-              "port": 4200,
-              "allowedHosts": true
-            },
-            "network": {
-              "buildTarget": "flexoAPP:build:development",
-              "host": "192.168.1.6",
-              "port": 4200,
-              "allowedHosts": true
             },
             "local": {
-              "buildTarget": "flexoAPP:build:development",
-              "host": "localhost",
-              "port": 4200,
-              "allowedHosts": true,
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -94,16 +69,51 @@
               ]
             },
             "hybrid": {
-              "buildTarget": "flexoAPP:build:development",
-              "host": "0.0.0.0",
-              "port": 4200,
-              "allowedHosts": true,
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.hybrid.ts"
                 }
               ]
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "flexoapp:build:production",
+              "host": "192.168.1.6",
+              "port": 4200,
+              "allowedHosts": true
+            },
+            "development": {
+              "buildTarget": "flexoapp:build:development",
+              "host": "192.168.1.6",
+              "port": 4200,
+              "allowedHosts": true
+            },
+            "network": {
+              "buildTarget": "flexoapp:build:development",
+              "host": "192.168.1.6",
+              "port": 4200,
+              "allowedHosts": true
+            },
+            "local": {
+              "buildTarget": "flexoapp:build:local",
+              "host": "localhost",
+              "port": 4200,
+              "allowedHosts": true
+            },
+            "hybrid": {
+              "buildTarget": "flexoapp:build:hybrid",
+              "host": "0.0.0.0",
+              "port": 4200,
+              "allowedHosts": true
             }
           },
           "defaultConfiguration": "hybrid"
