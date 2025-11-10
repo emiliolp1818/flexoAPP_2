@@ -3,8 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copiar solo el archivo .csproj y restaurar dependencias
-COPY ../
-RUN dotnet restore flexoAPP.csproj
+
 
 # Copiar todo el código fuente (el .dockerignore excluirá .sln, bin, obj, etc.)
 COPY backend/ ./
