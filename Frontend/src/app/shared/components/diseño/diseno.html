@@ -49,27 +49,7 @@
           Exportar
         </button>
 
-        <!-- BOTÓN DE PRUEBA TEMPORAL - REMOVER EN PRODUCCIÓN -->
-        <button mat-stroked-button color="warn" (click)="testAllEndpoint()" class="test-btn"
-          matTooltip="Probar endpoint /all (TEMPORAL)">
-          <mat-icon>bug_report</mat-icon>
-          Test /all
-        </button>
 
-
-
-        <!-- BOTÓN CARGAR DATOS DIRECTAMENTE - TEMPORAL -->
-        <button mat-stroked-button color="primary" (click)="loadDataDirectly()" class="load-btn"
-          matTooltip="Cargar datos directamente (TEMPORAL)">
-          <mat-icon>refresh</mat-icon>
-          Cargar Datos
-        </button>
-
-        <!-- Botón Limpiar BD - Solo para admin -->
-        <button mat-icon-button color="warn" (click)="clearAllDesigns()" class="clear-db-btn"
-          *ngIf="hasPermission('admin_clear_db')" matTooltip="Limpiar base de datos">
-          <mat-icon>delete_sweep</mat-icon>
-        </button>
       </div>
     </div>
     <!-- Fin del contenedor interno del header -->
@@ -445,12 +425,7 @@
                     <mat-icon>content_copy</mat-icon>
                   </button>
 
-                  <!-- Botón Eliminar: Elimina permanentemente el diseño con confirmación -->
-                  <button mat-icon-button color="warn" (click)="deleteDesign(design)"
-                    matTooltip="Eliminar diseño permanentemente">
-                    <!-- Icono Material Design para eliminar -->
-                    <mat-icon>delete</mat-icon>
-                  </button>
+
                 </div>
               </td>
             </ng-container>
