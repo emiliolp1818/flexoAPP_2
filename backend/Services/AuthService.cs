@@ -56,7 +56,7 @@ namespace FlexoAPP.API.Services
             var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id, ipAddress);
             
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var expiryMinutes = int.Parse(jwtSettings["ExpiryMinutes"] ?? "60");
+            var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
             
             return new LoginResponseDto
             {
@@ -91,7 +91,7 @@ namespace FlexoAPP.API.Services
             await _refreshTokenService.RevokeRefreshTokenAsync(refreshToken, ipAddress, newRefreshToken.Token);
             
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var expiryMinutes = int.Parse(jwtSettings["ExpiryMinutes"] ?? "60");
+            var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
             
             return new LoginResponseDto
             {
