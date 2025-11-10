@@ -231,17 +231,48 @@ try
 
     // ===== POSTGRESQL DATABASE CONFIGURATION (RAILWAY) =====
     // Try to get connection string from environment variable first (Render/Railway), then from config
-    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-                          ?? builder.Configuration.GetConnectionString("DefaultConnection") 
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+    string connectionString;
+
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        // Parse Railway PostgreSQL URL format: postgresql://user:password@host:port/database
+        if (databaseUrl.StartsWith("postgresql://") || databaseUrl.StartsWith("postgres://"))
+        {
+            try
+            {
+                var uri = new Uri(databaseUrl);
+                var userInfo = uri.UserInfo.Split(':');
+                connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true;";
+                Log.Information("🔌 Parsed PostgreSQL URI from DATABASE_URL");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("❌ Failed to parse DATABASE_URL: {Error}", ex.Message);
+                throw new InvalidOperationException("Invalid DATABASE_URL format", ex);
+            }
+        }
+        else
+        {
+            // Already in Npgsql format
+            connectionString = databaseUrl;
+            Log.Information("🔌 Using DATABASE_URL as-is (Npgsql format)");
+        }
+    }
+    else
+    {
+        // Fallback to appsettings.json
+        connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
                           ?? builder.Configuration.GetConnectionString("LocalConnection")
                           ?? throw new InvalidOperationException("PostgreSQL connection string is required");
+        Log.Information("🔌 Using connection string from appsettings.json");
+    }
 
     // Log connection string info (without password) for debugging
-    Log.Information("🔌 Connection String Source: {Source}", 
-        Environment.GetEnvironmentVariable("DATABASE_URL") != null ? "DATABASE_URL env var" : "appsettings.json or fallback");
-    Log.Information("🔌 Connection String (masked): {ConnectionString}", 
-        connectionString.Contains("Pwd=") || connectionString.Contains("Password=") ? 
-            connectionString.Substring(0, Math.Min(50, connectionString.Length)) + "***" : connectionString);
+    var maskedConnectionString = connectionString.Contains("Password=") ? 
+        System.Text.RegularExpressions.Regex.Replace(connectionString, @"Password=[^;]+", "Password=***") : 
+        connectionString;
+    Log.Information("🔌 Connection String (masked): {ConnectionString}", maskedConnectionString);
 
     builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
     {
