@@ -229,12 +229,12 @@ try
 
     builder.Services.AddAuthorization();
 
-    // ===== POSTGRESQL DATABASE CONFIGURATION (SUPABASE) =====
-    // Try to get connection string from environment variable first (Render/Supabase), then from config
+    // ===== POSTGRESQL DATABASE CONFIGURATION (RAILWAY) =====
+    // Try to get connection string from environment variable first (Render/Railway), then from config
     var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
                           ?? builder.Configuration.GetConnectionString("DefaultConnection") 
                           ?? builder.Configuration.GetConnectionString("LocalConnection")
-                          ?? "Host=localhost;Port=5432;Database=test;Username=test;Password=test"; // Fallback temporal para pruebas
+                          ?? throw new InvalidOperationException("PostgreSQL connection string is required");
 
     // Log connection string info (without password) for debugging
     Log.Information("🔌 Connection String Source: {Source}", 
@@ -266,7 +266,7 @@ try
 
     // ===== HEALTH CHECKS =====
     builder.Services.AddHealthChecks()
-        // .AddDbContextCheck<FlexoAPPDbContext>("database") // TEMPORALMENTE DESHABILITADO
+        .AddDbContextCheck<FlexoAPPDbContext>("database")
         .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy());
 
     Log.Information("✅ Health checks configured");
@@ -426,8 +426,6 @@ try
     });
 
     // Inicializar base de datos con datos esenciales del sistema
-    // TEMPORALMENTE DESHABILITADO PARA PRUEBAS
-    /*
     try 
     {
         // Crear usuario administrador si no existe
@@ -440,8 +438,6 @@ try
     {
         Log.Warning("⚠️ No se pudieron inicializar los datos esenciales: {Error}", ex.Message);
     }
-    */
-    Log.Warning("⚠️ Inicialización de base de datos DESHABILITADA para pruebas");
 
     Log.Information("========================================="); 
     Log.Information("🚀 FLEXOAPP ENHANCED API - POSTGRESQL READY"); 
