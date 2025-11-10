@@ -22,7 +22,7 @@ namespace FlexoAPP.API.Services
             var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
             var issuer = jwtSettings["Issuer"] ?? "FlexoAPP";
             var audience = jwtSettings["Audience"] ?? "FlexoAPP-Users";
-            var expiryMinutes = int.Parse(jwtSettings["ExpiryMinutes"] ?? "60");
+            var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
             
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
