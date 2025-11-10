@@ -483,16 +483,36 @@ $gray-900: #0f172a;  // Gris máximo
 .users-table-container {
   background: white;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;      // Scroll horizontal si la tabla es muy ancha
+  overflow-y: auto;      // Scroll vertical para ver todos los usuarios
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 2px solid $gray-200;
   border-top: 3px solid $primary-blue;
-  height: calc(100vh - 280px);
-  display: flex;
-  flex-direction: column;
+  max-height: calc(100vh - 280px);  // Altura máxima para activar scroll
+  display: block;        // Cambiar a block para permitir scroll
   margin-top: 8px;
-  margin-left: 0px;   // Sin margen lateral adicional - el padding del tab-content ya maneja la alineación
-  margin-right: 0px;  // Sin margen lateral adicional - consistente con el diseño del módulo diseño
+  margin-left: 0px;
+  margin-right: 0px;
+  
+  // Estilo del scrollbar
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $gray-100;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $primary-blue-300;
+    border-radius: 4px;
+    
+    &:hover {
+      background: $primary-blue-500;
+    }
+  }
 }
 
 .users-table.compact-table {
