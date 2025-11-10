@@ -1,33 +1,11 @@
-# Dockerfile para Backend .NET
+# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app/backend
-
-# Copiar solo el archivo .csproj y restaurar dependencias
-COPY backend/flexoAPP.csproj ./
-RUN dotnet restore flexoAPP.csproj
-
-# Copiar todo el código fuente (el .dockerignore excluirá .sln, bin, obj, etc.)
-COPY backend/ ./
-
-# Compilar el proyecto específico
+WORKDIR /app
+COPY . ./
 RUN dotnet publish flexoAPP.csproj -c Release -o out
 
-# Imagen de runtime
+# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/backend/out .
-
-# Crear directorios necesarios
-RUN mkdir -p /app/Backups/Machines
-RUN mkdir -p /app/logs
-RUN mkdir -p /app/Database
-
-# Exponer puerto
-EXPOSE 7003
-
-# Variables de entorno por defecto
-ENV ASPNETCORE_ENVIRONMENT=Production
-ENV PORT=10000
-
-# Comando de inicio con puerto dinámico
-CMD ASPNETCORE_URLS=http://*:${PORT} dotnet FlexoAPP.API.dll
+COPY --from=build /app/out .
+ENTRYPOINT ["dotnet", "flexoAPP.dll"]
