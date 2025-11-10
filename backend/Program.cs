@@ -234,13 +234,14 @@ try
     var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
                           ?? builder.Configuration.GetConnectionString("DefaultConnection") 
                           ?? builder.Configuration.GetConnectionString("LocalConnection")
-                          ?? throw new InvalidOperationException("PostgreSQL connection string is required");
+                          ?? "Host=localhost;Port=5432;Database=test;Username=test;Password=test"; // Fallback temporal para pruebas
 
     // Log connection string info (without password) for debugging
     Log.Information("🔌 Connection String Source: {Source}", 
-        Environment.GetEnvironmentVariable("DATABASE_URL") != null ? "DATABASE_URL env var" : "appsettings.json");
+        Environment.GetEnvironmentVariable("DATABASE_URL") != null ? "DATABASE_URL env var" : "appsettings.json or fallback");
     Log.Information("🔌 Connection String (masked): {ConnectionString}", 
-        connectionString.Contains("Pwd=") ? connectionString.Substring(0, connectionString.IndexOf("Pwd=")) + "Pwd=***" : connectionString);
+        connectionString.Contains("Pwd=") || connectionString.Contains("Password=") ? 
+            connectionString.Substring(0, Math.Min(50, connectionString.Length)) + "***" : connectionString);
 
     builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
     {
@@ -425,6 +426,8 @@ try
     });
 
     // Inicializar base de datos con datos esenciales del sistema
+    // TEMPORALMENTE DESHABILITADO PARA PRUEBAS
+    /*
     try 
     {
         // Crear usuario administrador si no existe
@@ -437,6 +440,8 @@ try
     {
         Log.Warning("⚠️ No se pudieron inicializar los datos esenciales: {Error}", ex.Message);
     }
+    */
+    Log.Warning("⚠️ Inicialización de base de datos DESHABILITADA para pruebas");
 
     Log.Information("========================================="); 
     Log.Information("🚀 FLEXOAPP ENHANCED API - POSTGRESQL READY"); 
