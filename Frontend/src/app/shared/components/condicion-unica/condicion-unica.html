@@ -1,0 +1,196 @@
+<!-- ===== CONTENEDOR PRINCIPAL DE CONDICIÓN ÚNICA ===== -->
+<!-- Sistema de gestión de Condición Única con diseño tipo cuadrícula -->
+<!-- Contenedor raíz que ocupa toda la ventana con flexbox vertical -->
+<div class="condicion-container">
+
+  <!-- ===== HEADER FIJO ===== -->
+  <!-- Header principal que permanece fijo en la parte superior -->
+  <div class="condicion-header">
+    <div class="header-content">
+      <!-- Sección izquierda: Información del header -->
+      <div class="header-info">
+        <!-- Título principal con icono -->
+        <h1 class="page-title">
+          <mat-icon>inventory_2</mat-icon>
+          Condición Única
+        </h1>
+        <!-- Subtítulo descriptivo -->
+        <p class="page-subtitle">
+          Gestión de artículos con ubicación física y organización documental
+        </p>
+      </div>
+
+      <!-- Sección derecha: Acciones del header -->
+      <div class="header-actions">
+        <!-- Botón Crear Nuevo Registro -->
+        <button mat-raised-button color="primary" (click)="createNew()" 
+          [disabled]="loading()" 
+          matTooltip="Crear nuevo registro de Condición Única">
+          <mat-icon>add</mat-icon>
+          Nuevo Registro
+        </button>
+
+        <!-- Botón Exportar Excel -->
+        <button mat-stroked-button color="primary" (click)="exportToExcel()" 
+          matTooltip="Exportar a Excel">
+          <mat-icon>download</mat-icon>
+          Exportar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ÁREA DE BÚSQUEDA COMPACTA ===== -->
+  <!-- Sección de búsqueda por F Artículo - Versión compacta -->
+  <div class="search-area-compact">
+    <div class="search-container-compact">
+      <!-- Campo de búsqueda compacto -->
+      <mat-form-field appearance="outline" class="search-field-compact">
+        <mat-label>Buscar F Artículo</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
+          placeholder="Ej: F204567">
+        <mat-icon matPrefix class="search-icon-compact">search</mat-icon>
+        <!-- Botón limpiar integrado -->
+        <button mat-icon-button matSuffix (click)="clearSearch()" *ngIf="searchTerm()" 
+          class="clear-btn-compact" matTooltip="Limpiar">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+      
+      <!-- Contador de resultados compacto -->
+      <span class="results-badge" *ngIf="searchTerm()">
+        {{ filteredItems().length }} resultado(s)
+      </span>
+    </div>
+  </div>
+
+  <!-- ===== ÁREA DE TABLA TIPO EXCEL =====  -->
+  <!-- Tabla estilo cuadrícula con celdas y columnas para mostrar los registros -->
+  <div class="grid-area">
+    <mat-card class="grid-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>table_view</mat-icon>
+          Registros de Condición Única
+          <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+            ({{ filteredItems().length }} registros)
+          </span>
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        
+        <!-- Mensaje de carga -->
+        <div *ngIf="loading()" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Cargando registros...</p>
+        </div>
+
+        <!-- Tabla estilo Excel con cuadrícula -->
+        <div *ngIf="!loading() && filteredItems().length > 0" class="table-container">
+          <table class="excel-table">
+            <!-- Header de la tabla con columnas -->
+            <thead>
+              <tr>
+                <!-- Columna: F Artículo -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>tag</mat-icon>
+                    <span>F Artículo</span>
+                  </div>
+                </th>
+                <!-- Columna: Referencia -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>description</mat-icon>
+                    <span>Referencia</span>
+                  </div>
+                </th>
+                <!-- Columna: Estante -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>shelves</mat-icon>
+                    <span>Estante</span>
+                  </div>
+                </th>
+                <!-- Columna: Número de Carpeta -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>folder</mat-icon>
+                    <span>Número de Carpeta</span>
+                  </div>
+                </th>
+                <!-- Columna: Acciones -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>settings</mat-icon>
+                    <span>Acciones</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+
+            <!-- Cuerpo de la tabla con filas de datos -->
+            <tbody>
+              <!-- Fila por cada registro -->
+              <tr *ngFor="let item of filteredItems()" class="excel-row">
+                <!-- Celda: F Artículo -->
+                <td class="excel-cell farticulo-cell">
+                  <span class="farticulo-code">{{ item.fArticulo }}</span>
+                </td>
+                <!-- Celda: Referencia -->
+                <td class="excel-cell referencia-cell">
+                  <span class="referencia-text">{{ item.referencia }}</span>
+                </td>
+                <!-- Celda: Estante -->
+                <td class="excel-cell estante-cell">
+                  <span class="estante-text">{{ item.estante }}</span>
+                </td>
+                <!-- Celda: Número de Carpeta -->
+                <td class="excel-cell carpeta-cell">
+                  <span class="carpeta-text">{{ item.numeroCarpeta }}</span>
+                </td>
+                <!-- Celda: Acciones -->
+                <td class="excel-cell actions-cell">
+                  <div class="action-buttons">
+                    <!-- Botón Editar -->
+                    <button mat-icon-button color="primary" (click)="editItem(item)"
+                      class="action-btn edit-btn"
+                      matTooltip="Editar registro">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <!-- Botón Ver Detalles -->
+                    <button mat-icon-button (click)="viewDetails(item)"
+                      class="action-btn view-btn"
+                      matTooltip="Ver detalles completos">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <!-- Botón Eliminar -->
+                    <button mat-icon-button color="warn" (click)="deleteItem(item)"
+                      class="action-btn delete-btn"
+                      matTooltip="Eliminar registro">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mensaje cuando no hay registros -->
+        <div *ngIf="!loading() && filteredItems().length === 0" class="no-data">
+          <mat-icon>inventory_2</mat-icon>
+          <p>No hay registros de Condición Única</p>
+          <button mat-raised-button color="primary" (click)="createNew()">
+            <mat-icon>add</mat-icon>
+            Crear Primer Registro
+          </button>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>
+<!-- Fin del contenedor principal de Condición Única -->

@@ -32,7 +32,6 @@ namespace flexoAPP.Models.DTOs
         [Range(11, 21, ErrorMessage = "El número de máquina debe estar entre 11 y 21")]
         public int MachineNumber { get; set; }
 
-        [Required]
         [StringLength(200, ErrorMessage = "El nombre no puede exceder 200 caracteres")]
         public string Name { get; set; } = string.Empty;
 
@@ -64,8 +63,12 @@ namespace flexoAPP.Models.DTOs
         [Range(0.01, double.MaxValue, ErrorMessage = "Los kilos deben ser mayor a 0")]
         public decimal Kilos { get; set; }
 
-        [Required]
-        public DateTime FechaInicio { get; set; }
+        public DateTime? FechaInicio { get; set; }
+
+        public DateTime? FechaTintaEnMaquina { get; set; }
+
+        [RegularExpression("^(PREPARANDO|LISTO|SUSPENDIDO|CORRIENDO|TERMINADO)$", ErrorMessage = "Estado inválido")]
+        public string Estado { get; set; } = "PREPARANDO";
 
         [StringLength(1000, ErrorMessage = "Las observaciones no pueden exceder 1000 caracteres")]
         public string? Observaciones { get; set; }

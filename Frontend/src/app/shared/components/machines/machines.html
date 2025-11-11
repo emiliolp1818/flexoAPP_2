@@ -29,24 +29,27 @@
         <!-- Input oculto para selección de archivos Excel/CSV - No visible pero funcional -->
         <input #fileInput type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" style="display: none;">
         
-        <!-- Botón Cargar Programación - Siempre visible para administradores -->
+        <!-- ✅ Botón Agregar Programación - Cargar archivo Excel/CSV con programación -->
         <button mat-raised-button color="primary" (click)="fileInput.click()" class="load-programming-btn"
           [disabled]="loading()" 
-          matTooltip="Cargar programación desde archivo Excel">
+          matTooltip="Agregar programación desde archivo Excel o CSV">
           <!-- Spinner mostrado durante el procesamiento del archivo -->
           <mat-spinner *ngIf="loading()" diameter="16"></mat-spinner>
-          <!-- Icono de subir archivo cuando no está cargando -->
-          <mat-icon *ngIf="!loading()">upload_file</mat-icon>
+          <!-- Icono de agregar cuando no está cargando -->
+          <mat-icon *ngIf="!loading()">add_circle</mat-icon>
           <!-- Texto del botón cuando no está cargando -->
-          <span *ngIf="!loading()">Cargar Programación</span>
+          <span *ngIf="!loading()">Agregar Programación</span>
           <!-- Texto del botón durante la carga -->
           <span *ngIf="loading()">Procesando...</span>
         </button>
 
-        <!-- Botón Exportar Excel - Funcional -->
-        <button mat-stroked-button color="primary" (click)="exportToExcel()" class="export-btn"
-          matTooltip="Exportar programación a Excel">
+        <!-- ✅ Botón Exportar - Descargar programación a Excel -->
+        <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn"
+          [disabled]="loading()"
+          matTooltip="Exportar programación a archivo Excel">
+          <!-- Icono de descarga -->
           <mat-icon>download</mat-icon>
+          <!-- Texto del botón -->
           Exportar
         </button>
 
@@ -97,29 +100,27 @@
             <!-- Permite scroll vertical mientras mantiene el header fijo -->
             <div class="machines-container-inner">
               
-              <!-- ===== GRID DE MÁQUINAS ESTILO EXCEL ===== -->
-              <!-- Lista vertical de todas las máquinas disponibles con estilo profesional -->
+              <!-- ===== GRID DE MÁQUINAS COMPACTO ===== -->
+              <!-- Lista vertical de todas las máquinas disponibles con diseño minimalista -->
+              <!-- Solo muestra icono y número de máquina para maximizar espacio de la tabla -->
               <div class="machines-grid">
                 <!-- Iteración sobre cada número de máquina disponible -->
                 <button *ngFor="let machineNum of machineNumbers; trackBy: trackByMachineNumber" 
                         mat-raised-button
-                        [class]="'machine-card excel-machine-card' + (selectedMachineNumber() === machineNum ? ' selected' : '') + ' ' + getMachineStatusClass(machineNum)"
+                        class="machine-card excel-machine-card"
+                        [class.selected]="selectedMachineNumber() === machineNum"
+                        [ngClass]="getMachineStatusClass(machineNum)"
                         (click)="selectMachine(machineNum)" 
                         [attr.title]="getMachineStatusTooltip(machineNum)">
                   
-                  <!-- Contenido de cada tarjeta de máquina -->
+                  <!-- Contenido compacto de cada tarjeta de máquina -->
                   <div class="machine-card-content">
                     <!-- Contenedor del icono de la máquina -->
                     <div class="machine-icon-wrapper">
                       <mat-icon class="machine-icon">precision_manufacturing</mat-icon> <!-- Icono de máquina -->
                     </div>
-                    <!-- Información textual de la máquina -->
-                    <div class="machine-info">
-                      <!-- Número de la máquina -->
-                      <span class="machine-number">Máquina {{ machineNum }}</span>
-                      <!-- Resumen del estado de la máquina (programas listos, corriendo, etc.) -->
-                      <span class="machine-status">{{ getMachineSummary(machineNum) }}</span>
-                    </div>
+                    <!-- Número de la máquina (sin texto adicional) -->
+                    <span class="machine-number-compact">{{ machineNum }}</span>
                     <!-- Indicador LED del estado de la máquina -->
                     <div class="machine-status-indicator"></div>
                   </div>
@@ -442,7 +443,7 @@
                   <!-- Fin de la columna Sustrato -->
 
                   <!-- ===== COLUMNA ESTADO ===== -->
-                  <!-- Estado actual del programa (LISTO/CORRIENDO/SUSPENDIDO/TERMINADO) para control de producción -->
+                  <!-- Estado actual del programa y operario que lo activó para control de producción -->
                   <ng-container matColumnDef="estado">
                     <!-- Header simple con icono para la columna de estado -->
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
@@ -452,16 +453,20 @@
                         <span>Estado</span>
                       </div>
                     </th>
-                    <!-- Celda con indicador visual de estado -->
+                    <!-- Celda con indicador visual de estado y operario -->
                     <td mat-cell *matCellDef="let program" class="excel-cell status-cell">
                       <!-- Indicador de estado con clase CSS dinámica basada en el estado -->
                       <div class="estado-container">
                         <div class="status-main">
                           <!-- Texto del estado con clase CSS dinámica basada en el estado -->
-                          <!-- Función getStatusClass() determina el color (verde para LISTO, azul para CORRIENDO, etc.) -->
+                          <!-- Función getStatusClass() determina el color (amarillo para PREPARANDO, verde para LISTO, naranja para SUSPENDIDO, rojo para CORRIENDO) -->
                           <span class="status-text-display" [class]="'status-' + program.estado.toLowerCase()">
                             <span class="status-text">{{ program.estado }}</span>
                           </span>
+                        </div>
+                        <!-- Información del operario que activó la acción - Siempre visible -->
+                        <div class="operario-info">
+                          <small>{{ program.lastActionBy || 'Sistema' }}</small> <!-- Nombre del operario que realizó la última acción -->
                         </div>
                         <!-- Motivo de suspensión - Solo visible si está suspendido y tiene observaciones -->
                         <div *ngIf="program.estado === 'SUSPENDIDO' && program.observaciones" class="motivo-suspendido">
@@ -471,8 +476,8 @@
                     </td>
                   </ng-container>
 
-                  <!-- ===== COLUMNA ACCIONES ===== -->
-                  <!-- Botones de acción para gestionar cada programa (cambiar estado, suspender) -->
+                  <!-- ===== COLUMNA ACCIONES - NUEVOS BOTONES ===== -->
+                  <!-- Botones de acción para gestionar cada programa (cambiar estado, suspender, imprimir) -->
                   <ng-container matColumnDef="acciones">
                     <!-- Header con icono de configuración -->
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
@@ -486,27 +491,27 @@
                     <td mat-cell *matCellDef="let program" class="excel-cell actions-cell">
                       <!-- Contenedor flexbox para los botones de acción -->
                       <div class="action-buttons">
-                        <!-- Botón Listo: Marca el programa como listo para producción -->
+                        <!-- Botón Preparando: Marca el programa como en preparación (AMARILLO) -->
+                        <button mat-icon-button 
+                          class="action-btn preparando-btn"
+                          (click)="changeStatus(program, 'PREPARANDO')" 
+                          [disabled]="program.estado === 'PREPARANDO'"
+                          matTooltip="Preparando">
+                          <!-- Icono Material Design para reloj/preparando -->
+                          <mat-icon>schedule</mat-icon>
+                        </button>
+
+                        <!-- Botón Listo: Marca el programa como listo para producción (VERDE) -->
                         <button mat-icon-button 
                           class="action-btn listo-btn"
                           (click)="changeStatus(program, 'LISTO')" 
                           [disabled]="program.estado === 'LISTO'"
-                          matTooltip="Marcar como Listo">
+                          matTooltip="Listo">
                           <!-- Icono Material Design para check/listo -->
                           <mat-icon>check_circle</mat-icon>
                         </button>
 
-                        <!-- Botón Corriendo: Inicia o continúa la producción del programa -->
-                        <button mat-icon-button 
-                          class="action-btn corriendo-btn"
-                          (click)="changeStatus(program, 'CORRIENDO')" 
-                          [disabled]="program.estado === 'CORRIENDO'"
-                          matTooltip="Iniciar/Continuar">
-                          <!-- Icono Material Design para play/iniciar -->
-                          <mat-icon>play_circle</mat-icon>
-                        </button>
-
-                        <!-- Botón Suspender: Suspende temporalmente el programa con motivo -->
+                        <!-- Botón Suspendido: Suspende temporalmente el programa con motivo (NARANJA) -->
                         <button mat-icon-button 
                           class="action-btn suspendido-btn"
                           (click)="suspendProgram(program)" 
@@ -516,14 +521,23 @@
                           <mat-icon>pause_circle</mat-icon>
                         </button>
 
-                        <!-- Botón Terminado: Marca el programa como completado -->
+                        <!-- Botón Corriendo: Inicia o continúa la producción del programa (ROJO) -->
                         <button mat-icon-button 
-                          class="action-btn terminado-btn"
-                          (click)="changeStatus(program, 'TERMINADO')" 
-                          [disabled]="program.estado === 'TERMINADO'"
-                          matTooltip="Marcar como Terminado">
-                          <!-- Icono Material Design para tarea completada -->
-                          <mat-icon>task_alt</mat-icon>
+                          class="action-btn corriendo-btn"
+                          (click)="changeStatus(program, 'CORRIENDO')" 
+                          [disabled]="program.estado === 'CORRIENDO'"
+                          matTooltip="Corriendo">
+                          <!-- Icono Material Design para play/iniciar -->
+                          <mat-icon>play_circle</mat-icon>
+                        </button>
+
+                        <!-- Botón Imprimir: Imprime el formato FF459 del programa -->
+                        <button mat-icon-button 
+                          class="action-btn imprimir-btn"
+                          (click)="printFF459(program)" 
+                          matTooltip="Imprimir FF459">
+                          <!-- Icono Material Design para impresora -->
+                          <mat-icon>print</mat-icon>
                         </button>
                       </div>
                     </td>
@@ -536,8 +550,8 @@
                   <!-- Filas de datos con efectos hover y selección -->
                   <!-- Cada fila se genera dinámicamente basada en programDisplayedColumns -->
                   <tr mat-row *matRowDef="let row; columns: programDisplayedColumns;" 
-                    class="excel-row" 
-                    [class]="'status-row-' + row.estado.toLowerCase()" 
+                    class="excel-row"
+                    [ngClass]="'status-row-' + row.estado.toLowerCase()" 
                     [attr.data-program-id]="row.id"></tr>
                 </table>
                 <!-- Fin de la tabla principal -->

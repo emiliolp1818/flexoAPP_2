@@ -53,6 +53,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'condicion-unica',
+    loadComponent: () => import('./shared/components/condicion-unica/condicion-unica').then(c => c.CondicionUnicaComponent),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: '/dashboard'
   }

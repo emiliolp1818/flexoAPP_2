@@ -465,6 +465,12 @@
     background: linear-gradient(135deg, #7c3aed, #6d28d9);
     box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
   }
+
+  /* Condición Única Card - Amber/Yellow */
+  &.condicion-unica-card .card-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+  }
 }
 
 /* ===========================================

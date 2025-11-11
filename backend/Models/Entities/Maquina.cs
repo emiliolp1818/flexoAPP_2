@@ -5,31 +5,32 @@ namespace FlexoAPP.API.Models.Entities
 {
     /// <summary>
     /// Entidad que representa una máquina flexográfica en el sistema
-    /// Tabla: maquinas
+    /// Tabla: maquinas (base de datos: flexoapp_bd)
+    /// CLAVE PRIMARIA: Articulo (código único del artículo)
+    /// SIN campo Id - articulo es suficiente como identificador único
     /// </summary>
-    [Table("maquinas")]
+    [Table("maquinas")] // Nombre de la tabla en MySQL
     public class Maquina
     {
         /// <summary>
-        /// ID único de la máquina (clave primaria auto-generada)
+        /// Código del artículo a producir (ej: F204567, F204568)
+        /// CLAVE PRIMARIA (PRIMARY KEY) - Identifica de forma única cada registro
+        /// Se usará para cargar información de otra base de datos
+        /// Columna: articulo VARCHAR(50) PRIMARY KEY
         /// </summary>
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        [Key] // Atributo que indica que este campo es la clave primaria
+        [Required] // Campo obligatorio, no puede ser nulo
+        [MaxLength(50)] // Longitud máxima de 50 caracteres
+        public string Articulo { get; set; } = string.Empty; // Valor por defecto: cadena vacía
 
         /// <summary>
-        /// Número de la máquina (11-21) - Campo principal para identificar máquina
+        /// Número de la máquina flexográfica (11-21)
+        /// Campo principal para identificar en qué máquina se ejecutará el programa
+        /// Columna: numero_maquina INT NOT NULL
         /// </summary>
-        [Required]
-        [Range(11, 21, ErrorMessage = "El número de máquina debe estar entre 11 y 21")]
-        public int NumeroMaquina { get; set; }
-
-        /// <summary>
-        /// Código del artículo a producir (ej: F204567)
-        /// </summary>
-        [Required]
-        [MaxLength(50)]
-        public string Articulo { get; set; } = string.Empty;
+        [Required] // Campo obligatorio
+        [Range(11, 21, ErrorMessage = "El número de máquina debe estar entre 11 y 21")] // Validación: solo valores 11-21
+        public int NumeroMaquina { get; set; } // Número de máquina
 
         /// <summary>
         /// Número de orden de trabajo SAP (ej: OT123456)

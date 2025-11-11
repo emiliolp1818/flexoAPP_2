@@ -67,17 +67,19 @@ namespace flexoAPP.Services
             var program = new MachineProgram
             {
                 MachineNumber = createDto.MachineNumber,
-                Name = createDto.Name,
+                Name = createDto.Name ?? createDto.Articulo, // Usar artículo como nombre si no se proporciona
                 Articulo = createDto.Articulo,
                 OtSap = createDto.OtSap,
                 Cliente = createDto.Cliente,
                 Referencia = createDto.Referencia,
                 Td = createDto.Td,
+                NumeroColores = createDto.Colores.Count,
                 Colores = JsonSerializer.Serialize(createDto.Colores),
                 Sustrato = createDto.Sustrato,
                 Kilos = createDto.Kilos,
-                Estado = "LISTO",
-                FechaInicio = createDto.FechaInicio,
+                Estado = createDto.Estado ?? "PREPARANDO", // Usar estado del DTO o PREPARANDO por defecto
+                FechaInicio = createDto.FechaInicio ?? DateTime.Now,
+                FechaTintaEnMaquina = createDto.FechaTintaEnMaquina ?? DateTime.Now, // Usar fecha del Excel o fecha actual
                 Progreso = 0,
                 Observaciones = createDto.Observaciones,
                 CreatedBy = userId,
@@ -104,7 +106,7 @@ namespace flexoAPP.Services
             try
             {
                 await _hubContext.NotifyProgramCreated(createdDto);
-                _logger.LogInformation($"Programa creado y notificado en tiempo real: {createdDto.Articulo}");
+                _logger.LogInformation($"✅ Programa creado y notificado: {createdDto.Articulo} - Máquina {createdDto.MachineNumber}");
             }
             catch (Exception ex)
             {
@@ -419,43 +421,123 @@ namespace flexoAPP.Services
 
         private async Task<MachineProgramDto?> ProcessExcelLine(string line, int? userId)
         {
-            var columns = line.Split(',');
+            // Parsear CSV considerando que los valores pueden estar entre comillas
+            var columns = ParseCsvLine(line);
             
-            if (columns.Length < 8)
+            _logger.LogInformation("📋 Procesando línea con {Count} columnas: {Line}", columns.Count, line);
+            
+            if (columns.Count < 11)
             {
-                throw new ArgumentException("La línea debe tener al menos 8 columnas");
+                throw new ArgumentException($"La línea debe tener 11 columnas (MÁQUINA, ARTÍCULO, OT SAP, CLIENTE, REFERENCIA, TD, N° COLORES, COLORES, KILOS, FECHA TINTA EN MÁQUINA, SUSTRATO). Se encontraron {columns.Count} columnas.");
             }
 
-            // Limpiar comillas de los valores
-            for (int i = 0; i < columns.Length; i++)
-            {
-                columns[i] = columns[i].Trim('"', ' ');
-            }
-
+            // Parsear colores desde la columna COLORES (índice 7)
             var colores = new List<string>();
-            for (int i = 5; i < Math.Min(11, columns.Length); i++) // Colores 1-6
+            if (!string.IsNullOrWhiteSpace(columns[7]))
             {
-                if (!string.IsNullOrWhiteSpace(columns[i]))
+                // Los colores vienen separados por coma o punto y coma en una sola celda
+                var coloresArray = columns[7].Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var color in coloresArray)
                 {
-                    colores.Add(columns[i]);
+                    var colorTrimmed = color.Trim();
+                    if (!string.IsNullOrWhiteSpace(colorTrimmed))
+                    {
+                        colores.Add(colorTrimmed);
+                    }
                 }
             }
 
+            _logger.LogInformation("🎨 Colores parseados: {Count} colores - {Colores}", colores.Count, string.Join(", ", colores));
+
+            // Parsear fecha de tinta en máquina (índice 9)
+            DateTime? fechaTintaEnMaquina = null;
+            if (!string.IsNullOrWhiteSpace(columns[9]))
+            {
+                // Intentar parsear diferentes formatos de fecha
+                if (DateTime.TryParse(columns[9], out var fecha))
+                {
+                    fechaTintaEnMaquina = fecha;
+                    _logger.LogInformation("📅 Fecha parseada correctamente: {Fecha}", fechaTintaEnMaquina);
+                }
+                else
+                {
+                    // Si no se puede parsear, usar fecha actual
+                    fechaTintaEnMaquina = DateTime.Now;
+                    _logger.LogWarning("⚠️ No se pudo parsear la fecha '{Fecha}', usando fecha actual", columns[9]);
+                }
+            }
+            else
+            {
+                fechaTintaEnMaquina = DateTime.Now;
+                _logger.LogWarning("⚠️ Fecha vacía, usando fecha actual");
+            }
+
+            // Crear DTO según el formato especificado:
+            // Columna 0: MÁQUINA
+            // Columna 1: ARTÍCULO
+            // Columna 2: OT SAP
+            // Columna 3: CLIENTE
+            // Columna 4: REFERENCIA
+            // Columna 5: TD
+            // Columna 6: N° COLORES
+            // Columna 7: COLORES
+            // Columna 8: KILOS
+            // Columna 9: FECHA TINTA EN MÁQUINA
+            // Columna 10: SUSTRATO
             var createDto = new CreateMachineProgramDto
             {
-                Articulo = columns[0],
-                OtSap = columns[1],
-                Cliente = columns[2],
-                Referencia = columns[3],
-                Td = columns[4],
+                MachineNumber = int.TryParse(columns[0], out var machine) ? machine : 11,
+                Articulo = columns[1],
+                OtSap = columns[2],
+                Cliente = columns[3],
+                Referencia = columns[4],
+                Td = columns[5],
                 Colores = colores,
-                Sustrato = columns.Length > 11 ? columns[11] : "",
-                Kilos = decimal.TryParse(columns.Length > 12 ? columns[12] : "0", out var kilos) ? kilos : 0,
-                MachineNumber = int.TryParse(columns.Length > 13 ? columns[13] : "1", out var machine) ? machine : 1,
-                Observaciones = columns.Length > 14 ? columns[14] : null
+                Kilos = decimal.TryParse(columns[8], out var kilos) ? kilos : 0,
+                FechaTintaEnMaquina = fechaTintaEnMaquina,
+                Sustrato = columns[10],
+                Estado = "PREPARANDO", // Estado por defecto para nuevos programas
+                Observaciones = null
             };
 
+            _logger.LogInformation("✅ DTO creado: Máquina={Machine}, Artículo={Articulo}, Colores={NumColores}", 
+                createDto.MachineNumber, createDto.Articulo, createDto.Colores.Count);
+
             return await CreateAsync(createDto, userId);
+        }
+
+        /// <summary>
+        /// Parsea una línea CSV considerando valores entre comillas que pueden contener comas
+        /// </summary>
+        private List<string> ParseCsvLine(string line)
+        {
+            var columns = new List<string>();
+            var currentColumn = new System.Text.StringBuilder();
+            bool inQuotes = false;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                char c = line[i];
+
+                if (c == '"')
+                {
+                    inQuotes = !inQuotes;
+                }
+                else if (c == ',' && !inQuotes)
+                {
+                    columns.Add(currentColumn.ToString().Trim());
+                    currentColumn.Clear();
+                }
+                else
+                {
+                    currentColumn.Append(c);
+                }
+            }
+
+            // Agregar la última columna
+            columns.Add(currentColumn.ToString().Trim());
+
+            return columns;
         }
 
         public async Task<int> ClearAllProgrammingAsync(int? userId)

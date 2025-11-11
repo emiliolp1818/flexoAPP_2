@@ -25,29 +25,23 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Log.Information("🚀 Iniciando FlexoAPP Backend - Edición PostgreSQL (Supabase)");
+    // ===== LOG DE INICIO DE LA APLICACIÓN =====
+    // Registrar en el log que la aplicación FlexoAPP está iniciando con MySQL local
+    Log.Information("🚀 Iniciando FlexoAPP Backend - MySQL Local (flexoapp_bd)");
 
-    var builder = WebApplication.CreateBuilder(args);
+    // ===== CREAR BUILDER DE LA APLICACIÓN WEB =====
+    // WebApplicationBuilder: configura servicios y middleware de ASP.NET Core
+    var builder = WebApplication.CreateBuilder(args); // args: argumentos de línea de comandos
 
     // ===== INTEGRACIÓN DE SERILOG =====
     // Integrar Serilog como proveedor de logging principal
     builder.Host.UseSerilog();
 
-    // ===== CONFIGURACIÓN DE RENDIMIENTO =====
-    // Configurar servidor Kestrel para optimizar rendimiento
+    // ===== CONFIGURACIÓN DE KESTREL (LOCAL) =====
     builder.WebHost.ConfigureKestrel(options =>
     {
-        // NO configurar puerto aquí - dejar que ASPNETCORE_URLS lo maneje desde Dockerfile
-        // options.ListenAnyIP(7003); // COMENTADO para Render
-        
-        // Límites de tamaño para headers y requests
-        options.Limits.MaxRequestHeadersTotalSize = 1048576; // 1MB para headers
-        options.Limits.MaxRequestHeaderCount = 1000;         // Máximo 1000 headers
-        options.Limits.MaxRequestLineSize = 131072;          // 128KB por línea de request
-        options.Limits.MaxRequestBufferSize = 20971520;      // 20MB buffer de request
-        options.Limits.MaxRequestBodySize = 52428800;        // 50MB tamaño máximo de body
-        options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5);  // Timeout de keep-alive
-        options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(2); // Timeout de headers
+        options.Limits.MaxRequestBodySize = 52428800; // 50MB
+        options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
     });
 
     // ===== RESPONSE COMPRESSION =====
@@ -76,39 +70,20 @@ try
         options.Level = CompressionLevel.Optimal;
     });
 
-    // ===== CORS CONFIGURATION =====
+    // ===== CORS CONFIGURATION (LOCAL) =====
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>
         {
-            policy.SetIsOriginAllowed(origin =>
-            {
-                if (string.IsNullOrEmpty(origin)) return false;
-
-                // Allow localhost and local network
-                if (origin.StartsWith("http://localhost") || 
-                    origin.StartsWith("http://127.0.0.1") ||
-                    origin.StartsWith("http://192.168.") ||
-                    origin.StartsWith("http://10.") ||
-                    origin.StartsWith("http://172."))
-                    return true;
-
-                // Allow Render.com domains (production)
-                if (origin.Contains(".onrender.com"))
-                    return true;
-
-                // Allow custom domains from environment variable
-                var allowedOrigins = builder.Configuration["CORS_ORIGINS"]?.Split(',') ?? Array.Empty<string>();
-                if (allowedOrigins.Any(allowed => origin.Equals(allowed.Trim(), StringComparison.OrdinalIgnoreCase)))
-                    return true;
-
-                return false;
-            })
+            policy.WithOrigins(
+                "http://localhost:4200",
+                "http://localhost:7003",
+                "http://127.0.0.1:4200",
+                "http://127.0.0.1:7003"
+            )
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials()
-            .SetPreflightMaxAge(TimeSpan.FromSeconds(86400))
-            .WithExposedHeaders("*");
+            .AllowCredentials();
         });
     });
 
@@ -121,9 +96,9 @@ try
     {
         c.SwaggerDoc("v1", new OpenApiInfo
         {
-            Title = "FlexoAPP Enhanced API - PostgreSQL Edition",
-            Version = "v2.2.0",
-            Description = "Enterprise Flexographic Management System - Enhanced with PostgreSQL (Supabase), Serilog, and Performance improvements",
+            Title = "FlexoAPP API - Local",
+            Version = "v2.0.0",
+            Description = "Sistema de Gestión Flexográfica - PostgreSQL Local",
             Contact = new OpenApiContact
             {
                 Name = "FlexoAPP Team",
@@ -229,71 +204,66 @@ try
 
     builder.Services.AddAuthorization();
 
-    // ===== POSTGRESQL DATABASE CONFIGURATION (RAILWAY) =====
-    // Try to get connection string from environment variable first (Render/Railway), then from config
-    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-    string connectionString;
+    // ===== CONFIGURACIÓN DE BASE DE DATOS MYSQL LOCAL =====
+    // Obtener la cadena de conexión desde appsettings.json o appsettings.Development.json
+    // DefaultConnection: nombre de la cadena de conexión en el archivo de configuración
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                          ?? throw new InvalidOperationException("MySQL connection string is required"); // Lanzar excepción si no existe
+    
+    // ===== LOG DE TIPO DE CONEXIÓN =====
+    // Registrar que se está usando MySQL local (no PostgreSQL)
+    Log.Information("🔌 Using LOCAL MySQL connection to flexoapp_bd database");
+    
+    // ===== ENMASCARAR CONTRASEÑA PARA EL LOG =====
+    // Ocultar la contraseña en los logs por seguridad
+    // Regex: reemplaza "Password=valor" con "Password=***"
+    var maskedConnectionString = System.Text.RegularExpressions.Regex.Replace(
+        connectionString, @"Password=[^;]+", "Password=***"); // Buscar Password= y reemplazar el valor
+    Log.Information("🔌 Connection: {ConnectionString}", maskedConnectionString); // Mostrar conexión sin contraseña
 
-    if (!string.IsNullOrEmpty(databaseUrl))
-    {
-        // Parse Railway PostgreSQL URL format: postgresql://user:password@host:port/database
-        if (databaseUrl.StartsWith("postgresql://") || databaseUrl.StartsWith("postgres://"))
-        {
-            try
-            {
-                var uri = new Uri(databaseUrl);
-                var userInfo = uri.UserInfo.Split(':');
-                connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true;";
-                Log.Information("🔌 Parsed PostgreSQL URI from DATABASE_URL");
-            }
-            catch (Exception ex)
-            {
-                Log.Error("❌ Failed to parse DATABASE_URL: {Error}", ex.Message);
-                throw new InvalidOperationException("Invalid DATABASE_URL format", ex);
-            }
-        }
-        else
-        {
-            // Already in Npgsql format
-            connectionString = databaseUrl;
-            Log.Information("🔌 Using DATABASE_URL as-is (Npgsql format)");
-        }
-    }
-    else
-    {
-        // Fallback to appsettings.json
-        connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                          ?? builder.Configuration.GetConnectionString("LocalConnection")
-                          ?? throw new InvalidOperationException("PostgreSQL connection string is required");
-        Log.Information("🔌 Using connection string from appsettings.json");
-    }
-
-    // Log connection string info (without password) for debugging
-    var maskedConnectionString = connectionString.Contains("Password=") ? 
-        System.Text.RegularExpressions.Regex.Replace(connectionString, @"Password=[^;]+", "Password=***") : 
-        connectionString;
-    Log.Information("🔌 Connection String (masked): {ConnectionString}", maskedConnectionString);
-
+    // ===== CONFIGURAR ENTITY FRAMEWORK CON MYSQL =====
+    // AddDbContext: registrar el contexto de base de datos en el contenedor de dependencias
     builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
     {
-        // PostgreSQL optimized configuration (Supabase compatible)
-        options.UseNpgsql(connectionString, npgsqlOptions =>
+        // ===== DETECTAR VERSIÓN DE MYSQL =====
+        // ServerVersion.AutoDetect: detecta automáticamente la versión de MySQL del servidor
+        // Esto es importante para usar las características correctas de MySQL (5.7, 8.0, etc.)
+        var serverVersion = ServerVersion.AutoDetect(connectionString); // Conecta y detecta versión
+        
+        // ===== CONFIGURAR PROVEEDOR MYSQL =====
+        // UseMySql: configura Entity Framework para usar MySQL en lugar de SQL Server o PostgreSQL
+        options.UseMySql(connectionString, serverVersion, mySqlOptions =>
         {
-            npgsqlOptions.CommandTimeout(30);
-            npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(10),
-                errorCodesToAdd: null);
+            // ===== TIMEOUT DE COMANDOS =====
+            // CommandTimeout: tiempo máximo de espera para comandos SQL (30 segundos)
+            mySqlOptions.CommandTimeout(30); // Timeout de 30 segundos para consultas
+            
+            // ===== REINTENTOS AUTOMÁTICOS =====
+            // EnableRetryOnFailure: reintentar automáticamente en caso de errores transitorios
+            // Útil para problemas de red temporales o bloqueos de base de datos
+            mySqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3, // Máximo 3 reintentos
+                maxRetryDelay: TimeSpan.FromSeconds(5), // Esperar máximo 5 segundos entre reintentos
+                errorNumbersToAdd: null); // null = usar errores por defecto de MySQL
         });
 
-        options.EnableSensitiveDataLogging(false);
-        options.EnableServiceProviderCaching();
-        options.ConfigureWarnings(warnings => 
-            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.CoreEventId.RowLimitingOperationWithoutOrderByWarning));
-        options.EnableDetailedErrors(builder.Environment.IsDevelopment());
+        // ===== OPCIONES DE DESARROLLO =====
+        // EnableSensitiveDataLogging: mostrar valores de parámetros en logs (solo en desarrollo)
+        // ADVERTENCIA: no usar en producción por seguridad
+        options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment()); // Solo en Development
+        
+        // ===== CACHÉ DEL PROVEEDOR DE SERVICIOS =====
+        // EnableServiceProviderCaching: cachear el proveedor de servicios para mejor rendimiento
+        options.EnableServiceProviderCaching(); // Mejora el rendimiento
+        
+        // ===== ERRORES DETALLADOS =====
+        // EnableDetailedErrors: mostrar errores detallados de Entity Framework (solo en desarrollo)
+        options.EnableDetailedErrors(builder.Environment.IsDevelopment()); // Solo en Development
     });
 
-    Log.Information("✅ PostgreSQL Database configured with optimized connection pooling (Supabase)");
+    // ===== LOG DE CONFIRMACIÓN =====
+    // Registrar que MySQL se configuró correctamente
+    Log.Information("✅ MySQL Local Database configured successfully for flexoapp_bd");
 
     // ===== HEALTH CHECKS =====
     builder.Services.AddHealthChecks()
@@ -321,6 +291,7 @@ try
     builder.Services.AddScoped<IPedidoService, PedidoService>();
     builder.Services.AddScoped<IDesignRepository, DesignRepository>();
     builder.Services.AddScoped<IDesignService, DesignService>();
+    builder.Services.AddScoped<ICondicionUnicaRepository, CondicionUnicaRepository>();
 
     // Reports & Backup Services
     builder.Services.AddScoped<IReportsService, ReportsService>();
@@ -427,32 +398,42 @@ try
         timestamp = DateTime.UtcNow 
     });
 
-    // Root endpoint
+    // ===== ENDPOINT RAÍZ (ROOT) =====
+    // Endpoint GET / que muestra información general de la API
+    // Útil para verificar que el servidor está funcionando correctamente
     app.MapGet("/", () => new { 
-        message = "FlexoAPP Enhanced API - PostgreSQL Edition (Supabase)", 
-        status = "running", 
-        timestamp = DateTime.UtcNow,
-        version = "v2.2.0",
-        framework = ".NET 8.0",
+        // ===== INFORMACIÓN GENERAL =====
+        message = "FlexoAPP Enhanced API - MySQL Local Edition", // Mensaje de bienvenida
+        status = "running", // Estado del servidor
+        timestamp = DateTime.UtcNow, // Fecha y hora actual en UTC
+        version = "v2.2.0", // Versión de la API
+        framework = ".NET 8.0", // Versión del framework
+        
+        // ===== CARACTERÍSTICAS TÉCNICAS =====
         features = new {
-            database = "PostgreSQL (Supabase) with Optimized Connection Pooling",
-            caching = "Memory Cache",
-            logging = "Serilog Structured Logging",
-            profiling = "MiniProfiler Enabled",
-            compression = "Brotli + Gzip Enabled",
-            authentication = "JWT Bearer Token"
+            database = "MySQL Local (flexoapp_bd) with Connection Pooling", // Base de datos MySQL local
+            caching = "Memory Cache", // Sistema de caché
+            logging = "Serilog Structured Logging", // Sistema de logging
+            profiling = "MiniProfiler Enabled", // Profiling habilitado
+            compression = "Brotli + Gzip Enabled", // Compresión HTTP
+            authentication = "JWT Bearer Token" // Autenticación JWT
         },
-        login = "admin / admin123", 
+        
+        // ===== CREDENCIALES POR DEFECTO =====
+        login = "admin / admin123", // Usuario y contraseña por defecto
+        
+        // ===== ENDPOINTS DISPONIBLES =====
         endpoints = new[] { 
-            "/api/auth/login", 
-            "/api/auth/me", 
-            "/api/designs",
-            "/api/machine-programs",
-            "/api/pedidos",
-            "/api/performance",
-            "/health", 
-            "/swagger",
-            "/profiler"
+            "/api/auth/login",        // Endpoint de login
+            "/api/auth/me",           // Endpoint de información del usuario actual
+            "/api/designs",           // Endpoint de diseños
+            "/api/maquinas",          // Endpoint de máquinas (TABLA: maquinas)
+            "/api/machine-programs",  // Endpoint de programas de máquinas (TABLA: machine_programs)
+            "/api/pedidos",           // Endpoint de pedidos
+            "/api/performance",       // Endpoint de rendimiento
+            "/health",                // Endpoint de salud
+            "/swagger",               // Documentación Swagger
+            "/profiler"               // MiniProfiler
         } 
     });
 
@@ -470,19 +451,23 @@ try
         Log.Warning("⚠️ No se pudieron inicializar los datos esenciales: {Error}", ex.Message);
     }
 
+    // ===== BANNER DE INICIO DE LA APLICACIÓN =====
+    // Mostrar información detallada de la configuración de la aplicación en los logs
     Log.Information("========================================="); 
-    Log.Information("🚀 FLEXOAPP ENHANCED API - POSTGRESQL READY"); 
+    Log.Information("🚀 FLEXOAPP ENHANCED API - MYSQL LOCAL READY"); // Título principal
     Log.Information("========================================="); 
-    Log.Information("🌐 Framework: ASP.NET Core 8.0"); 
-    Log.Information("🗄️ Database: PostgreSQL (Supabase) with optimized connection pooling");
-    Log.Information("💾 Caching: Memory Cache with 100MB limit");
-    Log.Information("📝 Logging: Serilog with structured logging");
-    Log.Information("⚡ Profiling: MiniProfiler enabled (/profiler)");
-    Log.Information("🔐 Authentication: JWT Bearer Token"); 
-    Log.Information("🌍 CORS: Enabled for local network"); 
-    Log.Information("📊 Health Checks: /health, /health/ready, /health/live");
-    Log.Information("🗜️ Compression: Brotli + Gzip enabled");
-    Log.Information("👤 Default Login: admin / admin123"); 
+    Log.Information("🌐 Framework: ASP.NET Core 8.0"); // Versión del framework
+    Log.Information("🗄️ Database: MySQL Local (flexoapp_bd) with connection pooling"); // Base de datos MySQL local
+    Log.Information("💾 Caching: Memory Cache with 100MB limit"); // Sistema de caché en memoria
+    Log.Information("📝 Logging: Serilog with structured logging"); // Sistema de logging estructurado
+    Log.Information("⚡ Profiling: MiniProfiler enabled (/profiler)"); // Herramienta de profiling
+    Log.Information("🔐 Authentication: JWT Bearer Token"); // Sistema de autenticación JWT
+    Log.Information("🌍 CORS: Enabled for local network"); // CORS habilitado para desarrollo local
+    Log.Information("📊 Health Checks: /health, /health/ready, /health/live"); // Endpoints de salud
+    Log.Information("🗜️ Compression: Brotli + Gzip enabled"); // Compresión de respuestas HTTP
+    Log.Information("👤 Default Login: admin / admin123"); // Credenciales por defecto
+    Log.Information("🔌 MySQL Server: localhost:3306"); // Servidor MySQL
+    Log.Information("📁 Database: flexoapp_bd"); // Nombre de la base de datos
     Log.Information("========================================="); 
 
     app.Run();

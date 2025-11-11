@@ -1,23 +1,29 @@
+<!-- Contenedor principal del módulo de reportes - Diseño copiado del módulo de configuración -->
 <div class="reports-container">
-  <div class="reports-content">
-    
-    <!-- Header del módulo -->
-    <div class="reports-header">
-      <div class="header-content">
-        <div class="header-info">
-          <h1 class="page-title">
-            <mat-icon>assessment</mat-icon>
-            Reportes de Actividades de Usuario
-          </h1>
-          <p class="page-subtitle">
-            Consulta y exporta reportes detallados de actividades por código de usuario
-          </p>
-        </div>
+  <!-- Header fijo con diseño del módulo de configuración -->
+  <div class="reports-header fixed-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="page-title">
+          <mat-icon>assessment</mat-icon>
+          Reportes de Actividades de Usuario
+        </h1>
+        <p class="page-subtitle">
+          Consulta y exporta reportes detallados de actividades por código de usuario
+        </p>
       </div>
     </div>
+  </div>
 
-    <!-- Pestañas de reportes -->
-    <mat-tab-group class="reports-tabs" (selectedTabChange)="onTabChange($event.index)">
+  <!-- Contenido principal con diseño del módulo de configuración -->
+  <div class="reports-content">
+    <mat-card class="reports-card">
+      <mat-card-content>
+        <!-- Pestañas de reportes con diseño del módulo de configuración -->
+        <mat-tab-group 
+          [selectedIndex]="selectedTabIndex()" 
+          (selectedTabChange)="onTabChange($event.index)"
+          animationDuration="0ms">
       
       <!-- Pestaña: Reportes de Actividades de Usuario -->
       <mat-tab>
@@ -25,9 +31,11 @@
           <mat-icon>person</mat-icon>
           Actividades de Usuario
         </ng-template>
-        
-        <!-- Formulario de búsqueda de usuarios -->
-        <mat-card class="search-card">
+        <ng-template matTabContent>
+          <div class="tab-content">
+            <!-- Formulario de búsqueda de usuarios - Permite filtrar actividades por código de usuario, módulo y rango de fechas -->
+            <mat-card class="search-card">
+      <!-- Encabezado de la tarjeta de búsqueda -->
       <mat-card-header>
         <mat-card-title>
           <mat-icon>search</mat-icon>
@@ -35,16 +43,22 @@
         </mat-card-title>
       </mat-card-header>
       
+      <!-- Contenido de la tarjeta - Formulario reactivo con validación -->
       <mat-card-content>
         <form [formGroup]="searchForm" class="search-form">
+          <!-- Primera fila de campos: Código de usuario y Módulo -->
           <div class="form-row">
+            <!-- Campo de código de usuario con autocompletado -->
             <mat-form-field appearance="outline" class="user-code-field">
               <mat-label>Código de Usuario</mat-label>
+              <!-- Input con autocompletado de usuarios disponibles -->
               <input matInput formControlName="userCode" 
                      placeholder="Ej: admin, manager01, designer01"
                      [matAutocomplete]="userAutocomplete">
               <mat-icon matSuffix>person</mat-icon>
+              <!-- Autocompletado que muestra lista de usuarios disponibles -->
               <mat-autocomplete #userAutocomplete="matAutocomplete" [displayWith]="displayUserCode">
+                <!-- Opción por cada usuario disponible -->
                 <mat-option *ngFor="let user of availableUsers()" [value]="user.userCode">
                   <div class="user-option">
                     <span class="user-code">{{ user.userCode }}</span>
@@ -53,13 +67,16 @@
                   </div>
                 </mat-option>
               </mat-autocomplete>
+              <!-- Mensaje de error si el campo es requerido y está vacío -->
               <mat-error *ngIf="searchForm.get('userCode')?.hasError('required')">
                 El código de usuario es requerido
               </mat-error>
             </mat-form-field>
 
+            <!-- Campo selector de módulo - Permite filtrar por módulo específico o todos -->
             <mat-form-field appearance="outline" class="module-field">
               <mat-label>Módulo</mat-label>
+              <!-- Selector dropdown con opciones de módulos -->
               <mat-select formControlName="module">
                 <mat-option *ngFor="let option of moduleOptions" [value]="option.value">
                   {{ option.label }}
@@ -69,15 +86,20 @@
             </mat-form-field>
           </div>
 
+          <!-- Segunda fila de campos: Fecha de inicio y Fecha de fin -->
           <div class="form-row">
+            <!-- Campo de fecha de inicio con datepicker -->
             <mat-form-field appearance="outline" class="date-field-enhanced">
               <mat-label>Fecha de Inicio</mat-label>
+              <!-- Input de fecha readonly (solo se puede seleccionar con el datepicker) -->
               <input matInput [matDatepicker]="startPicker" formControlName="startDate" 
                      placeholder="Selecciona fecha inicial" readonly>
               <mat-icon matPrefix>event</mat-icon>
+              <!-- Toggle para abrir el datepicker -->
               <mat-datepicker-toggle matSuffix [for]="startPicker">
                 <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
               </mat-datepicker-toggle>
+              <!-- Datepicker con fecha inicial por defecto (30 días atrás) -->
               <mat-datepicker #startPicker 
                              [startAt]="getDefaultStartDate()"
                              [touchUi]="false">
@@ -85,14 +107,18 @@
               <mat-hint>Fecha desde la cual buscar actividades</mat-hint>
             </mat-form-field>
 
+            <!-- Campo de fecha de fin con datepicker -->
             <mat-form-field appearance="outline" class="date-field-enhanced">
               <mat-label>Fecha de Fin</mat-label>
+              <!-- Input de fecha readonly (solo se puede seleccionar con el datepicker) -->
               <input matInput [matDatepicker]="endPicker" formControlName="endDate" 
                      placeholder="Selecciona fecha final" readonly>
               <mat-icon matPrefix>event</mat-icon>
+              <!-- Toggle para abrir el datepicker -->
               <mat-datepicker-toggle matSuffix [for]="endPicker">
                 <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
               </mat-datepicker-toggle>
+              <!-- Datepicker con fecha inicial por defecto (hoy) -->
               <mat-datepicker #endPicker 
                              [startAt]="getDefaultEndDate()"
                              [touchUi]="false">
@@ -101,14 +127,20 @@
             </mat-form-field>
           </div>
 
+          <!-- Fila de acciones: Botones de buscar y limpiar -->
           <div class="form-actions">
+            <!-- Botón principal de búsqueda - Deshabilitado si el formulario es inválido o está cargando -->
             <button mat-raised-button color="primary" (click)="searchUserActivities()" 
                     [disabled]="loading() || searchForm.invalid" class="search-btn">
+              <!-- Spinner de carga mostrado mientras se busca -->
               <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+              <!-- Icono de búsqueda mostrado cuando no está cargando -->
               <mat-icon *ngIf="!loading()">search</mat-icon>
+              <!-- Texto dinámico del botón según el estado de carga -->
               {{ loading() ? 'Buscando...' : 'Buscar Actividades' }}
             </button>
 
+            <!-- Botón secundario para limpiar resultados y resetear formulario -->
             <button mat-stroked-button (click)="clearResults()" 
                     [disabled]="loading()" class="clear-btn">
               <mat-icon>clear</mat-icon>
@@ -319,7 +351,8 @@
 
       </mat-card-content>
     </mat-card>
-
+          </div>
+        </ng-template>
       </mat-tab>
 
       <!-- Pestaña: Reportes de Máquinas -->
@@ -328,9 +361,10 @@
           <mat-icon>precision_manufacturing</mat-icon>
           Reportes de Máquinas
         </ng-template>
-
-        <!-- Formulario de búsqueda de máquinas -->
-        <mat-card class="search-card">
+        <ng-template matTabContent>
+          <div class="tab-content">
+            <!-- Formulario de búsqueda de máquinas -->
+            <mat-card class="search-card">
           <mat-card-header>
             <mat-card-title>
               <mat-icon>search</mat-icon>
@@ -730,10 +764,12 @@
           <h3>Sin resultados</h3>
           <p>Ingresa un código de usuario y fecha para buscar actividades de máquinas</p>
         </div>
-
+          </div>
+        </ng-template>
       </mat-tab>
 
     </mat-tab-group>
-
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>

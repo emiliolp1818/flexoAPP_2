@@ -100,7 +100,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.loadCurrentUser();                            // Cargar información del usuario autenticado
     this.checkDatabaseConnection();                    // Verificar conectividad con la base de datos MySQL
     this.loadUsers();                                  // Cargar lista completa de usuarios desde la BD
-    this.loadSystemConfigs();                          // Cargar configuraciones del sistema
+    // this.loadSystemConfigs();                       // TODO: Implementar endpoint en backend
     this.startRealTimeUpdates();                       // Iniciar actualizaciones automáticas cada 2 minutos
     this.setupVisibilityListener();                    // Configurar listener para pausar updates cuando la página no es visible
   }
