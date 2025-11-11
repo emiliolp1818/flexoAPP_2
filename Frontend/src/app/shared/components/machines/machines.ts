@@ -13,6 +13,7 @@ import { MatCardModule } from '@angular/material/card'; // Tarjetas Material
 import { MatTabsModule } from '@angular/material/tabs'; // Pestañas Material
 import { MatChipsModule } from '@angular/material/chips'; // Chips Material
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Spinner de carga
+import { MatSnackBarModule } from '@angular/material/snack-bar'; // Notificaciones toast
 // Módulo de formularios reactivos de Angular
 import { FormsModule } from '@angular/forms';
 // Cliente HTTP para comunicación con el backend
@@ -23,6 +24,10 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 // Servicio de autenticación personalizado
 import { AuthService } from '../../../core/services/auth.service';
+// Importar MatDialog para abrir diálogos modales
+import { MatDialog } from '@angular/material/dialog';
+// Importar MatSnackBar para notificaciones toast
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 // Interfaz que define la estructura de un registro de máquina desde la tabla 'maquinas'
 interface MachineProgram {
@@ -38,7 +43,7 @@ interface MachineProgram {
   kilos: number; // Cantidad en kilogramos a producir
   fechaTintaEnMaquina: Date; // Fecha y hora cuando se aplicó la tinta en la máquina (formato dd/mm/aaaa: hora)
   sustrato: string; // Tipo de material base (ej: BOPP, PE, PET)
-  estado: 'LISTO' | 'CORRIENDO' | 'SUSPENDIDO' | 'TERMINADO'; // Estado actual del programa
+  estado: 'PREPARANDO' | 'LISTO' | 'SUSPENDIDO' | 'CORRIENDO' | 'TERMINADO'; // Estado actual del programa - NUEVOS ESTADOS
   observaciones?: string; // Observaciones adicionales (opcional)
   lastActionBy?: string; // Usuario que realizó la última acción (opcional)
   lastActionAt?: Date; // Fecha de la última acción (opcional)
@@ -79,6 +84,7 @@ interface MachineStats {
     MatTabsModule, // Pestañas de Material Design
     MatChipsModule, // Chips de Material Design
     MatProgressSpinnerModule, // Spinner de carga de Material
+    MatSnackBarModule, // Notificaciones toast de Material
     FormsModule // Formularios de Angular
   ],
   templateUrl: './machines.html', // Archivo de plantilla HTML
@@ -88,6 +94,7 @@ export class MachinesComponent implements OnInit {
   // Inyección de dependencias usando la nueva sintaxis inject()
   private http = inject(HttpClient); // Cliente HTTP para llamadas al API
   private authService = inject(AuthService); // Servicio de autenticación
+  private snackBar = inject(MatSnackBar); // Servicio de notificaciones toast
   
   // Señales reactivas de Angular - Estado reactivo del componente
   loading = signal(false); // Estado de carga (true/false)
@@ -127,24 +134,30 @@ export class MachinesComponent implements OnInit {
   
   // Propiedades computadas - Se recalculan automáticamente cuando cambian las dependencias
   
-  // Programas de la máquina seleccionada - Filtra programas por número de máquina
+  // Programas de la máquina seleccionada - Filtra programas por número de máquina y ordena por fecha/hora ascendente
   selectedMachinePrograms = computed(() => {
     const selected = this.selectedMachineNumber(); // Obtiene el número de máquina seleccionada
     if (!selected) return []; // Si no hay máquina seleccionada, retorna array vacío
     // Filtra todos los programas para obtener solo los de la máquina seleccionada
-    return this.programs().filter(p => p.machineNumber === selected);
+    const filtered = this.programs().filter(p => p.machineNumber === selected);
+    // Ordena por fecha y hora ascendente (más cercana primero)
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.fechaTintaEnMaquina).getTime(); // Convierte fecha A a timestamp
+      const dateB = new Date(b.fechaTintaEnMaquina).getTime(); // Convierte fecha B a timestamp
+      return dateA - dateB; // Orden ascendente: fecha más cercana primero
+    });
   });
 
-  // Estadísticas calculadas de la máquina seleccionada
+  // Estadísticas calculadas de la máquina seleccionada - ACTUALIZADO CON NUEVOS ESTADOS
   selectedMachineStats = computed((): MachineStats => {
     const programs = this.selectedMachinePrograms(); // Obtiene programas de la máquina seleccionada
     return {
       totalPrograms: programs.length, // Cuenta total de programas
-      // Cuenta programas por estado usando filter
-      readyPrograms: programs.filter(p => p.estado === 'LISTO').length,
-      runningPrograms: programs.filter(p => p.estado === 'CORRIENDO').length,
-      suspendedPrograms: programs.filter(p => p.estado === 'SUSPENDIDO').length,
-      completedPrograms: programs.filter(p => p.estado === 'TERMINADO').length
+      // Cuenta programas por estado usando filter - NUEVOS ESTADOS
+      readyPrograms: programs.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length, // Listo + Preparando
+      runningPrograms: programs.filter(p => p.estado === 'CORRIENDO').length, // Corriendo
+      suspendedPrograms: programs.filter(p => p.estado === 'SUSPENDIDO').length, // Suspendido
+      completedPrograms: programs.filter(p => p.estado === 'TERMINADO').length // Terminado
     };
   });
 
@@ -163,90 +176,135 @@ export class MachinesComponent implements OnInit {
     }
   }
 
-  // Método asíncrono para cargar datos de máquinas desde la tabla 'maquinas'
+  // ===== MÉTODO PARA CARGAR DATOS DE MÁQUINAS DESDE LA BASE DE DATOS =====
+  // Método asíncrono que se conecta con el endpoint GET api/maquinas del backend
+  // Este endpoint consulta la tabla machine_programs de la base de datos flexoapp_bd
+  // Retorna todos los programas de máquinas ordenados por fecha de tinta más reciente
   async loadPrograms() {
-    this.loading.set(true); // Activar indicador de carga
+    this.loading.set(true); // Activar indicador de carga en la UI para mostrar spinner
     try {
-      // Verificar si el usuario está autenticado antes de hacer la petición
+      // ===== VERIFICACIÓN DE AUTENTICACIÓN =====
+      // Verificar si el usuario está autenticado antes de hacer la petición al backend
       if (!this.authService.isLoggedIn()) {
-        // Redirigir a login si no está autenticado
+        // Si no está autenticado, redirigir a la página de login
         window.location.href = '/login';
-        return; // Salir del método
+        return; // Salir del método para evitar peticiones no autorizadas
       }
 
-      console.log('🔄 Cargando datos de máquinas desde tabla "maquinas":', `${environment.apiUrl}/maquinas`);
+      // ===== LOG DE INICIO DE CARGA =====
+      // Registrar en consola la URL del endpoint que se va a consultar
+      console.log('🔄 Cargando datos de máquinas desde tabla "machine_programs" (alias: maquinas):', `${environment.apiUrl}/maquinas`);
       
-      // Realizar petición HTTP GET al endpoint de la tabla maquinas
-      // Ordenar por fecha de tinta en máquina de manera descendente (más reciente primero)
+      // ===== PETICIÓN HTTP GET AL BACKEND =====
+      // Realizar petición HTTP GET al endpoint api/maquinas del backend
+      // Parámetros de query: orderBy=fechaTintaEnMaquina (ordenar por fecha de tinta)
+      //                      order=desc (orden descendente - más reciente primero)
+      // El backend consulta la tabla machine_programs y retorna los datos en formato JSON
       const response = await firstValueFrom(this.http.get<any>(`${environment.apiUrl}/maquinas?orderBy=fechaTintaEnMaquina&order=desc`));
       
-      console.log('📡 Respuesta del servidor (tabla maquinas):', response); // Log de la respuesta completa
+      // ===== LOG DE RESPUESTA DEL SERVIDOR =====
+      // Registrar en consola la respuesta completa del backend para debugging
+      console.log('📡 Respuesta del servidor (tabla machine_programs):', response);
+      console.log('📡 Primer programa del servidor:', response?.data?.[0]);
       
-      // Verificar que la respuesta tenga la estructura esperada
+      // ===== VALIDACIÓN DE LA RESPUESTA =====
+      // Verificar que la respuesta tenga la estructura esperada: { success: true, data: [...] }
       if (response && response.success && response.data) {
-        // Mapear los datos del API al formato que usa el frontend
+        // ===== MAPEO DE DATOS DEL BACKEND AL FRONTEND =====
+        // Transformar los datos del backend al formato que usa el componente frontend
+        // Cada registro de la tabla machine_programs se convierte en un objeto MachineProgram
         const programs: MachineProgram[] = response.data.map((program: any) => {
-          // Parsear colores - pueden venir como string JSON o array
+          // ===== PARSEO DE COLORES =====
+          // Los colores vienen de la columna JSON 'colores' de la tabla machine_programs
+          // Pueden venir como string JSON (ej: '["CYAN","MAGENTA"]') o como array ya parseado
           let colores: string[] = [];
           if (program.colores) {
             try {
-              // Si es string, parsearlo como JSON; si es array, usarlo directamente
+              // Si es string JSON, parsearlo a array; si ya es array, usarlo directamente
               colores = typeof program.colores === 'string' 
                 ? JSON.parse(program.colores) 
                 : program.colores;
             } catch (e) {
-              // Si hay error al parsear, usar array vacío y mostrar warning
-              console.warn('Error parseando colores para programa:', program.id, e);
+              // Si hay error al parsear el JSON, usar array vacío y mostrar warning en consola
+              console.warn('⚠️ Error parseando colores para programa:', program.id, e);
               colores = [];
             }
           }
 
-          // Retornar objeto MachineProgram con valores por defecto para campos opcionales
+          // ===== CONSTRUCCIÓN DEL OBJETO MachineProgram =====
+          // Retornar objeto MachineProgram con todos los campos mapeados desde la base de datos
+          // Se usan valores por defecto (|| operador) para campos opcionales que puedan ser null
+          
+          // ===== GENERACIÓN DE ID =====
+          // El backend ahora devuelve el campo 'id' usando 'articulo' como valor
+          // Si por alguna razón no viene, usar 'articulo' directamente como fallback
+          const programId = program.id || program.articulo || 
+            `temp-${program.articulo}-${program.otSap}-${program.numeroMaquina || program.machineNumber || 11}`.replace(/\s+/g, '-');
+          
           return {
-            id: program.id, // ID del programa
-            numeroMaquina: program.numeroMaquina || program.machineNumber || 11, // Número de máquina (11-21)
-            articulo: program.articulo || '', // Código del artículo (vacío si no existe)
-            otSap: program.otSap || '', // Orden de trabajo SAP (vacío si no existe)
-            cliente: program.cliente || '', // Nombre del cliente (vacío si no existe)
-            referencia: program.referencia || '', // Referencia del producto (vacío si no existe)
-            td: program.td || '', // Código TD (vacío si no existe)
-            numeroColores: program.numeroColores || colores.length, // Número de colores
-            colores: colores, // Array de colores parseado
-            kilos: program.kilos || 0, // Cantidad en kilos (0 si no existe)
-            fechaTintaEnMaquina: program.fechaTintaEnMaquina ? new Date(program.fechaTintaEnMaquina) : new Date(), // Fecha de tinta en máquina
-            sustrato: program.sustrato || '', // Tipo de sustrato (vacío si no existe)
-            estado: program.estado || 'LISTO', // Estado del programa (LISTO por defecto)
-            observaciones: program.observaciones || '', // Observaciones (vacío si no existe)
-            // Campos adicionales para compatibilidad
-            machineNumber: program.numeroMaquina || program.machineNumber || 11, // Alias para compatibilidad
-            // Construir nombre del usuario que hizo la última acción
+            // ===== CAMPOS PRINCIPALES DE LA TABLA machine_programs =====
+            id: programId, // ID único del registro (articulo es la clave primaria)
+            numeroMaquina: program.numeroMaquina || program.machineNumber || 11, // Número de máquina (11-21) - columna machine_number
+            articulo: program.articulo || '', // Código del artículo (columna articulo) - vacío si es null
+            otSap: program.otSap || '', // Orden de trabajo SAP (columna ot_sap) - vacío si es null
+            cliente: program.cliente || '', // Nombre del cliente (columna cliente) - vacío si es null
+            referencia: program.referencia || '', // Referencia del producto (columna referencia) - vacío si es null
+            td: program.td || '', // Código TD - Tipo de Diseño (columna td) - vacío si es null
+            numeroColores: program.numeroColores || colores.length, // Número de colores (columna numero_colores)
+            colores: colores, // Array de colores parseado desde la columna JSON 'colores'
+            kilos: program.kilos || 0, // Cantidad en kilogramos (columna kilos) - 0 si es null
+            fechaTintaEnMaquina: program.fechaTintaEnMaquina ? new Date(program.fechaTintaEnMaquina) : new Date(), // Fecha de tinta (columna fecha_tinta_en_maquina)
+            sustrato: program.sustrato || '', // Tipo de material base (columna sustrato) - vacío si es null
+            estado: program.estado || 'PREPARANDO', // Estado del programa (columna estado) - PREPARANDO por defecto (sin color para que operario elija)
+            observaciones: program.observaciones || '', // Observaciones adicionales (columna observaciones) - vacío si es null
+            
+            // ===== CAMPOS DE COMPATIBILIDAD =====
+            machineNumber: program.numeroMaquina || program.machineNumber || 11, // Alias para numeroMaquina (compatibilidad con código legacy)
+            
+            // ===== CAMPOS DE AUDITORÍA =====
+            // Construir nombre completo del usuario que realizó la última acción
+            // Se obtiene de la relación con la tabla users (updated_by_user)
             lastActionBy: program.updatedByUser?.firstName && program.updatedByUser?.lastName 
               ? `${program.updatedByUser.firstName} ${program.updatedByUser.lastName}`.trim()
               : program.lastActionBy || 'Sistema',
-            // Convertir fechas de string a objeto Date
+            // Convertir fecha de última acción de string ISO a objeto Date
+            // Se obtiene de la columna updated_at de la tabla machine_programs
             lastActionAt: program.updatedAt ? new Date(program.updatedAt) : 
                          program.lastActionAt ? new Date(program.lastActionAt) : new Date()
           };
         });
         
-        console.log(`✅ ${programs.length} programas cargados exitosamente`); // Log de éxito
-        this.programs.set(programs); // Actualizar la señal reactiva con los programas
+        // ===== LOG DE ÉXITO Y ACTUALIZACIÓN DE ESTADO =====
+        console.log(`✅ ${programs.length} programas cargados exitosamente desde la base de datos`);
         
-        // Calcular y mostrar estadísticas en consola para debugging
+        // ===== VERIFICACIÓN DE IDs =====
+        // Verificar que todos los programas tengan ID válido
+        const programsWithoutId = programs.filter(p => !p.id);
+        if (programsWithoutId.length > 0) {
+          console.warn(`⚠️ ${programsWithoutId.length} programas sin ID detectados:`, programsWithoutId);
+          console.warn('⚠️ Datos originales del primer programa sin ID:', response.data.find((p: any) => !p.id && !p._id && !p.programId));
+        }
+        
+        // Actualizar la señal reactiva 'programs' con los datos cargados
+        // Esto dispara automáticamente la actualización de la UI en todos los componentes que usan esta señal
+        this.programs.set(programs);
+        
+        // ===== CÁLCULO DE ESTADÍSTICAS PARA DEBUGGING =====
+        // Calcular y mostrar estadísticas en consola para verificar la carga de datos
         const stats = {
-          total: programs.length, // Total de programas
-          // Contar programas por máquina usando reduce
+          total: programs.length, // Total de programas cargados desde la tabla machine_programs
+          // Contar programas por máquina usando reduce - agrupa por machine_number
           porMaquina: programs.reduce((acc, p) => {
             acc[p.machineNumber] = (acc[p.machineNumber] || 0) + 1;
             return acc;
           }, {} as Record<number, number>),
-          // Contar programas por estado usando reduce
+          // Contar programas por estado usando reduce - agrupa por estado (LISTO, CORRIENDO, etc.)
           porEstado: programs.reduce((acc, p) => {
             acc[p.estado] = (acc[p.estado] || 0) + 1;
             return acc;
           }, {} as Record<string, number>)
         };
-        console.log('📊 Estadísticas de programas:', stats); // Log de estadísticas
+        console.log('📊 Estadísticas de programas cargados:', stats); // Log de estadísticas detalladas
         
       } else {
         // Si la respuesta no tiene la estructura esperada
@@ -366,36 +424,51 @@ Error: ${loginError.message || 'Error de conexión'}`);
     return machineNumber; // Retorna el número de máquina como identificador único
   }
 
-  // Determina la clase CSS para el estado visual de una máquina basado en programas listos
+  // ===== MÉTODO PARA DETERMINAR LA CLASE CSS DEL LED INDICADOR DE ESTADO =====
+  // Determina la clase CSS para el estado visual de una máquina basado en programas listos y preparando
   // Implementa la lógica del indicador LED según especificaciones del usuario
   getMachineStatusClass(machineNumber: number): string {
-    // Filtrar programas de la máquina específica
+    // Filtrar programas de la máquina específica por número de máquina
     const machinePrograms = this.programs().filter(p => p.machineNumber === machineNumber);
-    // Contar programas en estado LISTO
-    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO').length;
     
-    // Determinar clase CSS basada en la cantidad de programas listos según especificaciones:
-    // ROJO: 0 a 3 pedidos listos (estado crítico - LED rojo con parpadeo rápido)
-    // NARANJA: 4 a 8 pedidos listos (estado de advertencia - LED naranja con parpadeo medio)
-    // VERDE: 8 o más pedidos listos (estado óptimo - LED verde con parpadeo lento)
+    // Contar programas en estado LISTO y PREPARANDO (ambos cuentan como "listos")
+    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length;
     
-    if (readyCount >= 8) {
-      return 'machine-status-good';     // Verde: 8+ programas listos
-    } else if (readyCount >= 4 && readyCount <= 8) {
-      return 'machine-status-warning';  // Naranja: exactamente 4-8 programas listos
+    // ===== DETERMINAR CLASE CSS BASADA EN LA CANTIDAD DE PROGRAMAS LISTOS =====
+    // Según especificaciones del usuario:
+    // 🔴 ROJO (CRÍTICO): 0 a 3 pedidos listos - LED rojo con parpadeo rápido (1s)
+    // 🟠 NARANJA (ADVERTENCIA): 3 a 6 pedidos listos - LED naranja con parpadeo medio (1.5s)
+    // 🟢 VERDE (ÓPTIMO): 6 o más pedidos listos - LED verde con parpadeo lento (2s)
+    
+    // Variable para almacenar la clase CSS que se retornará
+    let statusClass: string;
+    
+    if (readyCount >= 6) {
+      // 6 o más programas listos: Estado ÓPTIMO
+      statusClass = 'machine-status-good';     // Clase para LED verde
+    } else if (readyCount >= 3) {
+      // 3 a 5 programas listos: Estado de ADVERTENCIA
+      statusClass = 'machine-status-warning';  // Clase para LED naranja
     } else {
-      return 'machine-status-critical'; // Rojo: 0-3 programas listos
+      // 0 a 2 programas listos: Estado CRÍTICO
+      statusClass = 'machine-status-critical'; // Clase para LED rojo
     }
+    
+    // Log para debugging: muestra el número de máquina, cantidad de programas listos y clase CSS aplicada
+    console.log(`🚦 Máquina ${machineNumber}: ${readyCount} programas listos → ${statusClass}`);
+    
+    // Retornar la clase CSS determinada
+    return statusClass;
   }  
 
   // Genera el texto del tooltip para mostrar información de estado de la máquina
   getMachineStatusTooltip(machineNumber: number): string {
     // Filtrar programas de la máquina específica
     const machinePrograms = this.programs().filter(p => p.machineNumber === machineNumber);
-    // Contar programas en estado LISTO
-    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO').length;
+    // Contar programas en estado LISTO y PREPARANDO
+    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length;
     // Retornar texto descriptivo para el tooltip
-    return `Máquina ${machineNumber}: ${readyCount} programas listos`;
+    return `Máquina ${machineNumber}: ${readyCount} programas listos/preparando`;
   }
 
   // Determina si se debe mostrar la tabla de programación
@@ -422,55 +495,144 @@ Error: ${loginError.message || 'Error de conexión'}`);
 
   // Función toggleColors eliminada - se usa la versión mejorada más abajo
 
-  // Cierra específicamente el dropdown de colores de un programa
-  closeColors(programId: string) {
-    const expanded = new Set(this.expandedColors()); // Crear copia del Set actual
-    expanded.delete(programId); // Remover el ID del Set (cerrar dropdown)
-    this.expandedColors.set(expanded); // Actualizar la señal reactiva
+  // ===== MÉTODO PARA ALTERNAR (TOGGLE) EL DROPDOWN DE COLORES =====
+  // Método mejorado que maneja la apertura/cierre del dropdown de colores de un programa
+  // Incluye manejo de eventos para evitar propagación y cierre automático al hacer clic fuera
+  toggleColors(programId: string, event?: Event) {
+    // ===== PREVENIR PROPAGACIÓN DEL EVENTO =====
+    // Evitar que el clic se propague a elementos padres que puedan cerrar el dropdown
+    if (event) {
+      event.stopPropagation(); // Detener la propagación del evento de clic
+    }
+
+    // ===== OBTENER ESTADO ACTUAL DEL DROPDOWN =====
+    // Crear una copia del Set actual de dropdowns expandidos
+    const expanded = new Set(this.expandedColors());
+    
+    // ===== ALTERNAR ESTADO DEL DROPDOWN =====
+    // Si el dropdown está expandido, cerrarlo; si está cerrado, abrirlo
+    if (expanded.has(programId)) {
+      // El dropdown está abierto, cerrarlo
+      expanded.delete(programId); // Remover el ID del Set
+      console.log(`🎨 Cerrando dropdown de colores para programa: ${programId}`);
+    } else {
+      // El dropdown está cerrado, abrirlo
+      // IMPORTANTE: Cerrar todos los demás dropdowns antes de abrir este
+      // Esto asegura que solo un dropdown esté abierto a la vez
+      expanded.clear(); // Limpiar todos los dropdowns abiertos
+      expanded.add(programId); // Agregar el nuevo ID al Set
+      console.log(`🎨 Abriendo dropdown de colores para programa: ${programId}`);
+    }
+    
+    // ===== ACTUALIZAR ESTADO REACTIVO =====
+    // Actualizar la señal reactiva con el nuevo Set (esto dispara la detección de cambios)
+    this.expandedColors.set(expanded);
   }
 
-  // Método asíncrono para cambiar el estado de un programa
+  // ===== MÉTODO PARA CERRAR ESPECÍFICAMENTE UN DROPDOWN DE COLORES =====
+  // Cierra el dropdown de colores de un programa específico sin afectar otros
+  closeColors(programId: string) {
+    // ===== CREAR COPIA DEL SET ACTUAL =====
+    const expanded = new Set(this.expandedColors()); // Crear copia del Set actual
+    
+    // ===== REMOVER EL ID DEL SET =====
+    expanded.delete(programId); // Remover el ID del Set (cerrar dropdown)
+    
+    // ===== ACTUALIZAR ESTADO REACTIVO =====
+    this.expandedColors.set(expanded); // Actualizar la señal reactiva
+    
+    // ===== LOG DE CONFIRMACIÓN =====
+    console.log(`🎨 Dropdown de colores cerrado para programa: ${programId}`);
+  }
+
+  // ===== MÉTODO PARA CAMBIAR EL ESTADO DE UN PROGRAMA =====
+  // Método asíncrono que actualiza el estado de un programa en la base de datos
+  // Se conecta con el endpoint PATCH api/maquinas/{id}/status del backend
+  // Este endpoint actualiza la columna 'estado' en la tabla machine_programs
   async changeStatus(program: MachineProgram, newStatus: MachineProgram['estado']) {
+    // ===== VALIDACIÓN DE ID =====
+    // Verificar que el programa tenga un ID válido antes de intentar actualizar
+    if (!program.id) {
+      console.error('❌ Error: El programa no tiene un ID válido', program);
+      this.snackBar.open('Error: No se puede cambiar el estado del programa', 'Cerrar', { duration: 5000 });
+      return; // Salir del método si no hay ID
+    }
+    
+    // ===== VALIDACIÓN DE ID TEMPORAL =====
+    // Si el ID es temporal (generado por el frontend), mostrar advertencia
+    const programIdStr = String(program.id); // Convertir a string para verificar
+    if (programIdStr.startsWith('temp-')) {
+      console.warn('⚠️ Advertencia: Intentando actualizar programa con ID temporal', program);
+      this.snackBar.open('Advertencia: Este programa tiene un ID temporal', 'Cerrar', { duration: 5000 });
+      return; // Salir del método si el ID es temporal
+    }
+    
     try {
-      this.loading.set(true); // Activar indicador de carga
+      this.loading.set(true); // Activar indicador de carga en la UI para mostrar spinner
       
-      console.log(`🔄 Cambiando estado de programa ${program.id} a ${newStatus}`); // Log de inicio
+      // ===== LOG DE INICIO DE CAMBIO DE ESTADO =====
+      console.log(`🔄 Cambiando estado de programa ${program.id} a ${newStatus} en la base de datos`);
       
-      // Preparar objeto DTO (Data Transfer Object) para enviar al servidor
+      // ===== PREPARACIÓN DEL DTO PARA EL BACKEND =====
+      // Crear objeto DTO (Data Transfer Object) con los datos a enviar al servidor
+      // Este objeto se serializa a JSON y se envía en el body de la petición PATCH
       const changeStatusDto = {
-        estado: newStatus, // Nuevo estado del programa
-        // Solo incluir observaciones si el nuevo estado es SUSPENDIDO
+        estado: newStatus, // Nuevo estado del programa (LISTO, CORRIENDO, SUSPENDIDO, TERMINADO)
+        // Solo incluir observaciones si el nuevo estado es SUSPENDIDO (para guardar el motivo)
         observaciones: newStatus === 'SUSPENDIDO' ? program.observaciones : null
       };
       
-      // Realizar petición HTTP PATCH para actualizar el estado en el servidor usando el endpoint de maquinas
+      // ===== PETICIÓN HTTP PATCH AL BACKEND =====
+      // Realizar petición HTTP PATCH al endpoint api/maquinas/{id}/status
+      // Este endpoint actualiza las columnas: estado, observaciones, updated_at, updated_by, last_action_by, last_action_at
+      // en la tabla machine_programs de la base de datos flexoapp_bd
       const response = await firstValueFrom(this.http.patch<any>(
-        `${environment.apiUrl}/maquinas/${program.id}/status`, // URL con ID del programa
-        changeStatusDto // Datos a enviar
+        `${environment.apiUrl}/maquinas/${program.id}/status`, // URL del endpoint con el ID del programa
+        changeStatusDto // Objeto DTO serializado a JSON en el body de la petición
       ));
       
-      // Verificar que la respuesta del servidor sea exitosa
+      // ===== VALIDACIÓN DE LA RESPUESTA DEL BACKEND =====
+      // Verificar que la respuesta del servidor tenga la estructura esperada: { success: true, data: {...} }
       if (response && response.success) {
-        console.log(`✅ Estado cambiado exitosamente a ${newStatus}`); // Log de éxito
+        console.log(`✅ Estado cambiado exitosamente a ${newStatus} en la base de datos`);
         
-        // Actualizar el estado localmente para reflejar los cambios inmediatamente
-        const programs = this.programs(); // Obtener array actual de programas
-        const programIndex = programs.findIndex(p => p.id === program.id); // Encontrar índice del programa
+        // ===== ACTUALIZACIÓN LOCAL DEL ESTADO =====
+        // Actualizar el estado localmente en el frontend para reflejar los cambios inmediatamente
+        // Esto evita tener que recargar todos los datos desde el servidor
+        const programs = this.programs(); // Obtener array actual de programas desde la señal reactiva
+        const programIndex = programs.findIndex(p => p.id === program.id); // Encontrar índice del programa modificado
         if (programIndex !== -1) {
-          // Actualizar el programa en el array con los nuevos datos
-          programs[programIndex] = {
-            ...programs[programIndex], // Mantener datos existentes
-            estado: newStatus, // Actualizar estado
-            // Actualizar información de la última acción
-            lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
-            lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
-            observaciones: response.data?.observaciones || programs[programIndex].observaciones
-          };
-          this.programs.set([...programs]); // Actualizar la señal reactiva con nuevo array
+          // ===== CREAR NUEVO ARRAY CON EL PROGRAMA ACTUALIZADO =====
+          // Crear un nuevo array inmutable para disparar la detección de cambios de Angular
+          const updatedPrograms = programs.map((p, index) => {
+            if (index === programIndex) {
+              // Actualizar el programa encontrado con los nuevos datos
+              return {
+                ...p, // Mantener todos los datos existentes (spread operator)
+                estado: newStatus, // Actualizar columna 'estado' con el nuevo valor
+                // Actualizar información de auditoría de la última acción
+                // Estos datos vienen de las columnas last_action_by y last_action_at de la tabla
+                lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
+                lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
+                observaciones: response.data?.observaciones || p.observaciones
+              };
+            }
+            return p; // Mantener los demás programas sin cambios
+          });
+          
+          // Actualizar la señal reactiva con el nuevo array (esto dispara la detección de cambios)
+          this.programs.set(updatedPrograms);
+          
+          console.log('🔄 Estado actualizado localmente:', {
+            programaId: program.id,
+            estadoAnterior: program.estado,
+            estadoNuevo: newStatus
+          });
         }
         
         // Definir mensajes de éxito específicos para cada estado
         const statusMessages = {
+          'PREPARANDO': 'Programa en PREPARACIÓN',
           'LISTO': 'Programa marcado como LISTO',
           'CORRIENDO': 'Programa iniciado - CORRIENDO',
           'SUSPENDIDO': 'Programa SUSPENDIDO',
@@ -571,16 +733,21 @@ Error: ${loginError.message || 'Error de conexión'}`);
         const programs = this.programs(); // Obtener array actual de programas
         const index = programs.findIndex(p => p.id === this.currentProgramToSuspend!.id); // Encontrar programa
         if (index !== -1) {
-          // Actualizar el programa con el nuevo estado y observaciones
-          programs[index] = {
-            ...programs[index], // Mantener datos existentes
-            estado: 'SUSPENDIDO', // Nuevo estado
-            observaciones: this.suspendReason, // Motivo de suspensión
-            // Actualizar información de la última acción
-            lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
-            lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date()
-          };
-          this.programs.set([...programs]); // Actualizar la señal reactiva
+          // Crear nuevo array inmutable con el programa actualizado
+          const updatedPrograms = programs.map((p, i) => {
+            if (i === index) {
+              return {
+                ...p, // Mantener datos existentes
+                estado: 'SUSPENDIDO' as MachineProgram['estado'], // Nuevo estado con tipo explícito
+                observaciones: this.suspendReason, // Motivo de suspensión
+                // Actualizar información de la última acción
+                lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
+                lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date()
+              };
+            }
+            return p;
+          });
+          this.programs.set(updatedPrograms); // Actualizar la señal reactiva con nuevo array
         }
         
         // Log de confirmación detallado
@@ -623,97 +790,229 @@ Error: ${loginError.message || 'Error de conexión'}`);
     }
   }
 
-  // Método asíncrono para manejar la selección y procesamiento de archivos Excel/CSV
+  // ===== MÉTODO PARA CARGAR PROGRAMACIÓN DESDE ARCHIVO EXCEL/CSV =====
+  // Método asíncrono que maneja la selección y procesamiento de archivos Excel/CSV
+  // 
+  // FORMATO ESPERADO DEL ARCHIVO (11 columnas en este orden):
+  // (A) MÁQUINA - Número de máquina (11-21)
+  // (B) ARTÍCULO - Código del artículo (único)
+  // (C) OT SAP - Orden de trabajo SAP
+  // (D) CLIENTE - Nombre del cliente
+  // (E) REFERENCIA - Referencia del producto
+  // (F) TD - Código TD (Tipo de Diseño)
+  // (G) N° COLORES - Cantidad de colores (1-10)
+  // (H) COLORES - Lista de colores separados por coma (ej: CYAN,MAGENTA,AMARILLO,NEGRO)
+  // (I) KILOS - Cantidad en kilogramos
+  // (J) FECHA TINTA EN MÁQUINA - Fecha y hora (dd/mm/yyyy HH:mm)
+  // (K) SUSTRATO - Tipo de material base (ej: BOPP, PE, PET)
+  //
+  // IMPORTANTE: Al cargar nueva programación, solo se eliminan los programas en estado CORRIENDO
+  // Los programas en PREPARANDO, LISTO y SUSPENDIDO se mantienen para no perder el trabajo del operario
   async onFileSelected(event: any) {
-    const file = event.target.files[0]; // Obtener el primer archivo seleccionado
-    if (!file) return; // Salir si no hay archivo
+    // ===== OBTENER ARCHIVO SELECCIONADO =====
+    const file = event.target.files[0]; // Obtener el primer archivo seleccionado del input file
+    if (!file) return; // Salir si no hay archivo seleccionado (usuario canceló)
 
-    // Definir tipos MIME permitidos para validación
+    // ===== VERIFICAR AUTENTICACIÓN =====
+    if (!this.authService.isLoggedIn()) {
+      console.error('❌ Usuario no autenticado');
+      this.snackBar.open(
+        'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 
+        'Ir a Login', 
+        { duration: 10000 }
+      ).onAction().subscribe(() => {
+        window.location.href = '/login';
+      });
+      return;
+    }
+
+    // ===== VALIDACIÓN DE TIPO DE ARCHIVO =====
+    // Definir tipos MIME permitidos para validación de seguridad
     const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel', // .xls
-      'text/csv' // .csv
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx (Excel moderno)
+      'application/vnd.ms-excel', // .xls (Excel antiguo)
+      'text/csv' // .csv (valores separados por comas)
     ];
     
-    // Definir extensiones permitidas como respaldo
+    // Definir extensiones permitidas como respaldo de validación
     const allowedExtensions = ['.xlsx', '.xls', '.csv'];
-    // Extraer la extensión del archivo
+    // Extraer la extensión del archivo seleccionado
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
     
-    // Validar que el archivo sea del tipo correcto
+    // Validar que el archivo sea del tipo correcto (por MIME type o extensión)
     if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
-      console.warn('Tipo de archivo no válido:', file.type, fileExtension);
+      console.warn('⚠️ Tipo de archivo no válido:', file.type, fileExtension);
+      this.snackBar.open('Tipo de archivo no válido. Solo se permiten Excel o CSV', 'Cerrar', { duration: 5000 });
       return; // Salir si el tipo no es válido
     }
 
-    // Validar tamaño del archivo (máximo 10MB para evitar problemas de memoria)
+    // ===== VALIDACIÓN DE TAMAÑO DE ARCHIVO =====
+    // Validar tamaño del archivo (máximo 10MB para evitar problemas de memoria y timeout)
     const maxSize = 10 * 1024 * 1024; // 10MB en bytes
     if (file.size > maxSize) {
-      console.warn('Archivo demasiado grande:', file.size, 'bytes. Máximo:', maxSize, 'bytes');
+      console.warn('⚠️ Archivo demasiado grande:', file.size, 'bytes. Máximo:', maxSize, 'bytes');
+      this.snackBar.open('El archivo es demasiado grande. Máximo: 10MB', 'Cerrar', { duration: 5000 });
       return; // Salir si el archivo es muy grande
     }
 
-    this.loading.set(true); // Activar indicador de carga
+    this.loading.set(true); // Activar indicador de carga en la UI
     try {
-      // Crear FormData para enviar el archivo al servidor
+      // ===== PREPARACIÓN DE DATOS PARA ENVÍO =====
+      // Crear FormData para enviar el archivo al servidor mediante multipart/form-data
       const formData = new FormData();
-      formData.append('file', file); // Agregar el archivo
+      formData.append('file', file); // Agregar el archivo al FormData
       formData.append('moduleType', 'machines'); // Especificar que es para el módulo de máquinas
-      formData.append('timestamp', new Date().toISOString()); // Agregar timestamp para tracking
+      formData.append('timestamp', new Date().toISOString()); // Agregar timestamp para tracking y debugging
 
+      // ===== LOG DE INICIO DE CARGA =====
+      console.log('📤 Subiendo archivo de programación:', {
+        nombre: file.name,
+        tamaño: `${(file.size / 1024).toFixed(2)} KB`,
+        tipo: file.type,
+        timestamp: new Date().toISOString()
+      });
+
+      // ===== PETICIÓN HTTP POST AL BACKEND =====
       // Realizar petición HTTP POST para subir y procesar el archivo
-      const response = await firstValueFrom(this.http.post<any>(`${environment.apiUrl}/machine-programs/upload-programming`, formData));
+      // El backend procesará el Excel/CSV y retornará los programas parseados
+      const response = await firstValueFrom(
+        this.http.post<any>(`${environment.apiUrl}/machine-programs/upload-programming`, formData)
+      );
       
+      // ===== VALIDACIÓN DE LA RESPUESTA DEL SERVIDOR =====
       // Verificar que la respuesta del servidor sea exitosa
       if (response && response.success) {
-        // Obtener los nuevos programas del servidor
-        const newPrograms = response.data || [];
-        this.programs.set(newPrograms); // Actualizar la señal reactiva con los nuevos datos
+        // ===== OBTENER PROGRAMAS ACTUALES =====
+        // Obtener los programas actuales antes de actualizar
+        const currentPrograms = this.programs();
         
-        // Log de éxito detallado con estadísticas
+        // ===== FILTRAR PROGRAMAS A MANTENER =====
+        // Mantener solo los programas que NO están en estado CORRIENDO
+        // Esto preserva el trabajo del operario en programas PREPARANDO, LISTO y SUSPENDIDO
+        const programsToKeep = currentPrograms.filter(p => 
+          p.estado === 'PREPARANDO' || 
+          p.estado === 'LISTO' || 
+          p.estado === 'SUSPENDIDO'
+        );
+        
+        // ===== OBTENER NUEVOS PROGRAMAS DEL SERVIDOR =====
+        // Los nuevos programas vienen del archivo Excel/CSV procesado
+        // Estos programas se cargan sin color (estado PREPARANDO por defecto)
+        const newPrograms = response.data || [];
+        
+        // ===== COMBINAR PROGRAMAS =====
+        // Combinar los programas a mantener con los nuevos programas
+        // Los programas a mantener van primero para preservar su orden
+        const combinedPrograms = [...programsToKeep, ...newPrograms];
+        
+        // ===== ACTUALIZAR ESTADO REACTIVO =====
+        // Actualizar la señal reactiva con los programas combinados
+        this.programs.set(combinedPrograms);
+        
+        // ===== LOG DE ÉXITO DETALLADO =====
+        // Log de éxito con estadísticas detalladas de la carga
         console.log('✅ Archivo procesado exitosamente', {
-          programasCargados: newPrograms.length,
-          programasListos: newPrograms.filter((p: MachineProgram) => p.estado === 'LISTO').length,
-          maquinasProgramadas: new Set(newPrograms.map((p: MachineProgram) => p.machineNumber)).size,
+          programasNuevos: newPrograms.length, // Cantidad de programas nuevos cargados
+          programasMantenidos: programsToKeep.length, // Cantidad de programas mantenidos
+          programasTotal: combinedPrograms.length, // Total de programas después de la carga
+          programasPreparando: combinedPrograms.filter(p => p.estado === 'PREPARANDO').length,
+          programasListos: combinedPrograms.filter(p => p.estado === 'LISTO').length,
+          programasSuspendidos: combinedPrograms.filter(p => p.estado === 'SUSPENDIDO').length,
+          maquinasProgramadas: new Set(combinedPrograms.map(p => p.machineNumber)).size,
           archivo: file.name
         });
         
+        // ===== MOSTRAR MENSAJE AL USUARIO =====
+        // Mostrar notificación de éxito al usuario
+        this.snackBar.open(
+          `Programación cargada: ${newPrograms.length} nuevos, ${programsToKeep.length} mantenidos`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+        
+        // ===== LIMPIAR INPUT FILE =====
         // Limpiar el input file para permitir seleccionar el mismo archivo nuevamente
         event.target.value = '';
         
+        // ===== SELECCIONAR MÁQUINA AUTOMÁTICAMENTE =====
         // Si hay programas cargados, seleccionar automáticamente la primera máquina con programas
-        if (newPrograms.length > 0) {
-          const firstMachineWithPrograms = newPrograms[0].machineNumber; // Obtener número de la primera máquina
+        if (combinedPrograms.length > 0) {
+          const firstMachineWithPrograms = combinedPrograms[0].machineNumber; // Obtener número de la primera máquina
           this.selectMachine(firstMachineWithPrograms); // Seleccionar esa máquina
+          console.log('🎯 Máquina seleccionada automáticamente:', firstMachineWithPrograms);
         }
         
       } else {
+        // ===== ERROR EN LA RESPUESTA =====
         // Si la respuesta no es exitosa, lanzar error con mensaje del servidor o genérico
         throw new Error(response?.message || 'Error al procesar el archivo');
       }
       
     } catch (error: any) {
-      // Determinar mensaje de error específico basado en el código de estado HTTP
-      let errorMessage = 'Error al procesar el archivo'; // Mensaje por defecto
-      if (error.status === 400) {
-        errorMessage = 'Formato de archivo inválido. Verifica que el archivo tenga las columnas correctas.';
-      } else if (error.status === 413) {
-        errorMessage = 'El archivo es demasiado grande.'; // Payload too large
-      } else if (error.status === 0) {
-        errorMessage = 'Error de conexión. Verifica tu conexión a internet.'; // Network error
-      } else if (error.message) {
-        errorMessage = error.message; // Usar mensaje específico del error
+      // ===== MANEJO DE ERRORES =====
+      console.error('❌ Error procesando archivo:', error);
+      
+      // ===== MANEJO ESPECÍFICO DE ERROR 401 (NO AUTORIZADO) =====
+      if (error.status === 401) {
+        console.error('🔒 Sesión expirada o no autorizado');
+        this.snackBar.open(
+          'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 
+          'Ir a Login', 
+          { duration: 10000 }
+        ).onAction().subscribe(() => {
+          // Redirigir al login cuando el usuario haga clic en el botón
+          window.location.href = '/login';
+        });
+        // Limpiar el input file
+        event.target.value = '';
+        return; // Salir del método
       }
       
-      // Log de error con consejos
+      // ===== DETERMINAR MENSAJE DE ERROR ESPECÍFICO =====
+      // Determinar mensaje de error específico basado en el código de estado HTTP
+      let errorMessage = 'Error al procesar el archivo'; // Mensaje por defecto
+      let technicalDetails = ''; // Detalles técnicos del error
+      
+      if (error.status === 400) {
+        // Error 400: Bad Request - Formato de archivo inválido
+        errorMessage = 'Formato de archivo inválido';
+        technicalDetails = 'Verifica que el archivo tenga las columnas correctas y el formato esperado.';
+      } else if (error.status === 413) {
+        // Error 413: Payload Too Large - Archivo demasiado grande
+        errorMessage = 'El archivo es demasiado grande';
+        technicalDetails = 'El tamaño máximo permitido es 10MB.';
+      } else if (error.status === 0) {
+        // Error 0: Network Error - Sin conexión al servidor
+        errorMessage = 'Error de conexión';
+        technicalDetails = 'Verifica tu conexión a internet y que el servidor esté disponible.';
+      } else if (error.status === 500) {
+        // Error 500: Internal Server Error - Error del servidor
+        errorMessage = 'Error interno del servidor';
+        technicalDetails = 'Problema al procesar el archivo en el servidor.';
+      } else if (error.message) {
+        // Usar mensaje específico del error si está disponible
+        errorMessage = error.message;
+        technicalDetails = 'Revisa el formato del archivo y vuelve a intentar.';
+      }
+      
+      // ===== LOG DE ERROR CON CONSEJOS =====
+      // Log de error con consejos para el usuario
       console.error(`❌ ${errorMessage}`, {
+        detalles: technicalDetails,
         consejos: [
-          'Usa la plantilla descargable',
+          'Usa la plantilla descargable si está disponible',
           'Verifica que todas las columnas requeridas estén presentes',
-          'El archivo no debe exceder 10MB'
+          'El archivo no debe exceder 10MB',
+          'Asegúrate de que el formato sea Excel (.xlsx, .xls) o CSV (.csv)'
         ]
       });
+      
+      // ===== MOSTRAR ERROR AL USUARIO =====
+      // Mostrar notificación de error al usuario
+      this.snackBar.open(`${errorMessage}. ${technicalDetails}`, 'Cerrar', { duration: 7000 });
+      
     } finally {
+      // ===== DESACTIVAR INDICADOR DE CARGA =====
       // Siempre desactivar el indicador de carga, sin importar el resultado
       this.loading.set(false);
     }
@@ -722,14 +1021,20 @@ Error: ${loginError.message || 'Error de conexión'}`);
   // Métodos utilitarios para la interfaz de usuario
   
   /**
-   * Obtiene el color hexadecimal asociado a cada estado de programa
+   * Obtiene el color hexadecimal asociado a cada estado de programa - ACTUALIZADO CON NUEVOS COLORES
    * Usado para aplicar estilos visuales consistentes en la UI
+   * PREPARANDO: Amarillo - Programa sin color asignado, esperando que operario elija acción
+   * LISTO: Verde - Programa listo para producción
+   * SUSPENDIDO: Naranja - Programa pausado temporalmente
+   * CORRIENDO: Rojo - Programa en ejecución activa
+   * TERMINADO: Verde oscuro - Programa completado exitosamente
    */
   getStatusColor(estado: string): string {
-    const colors = { // Mapeo de estados a colores hexadecimales
-      'LISTO': '#16a34a',      // Verde - Programa listo para ejecutar
-      'CORRIENDO': '#2563eb',   // Azul - Programa en ejecución
-      'SUSPENDIDO': '#dc2626',  // Rojo - Programa pausado/suspendido
+    const colors = { // Mapeo de estados a colores hexadecimales - NUEVOS COLORES
+      'PREPARANDO': '#eab308',  // Amarillo - Programa en preparación (sin color asignado por operario)
+      'LISTO': '#16a34a',       // Verde - Programa listo para ejecutar
+      'SUSPENDIDO': '#f97316',  // Naranja - Programa pausado/suspendido
+      'CORRIENDO': '#dc2626',   // Rojo - Programa en ejecución
       'TERMINADO': '#059669'    // Verde oscuro - Programa completado
     };
     // Retorna el color correspondiente o gris por defecto si no se encuentra el estado
@@ -737,15 +1042,16 @@ Error: ${loginError.message || 'Error de conexión'}`);
   }
 
   /**
-   * Obtiene el nombre del icono Material correspondiente a cada estado
+   * Obtiene el nombre del icono Material correspondiente a cada estado - ACTUALIZADO CON NUEVOS ICONOS
    * Usado para mostrar iconos consistentes en botones y estados
    */
   getStatusIcon(estado: string): string {
-    const icons = { // Mapeo de estados a nombres de iconos Material
-      'LISTO': 'check_circle',    // Círculo con check - Listo
-      'CORRIENDO': 'play_circle', // Círculo con play - En ejecución
+    const icons = { // Mapeo de estados a nombres de iconos Material - NUEVOS ICONOS
+      'PREPARANDO': 'schedule',     // Icono de reloj - Preparando
+      'LISTO': 'check_circle',      // Círculo con check - Listo
       'SUSPENDIDO': 'pause_circle', // Círculo con pausa - Suspendido
-      'TERMINADO': 'task_alt'     // Icono de tarea completada - Terminado
+      'CORRIENDO': 'play_circle',   // Círculo con play - En ejecución
+      'TERMINADO': 'task_alt'       // Icono de tarea completada - Terminado
     };
     // Retorna el icono correspondiente o 'help' por defecto si no se encuentra el estado
     return icons[estado as keyof typeof icons] || 'help';
@@ -785,15 +1091,15 @@ Error: ${loginError.message || 'Error de conexión'}`);
   }
 
   /**
-   * Genera un resumen textual del estado de una máquina
+   * Genera un resumen textual del estado de una máquina - ACTUALIZADO CON NUEVOS ESTADOS
    * Muestra cantidad de programas corriendo y listos de forma legible
    */
   getMachineSummary(machineNumber: number): string {
     // Filtrar programas de la máquina específica
     const programs = this.programs().filter(p => p.machineNumber === machineNumber);
-    // Contar programas por estado
+    // Contar programas por estado - NUEVOS ESTADOS
     const running = programs.filter(p => p.estado === 'CORRIENDO').length; // Programas corriendo
-    const ready = programs.filter(p => p.estado === 'LISTO').length; // Programas listos
+    const ready = programs.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length; // Programas listos + preparando
     
     // Si hay programas corriendo, mostrar ambos conteos
     if (running > 0) {
@@ -804,75 +1110,333 @@ Error: ${loginError.message || 'Error de conexión'}`);
   }
 
   /**
-   * Exportar datos de programación a Excel
-   * Genera un archivo Excel con todos los programas de máquinas
+   * Exportar datos de programación a Excel (CSV)
+   * Genera un archivo CSV compatible con Excel con todos los programas de máquinas
+   * Exportación del lado del cliente (no requiere backend)
    */
-  async exportToExcel() {
+  exportToExcel() {
     try {
-      this.loading.set(true);
-      console.log('📊 Exportando programación a Excel...');
+      // ===== ACTIVAR INDICADOR DE CARGA =====
+      this.loading.set(true); // Mostrar spinner en el botón
+      console.log('📊 Exportando programación a Excel (CSV)...');
       
-      // Realizar petición para obtener el archivo Excel
-      const response = await firstValueFrom(
-        this.http.get(`${environment.apiUrl}/machines/programs/export`, {
-          responseType: 'blob' // Importante para archivos binarios
-        })
+      // ===== OBTENER DATOS A EXPORTAR =====
+      // Obtener todos los programas actuales desde la señal reactiva
+      const dataToExport = this.programs();
+      
+      // ===== VALIDAR QUE HAY DATOS =====
+      // Verificar que haya al menos un programa para exportar
+      if (dataToExport.length === 0) {
+        console.warn('⚠️ No hay datos para exportar');
+        this.snackBar.open('No hay programas para exportar', 'Cerrar', { duration: 3000 });
+        return; // Salir del método si no hay datos
+      }
+
+      // ===== DEFINIR ENCABEZADOS DEL CSV =====
+      // Array con los nombres de las columnas en español, organizados por categorías
+      const headers = [
+        // === IDENTIFICACIÓN ===
+        'MÁQUINA',              // Número de máquina (11-21)
+        'ARTÍCULO',             // Código del artículo (ej: F204567)
+        'OT SAP',               // Orden de trabajo SAP
+        
+        // === CLIENTE Y PRODUCTO ===
+        'CLIENTE',              // Nombre del cliente
+        'REFERENCIA',           // Referencia del producto
+        'TD',                   // Código TD (Tipo de Diseño)
+        
+        // === ESPECIFICACIONES TÉCNICAS ===
+        'N° COLORES',           // Cantidad de colores
+        'COLORES',              // Lista de colores separados por punto y coma
+        'KILOS',                // Cantidad en kilogramos
+        'SUSTRATO',             // Tipo de material base
+        
+        // === PROGRAMACIÓN ===
+        'FECHA TINTA EN MÁQUINA', // Fecha y hora de tinta en máquina
+        'ESTADO',               // Estado actual del programa
+        
+        // === INFORMACIÓN ADICIONAL ===
+        'OBSERVACIONES',        // Observaciones adicionales
+        'ÚLTIMA ACCIÓN POR',    // Usuario que realizó la última acción
+        'ÚLTIMA ACCIÓN FECHA'   // Fecha de la última acción
+      ];
+
+      // ===== CONVERTIR DATOS A FILAS CSV =====
+      // Mapear cada programa a un array de valores para CSV
+      const rows = dataToExport.map(program => {
+        // ===== FORMATEAR FECHA DE TINTA =====
+        // Convertir fecha a formato dd/mm/yyyy HH:mm
+        let fechaTintaFormatted = '';
+        if (program.fechaTintaEnMaquina) {
+          const fecha = new Date(program.fechaTintaEnMaquina);
+          const dia = String(fecha.getDate()).padStart(2, '0'); // Día con 2 dígitos
+          const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos (0-11)
+          const anio = fecha.getFullYear(); // Año completo
+          const hora = String(fecha.getHours()).padStart(2, '0'); // Hora con 2 dígitos
+          const minuto = String(fecha.getMinutes()).padStart(2, '0'); // Minuto con 2 dígitos
+          fechaTintaFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`; // Formato: dd/mm/yyyy HH:mm
+        }
+
+        // ===== FORMATEAR FECHA DE ÚLTIMA ACCIÓN =====
+        // Convertir fecha a formato dd/mm/yyyy HH:mm
+        let lastActionFormatted = '';
+        if (program.lastActionAt) {
+          const fecha = new Date(program.lastActionAt);
+          const dia = String(fecha.getDate()).padStart(2, '0');
+          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+          const anio = fecha.getFullYear();
+          const hora = String(fecha.getHours()).padStart(2, '0');
+          const minuto = String(fecha.getMinutes()).padStart(2, '0');
+          lastActionFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`;
+        }
+
+        // ===== FORMATEAR COLORES =====
+        // Unir array de colores con punto y coma para mejor legibilidad en Excel
+        const coloresFormatted = program.colores && program.colores.length > 0 
+          ? program.colores.join('; ') // Separar colores con punto y coma
+          : ''; // Cadena vacía si no hay colores
+
+        // ===== RETORNAR FILA CON TODOS LOS DATOS =====
+        // Array con todos los valores de la fila en el orden de los encabezados
+        return [
+          program.machineNumber || program.numeroMaquina || '', // Número de máquina
+          program.articulo || '', // Código del artículo
+          program.otSap || '', // Orden de trabajo SAP
+          program.cliente || '', // Nombre del cliente
+          program.referencia || '', // Referencia del producto
+          program.td || '', // Código TD
+          program.numeroColores || 0, // Número de colores
+          coloresFormatted, // Lista de colores formateada
+          program.kilos || 0, // Cantidad en kilos
+          fechaTintaFormatted, // Fecha de tinta formateada
+          program.sustrato || '', // Tipo de sustrato
+          program.estado || '', // Estado actual
+          program.observaciones || '', // Observaciones
+          program.lastActionBy || '', // Usuario de última acción
+          lastActionFormatted // Fecha de última acción formateada
+        ];
+      });
+
+      // ===== CONSTRUIR CONTENIDO CSV =====
+      // Combinar encabezados y filas en formato CSV
+      const csvContent = [
+        // Primera línea: encabezados separados por comas
+        headers.join(','),
+        // Resto de líneas: filas de datos
+        // Cada celda se envuelve en comillas dobles para manejar comas y saltos de línea
+        ...rows.map(row => 
+          row.map(cell => {
+            // Convertir el valor a string y escapar comillas dobles
+            const cellStr = String(cell).replace(/"/g, '""'); // Escapar comillas dobles
+            return `"${cellStr}"`; // Envolver en comillas dobles
+          }).join(',') // Unir celdas con comas
+        )
+      ].join('\n'); // Unir todas las líneas con salto de línea
+
+      // ===== CREAR BLOB CON BOM UTF-8 =====
+      // Crear Blob (objeto binario) con el contenido CSV
+      // \ufeff es el BOM (Byte Order Mark) para UTF-8, necesario para que Excel reconozca caracteres especiales
+      const blob = new Blob(['\ufeff' + csvContent], { 
+        type: 'text/csv;charset=utf-8;' // Tipo MIME para CSV con UTF-8
+      });
+      
+      // ===== CREAR ENLACE DE DESCARGA =====
+      // Crear elemento <a> (enlace) temporal para descargar el archivo
+      const url = window.URL.createObjectURL(blob); // Crear URL temporal del Blob
+      const link = document.createElement('a'); // Crear elemento <a>
+      link.href = url; // Asignar URL del Blob al href
+      
+      // ===== GENERAR NOMBRE DE ARCHIVO =====
+      // Formato: programacion-maquinas-YYYY-MM-DD.csv
+      const timestamp = new Date().toISOString().split('T')[0]; // Obtener fecha actual (YYYY-MM-DD)
+      const fileName = `programacion-maquinas-${timestamp}.csv`; // Nombre del archivo
+      link.download = fileName; // Asignar nombre al atributo download
+      
+      // ===== OCULTAR ENLACE Y HACER CLIC =====
+      link.style.visibility = 'hidden'; // Ocultar el enlace (no visible en la página)
+      document.body.appendChild(link); // Agregar enlace al DOM
+      link.click(); // Simular clic para iniciar descarga
+      
+      // ===== LIMPIAR RECURSOS =====
+      document.body.removeChild(link); // Remover enlace del DOM
+      window.URL.revokeObjectURL(url); // Liberar URL del Blob (liberar memoria)
+
+      // ===== LOG DE ÉXITO =====
+      console.log(`✅ Archivo CSV exportado exitosamente: ${fileName}`);
+      console.log(`📊 Total de programas exportados: ${dataToExport.length}`);
+      
+      // ===== MOSTRAR MENSAJE AL USUARIO =====
+      this.snackBar.open(
+        `Exportación exitosa: ${dataToExport.length} programas exportados a ${fileName}`, 
+        'Cerrar', 
+        { duration: 5000 }
       );
       
-      // Crear URL del blob y descargar
-      const blob = new Blob([response], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `programacion-maquinas-${new Date().toISOString().split('T')[0]}.xlsx`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-      
-      console.log('✅ Archivo Excel exportado exitosamente');
-      
     } catch (error: any) {
-      console.error('❌ Error exportando a Excel:', error);
+      // ===== MANEJO DE ERRORES =====
+      console.error('❌ Error exportando a CSV:', error);
+      
+      // ===== MOSTRAR ERROR AL USUARIO =====
+      this.snackBar.open(
+        `Error al exportar: ${error.message || 'Error desconocido'}`, 
+        'Cerrar', 
+        { duration: 5000 }
+      );
+      
     } finally {
+      // ===== DESACTIVAR INDICADOR DE CARGA =====
+      // Siempre desactivar el indicador de carga, sin importar el resultado
       this.loading.set(false);
     }
   }
 
-  /**
-   * Actualizar/refrescar datos de máquinas
-   * Recarga todos los programas desde el servidor
-   */
+
+
+  // ===== MÉTODO PARA REFRESCAR/RECARGAR DATOS DE MÁQUINAS =====
+  // Método asíncrono que recarga todos los programas desde la base de datos
+  // Útil para sincronizar datos cuando hay cambios externos o para actualizar la vista
   async refreshData() {
-    console.log('🔄 Actualizando datos de máquinas...');
-    await this.loadPrograms();
-  }
-
-  /**
-   * Alternar colores con manejo de eventos
-   * Versión mejorada que maneja el evento del click
-   */
-  toggleColors(programId: string, event?: Event) {
-    if (event) {
-      event.stopPropagation(); // Evitar propagación del evento
-    }
+    // ===== LOG DE INICIO DE RECARGA =====
+    console.log('🔄 Refrescando datos de máquinas desde la base de datos...');
     
-    const expanded = new Set(this.expandedColors());
-    if (expanded.has(programId)) {
-      expanded.delete(programId);
-    } else {
-      // Cerrar otros dropdowns abiertos para mejor UX
-      expanded.clear();
-      expanded.add(programId);
-    }
-    this.expandedColors.set(expanded);
+    // ===== MOSTRAR NOTIFICACIÓN AL USUARIO =====
+    // Informar al usuario que se están actualizando los datos
+    this.snackBar.open('Actualizando datos...', '', { duration: 2000 });
+    
+    // ===== LLAMAR AL MÉTODO DE CARGA =====
+    // Reutilizar el método loadPrograms() que ya tiene toda la lógica de carga
+    // Este método maneja automáticamente el estado de carga y los errores
+    await this.loadPrograms();
+    
+    // ===== MOSTRAR NOTIFICACIÓN DE ÉXITO =====
+    // Informar al usuario que los datos se actualizaron correctamente
+    this.snackBar.open('Datos actualizados correctamente', 'Cerrar', { duration: 3000 });
+    
+    // ===== LOG DE CONFIRMACIÓN =====
+    console.log('✅ Datos de máquinas refrescados exitosamente');
   }
 
-  /**
-   * Método privado para mostrar mensajes de error al usuario
-   * Centraliza el manejo de errores para consistencia en la UI
-   */
-  private showError(message: string) {
-    console.error('❌ Error:', message); // Log del error en consola para debugging
+  // ===== MÉTODO PARA IMPRIMIR FORMATO FF-459 =====
+  // Método que abre el formato FF-459 oficial de la empresa en una nueva ventana
+  // El formato FF-459 es el documento de "PREALISTAMIENTO Y AJUSTES EN IMPRESIÓN"
+  // IMPORTANTE: Este método carga el HTML desde el archivo print-ff459.html y reemplaza las variables
+  async printFF459(program: MachineProgram) {
+    // ===== LOG DE INICIO DE IMPRESIÓN =====
+    console.log('🖨️ Preparando impresión de formato FF-459 para programa:', program.articulo);
+    
+    // ===== VALIDACIÓN DEL PROGRAMA =====
+    // Verificar que el programa tenga los datos mínimos necesarios
+    if (!program || !program.articulo) {
+      console.error('❌ Error: Programa inválido para impresión', program);
+      this.snackBar.open('Error: No se puede imprimir el formato para este programa', 'Cerrar', { duration: 5000 });
+      return; // Salir del método si el programa no es válido
+    }
+
+    // ===== PREPARAR DATOS PARA EL FORMATO FF-459 =====
+    // Obtener usuario actual del servicio de autenticación
+    const currentUser = this.authService.getCurrentUser();
+    const nombreCompleto = currentUser 
+      ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() 
+      : 'Usuario';
+    
+    // Formatear fecha actual en formato dd/mm/yyyy
+    const today = new Date();
+    const dia = String(today.getDate()).padStart(2, '0');
+    const mes = String(today.getMonth() + 1).padStart(2, '0');
+    const anio = today.getFullYear();
+    const fechaActual = `${dia}/${mes}/${anio}`;
+    
+    // ===== PREPARAR ARRAY DE 10 COLORES =====
+    // El formato FF-459 tiene exactamente 10 columnas para colores
+    // Si el programa tiene menos de 10 colores, se rellenan con vacíos
+    const coloresArray = this.prepareColorsForFF459(program.colores);
+    
+    try {
+      // ===== CARGAR PLANTILLA HTML DESDE EL ARCHIVO =====
+      console.log('📄 Cargando plantilla HTML desde templates/print-ff459.html');
+      const response = await firstValueFrom(
+        this.http.get('/templates/print-ff459.html', { responseType: 'text' })
+      );
+      
+      let htmlContent = response;
+      
+      // ===== REEMPLAZAR VARIABLES EN EL HTML =====
+      // Reemplazar todas las variables ${...} con los datos del programa
+      // Usar replaceAll para asegurar que todas las ocurrencias sean reemplazadas
+      htmlContent = htmlContent
+        .replaceAll('${fechaActual}', fechaActual)
+        .replaceAll('${nombreCompleto}', nombreCompleto)
+        .replaceAll("${program.cliente || ''}", program.cliente || '')
+        .replaceAll("${program.referencia || ''}", program.referencia || '')
+        .replaceAll("${program.td || ''}", program.td || '')
+        .replaceAll("${program.otSap || ''}", program.otSap || '')
+        .replaceAll("${program.machineNumber || program.numeroMaquina || ''}", String(program.machineNumber || program.numeroMaquina || ''))
+        .replaceAll("${program.kilos || 0}", String(program.kilos || 0))
+        .replaceAll("${program.sustrato || ''}", program.sustrato || '')
+        .replaceAll("${program.articulo || ''}", program.articulo || '');
+      
+      // Reemplazar colores individuales (color1 a color10)
+      coloresArray.forEach((colorObj: any, index: number) => {
+        const colorNum = index + 1;
+        htmlContent = htmlContent.replaceAll(`\${color${colorNum}}`, colorObj.color || '');
+      });
+      
+      console.log('✅ Plantilla HTML cargada y variables reemplazadas');
+      
+      // ===== ABRIR VENTANA CON EL HTML =====
+      const printWindow = window.open('', '_blank', 'width=1200,height=800');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        console.log('✅ Formato FF-459 enviado a impresión');
+        this.snackBar.open('Formato FF-459 listo para imprimir', 'Cerrar', { duration: 3000 });
+      } else {
+        console.error('❌ No se pudo abrir la ventana de impresión');
+        this.snackBar.open('Error: No se pudo abrir la ventana de impresión', 'Cerrar', { duration: 5000 });
+      }
+    } catch (error) {
+      console.error('❌ Error cargando plantilla HTML:', error);
+      this.snackBar.open('Error: No se pudo cargar la plantilla de impresión', 'Cerrar', { duration: 5000 });
+    }
   }
+
+  // ===== MÉTODO AUXILIAR PARA PREPARAR COLORES PARA FF-459 =====
+  // Prepara un array de exactamente 10 colores para el formato FF-459
+  // Si hay menos de 10 colores, rellena con objetos vacíos
+  // Si hay más de 10 colores, toma solo los primeros 10
+  private prepareColorsForFF459(colores: string[]): any[] {
+    // ===== CREAR ARRAY BASE DE 10 ELEMENTOS =====
+    // Inicializar array con 10 objetos vacíos
+    const coloresFF459 = Array(10).fill(null).map((_, index) => ({
+      unidad: index + 1, // Número de unidad (1-10)
+      color: '', // Nombre del color (vacío por defecto)
+      lineaturaAnilox: '', // Lineatura del anilox (vacío por defecto)
+      codigoAnilox: '', // Código del anilox (vacío por defecto)
+      celda: '', // Tipo de celda (vacío por defecto)
+      deltaE: '', // Valor Delta E (vacío por defecto)
+      deltaC: '', // Valor Delta C* (vacío por defecto)
+      viscosidad: '', // Viscosidad de la tinta (vacío por defecto)
+      codigoTinta: '', // Código de la tinta (vacío por defecto)
+      loteProveedor: '', // Lote del proveedor (vacío por defecto)
+      cantidadPrealistada: '' // Cantidad prealistada en Kg (vacío por defecto)
+    }));
+
+    // ===== RELLENAR CON LOS COLORES DEL PROGRAMA =====
+    // Iterar sobre los colores del programa y asignarlos a las unidades correspondientes
+    if (colores && colores.length > 0) {
+      colores.slice(0, 10).forEach((color, index) => {
+        // Asignar el nombre del color a la unidad correspondiente
+        coloresFF459[index].color = color;
+      });
+    }
+
+    // ===== LOG DE COLORES PREPARADOS =====
+    console.log('🎨 Colores preparados para FF-459:', coloresFF459);
+
+    // ===== RETORNAR ARRAY DE 10 COLORES =====
+    return coloresFF459;
+  }
+
+
+
 }

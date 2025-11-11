@@ -64,15 +64,15 @@ $gray-900: #0f172a;
   position: relative; // Posicionamiento relativo para elementos hijos absolutos
 }
 
-// ===== HEADER FIJO =====
+// ===== HEADER FIJO - OPTIMIZADO PARA OCUPAR MENOS ESPACIO VERTICAL =====
 .machines-header {
   position: relative; // Posicionamiento relativo para el pseudo-elemento ::before
   background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
   backdrop-filter: blur(20px); // Efecto de desenfoque del fondo (glassmorphism)
-  border-radius: 16px; // Bordes redondeados de 16px
-  padding: 16px; // Relleno interno de 16px en todos los lados
-  margin: 12px; // Margen externo de 12px
-  margin-bottom: 12px; // Margen inferior específico de 12px
+  border-radius: 12px; // Bordes redondeados reducidos a 12px
+  padding: 10px 16px; // Relleno interno reducido: 10px vertical, 16px horizontal
+  margin: 8px 12px; // Margen reducido: 8px vertical, 12px horizontal
+  margin-bottom: 8px; // Margen inferior reducido a 8px
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); // Sombra suave para efecto de elevación
   border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
   flex-shrink: 0; // Evita que el header se reduzca en contenedores flex
@@ -94,43 +94,50 @@ $gray-900: #0f172a;
     justify-content: space-between; // Distribuye elementos con espacio entre ellos
     align-items: center; // Alinea verticalmente al centro
     width: 100%; // Ancho completo del header
-    min-height: 60px; // Altura mínima de 60px para el contenido
+    min-height: 40px; // Altura mínima reducida a 40px para el contenido
 
     @media (max-width: 768px) { // Responsive: pantallas menores a 768px
       flex-direction: column; // Cambia a disposición vertical en móviles
-      gap: 12px; // Espacio de 12px entre elementos en móviles
+      gap: 8px; // Espacio reducido a 8px entre elementos en móviles
     }
   }
 
   .header-info {
     display: flex; // Contenedor flexible para título y subtítulo
     flex-direction: column; // Organiza título y subtítulo en columna
-    gap: 4px; // Espacio de 4px entre título y subtítulo
+    gap: 2px; // Espacio reducido a 2px entre título y subtítulo
     flex: 1; // Ocupa el espacio disponible en el header
   }
 
   .page-title {
     display: flex; // Contenedor flexible para icono y texto del título
     align-items: center; // Alinea icono y texto verticalmente al centro
-    gap: 8px; // Espacio de 8px entre icono y texto
+    gap: 6px; // Espacio reducido a 6px entre icono y texto
     margin: 0; // Sin márgenes externos
     color: #1f2937; // Color gris oscuro para el texto del título
-    font-size: 1.5rem; // Tamaño de fuente de 1.5rem (24px aprox)
+    font-size: 1rem; // Tamaño de fuente reducido a 1rem (16px) para que se vea completo
     font-weight: 700; // Peso de fuente bold (negrita)
+    white-space: nowrap; // Evita que el texto se divida en múltiples líneas
+    overflow: hidden; // Oculta el texto que excede el contenedor
+    text-overflow: ellipsis; // Muestra puntos suspensivos si el texto es muy largo
 
     mat-icon {
-      font-size: 24px; // Tamaño del icono de 24px
-      width: 24px; // Ancho del icono de 24px
-      height: 24px; // Altura del icono de 24px
+      font-size: 18px; // Tamaño del icono reducido a 18px
+      width: 18px; // Ancho del icono reducido a 18px
+      height: 18px; // Altura del icono reducida a 18px
       color: $primary-blue; // Color azul primario para el icono
+      flex-shrink: 0; // Evita que el icono se reduzca
     }
   }
 
   .page-subtitle {
-    margin: 4px 0 0 0; // Margen superior de 4px, resto en 0
+    margin: 0; // Sin márgenes
     color: #4b5563; // Color gris medio para el subtítulo
-    font-size: 0.9rem; // Tamaño de fuente de 0.9rem (14.4px aprox)
+    font-size: 0.75rem; // Tamaño de fuente reducido a 0.75rem (12px aprox)
     font-weight: 500; // Peso de fuente medio
+    white-space: nowrap; // Evita que el texto se divida en múltiples líneas
+    overflow: hidden; // Oculta el texto que excede el contenedor
+    text-overflow: ellipsis; // Muestra puntos suspensivos si el texto es muy largo
   }
 
   .header-actions {
@@ -169,47 +176,44 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== ÁREA DE CONTENIDO SCROLLABLE =====
+// ===== ÁREA DE CONTENIDO SCROLLABLE - OPTIMIZADA PARA USAR TODO EL ESPACIO VERTICAL =====
 .scrollable-content-area {
   flex: 1; // Ocupa todo el espacio disponible en el contenedor padre
-  padding: 0 12px; // Relleno horizontal de 12px, sin relleno vertical
+  padding: 0 12px 12px 12px; // Relleno: sin padding superior, 12px en los demás lados
   overflow: hidden; // Oculta el contenido que excede el área
   display: flex; // Contenedor flexible para organizar el layout
   flex-direction: column; // Organiza elementos en columna
   min-height: 0; // Permite que el contenedor se reduzca correctamente en flex
-  max-height: calc(100vh - 200px); // Altura máxima: viewport menos 200px para header y márgenes
+  height: calc(100vh - 160px); // Altura fija: viewport menos 160px para header optimizado
 
   .machines-layout {
     display: grid; // Layout de cuadrícula para máquinas y programación
-    grid-template-columns: 350px 1fr; // Columna izquierda fija de 350px, derecha flexible
-    gap: 24px; // Espacio de 24px entre columnas
+    grid-template-columns: 120px 1fr; // Columna izquierda compacta (120px), derecha flexible (máximo espacio para tabla)
+    gap: 12px; // Espacio reducido a 12px entre columnas para maximizar espacio de tabla
     flex: 1; // Ocupa todo el espacio disponible
     overflow: hidden; // Oculta el contenido que excede el layout
+    height: 100%; // Altura completa del contenedor padre
 
     @media (max-width: 1200px) { // Responsive: pantallas menores a 1200px
-      grid-template-columns: 300px 1fr; // Reduce columna izquierda a 300px
-      gap: 20px; // Reduce espacio entre columnas a 20px
+      grid-template-columns: 110px 1fr; // Reduce columna izquierda a 110px
+      gap: 12px; // Espacio de 12px entre columnas
     }
 
     @media (max-width: 768px) { // Responsive: pantallas menores a 768px (móviles)
       grid-template-columns: 1fr; // Una sola columna en móviles
-      gap: 16px; // Reduce espacio entre elementos a 16px
+      gap: 12px; // Reduce espacio entre elementos a 12px
     }
   }
 }
 
-// ===== SECCIÓN DE MÁQUINAS =====
+// ===== SECCIÓN DE MÁQUINAS - OPTIMIZADA PARA LLEGAR HASTA EL FONDO =====
 .machines-section {
   display: flex; // Contenedor flexible para la lista de máquinas
   flex-direction: column; // Organiza elementos en columna vertical
-  overflow: hidden; // Oculta el contenido que excede el área
+  overflow: auto; // Oculta el contenido que excede el área
   height: 100%; // Altura completa del contenedor padre
-  width: 270px; // Ancho fijo de 250px
-  //transform: scale(0.8); // Reduce el tamaño al 80% para ajustar visualmente
-  //margin: 0px; // Margen externo de 5px en todos los lados
-//  padding: 0px; // Relleno interno de 5px en todos los lados
-  //width: 80%; // Ancho del 50% (sobrescribe el width anterior)
-  //font-size: 1em; // Tamaño de fuente base de 1em
+  width: 100%; // Ancho completo del contenedor (ajustado por grid-template-columns)
+  min-height: 0; // Permite que el contenedor se reduzca correctamente en flex
 
   .machines-card {
     flex: 1; // Ocupa todo el espacio disponible en la sección
@@ -217,11 +221,12 @@ $gray-900: #0f172a;
     flex-direction: column; // Organiza header y contenido en columna
     background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
     backdrop-filter: blur(20px); // Efecto de desenfoque del fondo (glassmorphism)
-    border-radius: 20px; // Bordes redondeados de 20px
+    border-radius: 10px; // Bordes redondeados de 20px
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); // Sombra suave para efecto de elevación
     border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
     overflow: hidden; // Oculta el contenido que excede la tarjeta
     position: relative; // Posicionamiento relativo para el pseudo-elemento
+
 
     &::before {
       content: ''; // Pseudo-elemento vacío para la barra superior
@@ -235,53 +240,62 @@ $gray-900: #0f172a;
     }
 
     mat-card-header {
-      background: rgba(255, 255, 255, 0.9);
-      border-bottom: 1px solid rgba($gray-200, 0.3);
-      padding: 12px 16px;
-      flex-shrink: 0;
-      position: relative;
-      z-index: 2;
+      background: rgba(255, 255, 255, 0.9); // Fondo blanco semi-transparente para el header
+      border-bottom: 1px solid rgba($gray-200, 0.3); // Borde inferior gris claro
+      padding: 8px 12px; // Relleno reducido: 8px vertical, 12px horizontal
+      flex-shrink: 0; // Evita que el header se reduzca
+      position: relative; // Posicionamiento relativo para z-index
+      z-index: 2; // Apilamiento para mantener el header visible
 
       mat-card-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 0;
-        color: #1f2937;
-        font-size: 1.3rem;
-        font-weight: 700;
+        display: flex; // Contenedor flexible para icono y texto
+        align-items: center; // Alinea verticalmente al centro
+        gap: 6px; // Espacio reducido a 6px entre icono y texto
+        margin: 0; // Sin márgenes externos
+        color: #1f2937; // Color gris oscuro para el texto
+        font-size: 0.85rem; // Tamaño de fuente reducido a 0.85rem (13.6px aprox)
+        font-weight: 700; // Peso de fuente bold (negrita)
+        white-space: nowrap; // Evita que el texto se divida en múltiples líneas
+        overflow: hidden; // Oculta el texto que excede el contenedor
+        text-overflow: ellipsis; // Muestra puntos suspensivos si el texto es muy largo
 
         mat-icon {
-          font-size: 24px;
-          width: 24px;
-          height: 24px;
-          color: $primary-blue;
+          font-size: 16px; // Tamaño del icono reducido a 16px
+          width: 16px; // Ancho del icono reducido a 16px
+          height: 16px; // Altura del icono reducida a 16px
+          color: $primary-blue; // Color azul primario para el icono
+          flex-shrink: 0; // Evita que el icono se reduzca
         }
 
         span {
-          color: #4b5563;
-          font-size: 0.8rem;
-          font-weight: 500;
+          color: #4b5563; // Color gris medio para el contador
+          font-size: 0.7rem; // Tamaño de fuente reducido a 0.7rem (11.2px aprox)
+          font-weight: 500; // Peso de fuente medio
         }
       }
     }
 
     mat-card-content {
-      flex: 1;
-      padding: 0;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+
+      flex: 1; // Ocupa todo el espacio disponible
+      padding: 0; // Sin padding interno
+      overflow: hidden; // Oculta el contenido que excede
+      display: flex; // Contenedor flexible
+      flex-direction: column; // Organiza elementos en columna
     }
   }
 
   .machines-container-inner {
-    flex: 1;      //el espacio ble en el conten
-    overflow: auto; // Permite scroll vertical y horizontal si es necesario
-    padding: 16px; // Relleno interno en todos los lados
+    flex: 1; // Ocupa todo el espacio disponible en el contenedor
+    overflow-y: hidden; // Permite scroll vertical si es necesario
+    overflow-x: hidden; // Oculta scroll horizontal
+    padding: 12px; // Relleno interno reducido en todos los lados
+    min-height: 0; // Permite que el contenedor se reduzca correctamente en flex
+    display: flex; // Contenedor flexible
+    flex-direction: column; // Organiza elementos en columna
 
     &::-webkit-scrollbar {
-      width: 8px; //  de la barra de scroll de 8px
+      width: 5px; //  de la barra de scroll de 8px
     }
 
     &::-webkit-scrollbar-track {
@@ -298,16 +312,22 @@ $gray-900: #0f172a;
     .machines-grid {
       display: grid; // Layout de cuadrícula para las tarjetas de máquinas
       grid-template-columns: 1fr; // Una sola columna que ocupa todo el ancho
-      gap: 12px; // Espacio de 12px entre tarjetas
+      gap: 6px; // Espacio reducido a 6px entre tarjetas para diseño ultra compacto
+      grid-auto-rows: min-content; // Las filas se ajustan al contenido mínimo
+      align-content: start; // Alinea el contenido al inicio del contenedor
 
       .excel-machine-card {
         background: #f8fafc !important; // Fondo gris muy claro (estilo Excel)
         border: 2px solid #e2e8f0 !important; // Borde gris claro de 2px
-        border-radius: 12px !important; // Bordes redondeados de 12px
-        padding: 16px !important; // Relleno interno de 16px en todos los lados
+        border-radius: 8px !important; // Bordes redondeados de 8px
+        padding: 6px 8px !important; // Relleno interno muy reducido (6px vertical, 8px horizontal) para botones compactos
         transition: all 0.3s ease !important; // Transición suave de 0.3s para todos los cambios
-        text-align: left !important; // Alineación del texto a la izquierda
+        text-align: center !important; // Alineación centrada del contenido
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); // Sombra suave para efecto de elevación
+        min-height: 40px; // Altura mínima de 40px para botones compactos
+        display: flex; // Contenedor flexible
+        align-items: center; // Centra verticalmente el contenido
+        justify-content: center; // Centra horizontalmente el contenido
 
         &:hover {
           background: $primary-blue-50 !important; // Fondo azul muy claro al pasar el mouse
@@ -324,47 +344,44 @@ $gray-900: #0f172a;
 
           .machine-card-content {
             .machine-icon-wrapper .machine-icon,
-            .machine-info .machine-number,
-            .machine-info .machine-status {
+            .machine-number-compact {
               color: white !important; // Texto e iconos blancos cuando está seleccionada
             }
           }
         }
 
         .machine-card-content {
-          display: flex; // Contenedor flexible para icono, info y LED
+          display: flex; // Contenedor flexible para icono, número y LED
           align-items: center; // Alinea elementos verticalmente al centro
-          gap: 12px; // Espacio de 12px entre elementos
+          justify-content: center; // Centra horizontalmente los elementos
+          gap: 6px; // Espacio reducido a 6px entre elementos para diseño ultra compacto
+          width: 100%; // Ancho completo del botón
 
-          .machine-icon-wrapper .machine-icon {
-            color: $primary-blue; // Color azul primario para el icono de máquina
-            font-size: 24px; // Tamaño del icono de 24px
-            width: 24px; // Ancho del icono de 24px
-            height: 24px; // Altura del icono de 24px
+          .machine-icon-wrapper {
+            display: flex; // Contenedor flexible para el icono
+            align-items: center; // Centra verticalmente el icono
+            justify-content: center; // Centra horizontalmente el icono
+            
+            .machine-icon {
+              color: $primary-blue; // Color azul primario para el icono de máquina
+              font-size: 18px; // Tamaño del icono reducido a 18px para botones compactos
+              width: 18px; // Ancho del icono reducido a 18px
+              height: 18px; // Altura del icono reducida a 18px
+            }
           }
 
-          .machine-info {
-            flex: 1; // Ocupa el espacio disponible entre icono y LED
-
-            .machine-number {
-              display: block; // Elemento de bloque para ocupar línea completa
-              font-weight: 600 ;//eso de fuente semi-bold para el número
-              font-size: 14px; // Tamaño de fuente de 14px
-              color: #1e293b; // Color gris oscuro para el número de máquina
-              margin-bottom: 4px; // Margen inferior de 4px para separar del estado
-            }
-
-            .machine-status {
-              display: block; // Elemento de bloque para par línea completa
-              font-size: 12px; // Tamaño de fuente de 12px para el estado
-              color: #64748b; // Color gris medio para el texto del estado
-            }
+          // Número de máquina compacto (solo el número, sin texto "Máquina")
+          .machine-number-compact {
+            font-weight: 700; // Peso de fuente bold para el número
+            font-size: 14px; // Tamaño de fuente de 14px
+            color: #1e293b; // Color gris oscuro para el número de máquina
+            line-height: 1; // Altura de línea de 1 para diseño compacto
           }
 
           // ===== INDICADOR LED DE ESTADO =====
           .machine-status-indicator {
-            width: 12px; // Ancho del LED de 12px
-            height: 12px; // Altura del LED de 12px
+            width: 10px; // Ancho del LED reducido a 10px
+            height: 10px; // Altura del LED reducida a 10px
             border-radius: 50%; // Bordes completamente redondeados (círculo)
             background: #10b981; // Color verde para estado bueno por defecto
             box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); // Sombra verde brillante para efecto LED
@@ -373,23 +390,26 @@ $gray-900: #0f172a;
           }
         }
 
-        // Estados del indicador LED basados en cantidad de pedidos listos
+        // ===== ESTADOS DEL INDICADOR LED BASADOS EN CANTIDAD DE PEDIDOS LISTOS =====
+        // Estado CRÍTICO: 0-3 pedidos listos - LED ROJO con parpadeo rápido
         &.machine-status-critical .machine-status-indicator {
-          background: #dc2626; // Color rojo para estado crítico (muchos pedidos listos)
-          box-shadow: 0 0 8px rgba(220, 38, 38, 0.5); // Sombra roja brillante
-          animation: ledBlinkCritical 1s infinite; // Parpadeo rápido (1s) para urgencia
+          background: #dc2626 !important; // Color rojo para estado crítico (0-3 pedidos listos) - importante para sobrescribir
+          box-shadow: 0 0 8px rgba(220, 38, 38, 0.5) !important; // Sombra roja brillante - importante
+          animation: ledBlinkCritical 1s infinite !important; // Parpadeo rápido (1s) para urgencia - importante
         }
 
+        // Estado ADVERTENCIA: 3-6 pedidos listos - LED NARANJA con parpadeo medio
         &.machine-status-warning .machine-status-indicator {
-          background: #f59e0b; // Color ámbar para estado de advertencia (algunos pedidos listos)
-          box-shadow: 0 0 8px rgba(245, 158, 11, 0.5); // Sombra ámbar brillante
-          animation: ledBlinkWarning 1.5s infinite; // Parpadeo medio (1.5s) para alerta
+          background: #f59e0b !important; // Color naranja/ámbar para estado de advertencia (3-6 pedidos listos) - importante
+          box-shadow: 0 0 8px rgba(245, 158, 11, 0.5) !important; // Sombra naranja brillante - importante
+          animation: ledBlinkWarning 1.5s infinite !important; // Parpadeo medio (1.5s) para alerta - importante
         }
 
+        // Estado BUENO: 6+ pedidos listos - LED VERDE con parpadeo lento
         &.machine-status-good .machine-status-indicator {
-          background: #10b981; // Color verde para estado bueno (pocos pedidos listos)
-          box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); // Sombra verde brillante
-          animation: ledBlinkGood 2s infinite; // Parpadeo lento (2s) para estado normal
+          background: #10b981 !important; // Color verde para estado bueno (6+ pedidos listos) - importante
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.5) !important; // Sombra verde brillante - importante
+          animation: ledBlinkGood 2s infinite !important; // Parpadeo lento (2s) para estado normal - importante
         }
       }
     }
@@ -643,98 +663,461 @@ $gray-900: #0f172a;
   }
 }
 
+// ===== COLUMNA REFERENCIA =====
+.referencia-cell {
+  .referencia-text {
+    color: $gray-700; // Color gris oscuro para el texto de referencia
+    font-weight: 500; // Peso de fuente medio
+    padding: 4px 8px; // Relleno: 4px vertical, 8px horizontal
+    background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente gris para el fondo
+    border-radius: 6px; // Bordes redondeados de 6px
+    border: 1px solid $gray-200; // Borde gris claro de 1px
+    display: inline-block; // Elemento inline-block para ajustar al contenido
+    transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+    &:hover {
+      background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%); // Gradiente gris más oscuro al hover
+      color: $primary-blue; // Cambia el texto a azul al hover
+      transform: translateY(-1px); // Eleva el elemento 1px al hover
+    }
+  }
+}
+
+// ===== COLUMNA TD (TIPO DE DISEÑO) =====
+.td-cell {
+  .td-code {
+    color: $primary-blue; // Color azul primario para el código TD
+    font-weight: 600; // Peso de fuente semi-bold
+    padding: 4px 10px; // Relleno: 4px vertical, 10px horizontal
+    background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%); // Gradiente azul claro para el fondo
+    border-radius: 8px; // Bordes redondeados de 8px
+    border: 1px solid $primary-blue-200; // Borde azul claro de 1px
+    display: inline-block; // Elemento inline-block para ajustar al contenido
+    font-size: 11px; // Tamaño de fuente de 11px
+    text-transform: uppercase; // Texto en mayúsculas
+    letter-spacing: 0.5px; // Espaciado entre letras de 0.5px
+    transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+    &:hover {
+      background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%); // Gradiente azul más intenso al hover
+      border-color: $primary-blue; // Borde azul primario al hover
+      transform: translateY(-1px); // Eleva el elemento 1px al hover
+    }
+  }
+}
+
+// ===== COLUMNA NÚMERO DE COLORES =====
+.numero-colores-cell {
+  text-align: center; // Alineación centrada del contenido de la celda
+
+  .numero-colores-container {
+    display: flex; // Contenedor flexible para el badge
+    justify-content: center; // Centra horizontalmente el badge
+    align-items: center; // Centra verticalmente el badge
+
+    .numero-colores-badge {
+      display: inline-flex; // Elemento inline-flex para centrar contenido
+      align-items: center; // Centra verticalmente el número
+      justify-content: center; // Centra horizontalmente el número
+      min-width: 32px; // Ancho mínimo de 32px para el badge
+      height: 32px; // Altura fija de 32px para el badge circular
+      padding: 0 8px; // Relleno horizontal de 8px
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul para el fondo
+      color: white; // Texto blanco para contraste
+      border-radius: 50%; // Bordes completamente redondeados (círculo)
+      font-weight: 700; // Peso de fuente bold (negrita)
+      font-size: 14px; // Tamaño de fuente de 14px
+      box-shadow: 0 2px 8px rgba($primary-blue, 0.3); // Sombra azul suave
+      transition: all 0.3s ease; // Transición suave de 0.3s para efectos hover
+
+      &:hover {
+        transform: scale(1.1); // Agranda el badge 10% al hover
+        box-shadow: 0 4px 12px rgba($primary-blue, 0.5); // Sombra azul más intensa al hover
+      }
+    }
+  }
+}
+
+// ===== COLUMNA COLORES - DROPDOWN INTERACTIVO =====
+.colors-cell {
+  position: relative; // Posicionamiento relativo para el dropdown absoluto
+
+  .colors-cell-container {
+    position: relative; // Posicionamiento relativo para el dropdown
+    display: flex; // Contenedor flexible para el botón
+    justify-content: center; // Centra el botón horizontalmente
+    align-items: center; // Centra el botón verticalmente
+  }
+
+  // Botón toggle para mostrar/ocultar colores
+  .colors-toggle-btn-modern {
+    width: 40px; // Ancho fijo de 40px
+    height: 40px; // Altura fija de 40px
+    border-radius: 50%; // Bordes completamente redondeados (círculo)
+    background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%); // Gradiente gris para el fondo
+    border: 2px solid $gray-300; // Borde gris de 2px
+    transition: all 0.3s ease; // Transición suave de 0.3s para efectos hover
+    position: relative; // Posicionamiento relativo para el badge
+
+    &:hover {
+      background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%); // Gradiente azul al hover
+      border-color: $primary-blue; // Borde azul al hover
+      transform: scale(1.1); // Agranda el botón 10% al hover
+    }
+
+    &.active {
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul cuando está activo
+      border-color: $primary-blue; // Borde azul cuando está activo
+
+      .colors-icon {
+        color: white; // Icono blanco cuando está activo
+      }
+
+      .colors-badge {
+        background: white; // Fondo blanco para el badge cuando está activo
+        color: $primary-blue; // Texto azul para el badge cuando está activo
+      }
+    }
+
+    .colors-icon-container {
+      position: relative; // Posicionamiento relativo para el badge
+      display: flex; // Contenedor flexible para centrar el icono
+      align-items: center; // Centra verticalmente el icono
+      justify-content: center; // Centra horizontalmente el icono
+    }
+
+    .colors-icon {
+      font-size: 20px; // Tamaño del icono de 20px
+      width: 20px; // Ancho del icono de 20px
+      height: 20px; // Altura del icono de 20px
+      color: $primary-blue; // Color azul primario para el icono
+      transition: all 0.3s ease; // Transición suave de 0.3s
+    }
+
+    .colors-badge {
+      position: absolute; // Posicionamiento absoluto respecto al contenedor
+      top: -4px; // Posición superior de -4px (fuera del botón)
+      right: -4px; // Posición derecha de -4px (fuera del botón)
+      min-width: 18px; // Ancho mínimo de 18px
+      height: 18px; // Altura fija de 18px
+      padding: 0 4px; // Relleno horizontal de 4px
+      background: $primary-blue; // Fondo azul primario
+      color: white; // Texto blanco
+      border-radius: 50%; // Bordes completamente redondeados (círculo)
+      font-size: 10px; // Tamaño de fuente pequeño de 10px
+      font-weight: 700; // Peso de fuente bold (negrita)
+      display: flex; // Contenedor flexible para centrar el número
+      align-items: center; // Centra verticalmente el número
+      justify-content: center; // Centra horizontalmente el número
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); // Sombra para destacar el badge
+      transition: all 0.3s ease; // Transición suave de 0.3s
+    }
+  }
+
+  // Dropdown de colores
+  .colors-dropdown {
+    position: absolute; // Posicionamiento absoluto para overlay
+    top: 50%; // Posición vertical centrada
+    left: 100%; // Posición a la derecha del botón
+    transform: translateY(-50%) translateX(8px); // Centra verticalmente y separa 8px del botón
+    background: white; // Fondo blanco para el dropdown
+    border-radius: 12px; // Bordes redondeados de 12px
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); // Sombra intensa para destacar
+    border: 2px solid $primary-blue; // Borde azul de 2px
+    min-width: 250px; // Ancho mínimo de 250px
+    max-width: 300px; // Ancho máximo de 300px
+    z-index: 1000; // Apilamiento muy alto para estar sobre todo
+    opacity: 0; // Opacidad 0 por defecto (invisible)
+    visibility: hidden; // Oculto por defecto
+    transition: all 0.3s ease; // Transición suave de 0.3s para aparecer/desaparecer
+    pointer-events: none; // Sin eventos de puntero cuando está oculto
+
+    &.visible {
+      opacity: 1; // Opacidad completa cuando está visible
+      visibility: visible; // Visible cuando tiene la clase 'visible'
+      pointer-events: all; // Habilita eventos de puntero cuando está visible
+    }
+
+    .colors-dropdown-content {
+      display: flex; // Contenedor flexible para header y lista
+      flex-direction: column; // Organiza header y lista en columna
+      max-height: 400px; // Altura máxima de 400px para el dropdown
+    }
+
+    .colors-dropdown-header {
+      display: flex; // Contenedor flexible para icono, título y botón cerrar
+      align-items: center; // Centra verticalmente los elementos
+      gap: 8px; // Espacio de 8px entre elementos
+      padding: 12px 16px; // Relleno: 12px vertical, 16px horizontal
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul para el header
+      color: white; // Texto blanco para contraste
+      border-radius: 10px 10px 0 0; // Bordes redondeados solo arriba
+      font-weight: 600; // Peso de fuente semi-bold
+      font-size: 14px; // Tamaño de fuente de 14px
+
+      mat-icon {
+        font-size: 20px; // Tamaño del icono de 20px
+        width: 20px; // Ancho del icono de 20px
+        height: 20px; // Altura del icono de 20px
+      }
+
+      span {
+        flex: 1; // Ocupa el espacio disponible entre icono y botón cerrar
+      }
+
+      .close-colors-btn {
+        width: 28px; // Ancho fijo de 28px para botón pequeño
+        height: 28px; // Altura fija de 28px para botón pequeño
+        padding: 0; // Sin relleno interno
+        color: white; // Icono blanco
+
+        mat-icon {
+          font-size: 18px; // Tamaño del icono de 18px
+          width: 18px; // Ancho del icono de 18px
+          height: 18px; // Altura del icono de 18px
+        }
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2); // Fondo blanco semi-transparente al hover
+        }
+      }
+    }
+
+    .colors-dropdown-list {
+      padding: 8px; // Relleno interno de 8px
+      overflow-y: auto; // Scroll vertical si excede la altura
+      max-height: 320px; // Altura máxima de 320px para la lista
+
+      &::-webkit-scrollbar {
+        width: 6px; // Ancho de la barra de scroll de 6px
+      }
+
+      &::-webkit-scrollbar-track {
+        background: $gray-100; // Fondo gris claro para el track
+        border-radius: 3px; // Bordes redondeados de 3px
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: $primary-blue-300; // Fondo azul claro para el thumb
+        border-radius: 3px; // Bordes redondeados de 3px
+
+        &:hover {
+          background: $primary-blue; // Fondo azul primario al hover
+        }
+      }
+
+      .color-item {
+        display: flex; // Contenedor flexible para número y nombre
+        align-items: center; // Centra verticalmente los elementos
+        gap: 12px; // Espacio de 12px entre número y nombre
+        padding: 8px 12px; // Relleno: 8px vertical, 12px horizontal
+        margin-bottom: 4px; // Margen inferior de 4px entre items
+        background: $gray-50; // Fondo gris muy claro
+        border-radius: 8px; // Bordes redondeados de 8px
+        border: 1px solid $gray-200; // Borde gris claro de 1px
+        transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+        &:hover {
+          background: $primary-blue-50; // Fondo azul muy claro al hover
+          border-color: $primary-blue; // Borde azul al hover
+          transform: translateX(4px); // Desplaza 4px a la derecha al hover
+        }
+
+        .color-number {
+          display: flex; // Contenedor flexible para centrar el número
+          align-items: center; // Centra verticalmente el número
+          justify-content: center; // Centra horizontalmente el número
+          min-width: 24px; // Ancho mínimo de 24px
+          height: 24px; // Altura fija de 24px
+          background: $primary-blue; // Fondo azul primario
+          color: white; // Texto blanco
+          border-radius: 50%; // Bordes completamente redondeados (círculo)
+          font-size: 11px; // Tamaño de fuente de 11px
+          font-weight: 700; // Peso de fuente bold (negrita)
+          flex-shrink: 0; // Evita que el número se reduzca
+        }
+
+        .color-name {
+          flex: 1; // Ocupa el espacio disponible
+          color: $gray-700; // Color gris oscuro para el nombre
+          font-size: 12px; // Tamaño de fuente de 12px
+          font-weight: 500; // Peso de fuente medio
+          text-transform: uppercase; // Texto en mayúsculas
+          letter-spacing: 0.3px; // Espaciado entre letras de 0.3px
+        }
+      }
+    }
+  }
+}
+
+// ===== COLUMNA FECHA TINTA EN MÁQUINA =====
+.fecha-tinta-cell {
+  .fecha-tinta-info {
+    display: flex; // Contenedor flexible para fecha y hora
+    flex-direction: column; // Organiza fecha y hora en columna
+    align-items: center; // Centra horizontalmente los elementos
+    gap: 2px; // Espacio de 2px entre fecha y hora
+
+    .fecha-tinta-date {
+      font-weight: 600; // Peso de fuente semi-bold para la fecha
+      color: $gray-700; // Color gris oscuro para la fecha
+      font-size: 12px; // Tamaño de fuente de 12px
+    }
+
+    .fecha-tinta-time {
+      font-size: 11px; // Tamaño de fuente de 11px para la hora
+      color: $gray-500; // Color gris medio para la hora
+      font-weight: 500; // Peso de fuente medio
+    }
+  }
+}
+
+// ===== COLUMNA SUSTRATO =====
+.sustrato-cell {
+  .sustrato-text {
+    color: $gray-700; // Color gris oscuro para el texto del sustrato
+    font-weight: 600; // Peso de fuente semi-bold
+    padding: 4px 10px; // Relleno: 4px vertical, 10px horizontal
+    background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente gris para el fondo
+    border-radius: 6px; // Bordes redondeados de 6px
+    border: 1px solid $gray-200; // Borde gris claro de 1px
+    display: inline-block; // Elemento inline-block para ajustar al contenido
+    font-size: 11px; // Tamaño de fuente de 11px
+    text-transform: uppercase; // Texto en mayúsculas
+    letter-spacing: 0.5px; // Espaciado entre letras de 0.5px
+    transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+    &:hover {
+      background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%); // Gradiente gris más oscuro al hover
+      color: $primary-blue; // Cambia el texto a azul al hover
+      transform: translateY(-1px); // Eleva el elemento 1px al hover
+    }
+  }
+}
+
 // Estados con colores brillantes
 .status-cell {
   text-align: center; // Alineación centrada del contenido de la celda
 
-  .estado-container .status-main .status-text-display {
-    display: inline-block; // Elemento inline-block para ajustar al contenido
-    padding: 4px 12px; // Relleno: 4px vertical, 12px horizontal
-    border-radius: 20px; // Bordes muy redondeados (píldora) de 20px
-    font-size: 12px; // Tamaño de fuente de 12px
-    font-weight: 800; // Peso de fuente extra-bold (muy negrita)
-    text-transform: uppercase; // Texto en mayúsculas para énfasis
-    transition: all 0.3s ease; // Transición suave de 0.3s para efectos hover
+  .estado-container {
+    display: flex; // Contenedor flexible para organizar estado, operario y motivo
+    flex-direction: column; // Organiza elementos en columna vertical
+    gap: 4px; // Espacio de 4px entre elementos
+    align-items: center; // Centra horizontalmente los elementos
 
-    &.status-listo {
-      background: #10b981 !important; // Fondo verde para estado "Listo" (importante)
-      color: white !important; // Texto blanco para contraste (importante)
-      border: 2px solid #047857; // Borde verde oscuro de 2px
+    .status-main {
+      width: 100%; // Ancho completo del contenedor
+      text-align: center; // Alineación centrada del texto
 
-      &:hover {
-        background: #059669 !important; // Fondo verde más oscuro al hover (importante)
-        transform: translateY(-2px) scale(1.05); // Eleva 2px y agranda 5% al hover
+      .status-text-display {
+        display: inline-block; // Elemento inline-block para ajustar al contenido
+        font-size: 11px; // Tamaño de fuente de 11px para uniformidad con operario
+        font-weight: 700; // Peso de fuente bold (negrita) para destacar el estado
+        text-transform: uppercase; // Texto en mayúsculas para énfasis visual
+        letter-spacing: 0.8px; // Espaciado entre letras aumentado para mejor legibilidad en mayúsculas
+
+        // Estado PREPARANDO - Color amarillo (solo texto, sin fondo)
+        &.status-preparando {
+          color: #ca8a04 !important; // Color amarillo oscuro para el texto (importante)
+        }
+
+        // Estado LISTO - Color verde (solo texto, sin fondo)
+        &.status-listo {
+          color: #15803d !important; // Color verde oscuro para el texto (importante)
+        }
+
+        // Estado SUSPENDIDO - Color naranja (solo texto, sin fondo)
+        &.status-suspendido {
+          color: #ea580c !important; // Color naranja oscuro para el texto (importante)
+        }
+
+        // Estado CORRIENDO - Color rojo (solo texto, sin fondo)
+        &.status-corriendo {
+          color: #b91c1c !important; // Color rojo oscuro para el texto (importante)
+        }
+
+        // Estado TERMINADO - Color verde oscuro (solo texto, sin fondo)
+        &.status-terminado {
+          color: #047857 !important; // Color verde muy oscuro para el texto (importante)
+        }
       }
     }
 
-    &.status-corriendo {
-      background: $primary-blue !important; // Fondo azul para estado "Corriendo" (importante)
-      color: white !important; // Texto blanco para contraste (importante)
-      border: 2px solid $primary-blue-dark; // Borde azul oscuro de 2px
-
-      &:hover {
-        background: $primary-blue-light !important; // Fondo azul más claro al hover (importante)
-        transform: translateY(-2px) scale(1.05); // Eleva 2px y agranda 5% al hover
-      }
+    // Información del operario que realizó la acción
+    .operario-info {
+      font-size: 10.5px; // Tamaño de fuente de 10.5px ligeramente más pequeño que el estado
+      color: $gray-700; // Color gris más oscuro para mejor contraste y legibilidad
+      font-weight: 600; // Peso de fuente semi-bold para mejor visibilidad
+      text-align: center; // Alineación centrada del texto
+      line-height: 1.3; // Altura de línea de 1.3 para mejor espaciado
     }
 
-    &.status-suspendido {
-      background: #ef4444 !important; // Fondo rojo para estado "Suspendido" (importante)
-      color: white !important; // Texto blanco para contraste (importante)
-      border: 2px solid #b91c1c; // Borde rojo oscuro de 2px
-
-      &:hover {
-        background: #dc2626 !important; // Fondo rojo más oscuro al hover (importante)
-        transform: translateY(-2px) scale(1.05); // Eleva 2px y agranda 5% al hover
-      }
-    }
-
-    &.status-terminado {
-      background: #059669 !important; // Fondo verde oscuro para estado "Terminado" (importante)
-      color: white !important; // Texto blanco para contraste (importante)
-      border: 2px solid #047857; // Borde verde muy oscuro de 2px
-
-      &:hover {
-        background: #047857 !important; // Fondo verde aún más oscuro al hover (importante)
-        transform: translateY(-2px) scale(1.05); // Eleva 2px y agranda 5% al hover
-      }
+    // Motivo de suspensión - Solo visible si está suspendido y tiene observaciones
+    .motivo-suspendido {
+      font-style: italic; // Texto en cursiva para el motivo de suspensión
+      color: #ea580c; // Color naranja para el motivo de suspensión
+      font-size: 10px; // Tamaño de fuente de 10px más pequeño para información secundaria
+      text-align: center; // Alineación centrada del texto
+      max-width: 100%; // Ancho máximo del 100% del contenedor
+      word-wrap: break-word; // Permite que el texto se divida en múltiples líneas si es necesario
+      line-height: 1.3; // Altura de línea de 1.3 para mejor espaciado
+      font-weight: 500; // Peso de fuente medio para mejor legibilidad
     }
   }
 
   .motivo-suspendido {
     margin-top: 4px; // Margen superior de 4px para separar del estado
-    font-style: italic; // Texto en cursiva para el motivo
+    font-style: italic; // Texto en cursiva para el motivo de suspensión
     color: #dc2626; // Color rojo para el motivo de suspensión
-    font-size: 11px; // Tamaño de fuente pequeño de 11px
+    font-size: 10px; // Tamaño de fuente de 10px para información secundaria
+    font-weight: 500; // Peso de fuente medio para mejor visibilidad
+    line-height: 1.3; // Altura de línea de 1.3 para mejor espaciado
   }
 }
 
 .actions-cell {
   text-align: center; // Alineación centrada del contenido de la celda
+  padding: 8px 4px !important; // Relleno reducido para la celda de acciones
 
   .action-buttons {
     display: flex; // Contenedor flexible para los botones de acción
-    gap: 6px; // Espacio de 6px entre botones
+    gap: 4px; // Espacio reducido a 4px entre botones
     justify-content: center; // Centra horizontalmente los botones
+    flex-wrap: nowrap; // Evita que los botones se envuelvan en múltiples líneas
 
     .action-btn {
-      width: 36px; // Ancho fijo de 36px para botones cuadrados
-      height: 36px; // Altura fija de 36px para botones cuadrados
-      border-radius: 8px; // Bordes redondeados de 8px
+      width: 28px; // Ancho reducido a 28px para botones más compactos
+      height: 28px; // Altura reducida a 28px para botones más compactos
+      min-width: 28px; // Ancho mínimo de 28px
+      min-height: 28px; // Altura mínima de 28px
+      padding: 0; // Sin relleno interno para maximizar espacio del icono
+      border-radius: 6px; // Bordes redondeados reducidos a 6px
       border: none; // Sin borde para los botones
       transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
 
       &:hover:not(:disabled) {
-        transform: translateY(-1px); // Eleva el botón 1px al hover (si no está deshabilitado)
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); // Sombra al hover para efecto de elevación
+        transform: translateY(-1px) scale(1.05); // Eleva y agranda ligeramente al hover
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); // Sombra al hover para efecto de elevación
       }
 
       mat-icon {
-        font-size: 18px; // Tamaño del icono de 18px
-        width: 18px; // Ancho del icono de 18px
-        height: 18px; // Altura del icono de 18px
+        font-size: 16px; // Tamaño del icono reducido a 16px
+        width: 16px; // Ancho del icono reducido a 16px
+        height: 16px; // Altura del icono reducida a 16px
+        line-height: 16px; // Altura de línea para centrar verticalmente
       }
 
+      // Botón PREPARANDO - Color amarillo
+      &.preparando-btn {
+        background: #fef3c7; // Fondo amarillo claro para botón "Preparando"
+        color: #92400e; // Color marrón oscuro para el icono
+
+        &:hover:not(:disabled) {
+          background: #fde68a; // Fondo amarillo más intenso al hover
+        }
+      }
+
+      // Botón LISTO - Color verde
       &.listo-btn {
         background: #dcfce7; // Fondo verde claro para botón "Listo"
         color: #166534; // Color verde oscuro para el icono
@@ -744,17 +1127,19 @@ $gray-900: #0f172a;
         }
       }
 
-      &.corriendo-btn {
-        background: $primary-blue-100; // Fondo azul claro para botón "Corriendo"
-        color: $primary-blue-800; // Color azul oscuro para el icono
+      // Botón SUSPENDIDO - Color naranja
+      &.suspendido-btn {
+        background: #fed7aa; // Fondo naranja claro para botón "Suspendido"
+        color: #9a3412; // Color naranja oscuro para el icono
 
         &:hover:not(:disabled) {
-          background: $primary-blue-200; // Fondo azul más intenso al hover
+          background: #fdba74; // Fondo naranja más intenso al hover
         }
       }
 
-      &.suspendido-btn {
-        background: #fed7d7; // Fondo rojo claro para botón "Suspendido"
+      // Botón CORRIENDO - Color rojo
+      &.corriendo-btn {
+        background: #fecaca; // Fondo rojo claro para botón "Corriendo"
         color: #991b1b; // Color rojo oscuro para el icono
 
         &:hover:not(:disabled) {
@@ -762,37 +1147,71 @@ $gray-900: #0f172a;
         }
       }
 
-      &.terminado-btn {
-        background: #d1fae5; // Fondo verde agua claro para botón "Terminado"
-        color: #065f46; // Color verde oscuro para el icono
+      // Botón IMPRIMIR - Color azul
+      &.imprimir-btn {
+        background: $primary-blue-100; // Fondo azul claro para botón "Imprimir"
+        color: $primary-blue-800; // Color azul oscuro para el icono
 
         &:hover:not(:disabled) {
-          background: #a7f3d0; // Fondo verde agua más intenso al hover
+          background: $primary-blue-200; // Fondo azul más intenso al hover
         }
       }
     }
   }
 }
 
-// Filas con indicadores de estado
-.status-row-corriendo {
-  border-left: 4px solid $primary-blue; // Borde izquierdo azul de 4px para estado "Corriendo"
-  background: linear-gradient(90deg, rgba($primary-blue, 0.05) 0%, transparent 100%); // Gradiente azul sutil de izquierda a derecha
+// ===== FILAS CON INDICADORES DE ESTADO - COLORES ACTUALIZADOS =====
+// Cada fila se colorea según el estado del programa para identificación visual rápida
+// Colores más visibles con mayor opacidad para mejor identificación
+
+// Fila PREPARANDO - Color amarillo
+.status-row-preparando {
+  border-left: 4px solid #eab308 !important; // Borde izquierdo amarillo de 4px para estado "Preparando" (importante)
+  background: linear-gradient(90deg, rgba(234, 179, 8, 0.15) 0%, rgba(234, 179, 8, 0.05) 100%) !important; // Gradiente amarillo más visible (importante)
+  
+  .excel-cell {
+    background: linear-gradient(90deg, rgba(234, 179, 8, 0.08) 0%, rgba(234, 179, 8, 0.02) 100%) !important; // Fondo amarillo para celdas
+  }
 }
 
+// Fila LISTO - Color verde
 .status-row-listo {
-  border-left: 4px solid #16a34a; // Borde izquierdo verde de 4px para estado "Listo"
-  background: linear-gradient(90deg, rgba(22, 163, 74, 0.05) 0%, transparent 100%); // Gradiente verde sutil de izquierda a derecha
+  border-left: 4px solid #16a34a !important; // Borde izquierdo verde de 4px para estado "Listo" (importante)
+  background: linear-gradient(90deg, rgba(22, 163, 74, 0.15) 0%, rgba(22, 163, 74, 0.05) 100%) !important; // Gradiente verde más visible (importante)
+  
+  .excel-cell {
+    background: linear-gradient(90deg, rgba(22, 163, 74, 0.08) 0%, rgba(22, 163, 74, 0.02) 100%) !important; // Fondo verde para celdas
+  }
 }
 
+// Fila SUSPENDIDO - Color naranja
 .status-row-suspendido {
-  border-left: 4px solid #dc2626; // Borde izquierdo rojo de 4px para estado "Suspendido"
-  background: linear-gradient(90deg, rgba(220, 38, 38, 0.05) 0%, transparent 100%); // Gradiente rojo sutil de izquierda a derecha
+  border-left: 4px solid #f97316 !important; // Borde izquierdo naranja de 4px para estado "Suspendido" (importante)
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.15) 0%, rgba(249, 115, 22, 0.05) 100%) !important; // Gradiente naranja más visible (importante)
+  
+  .excel-cell {
+    background: linear-gradient(90deg, rgba(249, 115, 22, 0.08) 0%, rgba(249, 115, 22, 0.02) 100%) !important; // Fondo naranja para celdas
+  }
 }
 
+// Fila CORRIENDO - Color rojo
+.status-row-corriendo {
+  border-left: 4px solid #dc2626 !important; // Borde izquierdo rojo de 4px para estado "Corriendo" (importante)
+  background: linear-gradient(90deg, rgba(220, 38, 38, 0.15) 0%, rgba(220, 38, 38, 0.05) 100%) !important; // Gradiente rojo más visible (importante)
+  
+  .excel-cell {
+    background: linear-gradient(90deg, rgba(220, 38, 38, 0.08) 0%, rgba(220, 38, 38, 0.02) 100%) !important; // Fondo rojo para celdas
+  }
+}
+
+// Fila TERMINADO - Color verde oscuro
 .status-row-terminado {
-  border-left: 4px solid #059669; // Borde izquierdo verde oscuro de 4px para estado "Terminado"
-  background: linear-gradient(90deg, rgba(5, 150, 105, 0.05) 0%, transparent 100%); // Gradiente verde oscuro sutil de izquierda a derecha
+  border-left: 4px solid #059669 !important; // Borde izquierdo verde oscuro de 4px para estado "Terminado" (importante)
+  background: linear-gradient(90deg, rgba(5, 150, 105, 0.15) 0%, rgba(5, 150, 105, 0.05) 100%) !important; // Gradiente verde oscuro más visible (importante)
+  
+  .excel-cell {
+    background: linear-gradient(90deg, rgba(5, 150, 105, 0.08) 0%, rgba(5, 150, 105, 0.02) 100%) !important; // Fondo verde oscuro para celdas
+  }
 }
 
 // Mensajes de estado
@@ -882,6 +1301,253 @@ $gray-900: #0f172a;
   100% { transform: rotate(360deg); } // Fin: rotación completa de 360 grados
 }
 
+// ===== DIÁLOGO MODAL DE SUSPENSIÓN =====
+// Overlay y modal para suspender programas con motivo
+.suspend-dialog-overlay {
+  position: fixed; // Posicionamiento fijo para cubrir toda la pantalla
+  top: 0; // Alineado al borde superior
+  left: 0; // Alineado al borde izquierdo
+  right: 0; // Alineado al borde derecho
+  bottom: 0; // Alineado al borde inferior
+  background: rgba(0, 0, 0, 0.5); // Fondo negro semi-transparente (50% opacidad)
+  display: flex; // Contenedor flexible para centrar el diálogo
+  align-items: center; // Centra verticalmente el diálogo
+  justify-content: center; // Centra horizontalmente el diálogo
+  z-index: 2000; // Apilamiento muy alto para estar sobre todo
+  backdrop-filter: blur(4px); // Efecto de desenfoque del fondo
+  animation: fadeIn 0.3s ease; // Animación de aparición de 0.3s
+
+  .suspend-dialog {
+    background: white; // Fondo blanco para el diálogo
+    border-radius: 16px; // Bordes redondeados de 16px
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2); // Sombra intensa para destacar
+    width: 90%; // Ancho del 90% en móviles
+    max-width: 500px; // Ancho máximo de 500px
+    max-height: 90vh; // Altura máxima del 90% del viewport
+    overflow: hidden; // Oculta el contenido que excede el diálogo
+    display: flex; // Contenedor flexible para organizar secciones
+    flex-direction: column; // Organiza header, contenido y acciones en columna
+    animation: slideUp 0.3s ease; // Animación de deslizamiento hacia arriba
+
+    .suspend-dialog-header {
+      display: flex; // Contenedor flexible para título y botón cerrar
+      align-items: center; // Centra verticalmente los elementos
+      justify-content: space-between; // Distribuye título y botón en extremos
+      padding: 20px 24px; // Relleno: 20px vertical, 24px horizontal
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul para el header
+      color: white; // Texto blanco para contraste
+      border-radius: 16px 16px 0 0; // Bordes redondeados solo arriba
+
+      .dialog-title {
+        display: flex; // Contenedor flexible para icono y texto
+        align-items: center; // Centra verticalmente icono y texto
+        gap: 12px; // Espacio de 12px entre icono y texto
+        margin: 0; // Sin márgenes externos
+        font-size: 1.25rem; // Tamaño de fuente de 1.25rem (20px aprox)
+        font-weight: 700; // Peso de fuente bold (negrita)
+
+        mat-icon {
+          font-size: 28px; // Tamaño del icono de 28px
+          width: 28px; // Ancho del icono de 28px
+          height: 28px; // Altura del icono de 28px
+        }
+      }
+
+      .close-btn {
+        width: 36px; // Ancho fijo de 36px
+        height: 36px; // Altura fija de 36px
+        padding: 0; // Sin relleno interno
+        color: white; // Icono blanco
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2); // Fondo blanco semi-transparente al hover
+        }
+
+        mat-icon {
+          font-size: 24px; // Tamaño del icono de 24px
+          width: 24px; // Ancho del icono de 24px
+          height: 24px; // Altura del icono de 24px
+        }
+      }
+    }
+
+    .suspend-dialog-content {
+      padding: 24px; // Relleno interno de 24px en todos los lados
+      overflow-y: auto; // Scroll vertical si excede la altura
+      flex: 1; // Ocupa el espacio disponible entre header y acciones
+
+      &::-webkit-scrollbar {
+        width: 8px; // Ancho de la barra de scroll de 8px
+      }
+
+      &::-webkit-scrollbar-track {
+        background: $gray-100; // Fondo gris claro para el track
+        border-radius: 4px; // Bordes redondeados de 4px
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: $primary-blue-300; // Fondo azul claro para el thumb
+        border-radius: 4px; // Bordes redondeados de 4px
+
+        &:hover {
+          background: $primary-blue; // Fondo azul primario al hover
+        }
+      }
+
+      .program-info {
+        background: $gray-50; // Fondo gris muy claro
+        border-radius: 12px; // Bordes redondeados de 12px
+        padding: 16px; // Relleno interno de 16px
+        margin-bottom: 20px; // Margen inferior de 20px para separar de la siguiente sección
+        border: 1px solid $gray-200; // Borde gris claro de 1px
+
+        .info-item {
+          display: flex; // Contenedor flexible para etiqueta y valor
+          gap: 8px; // Espacio de 8px entre etiqueta y valor
+          margin-bottom: 8px; // Margen inferior de 8px entre items
+
+          &:last-child {
+            margin-bottom: 0; // Sin margen inferior en el último item
+          }
+
+          .info-label {
+            font-weight: 600; // Peso de fuente semi-bold para la etiqueta
+            color: $gray-600; // Color gris medio para la etiqueta
+            min-width: 80px; // Ancho mínimo de 80px para alinear valores
+          }
+
+          .info-value {
+            color: $gray-800; // Color gris oscuro para el valor
+            font-weight: 500; // Peso de fuente medio
+          }
+        }
+      }
+
+      .reason-section {
+        .reason-label {
+          display: block; // Elemento de bloque para ocupar línea completa
+          font-weight: 600; // Peso de fuente semi-bold
+          color: $gray-700; // Color gris oscuro
+          margin-bottom: 12px; // Margen inferior de 12px
+          font-size: 14px; // Tamaño de fuente de 14px
+        }
+
+        .predefined-reasons {
+          display: flex; // Contenedor flexible para los chips
+          flex-wrap: wrap; // Permite que los chips se envuelvan en múltiples líneas
+          gap: 8px; // Espacio de 8px entre chips
+          margin-bottom: 16px; // Margen inferior de 16px para separar del textarea
+
+          .reason-chip {
+            padding: 8px 16px; // Relleno: 8px vertical, 16px horizontal
+            border-radius: 20px; // Bordes muy redondeados (píldora)
+            border: 2px solid $gray-300; // Borde gris de 2px
+            background: white; // Fondo blanco por defecto
+            color: $gray-700; // Texto gris oscuro
+            font-size: 13px; // Tamaño de fuente de 13px
+            font-weight: 500; // Peso de fuente medio
+            cursor: pointer; // Cursor de puntero para indicar que es clickeable
+            transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+            white-space: nowrap; // Evita que el texto se envuelva
+
+            &:hover {
+              background: $gray-50; // Fondo gris muy claro al hover
+              border-color: $primary-blue; // Borde azul al hover
+              color: $primary-blue; // Texto azul al hover
+            }
+
+            &.selected {
+              background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul cuando está seleccionado
+              border-color: $primary-blue; // Borde azul cuando está seleccionado
+              color: white; // Texto blanco cuando está seleccionado
+              font-weight: 600; // Peso de fuente semi-bold cuando está seleccionado
+
+              &:hover {
+                background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%); // Gradiente azul más claro al hover
+              }
+            }
+          }
+        }
+
+        .full-width {
+          width: 100%; // Ancho completo para el campo de texto
+        }
+      }
+    }
+
+    .suspend-dialog-actions {
+      display: flex; // Contenedor flexible para los botones
+      gap: 12px; // Espacio de 12px entre botones
+      padding: 16px 24px; // Relleno: 16px vertical, 24px horizontal
+      background: $gray-50; // Fondo gris muy claro
+      border-top: 1px solid $gray-200; // Borde superior gris claro de 1px
+      justify-content: flex-end; // Alinea botones a la derecha
+
+      button {
+        padding: 10px 24px; // Relleno: 10px vertical, 24px horizontal
+        border-radius: 8px; // Bordes redondeados de 8px
+        font-weight: 600; // Peso de fuente semi-bold
+        transition: all 0.2s ease; // Transición suave de 0.2s para efectos hover
+
+        mat-icon {
+          font-size: 20px; // Tamaño del icono de 20px
+          width: 20px; // Ancho del icono de 20px
+          height: 20px; // Altura del icono de 20px
+          margin-right: 8px; // Margen derecho de 8px para separar del texto
+        }
+      }
+
+      .cancel-btn {
+        border: 2px solid $gray-300; // Borde gris de 2px
+        color: $gray-700; // Texto gris oscuro
+
+        &:hover {
+          background: $gray-100; // Fondo gris claro al hover
+          border-color: $gray-400; // Borde gris más oscuro al hover
+        }
+      }
+
+      .confirm-suspend-btn {
+        background: linear-gradient(135deg, $error-red 0%, #dc2626 100%); // Gradiente rojo para el botón de suspender
+        color: white; // Texto blanco
+        border: none; // Sin borde
+
+        &:hover:not(:disabled) {
+          background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); // Gradiente rojo más oscuro al hover
+          transform: translateY(-1px); // Eleva el botón 1px al hover
+          box-shadow: 0 4px 12px rgba($error-red, 0.3); // Sombra roja al hover
+        }
+
+        &:disabled {
+          opacity: 0.5; // Opacidad reducida cuando está deshabilitado
+          cursor: not-allowed; // Cursor de no permitido cuando está deshabilitado
+        }
+      }
+    }
+  }
+}
+
+// Animaciones para el diálogo
+@keyframes fadeIn {
+  from {
+    opacity: 0; // Inicia invisible
+  }
+  to {
+    opacity: 1; // Termina visible
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px); // Inicia 20px más abajo
+    opacity: 0; // Inicia invisible
+  }
+  to {
+    transform: translateY(0); // Termina en su posición original
+    opacity: 1; // Termina visible
+  }
+}
+
 // Responsive design
 @media (max-width: 768px) { // Estilos para pantallas menores a 768px (móviles y tablets)
   .machines-container {
@@ -950,4 +1616,31 @@ $gray-900: #0f172a;
   .mat-mdc-row:hover {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important; // Gradiente gris al hover en filas (importante)
   }
+}
+
+// ===== OPTIMIZACIÓN DE ANCHO DE COLUMNAS =====
+// Hace la columna de acciones más estrecha para dar más espacio a la tabla
+.actions-cell {
+  width: 140px !important; // Ancho fijo reducido a 140px para la columna de acciones
+  max-width: 140px !important; // Ancho máximo de 140px
+  min-width: 140px !important; // Ancho mínimo de 140px
+}
+
+// Ajusta el ancho de la tabla para aprovechar mejor el espacio
+.programming-table-container {
+  .programs-table {
+    .excel-table {
+      min-width: 1200px; // Aumenta el ancho mínimo para mejor distribución de columnas
+    }
+  }
+}
+
+// Reduce el padding de las celdas para hacer la tabla más compacta
+.excel-cell {
+  padding: 10px 8px !important; // Relleno reducido: 10px vertical, 8px horizontal
+}
+
+// Optimiza el espacio del header
+.excel-header {
+  padding: 12px 8px !important; // Relleno reducido en el header
 }

@@ -36,16 +36,16 @@ namespace FlexoAPP.API.Repositories
         }
 
         /// <summary>
-        /// Obtener una máquina por su ID con información de usuarios relacionados
+        /// Obtener una máquina por su artículo (clave primaria) con información de usuarios relacionados
         /// </summary>
-        /// <param name="id">ID de la máquina</param>
+        /// <param name="articulo">Código del artículo de la máquina</param>
         /// <returns>Máquina encontrada o null si no existe</returns>
-        public async Task<Maquina?> GetByIdAsync(int id)
+        public async Task<Maquina?> GetByArticuloAsync(string articulo)
         {
             return await _context.Maquinas
                 .Include(m => m.CreatedByUser) // Incluir información del usuario que creó
                 .Include(m => m.UpdatedByUser) // Incluir información del usuario que actualizó
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Articulo == articulo);
         }
 
         /// <summary>
@@ -197,18 +197,18 @@ namespace FlexoAPP.API.Repositories
         /// Actualizar solo el estado de una máquina
         /// Método optimizado para cambios de estado frecuentes
         /// </summary>
-        /// <param name="id">ID de la máquina</param>
+        /// <param name="articulo">Código del artículo de la máquina</param>
         /// <param name="nuevoEstado">Nuevo estado</param>
         /// <param name="observaciones">Observaciones adicionales (opcional)</param>
         /// <param name="userId">ID del usuario que realiza la acción</param>
         /// <returns>Máquina actualizada</returns>
-        public async Task<Maquina> UpdateEstadoAsync(int id, string nuevoEstado, string? observaciones, int? userId)
+        public async Task<Maquina> UpdateEstadoAsync(string articulo, string nuevoEstado, string? observaciones, int? userId)
         {
-            // Buscar la máquina por ID
-            var maquina = await GetByIdAsync(id);
+            // Buscar la máquina por artículo
+            var maquina = await GetByArticuloAsync(articulo);
             if (maquina == null)
             {
-                throw new ArgumentException($"No se encontró la máquina con ID {id}");
+                throw new ArgumentException($"No se encontró la máquina con artículo {articulo}");
             }
 
             // Actualizar solo los campos necesarios
@@ -230,14 +230,14 @@ namespace FlexoAPP.API.Repositories
         }
 
         /// <summary>
-        /// Eliminar una máquina por su ID
+        /// Eliminar una máquina por su artículo
         /// </summary>
-        /// <param name="id">ID de la máquina a eliminar</param>
+        /// <param name="articulo">Código del artículo de la máquina a eliminar</param>
         /// <returns>True si se eliminó correctamente</returns>
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(string articulo)
         {
-            // Buscar la máquina por ID
-            var maquina = await _context.Maquinas.FindAsync(id);
+            // Buscar la máquina por artículo
+            var maquina = await _context.Maquinas.FindAsync(articulo);
             if (maquina == null)
             {
                 return false; // No se encontró la máquina
@@ -257,16 +257,16 @@ namespace FlexoAPP.API.Repositories
         /// Útil para validar duplicados antes de crear o actualizar
         /// </summary>
         /// <param name="otSap">Número de orden SAP</param>
-        /// <param name="excludeId">ID a excluir de la búsqueda (para actualizaciones)</param>
+        /// <param name="excludeArticulo">Artículo a excluir de la búsqueda (para actualizaciones)</param>
         /// <returns>True si existe una máquina con esa orden SAP</returns>
-        public async Task<bool> ExistsOtSapAsync(string otSap, int? excludeId = null)
+        public async Task<bool> ExistsOtSapAsync(string otSap, string? excludeArticulo = null)
         {
             var query = _context.Maquinas.Where(m => m.OtSap == otSap);
             
-            // Excluir un ID específico si se proporciona (útil para actualizaciones)
-            if (excludeId.HasValue)
+            // Excluir un artículo específico si se proporciona (útil para actualizaciones)
+            if (!string.IsNullOrEmpty(excludeArticulo))
             {
-                query = query.Where(m => m.Id != excludeId.Value);
+                query = query.Where(m => m.Articulo != excludeArticulo);
             }
 
             return await query.AnyAsync();

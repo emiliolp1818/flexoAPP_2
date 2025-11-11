@@ -15,11 +15,11 @@ namespace FlexoAPP.API.Repositories
         Task<IEnumerable<Maquina>> GetAllAsync();
 
         /// <summary>
-        /// Obtener una máquina por su ID
+        /// Obtener una máquina por su artículo (clave primaria)
         /// </summary>
-        /// <param name="id">ID de la máquina</param>
+        /// <param name="articulo">Código del artículo de la máquina</param>
         /// <returns>Máquina encontrada o null si no existe</returns>
-        Task<Maquina?> GetByIdAsync(int id);
+        Task<Maquina?> GetByArticuloAsync(string articulo);
 
         /// <summary>
         /// Obtener todas las máquinas de un número específico (11-21)
@@ -81,27 +81,27 @@ namespace FlexoAPP.API.Repositories
         /// <summary>
         /// Actualizar solo el estado de una máquina
         /// </summary>
-        /// <param name="id">ID de la máquina</param>
+        /// <param name="articulo">Código del artículo de la máquina</param>
         /// <param name="nuevoEstado">Nuevo estado</param>
         /// <param name="observaciones">Observaciones adicionales (opcional)</param>
         /// <param name="userId">ID del usuario que realiza la acción</param>
         /// <returns>Máquina actualizada</returns>
-        Task<Maquina> UpdateEstadoAsync(int id, string nuevoEstado, string? observaciones, int? userId);
+        Task<Maquina> UpdateEstadoAsync(string articulo, string nuevoEstado, string? observaciones, int? userId);
 
         /// <summary>
-        /// Eliminar una máquina por su ID
+        /// Eliminar una máquina por su artículo
         /// </summary>
-        /// <param name="id">ID de la máquina a eliminar</param>
+        /// <param name="articulo">Código del artículo de la máquina a eliminar</param>
         /// <returns>True si se eliminó correctamente</returns>
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteAsync(string articulo);
 
         /// <summary>
         /// Verificar si existe una máquina con una orden SAP específica
         /// </summary>
         /// <param name="otSap">Número de orden SAP</param>
-        /// <param name="excludeId">ID a excluir de la búsqueda (para actualizaciones)</param>
+        /// <param name="excludeArticulo">Artículo a excluir de la búsqueda (para actualizaciones)</param>
         /// <returns>True si existe una máquina con esa orden SAP</returns>
-        Task<bool> ExistsOtSapAsync(string otSap, int? excludeId = null);
+        Task<bool> ExistsOtSapAsync(string otSap, string? excludeArticulo = null);
 
         /// <summary>
         /// Obtener estadísticas de máquinas por estado

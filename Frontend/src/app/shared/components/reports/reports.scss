@@ -1,53 +1,258 @@
-// ===== ESTILOS OPTIMIZADOS PARA REPORTES =====
-// Versión compacta con color #2563eb
+// ===== ESTILOS COPIADOS DEL MÓDULO DE CONFIGURACIÓN =====
+// Paleta de colores idéntica al módulo de configuración
 
-$primary-blue: #2563eb;
-$primary-blue-light: #3b82f6;
-$primary-blue-dark: #1d4ed8;
-$primary-blue-50: #eff6ff;
-$primary-blue-100: #dbeafe;
+$primary-blue: #2563eb;         // Azul principal
+$primary-blue-light: #3b82f6;   // Azul claro
+$primary-blue-dark: #1d4ed8;    // Azul oscuro
+$primary-blue-50: #eff6ff;      // Azul muy claro para fondos
+$primary-blue-100: #dbeafe;     // Azul claro para elementos suaves
+$primary-blue-200: #bfdbfe;     // Azul medio-claro
+$primary-blue-300: #93c5fd;     // Azul medio
+$primary-blue-400: #60a5fa;     // Azul medio-intenso
+$primary-blue-500: #3b82f6;     // Azul intenso
+$primary-blue-600: #2563eb;     // Azul vibrante
+$primary-blue-700: #1d4ed8;     // Azul profundo
+$primary-blue-800: #1e40af;     // Azul muy profundo
+$primary-blue-900: #1e3a8a;     // Azul empresarial
 
-// Contenedor principal
-.reports-container {
+// Colores complementarios
+$accent-gray: #6b7280;          // Gris para contraste
+$accent-slate: #4b5563;         // Pizarra para elementos secundarios
+$success-emerald: #10b981;      // Verde esmeralda
+$warning-amber: #f59e0b;        // Ámbar
+$error-red: #ef4444;           // Rojo
+
+// Escala de grises
+$gray-50: #f8fafc;   // Gris muy claro
+$gray-100: #f1f5f9;  // Gris claro
+$gray-200: #e2e8f0;  // Gris medio-claro
+$gray-300: #cbd5e1;  // Gris medio
+$gray-400: #94a3b8;  // Gris medio-oscuro
+$gray-500: #64748b;  // Gris balanceado
+$gray-600: #475569;  // Gris oscuro
+$gray-700: #334155;  // Gris muy oscuro
+$gray-800: #1e293b;  // Gris profundo
+$gray-900: #0f172a;  // Gris máximo
+
+// ===== HOST PRINCIPAL - Copiado del módulo de configuración =====
+:host {
+  display: block;
   width: 100vw;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding-top: 64px;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+  overflow: auto;
+}
 
-  .reports-content {
-    padding: 32px;
-    max-width: 1400px;
-    margin: 0 auto;
+// ===== CONTENEDOR PRINCIPAL - Copiado del módulo de configuración =====
+.reports-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0px;
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+  overflow: visible;
+  position: relative;
+}
+
+// ===== HEADER FIJO - Copiado del módulo de configuración =====
+.reports-header {
+  position: sticky;           // Sticky en lugar de fixed para mejor comportamiento
+  top: 0;                    // Se mantiene en la parte superior al hacer scroll
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 12px 12px 0px 12px;  // Margen inferior eliminado para mejor espaciado
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  overflow: visible;
+  z-index: 100;              // Z-index alto para mantenerse sobre otros elementos
+  display: block;
+  margin-top: 68px;
+
+  // Borde superior azul
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $primary-blue;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: none;
+    margin: 0px;
+    position: relative;
+    z-index: 2;
+    min-height: 60px;
     width: 100%;
-    box-sizing: border-box;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 12px;
+      min-height: 80px;
+    }
+
+    .header-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+
+      .page-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        white-space: nowrap;
+        overflow: visible;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+          color: $primary-blue;
+          flex-shrink: 0;
+        }
+      }
+
+      .page-subtitle {
+        margin: 4px 0 0 0;
+        color: #4b5563;
+        font-size: 0.9rem;
+        font-weight: 500;
+        line-height: 1.3;
+      }
+    }
   }
 }
 
-// Header
-.reports-header {
-  margin-bottom: 32px;
+// ===== CONTENIDO PRINCIPAL - Copiado del módulo de configuración =====
+.reports-content {
+  flex: 1;
+  padding: 12px 12px 0px 12px;  // Padding superior para separar del header
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 
-  .page-title {
+  .reports-card {
+    flex: 1;
     display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin: 0 0 12px 0;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px 20px 0px 0px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-bottom: none;
+    overflow: hidden;
+    height: 100%;
+    position: relative;
+    min-height: 0;
 
-    mat-icon {
-      font-size: 2.5rem;
-      color: $primary-blue;
+    // Borde superior azul
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: $primary-blue;
+      z-index: 1;
+    }
+
+    mat-card-content {
+      flex: 1;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-height: 0;
     }
   }
+}
 
-  .page-subtitle {
-    font-size: 1.1rem;
-    color: #64748b;
-    margin: 0;
-    font-weight: 500;
+// ===== PESTAÑAS CON ESTILO DEL MÓDULO DE CONFIGURACIÓN =====
+::ng-deep {
+  .mat-mdc-tab-group {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .mat-mdc-tab-header {
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 2px solid $primary-blue;
+      flex-shrink: 0;
+      z-index: 2;
+      margin-top: 4px;
+
+      .mat-mdc-tab-label {
+        color: $gray-600;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 24px;
+        min-width: 120px;
+
+        &.mdc-tab--active {
+          color: $primary-blue;
+          background: rgba($primary-blue, 0.1);
+        }
+
+        &:hover {
+          background: rgba($primary-blue, 0.05);
+          color: $primary-blue;
+        }
+      }
+
+      .mat-mdc-tab-label-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+
+    .mat-mdc-tab-body-wrapper {
+      flex: 1;
+      overflow: hidden;
+
+      .mat-mdc-tab-body {
+        height: 100%;
+        overflow: auto;
+
+        .mat-mdc-tab-body-content {
+          height: 100%;
+          overflow: auto;
+        }
+      }
+    }
   }
+}
+
+// ===== CONTENIDO DE PESTAÑAS - Copiado del módulo de configuración =====
+.tab-content {
+  padding: 24px 12px 20px 12px;  // Padding lateral igual al header (12px) para alineación perfecta
+  height: 100%;
+  overflow: auto;
 }
 
 // Cards generales
@@ -67,149 +272,415 @@ $primary-blue-100: #dbeafe;
   }
 }
 
-// Formularios
+// ===== FORMULARIOS DE BÚSQUEDA - Estilo mejorado y comentado =====
 .search-form {
+  // Fila de campos de formulario - Contenedor flex para organizar campos horizontalmente
   .form-row {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
+    display: flex;                    // Usar flexbox para layout horizontal
+    gap: 16px;                        // Espacio de 16px entre campos
+    margin-bottom: 16px;              // Margen inferior para separar filas
+    flex-wrap: wrap;                  // Permitir que los campos se envuelvan en pantallas pequeñas
+    align-items: flex-start;          // Alinear campos al inicio verticalmente
   }
 
-  .form-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .search-btn {
-    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    padding: 12px 24px;
-    box-shadow: 0 4px 16px rgba($primary-blue, 0.3);
-
-    &:hover:not(:disabled) {
-      background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba($primary-blue, 0.4);
+  // Campo de código de usuario - Ancho flexible para ocupar más espacio
+  .user-code-field {
+    flex: 2;                          // Ocupa el doble de espacio que otros campos
+    min-width: 280px;                 // Ancho mínimo de 280px para mantener legibilidad
+    
+    // Responsive: En móviles ocupa todo el ancho
+    @media (max-width: 768px) {
+      flex: 1 1 100%;                 // Ocupa 100% del ancho en móviles
+      min-width: 100%;                // Ancho mínimo 100% en móviles
     }
   }
 
-  .clear-btn {
-    border: 2px solid #e2e8f0;
-    color: #64748b;
-    background: white;
-    border-radius: 12px;
-    font-weight: 500;
-    padding: 12px 24px;
+  // Campo de módulo - Ancho flexible menor
+  .module-field {
+    flex: 1;                          // Ocupa espacio estándar
+    min-width: 200px;                 // Ancho mínimo de 200px
+    
+    // Responsive: En móviles ocupa todo el ancho
+    @media (max-width: 768px) {
+      flex: 1 1 100%;                 // Ocupa 100% del ancho en móviles
+      min-width: 100%;                // Ancho mínimo 100% en móviles
+    }
+  }
 
-    &:hover {
-      border-color: $primary-blue;
-      color: $primary-blue;
+  // Campos de fecha mejorados - Ancho flexible igual
+  .date-field-enhanced {
+    flex: 1;                          // Ocupa espacio estándar
+    min-width: 220px;                 // Ancho mínimo de 220px para fechas
+    
+    // Responsive: En móviles ocupa todo el ancho
+    @media (max-width: 768px) {
+      flex: 1 1 100%;                 // Ocupa 100% del ancho en móviles
+      min-width: 100%;                // Ancho mínimo 100% en móviles
+    }
+  }
+
+  // Contenedor de acciones (botones) - Alineación y espaciado
+  .form-actions {
+    display: flex;                    // Usar flexbox para layout horizontal
+    gap: 12px;                        // Espacio de 12px entre botones
+    justify-content: flex-start;      // Alinear botones al inicio (izquierda)
+    flex-wrap: wrap;                  // Permitir que los botones se envuelvan en pantallas pequeñas
+    margin-top: 8px;                  // Margen superior para separar de los campos
+    padding-top: 8px;                 // Padding superior adicional
+    border-top: 1px solid $gray-200;  // Línea divisoria sutil en la parte superior
+  }
+
+  // Botón de búsqueda - Estilo principal con gradiente azul
+  .search-btn {
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul
+    color: white;                     // Texto blanco para contraste
+    border: none;                     // Sin borde
+    border-radius: 12px;              // Bordes redondeados de 12px
+    font-weight: 600;                 // Texto semi-negrita
+    padding: 12px 24px;               // Padding interno: 12px vertical, 24px horizontal
+    box-shadow: 0 4px 16px rgba($primary-blue, 0.3); // Sombra azul suave
+    transition: all 0.3s ease;        // Transición suave para todos los cambios
+    display: flex;                    // Flexbox para alinear icono y texto
+    align-items: center;              // Centrar verticalmente
+    gap: 8px;                         // Espacio de 8px entre icono y texto
+    min-width: 180px;                 // Ancho mínimo de 180px
+    justify-content: center;          // Centrar contenido horizontalmente
+
+    // Efecto hover - Solo cuando no está deshabilitado
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%); // Gradiente más claro
+      transform: translateY(-1px);    // Elevar 1px hacia arriba
+      box-shadow: 0 6px 20px rgba($primary-blue, 0.4); // Sombra más pronunciada
+    }
+
+    // Estado deshabilitado - Opacidad reducida
+    &:disabled {
+      opacity: 0.6;                   // Reducir opacidad al 60%
+      cursor: not-allowed;            // Cursor de no permitido
+    }
+
+    // Spinner de carga dentro del botón
+    mat-spinner {
+      margin-right: 4px;              // Margen derecho para separar del texto
+    }
+
+    // Responsive: En móviles ocupa todo el ancho
+    @media (max-width: 768px) {
+      width: 100%;                    // Ancho completo en móviles
+      min-width: 100%;                // Ancho mínimo 100% en móviles
+    }
+  }
+
+  // Botón de limpiar - Estilo secundario con borde
+  .clear-btn {
+    border: 2px solid $gray-200;      // Borde gris claro de 2px
+    color: $gray-600;                 // Texto gris oscuro
+    background: white;                // Fondo blanco
+    border-radius: 12px;              // Bordes redondeados de 12px
+    font-weight: 500;                 // Texto medio-negrita
+    padding: 12px 24px;               // Padding interno: 12px vertical, 24px horizontal
+    transition: all 0.3s ease;        // Transición suave para todos los cambios
+    display: flex;                    // Flexbox para alinear icono y texto
+    align-items: center;              // Centrar verticalmente
+    gap: 8px;                         // Espacio de 8px entre icono y texto
+    min-width: 140px;                 // Ancho mínimo de 140px
+    justify-content: center;          // Centrar contenido horizontalmente
+
+    // Efecto hover - Cambiar a color azul
+    &:hover:not(:disabled) {
+      border-color: $primary-blue;    // Borde azul
+      color: $primary-blue;           // Texto azul
+      background: rgba($primary-blue, 0.05); // Fondo azul muy suave
+      transform: translateY(-1px);    // Elevar 1px hacia arriba
+    }
+
+    // Estado deshabilitado - Opacidad reducida
+    &:disabled {
+      opacity: 0.5;                   // Reducir opacidad al 50%
+      cursor: not-allowed;            // Cursor de no permitido
+    }
+
+    // Responsive: En móviles ocupa todo el ancho
+    @media (max-width: 768px) {
+      width: 100%;                    // Ancho completo en móviles
+      min-width: 100%;                // Ancho mínimo 100% en móviles
     }
   }
 }
 
-// Resultados
+// ===== ESTILOS PARA OPCIONES DE AUTOCOMPLETADO =====
+// Opciones de usuario en el autocompletado - Diseño mejorado
+.user-option {
+  display: flex;                      // Flexbox para layout horizontal
+  align-items: center;                // Centrar verticalmente
+  gap: 12px;                          // Espacio de 12px entre elementos
+  padding: 8px 12px;                  // Padding interno
+  transition: all 0.2s ease;          // Transición suave
+
+  // Código de usuario - Estilo destacado
+  .user-code {
+    font-weight: 600;                 // Texto semi-negrita
+    color: $primary-blue;             // Color azul principal
+    font-size: 0.95rem;               // Tamaño de fuente ligeramente mayor
+    min-width: 100px;                 // Ancho mínimo para alineación
+  }
+
+  // Nombre de usuario - Estilo normal
+  .user-name {
+    flex: 1;                          // Ocupa el espacio restante
+    color: $gray-700;                 // Color gris oscuro
+    font-size: 0.9rem;                // Tamaño de fuente estándar
+  }
+
+  // Rol de usuario - Estilo badge
+  .user-role {
+    font-size: 0.75rem;               // Tamaño de fuente pequeño
+    color: $gray-500;                 // Color gris medio
+    background: $gray-100;            // Fondo gris claro
+    padding: 2px 8px;                 // Padding interno pequeño
+    border-radius: 8px;               // Bordes redondeados
+    text-transform: uppercase;        // Texto en mayúsculas
+    letter-spacing: 0.5px;            // Espaciado entre letras
+  }
+}
+
+// ===== SECCIÓN DE RESULTADOS - Tarjetas de información y estadísticas =====
 .results-section {
+  margin-top: 24px;                   // Margen superior para separar del formulario
+  
+  // Tarjeta de información de usuario mejorada - Diseño tipo perfil
   .user-info-card-enhanced {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-    border: 1px solid #e2e8f0;
-    margin-bottom: 24px;
-    overflow: hidden;
+    background: white;                // Fondo blanco sólido
+    border-radius: 16px;              // Bordes redondeados de 16px
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06); // Sombra suave para elevación
+    border: 1px solid $gray-200;      // Borde gris claro
+    margin-bottom: 24px;              // Margen inferior para separar de otras tarjetas
+    overflow: hidden;                 // Ocultar contenido que sobresalga
+    transition: all 0.3s ease;        // Transición suave para efectos hover
+    
+    // Efecto hover - Elevar tarjeta
+    &:hover {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); // Sombra más pronunciada
+      transform: translateY(-2px);    // Elevar 2px hacia arriba
+    }
 
+    // Encabezado de tarjeta de usuario - Fondo azul con gradiente
     .user-card-header {
-      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-      color: white;
-      padding: 20px 24px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul
+      color: white;                   // Texto blanco para contraste
+      padding: 20px 24px;             // Padding interno generoso
+      display: flex;                  // Flexbox para layout horizontal
+      align-items: center;            // Centrar verticalmente
+      gap: 16px;                      // Espacio de 16px entre elementos
+      position: relative;             // Posición relativa para elementos absolutos internos
 
-      .user-avatar mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        color: $primary-blue-100;
+      // Avatar de usuario - Icono circular grande
+      .user-avatar {
+        flex-shrink: 0;               // No reducir tamaño del avatar
+        
+        mat-icon {
+          font-size: 48px;            // Tamaño de icono grande (48px)
+          width: 48px;                // Ancho fijo de 48px
+          height: 48px;               // Alto fijo de 48px
+          color: $primary-blue-100;   // Color azul claro para contraste
+        }
       }
 
+      // Información principal del usuario - Nombre, código y rol
       .user-main-info {
-        flex: 1;
+        flex: 1;                      // Ocupa el espacio restante
+        min-width: 0;                 // Permitir que el texto se trunque si es necesario
 
+        // Nombre completo del usuario - Título principal
         .user-full-name {
-          margin: 0 0 4px 0;
-          font-size: 1.5rem;
-          font-weight: 700;
+          margin: 0 0 4px 0;          // Margen inferior pequeño
+          font-size: 1.5rem;          // Tamaño de fuente grande
+          font-weight: 700;           // Texto negrita
+          line-height: 1.2;           // Altura de línea ajustada
+          color: white;               // Color blanco
         }
 
+        // Código de usuario - Subtítulo con @
         .user-code-display {
-          margin: 0 0 8px 0;
-          opacity: 0.9;
-          font-size: 1rem;
+          margin: 0 0 8px 0;          // Margen inferior
+          opacity: 0.9;               // Opacidad ligeramente reducida
+          font-size: 1rem;            // Tamaño de fuente estándar
+          font-weight: 400;           // Peso de fuente normal
+          color: white;               // Color blanco
         }
 
+        // Badge de rol - Etiqueta con icono
         .user-role-badge {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(255, 255, 255, 0.2);
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 0.9rem;
-          width: fit-content;
+          display: flex;              // Flexbox para alinear icono y texto
+          align-items: center;        // Centrar verticalmente
+          gap: 6px;                   // Espacio de 6px entre icono y texto
+          background: rgba(255, 255, 255, 0.2); // Fondo blanco semi-transparente
+          padding: 4px 12px;          // Padding interno
+          border-radius: 20px;        // Bordes muy redondeados (píldora)
+          font-size: 0.9rem;          // Tamaño de fuente pequeño
+          width: fit-content;         // Ancho ajustado al contenido
+          backdrop-filter: blur(10px); // Efecto de desenfoque de fondo
+          border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
         }
       }
 
+      // Indicador de estado del usuario - Punto de color con texto
       .user-status-indicator {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
+        display: flex;                // Flexbox para layout vertical
+        flex-direction: column;       // Dirección vertical (punto arriba, texto abajo)
+        align-items: center;          // Centrar horizontalmente
+        gap: 4px;                     // Espacio de 4px entre punto y texto
+        flex-shrink: 0;               // No reducir tamaño del indicador
 
+        // Punto de estado - Círculo de color
         .status-dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
+          width: 12px;                // Ancho de 12px
+          height: 12px;               // Alto de 12px
+          border-radius: 50%;         // Forma circular perfecta
+          border: 2px solid white;    // Borde blanco para contraste
           
+          // Estado activo - Verde con brillo
           &.active {
-            background: #10b981;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+            background: $success-emerald; // Color verde esmeralda
+            box-shadow: 0 0 12px rgba($success-emerald, 0.6); // Brillo verde
           }
 
+          // Estado backup - Azul con animación pulsante
           &.backup {
-            background: $primary-blue;
-            box-shadow: 0 0 12px rgba($primary-blue, 0.6);
-            animation: backupPulse 2s infinite;
+            background: $primary-blue-100; // Color azul claro
+            box-shadow: 0 0 12px rgba($primary-blue, 0.6); // Brillo azul
+            animation: backupPulse 2s infinite; // Animación pulsante infinita
           }
         }
 
+        // Texto de estado - Etiqueta descriptiva
         .status-text {
-          font-size: 0.8rem;
-          opacity: 0.9;
+          font-size: 0.8rem;          // Tamaño de fuente pequeño
+          opacity: 0.9;               // Opacidad ligeramente reducida
+          font-weight: 500;           // Peso de fuente medio
+          text-transform: uppercase;  // Texto en mayúsculas
+          letter-spacing: 0.5px;      // Espaciado entre letras
+        }
+      }
+      
+      // Responsive: En móviles reorganizar layout
+      @media (max-width: 768px) {
+        flex-direction: column;       // Cambiar a layout vertical
+        text-align: center;           // Centrar texto
+        
+        .user-main-info {
+          text-align: center;         // Centrar texto de información
+          
+          .user-role-badge {
+            margin: 0 auto;           // Centrar badge horizontalmente
+          }
         }
       }
     }
 
+    // Banner informativo de backup - Alerta azul cuando los datos provienen de un backup
     .backup-info-banner {
-      background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
-      border: 1px solid $primary-blue;
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: $primary-blue-dark;
-      font-weight: 600;
+      background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%); // Gradiente azul claro
+      border: 1px solid $primary-blue; // Borde azul sólido
+      border-radius: 12px;            // Bordes redondeados
+      padding: 12px 16px;             // Padding interno
+      margin: 16px;                   // Margen externo
+      display: flex;                  // Flexbox para alinear icono y texto
+      align-items: center;            // Centrar verticalmente
+      gap: 12px;                      // Espacio de 12px entre icono y texto
+      color: $primary-blue-dark;      // Texto azul oscuro
+      font-weight: 600;               // Texto semi-negrita
+      font-size: 0.9rem;              // Tamaño de fuente pequeño
 
+      // Icono de información
       mat-icon {
-        color: $primary-blue;
+        color: $primary-blue;         // Color azul principal
+        flex-shrink: 0;               // No reducir tamaño del icono
+      }
+    }
+    
+    // Contenido de la tarjeta - Detalles del usuario
+    mat-card-content {
+      padding: 24px;                  // Padding interno generoso
+      
+      // Contenedor de detalles mejorados - Grid de información
+      .user-details-enhanced {
+        display: flex;                // Flexbox para layout vertical
+        flex-direction: column;       // Dirección vertical
+        gap: 16px;                    // Espacio de 16px entre filas
+        
+        // Fila de detalles - Contenedor horizontal de items
+        .detail-row {
+          display: grid;              // Grid para layout de 2 columnas
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); // Columnas responsivas
+          gap: 16px;                  // Espacio de 16px entre items
+          
+          // Responsive: En móviles una sola columna
+          @media (max-width: 768px) {
+            grid-template-columns: 1fr; // Una columna en móviles
+          }
+        }
+        
+        // Item de detalle mejorado - Icono + Label + Valor
+        .detail-item-enhanced {
+          display: flex;              // Flexbox para layout horizontal
+          align-items: flex-start;    // Alinear al inicio verticalmente
+          gap: 12px;                  // Espacio de 12px entre elementos
+          padding: 12px;              // Padding interno
+          background: $gray-50;       // Fondo gris muy claro
+          border-radius: 12px;        // Bordes redondeados
+          border: 1px solid $gray-200; // Borde gris claro
+          transition: all 0.2s ease;  // Transición suave
+          
+          // Efecto hover - Resaltar item
+          &:hover {
+            background: $gray-100;    // Fondo gris más oscuro
+            border-color: $primary-blue-200; // Borde azul claro
+            transform: translateX(2px); // Desplazar 2px a la derecha
+          }
+          
+          // Icono de detalle - Icono circular con fondo
+          .detail-icon {
+            flex-shrink: 0;           // No reducir tamaño del icono
+            width: 36px;              // Ancho fijo de 36px
+            height: 36px;             // Alto fijo de 36px
+            display: flex;            // Flexbox para centrar icono
+            align-items: center;      // Centrar verticalmente
+            justify-content: center;  // Centrar horizontalmente
+            background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%); // Gradiente azul
+            border-radius: 10px;      // Bordes redondeados
+            color: $primary-blue-700; // Color azul oscuro
+            font-size: 20px;          // Tamaño de icono
+          }
+          
+          // Información de detalle - Label y valor
+          .detail-info {
+            flex: 1;                  // Ocupa el espacio restante
+            display: flex;            // Flexbox para layout vertical
+            flex-direction: column;   // Dirección vertical
+            gap: 4px;                 // Espacio de 4px entre label y valor
+            min-width: 0;             // Permitir truncado de texto
+            
+            // Label del detalle - Etiqueta descriptiva
+            .detail-label {
+              font-size: 0.75rem;     // Tamaño de fuente pequeño
+              color: $gray-500;       // Color gris medio
+              font-weight: 600;       // Texto semi-negrita
+              text-transform: uppercase; // Texto en mayúsculas
+              letter-spacing: 0.5px;  // Espaciado entre letras
+              line-height: 1;         // Altura de línea ajustada
+            }
+            
+            // Valor del detalle - Información principal
+            .detail-value {
+              font-size: 0.95rem;     // Tamaño de fuente estándar
+              color: $gray-800;       // Color gris oscuro
+              font-weight: 500;       // Peso de fuente medio
+              line-height: 1.3;       // Altura de línea ajustada
+              word-break: break-word; // Permitir salto de línea en palabras largas
+            }
+          }
+        }
       }
     }
   }

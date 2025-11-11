@@ -1,26 +1,22 @@
-// Configuración HÍBRIDA - FlexoApp Frontend
-// Intenta localhost primero, luego Render como fallback automático
+// Configuración de entorno HÍBRIDO - FlexoApp Frontend
+// Solo para desarrollo local
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:7003/api',              // Intenta local primero
+  apiUrl: 'http://localhost:7003/api',
   socketUrl: 'http://localhost:7003',
-  fallbackUrls: [                                    // Fallback automático a Render
-    'http://localhost:7003/api',                    // 1. Local
-    'http://192.168.1.6:7003/api',                  // 2. Red local
-    'https://flexoapp-backend.onrender.com/api'     // 3. Render (fallback)
+  fallbackUrls: [
+    'http://localhost:7003/api'
   ],
   enableLogging: true,
   enableDebugMode: true,
   cacheTimeout: 5 * 60 * 1000,
   retryAttempts: 3,
-  networkMode: true,
-  disableNetworkStability: false,
+  networkMode: false,
+  disableNetworkStability: true,
   allowCrossOrigin: true,
-  networkInterface: '0.0.0.0',
+  networkInterface: 'localhost',
   imageBaseUrl: 'http://localhost:7003',
   alternativeUrls: [
-    'http://localhost:7003/api',
-    'http://192.168.1.6:7003/api',
-    'https://flexoapp-backend.onrender.com/api'
+    'http://localhost:7003/api'
   ]
 };

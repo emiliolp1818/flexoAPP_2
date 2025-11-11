@@ -22,12 +22,12 @@ namespace FlexoAPP.API.Services
                 .ToListAsync();
         }
 
-        public async Task<Maquina?> GetMaquinaByIdAsync(int id)
+        public async Task<Maquina?> GetMaquinaByArticuloAsync(string articulo)
         {
             return await _context.Maquinas
                 .Include(m => m.CreatedByUser)
                 .Include(m => m.UpdatedByUser)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Articulo == articulo);
         }
     }
 }
