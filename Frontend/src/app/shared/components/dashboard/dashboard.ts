@@ -123,4 +123,20 @@ export class DashboardComponent implements OnInit {
     // TODOS los usuarios pueden acceder a configuraciones
     return true;
   }
+
+  /**
+   * Formatear el tiempo promedio de preparación
+   * Si es mayor a 60 minutos, mostrar en horas
+   * @returns String formateado con el tiempo y la unidad
+   */
+  getFormattedSetupTime(): string {
+    const minutes = this.systemStats().averageSetupTime;
+    
+    if (minutes >= 60) {
+      const hours = (minutes / 60).toFixed(1);
+      return `${hours} h`;
+    }
+    
+    return `${minutes} min`;
+  }
 }
