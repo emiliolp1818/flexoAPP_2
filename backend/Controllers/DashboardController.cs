@@ -1,160 +1,166 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using flexoAPP.Services;
+using Microsoft.AspNetCore.Mvc;                    // Para usar ControllerBase, IActionResult, etc.
+using Microsoft.AspNetCore.Authorization;          // Para usar [Authorize], [AllowAnonymous]
+using FlexoAPP.API.Services;                       // Para acceder a los servicios de la aplicación
+using FlexoAPP.API.Repositories;                   // Para acceder a los repositorios
+using System.Linq;                                 // Para usar LINQ (consultas)
 
 namespace FlexoAPP.API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    [AllowAnonymous] // Temporal para pruebas
+    /// <summary>
+    /// Controlador para las estadísticas del dashboard
+    /// Proporciona datos agregados de usuarios, órdenes, diseños y tiempos
+    /// </summary>
+    [ApiController]                                // Marca esta clase como controlador de API
+    [Route("api/[controller]")]                    // Ruta base: /api/dashboard
+    [AllowAnonymous]                               // Permitir acceso sin autenticación (temporal)
     public class DashboardController : ControllerBase
     {
-        private readonly IMachineProgramService _machineProgramService;
-        private readonly ILogger<DashboardController> _logger;
+        // Repositorios inyectados para acceder a los datos
+        private readonly IUserRepository _userRepository;              // Repositorio de usuarios
+        private readonly IDesignRepository _designRepository;          // Repositorio de diseños
+        private readonly IMaquinaRepository _maquinaRepository;        // Repositorio de máquinas
 
+        /// <summary>
+        /// Constructor con inyección de dependencias
+        /// </summary>
         public DashboardController(
-            IMachineProgramService machineProgramService,
-            ILogger<DashboardController> logger)
+            IUserRepository userRepository,
+            IDesignRepository designRepository,
+            IMaquinaRepository maquinaRepository)
         {
-            _machineProgramService = machineProgramService;
-            _logger = logger;
+            _userRepository = userRepository;                          // Asignar repositorio de usuarios
+            _designRepository = designRepository;                      // Asignar repositorio de diseños
+            _maquinaRepository = maquinaRepository;                    // Asignar repositorio de máquinas
         }
 
-        [HttpGet("stats")]
+        /// <summary>
+        /// Obtener estadísticas generales del dashboard
+        /// GET /api/dashboard/stats
+        /// </summary>
+        [HttpGet("stats")]                                             // Ruta: GET /api/dashboard/stats
         public async Task<IActionResult> GetDashboardStats()
         {
+            // Inicializar variables con valores por defecto
+            int totalUsers = 0;
+            int newUsersThisMonth = 0;
+            int totalDesigns = 0;
+            int newDesignsThisWeek = 0;
+            int readyOrders = 0;
+            int readyToday = 0;
+            double averageSetupTime = 0;
+            int totalSetupChanges = 0;
+
             try
             {
-                // Get machine programs statistics
-                var statistics = await _machineProgramService.GetStatisticsAsync();
-                
-                // Create dashboard stats response
-                var dashboardStats = new
+                // 1. USUARIOS TOTALES Y NUEVOS
+                try
                 {
-                    totalUsers = 1, // Solo usuario administrador por defecto
-                    newUsersThisMonth = 0,
-                    activeOrders = statistics?.TotalPrograms ?? 0,
-                    ordersToday = statistics?.RunningPrograms ?? 0,
-                    totalDesigns = 0, // Sin diseños hasta que se agreguen datos reales
-                    totalMachines = 11, // Máquinas 11-21 (configuración del sistema)
-                    activeMachines = statistics?.ActiveMachines ?? 0,
-                    completedOrdersToday = statistics?.CompletedPrograms ?? 0,
-                    pendingOrders = statistics?.SuspendedPrograms ?? 0,
-                    machineUtilization = CalculateMachineUtilization(statistics),
-                    recentActivity = await GetRecentActivity()
-                };
-
-                return Ok(new
-                {
-                    success = true,
-                    data = dashboardStats,
-                    message = "Estadísticas del dashboard obtenidas exitosamente"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error obteniendo estadísticas del dashboard");
-                return StatusCode(500, new
-                {
-                    success = false,
-                    error = "Error interno del servidor",
-                    message = ex.Message
-                });
-            }
-        }
-
-        [HttpGet("machine-summary")]
-        public async Task<IActionResult> GetMachineSummary()
-        {
-            try
-            {
-                var programs = await _machineProgramService.GetAllAsync();
-                
-                var machineSummary = new List<object>();
-                
-                // Generate summary for machines 11-21
-                for (int machineNumber = 11; machineNumber <= 21; machineNumber++)
-                {
-                    var machinePrograms = programs.Where(p => p.MachineNumber == machineNumber).ToList();
+                    var allUsers = await _userRepository.GetAllAsync();    // Obtener todos los usuarios
+                    totalUsers = allUsers.Count();                         // Contar usuarios totales (con paréntesis)
                     
-                    machineSummary.Add(new
-                    {
-                        machineNumber = machineNumber,
-                        totalPrograms = machinePrograms.Count,
-                        readyPrograms = machinePrograms.Count(p => p.Estado == "LISTO"),
-                        runningPrograms = machinePrograms.Count(p => p.Estado == "CORRIENDO"),
-                        suspendedPrograms = machinePrograms.Count(p => p.Estado == "SUSPENDIDO"),
-                        completedPrograms = machinePrograms.Count(p => p.Estado == "TERMINADO"),
-                        status = GetMachineStatus(machinePrograms),
-                        lastActivity = machinePrograms.OrderByDescending(p => p.UpdatedAt).FirstOrDefault()?.UpdatedAt
-                    });
+                    var firstDayOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                    newUsersThisMonth = allUsers.Count(u => u.CreatedAt >= firstDayOfMonth);
+                    
+                    Console.WriteLine($"✅ Usuarios: {totalUsers} totales, {newUsersThisMonth} nuevos este mes");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error obteniendo usuarios: {ex.Message}");
                 }
 
+                // 2. DISEÑOS TOTALES Y NUEVOS
+                try
+                {
+                    var allDesigns = await _designRepository.GetAllDesignsAsync(); // Método correcto
+                    totalDesigns = allDesigns.Count();                     // Contar diseños totales (con paréntesis)
+                    
+                    // La entidad Design no tiene CreatedAt, por ahora no podemos filtrar por fecha
+                    newDesignsThisWeek = 0;                                // Establecer en 0 hasta que se agregue CreatedAt
+                    
+                    Console.WriteLine($"✅ Diseños: {totalDesigns} totales");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error obteniendo diseños: {ex.Message}");
+                }
+
+                // 3. ÓRDENES LISTAS Y TIEMPOS (desde tabla maquinas)
+                try
+                {
+                    var allMaquinas = await _maquinaRepository.GetAllAsync();
+                    
+                    // Contar máquinas en estado "Listo" (case insensitive)
+                    readyOrders = allMaquinas.Count(m => 
+                        m.Estado.Equals("Listo", StringComparison.OrdinalIgnoreCase) ||
+                        m.Estado.Equals("LISTO", StringComparison.OrdinalIgnoreCase));
+                    
+                    var today = DateTime.Today;
+                    // Contar máquinas que cambiaron a "Listo" hoy
+                    readyToday = allMaquinas.Count(m =>
+                        (m.Estado.Equals("Listo", StringComparison.OrdinalIgnoreCase) ||
+                         m.Estado.Equals("LISTO", StringComparison.OrdinalIgnoreCase)) &&
+                        m.UpdatedAt.Date == today);
+                    
+                    // Calcular tiempo promedio de preparación (de CreatedAt a cuando cambió a Listo)
+                    // Asumimos que las máquinas en estado "Listo" pasaron por preparación
+                    var maquinasListas = allMaquinas.Where(m =>
+                        (m.Estado.Equals("Listo", StringComparison.OrdinalIgnoreCase) ||
+                         m.Estado.Equals("LISTO", StringComparison.OrdinalIgnoreCase)) &&
+                        m.CreatedAt != default &&
+                        m.UpdatedAt != default &&
+                        m.UpdatedAt > m.CreatedAt
+                    ).ToList();
+
+                    if (maquinasListas.Any())
+                    {
+                        averageSetupTime = maquinasListas.Average(m =>
+                            (m.UpdatedAt - m.CreatedAt).TotalMinutes);
+                    }
+
+                    totalSetupChanges = maquinasListas.Count;
+                    
+                    Console.WriteLine($"✅ Órdenes: {readyOrders} listas, {readyToday} hoy, {Math.Round(averageSetupTime, 1)}min promedio, {totalSetupChanges} cambios");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error obteniendo máquinas: {ex.Message}");
+                    Console.WriteLine($"⚠️ Stack trace: {ex.StackTrace}");
+                }
+
+                // Crear objeto con las estadísticas calculadas
+                var stats = new
+                {
+                    totalUsers,
+                    newUsersThisMonth,
+                    readyOrders,
+                    readyToday,
+                    totalDesigns,
+                    newDesignsThisWeek,
+                    averageSetupTime = Math.Round(averageSetupTime, 1),
+                    totalSetupChanges
+                };
+
+                Console.WriteLine($"📊 Dashboard Stats completo: Users={totalUsers}, Ready={readyOrders}, Designs={totalDesigns}");
+
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error general en GetDashboardStats: {ex.Message}");
+                
+                // Devolver estadísticas con valores por defecto en caso de error
                 return Ok(new
                 {
-                    success = true,
-                    data = machineSummary,
-                    message = "Resumen de máquinas obtenido exitosamente"
+                    totalUsers,
+                    newUsersThisMonth,
+                    readyOrders,
+                    readyToday,
+                    totalDesigns,
+                    newDesignsThisWeek,
+                    averageSetupTime,
+                    totalSetupChanges
                 });
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error obteniendo resumen de máquinas");
-                return StatusCode(500, new
-                {
-                    success = false,
-                    error = "Error interno del servidor",
-                    message = ex.Message
-                });
-            }
-        }
-
-        private double CalculateMachineUtilization(flexoAPP.Models.DTOs.MachineProgramStatisticsDto? statistics)
-        {
-            if (statistics == null) return 0.0;
-            
-            var totalMachines = 11; // Machines 11-21
-            var activeMachines = statistics.ActiveMachines;
-            
-            return totalMachines > 0 ? (double)activeMachines / totalMachines * 100 : 0.0;
-        }
-
-        private async Task<List<object>> GetRecentActivity()
-        {
-            try
-            {
-                var programs = await _machineProgramService.GetAllAsync();
-                
-                return programs
-                    .OrderByDescending(p => p.UpdatedAt)
-                    .Take(10)
-                    .Select(p => new
-                    {
-                        id = p.Id,
-                        type = "program_update",
-                        description = $"Programa {p.Articulo} - {p.Estado}",
-                        machineNumber = p.MachineNumber,
-                        timestamp = p.UpdatedAt,
-                        user = "Sistema" // Simplified for now
-                    })
-                    .ToList<object>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error obteniendo actividad reciente");
-                return new List<object>();
-            }
-        }
-
-        private string GetMachineStatus(List<flexoAPP.Models.DTOs.MachineProgramDto> machinePrograms)
-        {
-            if (!machinePrograms.Any()) return "IDLE";
-            
-            if (machinePrograms.Any(p => p.Estado == "CORRIENDO")) return "RUNNING";
-            if (machinePrograms.Any(p => p.Estado == "LISTO")) return "READY";
-            if (machinePrograms.Any(p => p.Estado == "SUSPENDIDO")) return "SUSPENDED";
-            
-            return "IDLE";
         }
     }
 }

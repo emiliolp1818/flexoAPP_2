@@ -1,475 +1,311 @@
 /* ===========================================
    DASHBOARD CONTAINER - FULL PAGE LAYOUT
    =========================================== */
+/* Contenedor principal del dashboard que ocupa toda la pantalla */
 .dashboard-container {
-  min-height: 100vh;
-  width: 100vw;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding: 0;
-  margin: 0;
-  overflow-x: hidden;
-  position: relative;
-  padding-top: 64px; /* Space for fixed header */
+  min-height: 100vh;                                           /* Altura mínima de 100% del viewport */
+  width: 100vw;                                                /* Ancho completo del viewport */
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); /* Fondo con gradiente gris claro */
+  padding: 0;                                                  /* Sin padding externo */
+  margin: 0;                                                   /* Sin margen externo */
+  overflow-x: hidden;                                          /* Ocultar scroll horizontal */
+  position: relative;                                          /* Posición relativa para elementos absolutos internos */
+  padding-top: 0;                                              /* Sin espacio superior - eliminado el espacio verde */
 }
 
 /* HOST COMPONENT - ENSURE FULL WIDTH */
+/* Estilos del componente host para asegurar ancho completo */
 :host {
-  display: block;
-  width: 100%;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  display: block;                                              /* Mostrar como bloque */
+  width: 100%;                                                 /* Ancho completo */
+  min-height: 100vh;                                           /* Altura mínima de 100% del viewport */
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); /* Fondo con gradiente gris claro */
 }
 
 /* ===========================================
    MAIN CONTENT AREA - RESPONSIVE LAYOUT
    =========================================== */
+/* Área de contenido principal con layout responsive */
 .dashboard-content {
-  padding: 32px 24px 40px 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-  position: relative;
-  min-height: calc(100vh - 64px); /* Full height minus header */
+  padding: 24px 24px 40px 24px;                                /* Padding: 24px arriba, 24px laterales, 40px abajo */
+  max-width: 1400px;                                           /* Ancho máximo de 1400px */
+  margin: 0 auto;                                              /* Centrar horizontalmente */
+  width: 100%;                                                 /* Ancho completo */
+  box-sizing: border-box;                                      /* Incluir padding en el cálculo del ancho */
+  position: relative;                                          /* Posición relativa para elementos absolutos internos */
+  min-height: 100vh;                                           /* Altura mínima de 100% del viewport */
 }
 
 /* ===========================================
    STATISTICS SECTION - MODERN CARD LAYOUT
    =========================================== */
+/* Sección de estadísticas con diseño moderno de tarjetas */
 .statistics-section {
-  margin-bottom: 48px;
+  margin-bottom: 48px;                                         /* Margen inferior de 48px */
 
   /* Section Title with Icon */
+  /* Título de la sección con icono */
   .section-title {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 2.25rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin: 0 0 32px 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;                                             /* Layout flexbox */
+    align-items: center;                                       /* Alinear elementos verticalmente al centro */
+    gap: 16px;                                                 /* Espacio de 16px entre elementos */
+    font-size: 2.25rem;                                        /* Tamaño de fuente grande (36px) */
+    font-weight: 800;                                            /* Peso de fuente extra bold */
+    color: #1e293b;                                            /* Color gris oscuro */
+    margin: 0 0 32px 0;                                        /* Margen solo inferior de 32px */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);                /* Sombra de texto sutil */
 
+    /* Icono del título */
     mat-icon {
-      color: #2563eb;
-      font-size: 36px;
-      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));
+      color: #2563eb;                                          /* Color azul para el icono */
+      font-size: 36px;                                         /* Tamaño del icono 36px */
+      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));  /* Sombra azul para el icono */
     }
   }
 
-  /* Statistics Grid - Responsive Layout */
+  /* Statistics Grid - 4 tarjetas en una fila */
+  /* Grid que distribuye las tarjetas de estadísticas horizontalmente */
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
+    display: grid;                                             /* Usar CSS Grid para layout */
+    grid-template-columns: repeat(4, 1fr);                     /* 4 columnas de igual tamaño (1fr cada una) */
+    gap: 20px;                                                 /* Espacio de 20px entre tarjetas */
+    max-width: 100%;                                           /* Usar todo el ancho disponible */
+    margin: 0 auto;                                            /* Centrar el grid horizontalmente */
 
     /* Individual Stat Card - Enhanced Design */
+    /* Tarjeta individual de estadística con diseño mejorado */
     .stat-card {
-      border-radius: 20px;
-      border: 1px solid rgba(37, 99, 235, 0.1);
-      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-      backdrop-filter: blur(20px);
-      box-shadow: 
-        0 8px 32px rgba(37, 99, 235, 0.12),
-        0 2px 8px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
+      border-radius: 20px;                                     /* Bordes redondeados de 20px */
+      border: 1px solid rgba(37, 99, 235, 0.1);                /* Borde azul semi-transparente */
+      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); /* Fondo con gradiente blanco a gris */
+      backdrop-filter: blur(20px);                             /* Efecto de desenfoque del fondo */
+      box-shadow: 0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08); /* Sombras múltiples */
+      overflow: hidden;                                        /* Ocultar contenido que se desborde */
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);       /* Transición suave con curva de aceleración */
+      position: relative;                                      /* Posición relativa para pseudo-elementos */
 
+      /* Efecto hover - elevar la tarjeta */
       &:hover {
-        transform: translateY(-4px);
-        box-shadow: 
-          0 12px 40px rgba(37, 99, 235, 0.18),
-          0 4px 16px rgba(0, 0, 0, 0.12);
+        transform: translateY(-4px);                           /* Elevar 4px hacia arriba */
+        box-shadow: 0 12px 40px rgba(37, 99, 235, 0.18), 0 4px 16px rgba(0, 0, 0, 0.12); /* Sombras más pronunciadas */
       }
 
+      /* Línea decorativa superior */
       &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #2563eb, #3b82f6);
-        z-index: 1;
+        content: '';                                           /* Contenido vacío para pseudo-elemento */
+        position: absolute;                                    /* Posición absoluta */
+        top: 0;                                                /* Pegado al borde superior */
+        left: 0;                                               /* Pegado al borde izquierdo */
+        right: 0;                                              /* Pegado al borde derecho */
+        height: 4px;                                           /* Altura de 4px */
+        background: linear-gradient(90deg, #2563eb, #3b82f6);  /* Gradiente azul horizontal */
+        z-index: 1;                                            /* Capa superior */
       }
 
       /* Users Stat Card - Primary Blue Theme */
+      /* Tarjeta de usuarios con tema azul primario */
       &.users-stat {
+        /* Línea superior azul oscuro */
         &::before {
-          background: linear-gradient(90deg, #2563eb, #1d4ed8);
+          background: linear-gradient(90deg, #2563eb, #1d4ed8); /* Gradiente azul */
         }
 
+        /* Icono con fondo azul */
         .stat-icon {
-          background: linear-gradient(135deg, #2563eb, #1d4ed8);
-          border: 1px solid rgba(37, 99, 235, 0.3);
-          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+          background: linear-gradient(135deg, #2563eb, #1d4ed8); /* Gradiente diagonal azul */
+          border: 1px solid rgba(37, 99, 235, 0.3);            /* Borde azul semi-transparente */
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);       /* Sombra azul */
 
           mat-icon {
-            color: #ffffff;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            color: #ffffff;                                    /* Icono blanco */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Sombra del icono */
           }
         }
 
+        /* Número en azul */
         .stat-number {
-          color: #2563eb !important;
-          text-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+          color: #2563eb !important;                           /* Color azul para el número */
+          text-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);       /* Sombra azul sutil */
         }
       }
 
       /* Orders Stat Card - Success Green Theme */
+      /* Tarjeta de órdenes con tema verde éxito */
       &.orders-stat {
+        /* Línea superior verde */
         &::before {
-          background: linear-gradient(90deg, #059669, #047857);
+          background: linear-gradient(90deg, #059669, #047857); /* Gradiente verde */
         }
 
+        /* Icono con fondo verde */
         .stat-icon {
-          background: linear-gradient(135deg, #059669, #047857);
-          border: 1px solid rgba(5, 150, 105, 0.3);
-          box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+          background: linear-gradient(135deg, #059669, #047857); /* Gradiente diagonal verde */
+          border: 1px solid rgba(5, 150, 105, 0.3);            /* Borde verde semi-transparente */
+          box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);       /* Sombra verde */
 
           mat-icon {
-            color: #ffffff;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            color: #ffffff;                                    /* Icono blanco */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Sombra del icono */
           }
         }
 
+        /* Número en verde */
         .stat-number {
-          color: #059669 !important;
-          text-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+          color: #059669 !important;                           /* Color verde para el número */
+          text-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);       /* Sombra verde sutil */
         }
       }
 
       /* Designs Stat Card - Cyan Theme */
+      /* Tarjeta de diseños con tema cyan/turquesa */
       &.designs-stat {
+        /* Línea superior cyan */
         &::before {
-          background: linear-gradient(90deg, #0891b2, #0e7490);
+          background: linear-gradient(90deg, #0891b2, #0e7490); /* Gradiente cyan */
         }
 
+        /* Icono con fondo cyan */
         .stat-icon {
-          background: linear-gradient(135deg, #0891b2, #0e7490);
-          border: 1px solid rgba(8, 145, 178, 0.3);
-          box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
+          background: linear-gradient(135deg, #0891b2, #0e7490); /* Gradiente diagonal cyan */
+          border: 1px solid rgba(8, 145, 178, 0.3);            /* Borde cyan semi-transparente */
+          box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);       /* Sombra cyan */
 
           mat-icon {
-            color: #ffffff;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            color: #ffffff;                                    /* Icono blanco */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Sombra del icono */
           }
         }
 
+        /* Número en cyan */
         .stat-number {
-          color: #0891b2 !important;
-          text-shadow: 0 2px 4px rgba(8, 145, 178, 0.2);
+          color: #0891b2 !important;                           /* Color cyan para el número */
+          text-shadow: 0 2px 4px rgba(8, 145, 178, 0.2);       /* Sombra cyan sutil */
         }
       }
 
-      &.machines-stat {
-        border-left: 4px solid #dc2626;
-        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+      /* Times Stat Card - Orange Theme */
+      /* Tarjeta de tiempos con tema naranja/ámbar */
+      &.times-stat {
+        /* Línea superior naranja */
+        &::before {
+          background: linear-gradient(90deg, #f59e0b, #d97706); /* Gradiente naranja */
+        }
 
+        /* Icono con fondo naranja */
         .stat-icon {
-          background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(220, 38, 38, 0.25));
-          border: 1px solid rgba(220, 38, 38, 0.2);
+          background: linear-gradient(135deg, #f59e0b, #d97706); /* Gradiente diagonal naranja */
+          border: 1px solid rgba(245, 158, 11, 0.3);           /* Borde naranja semi-transparente */
+          box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);      /* Sombra naranja */
 
           mat-icon {
-            color: #b91c1c;
-            filter: drop-shadow(0 1px 2px rgba(185, 28, 28, 0.3));
+            color: #ffffff;                                    /* Icono blanco */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Sombra del icono */
           }
         }
-      }
 
-      &.documents-stat {
-        border-left: 4px solid #ea580c;
-        box-shadow: 0 2px 8px rgba(234, 88, 12, 0.15);
-
-        .stat-icon {
-          background: linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(234, 88, 12, 0.25));
-          border: 1px solid rgba(234, 88, 12, 0.2);
-
-          mat-icon {
-            color: #c2410c;
-            filter: drop-shadow(0 1px 2px rgba(194, 65, 12, 0.3));
-          }
-        }
-      }
-
-      &.uptime-stat {
-        border-left: 4px solid #16a34a;
-        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.15);
-
-        .stat-icon {
-          background: linear-gradient(135deg, rgba(22, 163, 74, 0.15), rgba(22, 163, 74, 0.25));
-          border: 1px solid rgba(22, 163, 74, 0.2);
-
-          mat-icon {
-            color: #15803d;
-            filter: drop-shadow(0 1px 2px rgba(21, 128, 61, 0.3));
-          }
+        /* Número en naranja */
+        .stat-number {
+          color: #f59e0b !important;                           /* Color naranja para el número */
+          text-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);      /* Sombra naranja sutil */
         }
       }
 
       /* Card Content Layout */
+      /* Layout del contenido de la tarjeta */
       mat-card-content {
-        padding: 24px !important;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        position: relative;
-        z-index: 2;
+        padding: 24px !important;                              /* Padding interno de 24px */
+        display: flex;                                         /* Layout flexbox */
+        align-items: center;                                   /* Alinear elementos verticalmente al centro */
+        gap: 20px;                                             /* Espacio de 20px entre elementos */
+        position: relative;                                    /* Posición relativa */
+        z-index: 2;                                            /* Capa superior al pseudo-elemento */
 
         /* Stat Icon Container */
+        /* Contenedor del icono de estadística */
         .stat-icon {
-          width: 64px;
-          height: 64px;
-          border-radius: 16px;
-          background: #f3f4f6;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: none;
-          transition: all 0.3s ease;
+          width: 64px;                                         /* Ancho de 64px */
+          height: 64px;                                        /* Alto de 64px */
+          border-radius: 16px;                                 /* Bordes redondeados de 16px */
+          background: #f3f4f6;                                 /* Fondo gris claro por defecto */
+          display: flex;                                       /* Layout flexbox */
+          align-items: center;                                 /* Centrar verticalmente */
+          justify-content: center;                             /* Centrar horizontalmente */
+          border: none;                                        /* Sin borde */
+          transition: all 0.3s ease;                           /* Transición suave */
 
           mat-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
+            font-size: 32px;                                   /* Tamaño del icono 32px */
+            width: 32px;                                       /* Ancho del icono 32px */
+            height: 32px;                                      /* Alto del icono 32px */
           }
         }
 
         /* Stat Information */
+        /* Información de la estadística */
         .stat-info {
-          flex: 1;
+          flex: 1;                                             /* Ocupar espacio disponible */
 
           /* Main Number Display */
+          /* Número principal */
           .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin: 0 0 6px 0;
-            line-height: 1;
-            color: #1e293b;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 2.5rem;                                 /* Tamaño de fuente grande (40px) */
+            font-weight: 800;                                  /* Peso extra bold */
+            margin: 0 0 6px 0;                                 /* Margen inferior de 6px */
+            line-height: 1;                                    /* Altura de línea compacta */
+            color: #1e293b;                                    /* Color gris oscuro */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);         /* Sombra de texto sutil */
           }
 
           /* Stat Label */
+          /* Etiqueta de la estadística */
           .stat-label {
-            font-size: 0.9rem;
-            color: #64748b;
-            margin: 0 0 12px 0;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 0.9rem;                                 /* Tamaño de fuente pequeño */
+            color: #64748b;                                    /* Color gris medio */
+            margin: 0 0 12px 0;                                /* Margen inferior de 12px */
+            font-weight: 600;                                  /* Peso semi-bold */
+            text-transform: uppercase;                         /* Texto en mayúsculas */
+            letter-spacing: 0.5px;                             /* Espaciado entre letras */
           }
 
           /* Change Indicator Badge */
+          /* Indicador de cambio */
           .stat-change {
-            font-size: 0.8rem;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 700;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            display: inline-block;
-            transition: all 0.3s ease;
+            font-size: 0.8rem;                                 /* Tamaño de fuente pequeño */
+            padding: 6px 12px;                                 /* Padding interno */
+            border-radius: 20px;                               /* Bordes muy redondeados */
+            font-weight: 700;                                  /* Peso bold */
+            backdrop-filter: blur(10px);                       /* Efecto de desenfoque */
+            border: 1px solid rgba(255, 255, 255, 0.3);        /* Borde blanco semi-transparente */
+            display: inline-block;                             /* Mostrar como bloque inline */
+            transition: all 0.3s ease;                         /* Transición suave */
 
+            /* Indicador positivo (verde) */
             &.positive {
-              color: #ffffff;
-              background: linear-gradient(135deg, #10b981, #059669);
-              border-color: rgba(16, 185, 129, 0.4);
-              box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+              color: #ffffff;                                  /* Texto blanco */
+              background: linear-gradient(135deg, #10b981, #059669); /* Gradiente verde */
+              border-color: rgba(16, 185, 129, 0.4);          /* Borde verde */
+              box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); /* Sombra verde */
             }
 
+            /* Indicador negativo (rojo) */
             &.negative {
-              color: #ffffff;
-              background: linear-gradient(135deg, #ef4444, #dc2626);
-              border-color: rgba(239, 68, 68, 0.4);
-              box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+              color: #ffffff;                                  /* Texto blanco */
+              background: linear-gradient(135deg, #ef4444, #dc2626); /* Gradiente rojo */
+              border-color: rgba(239, 68, 68, 0.4);           /* Borde rojo */
+              box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);  /* Sombra roja */
             }
 
+            /* Indicador neutral (gris) */
             &.neutral {
-              color: #ffffff;
-              background: linear-gradient(135deg, #94a3b8, #64748b);
-              border-color: rgba(148, 163, 184, 0.4);
-              box-shadow: 0 4px 12px rgba(148, 163, 184, 0.3);
+              color: #ffffff;                                  /* Texto blanco */
+              background: linear-gradient(135deg, #94a3b8, #64748b); /* Gradiente gris */
+              border-color: rgba(148, 163, 184, 0.4);         /* Borde gris */
+              box-shadow: 0 4px 12px rgba(148, 163, 184, 0.3); /* Sombra gris */
             }
           }
         }
       }
     }
-  }
-}
-
-/* ===========================================
-   QUICK ACTIONS SECTION - INTERACTIVE CARDS
-   =========================================== */
-.quick-actions {
-  margin-bottom: 48px;
-
-  /* Section Title with Icon */
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 2.25rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin: 0 0 32px 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    mat-icon {
-      color: #2563eb;
-      font-size: 36px;
-      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));
-    }
-  }
-
-  /* Actions Grid - Responsive Layout */
-  .actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 24px;
-  }
-}
-
-/* ===========================================
-   ACTION CARDS - INTERACTIVE NAVIGATION
-   =========================================== */
-.action-card {
-  cursor: pointer;
-  border-radius: 20px;
-  border: 1px solid rgba(37, 99, 235, 0.1);
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  backdrop-filter: blur(20px);
-  box-shadow: 
-    0 8px 32px rgba(37, 99, 235, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-
-  &:hover {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: 
-      0 16px 48px rgba(37, 99, 235, 0.15),
-      0 8px 24px rgba(0, 0, 0, 0.1);
-    border-color: rgba(37, 99, 235, 0.2);
-  }
-
-  &:active {
-    transform: translateY(-2px) scale(1.01);
-  }
-
-  /* Card Content Layout */
-  mat-card-content {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    padding: 28px !important;
-    position: relative;
-  }
-
-  /* Card Icon Container */
-  .card-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.3s ease;
-
-    mat-icon {
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
-      color: white;
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-    }
-  }
-
-  /* Card Text Content */
-  .card-content {
-    flex: 1;
-
-    h3 {
-      font-size: 1.375rem;
-      font-weight: 700;
-      color: #1e293b;
-      margin: 0 0 8px 0;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-
-    p {
-      font-size: 0.95rem;
-      color: #64748b;
-      margin: 0;
-      line-height: 1.6;
-      font-weight: 500;
-    }
-  }
-
-  /* Card Arrow Indicator */
-  .card-arrow {
-    transition: all 0.3s ease;
-
-    mat-icon {
-      color: #94a3b8;
-      font-size: 28px;
-      transition: all 0.3s ease;
-    }
-  }
-
-  &:hover .card-arrow mat-icon {
-    color: #2563eb;
-    transform: translateX(4px);
-  }
-
-  /* ===========================================
-     SPECIFIC CARD THEMES - ENHANCED COLORS
-     =========================================== */
-  
-  /* Settings Card - Primary Blue */
-  &.settings-card .card-icon {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-  }
-
-  /* Reports Card - Success Green */
-  &.reports-card .card-icon {
-    background: linear-gradient(135deg, #059669, #047857);
-    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
-  }
-
-  /* Machines Card - Danger Red */
-  &.machines-card .card-icon {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);
-    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
-  }
-
-  /* Design Card - Info Cyan */
-  &.design-card .card-icon {
-    background: linear-gradient(135deg, #0891b2, #0e7490);
-    box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
-  }
-
-  /* Document Card - Warning Orange */
-  &.documento-card .card-icon {
-    background: linear-gradient(135deg, #ea580c, #c2410c);
-    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
-  }
-
-  /* Information Card - Purple */
-  &.informacion-card .card-icon {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-  }
-
-  /* Condición Única Card - Amber/Yellow */
-  &.condicion-unica-card .card-icon {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
   }
 }
 
@@ -478,178 +314,375 @@
    =========================================== */
 
 /* Tablet and Small Desktop */
+/* Ajustes para pantallas de tablet (768px o menos) */
 @media (max-width: 768px) {
+  /* Contenedor del dashboard */
   .dashboard-container {
-    padding-top: 56px; /* Smaller header on mobile */
+    padding-top: 0;                                            /* Sin espacio superior en tablets */
   }
 
+  /* Contenido del dashboard */
   .dashboard-content {
-    padding: 24px 16px 32px 16px;
-    min-height: calc(100vh - 56px); /* Adjust for smaller header */
+    padding: 20px 16px 32px 16px;                              /* Padding reducido: 20px arriba, 16px laterales, 32px abajo */
+    min-height: 100vh;                                         /* Altura mínima completa */
   }
 
   /* Statistics Section - Tablet Layout */
+  /* Sección de estadísticas en tablets */
   .statistics-section {
+    /* Título más pequeño */
     .section-title {
-      font-size: 1.875rem;
+      font-size: 1.875rem;                                     /* Tamaño de fuente reducido (30px) */
 
+      /* Icono más pequeño */
       mat-icon {
-        font-size: 30px;
+        font-size: 30px;                                       /* Tamaño del icono reducido */
       }
     }
 
+    /* Grid: 2 columnas en tablets */
     .stats-grid {
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-
-      .stat-card mat-card-content {
-        padding: 20px !important;
-        flex-direction: column;
-        text-align: center;
-        gap: 16px;
-
-        .stat-icon {
-          width: 56px;
-          height: 56px;
-
-          mat-icon {
-            font-size: 28px;
-            width: 28px;
-            height: 28px;
-          }
-        }
-
-        .stat-info {
-          .stat-number {
-            font-size: 2rem;
-          }
-
-          .stat-label {
-            font-size: 0.8rem;
-          }
-
-          .stat-change {
-            font-size: 0.75rem;
-          }
-        }
-      }
-    }
-  }
-
-  /* Quick Actions Section - Tablet Layout */
-  .quick-actions {
-    .section-title {
-      font-size: 1.875rem;
-
-      mat-icon {
-        font-size: 30px;
-      }
-    }
-
-    .actions-grid {
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-  }
-
-  /* Action Cards - Tablet Layout */
-  .action-card mat-card-content {
-    padding: 24px !important;
-    gap: 20px;
-
-    .card-icon {
-      width: 56px;
-      height: 56px;
-
-      mat-icon {
-        font-size: 28px;
-        width: 28px;
-        height: 28px;
-      }
-    }
-
-    .card-content {
-      h3 {
-        font-size: 1.25rem;
-      }
-
-      p {
-        font-size: 0.875rem;
-      }
+      grid-template-columns: repeat(2, 1fr);                   /* 2 columnas de igual tamaño */
+      gap: 20px;                                               /* Espacio de 20px entre tarjetas */
     }
   }
 }
 
 /* Small Tablet */
+/* Ajustes para tablets pequeñas (640px o menos) */
 @media (max-width: 640px) {
+  /* Sección de estadzísticas */
   .statistics-section {
+    /* Grid: 1 columna en tablets pequeñas */
     .stats-grid {
-      grid-template-columns: 1fr;
-      gap: 16px;
-      max-width: none;
+      grid-template-columns: 1fr;                              /* 1 columna - tarjetas apiladas verticalmente */
+      gap: 16px;                                               /* Espacio reducido de 16px */
+      max-width: none;                                         /* Sin límite de ancho máximo */
     }
   }
 }
 
 /* Mobile Phones */
+/* Ajustes para móviles pequeños (480px o menos) */
 @media (max-width: 480px) {
+  /* Contenido del dashboard */
   .dashboard-content {
-    padding: 20px 12px 24px 12px;
-    min-height: calc(100vh - 56px); /* Maintain full height */
+    padding: 16px 12px 24px 12px;                              /* Padding mínimo: 16px arriba, 12px laterales, 24px abajo */
+    min-height: 100vh;                                         /* Altura mínima completa */
   }
 
   /* Statistics Section - Mobile */
+  /* Sección de estadísticas en móviles */
   .statistics-section {
+    /* Título aún más pequeño */
     .section-title {
-      font-size: 1.625rem;
+      font-size: 1.625rem;                                     /* Tamaño de fuente más pequeño (26px) */
 
+      /* Icono más pequeño */
       mat-icon {
-        font-size: 26px;
+        font-size: 26px;                                       /* Tamaño del icono más pequeño */
       }
     }
 
+    /* Grid: 1 columna en móviles */
     .stats-grid {
-      grid-template-columns: 1fr;
-      gap: 16px;
-      max-width: none;
+      grid-template-columns: 1fr;                              /* 1 columna - tarjetas apiladas verticalmente */
+      gap: 16px;                                               /* Espacio de 16px entre tarjetas */
+      max-width: none;                                         /* Sin límite de ancho máximo */
+    }
+  }
+}
+
+/* ===========================================
+   QUICK ACTIONS SECTION - INTERACTIVE CARDS
+   =========================================== */
+/* Sección de acciones rápidas con tarjetas interactivas */
+.quick-actions {
+  margin-bottom: 48px;                                         /* Margen inferior de 48px */
+
+  /* Section Title with Icon */
+  /* Título de la sección con icono */
+  .section-title {
+    display: flex;                                             /* Layout flexbox */
+    align-items: center;                                       /* Alinear elementos verticalmente al centro */
+    gap: 16px;                                                 /* Espacio de 16px entre elementos */
+    font-size: 2.25rem;                                        /* Tamaño de fuente grande (36px) */
+    font-weight: 800;                                          /* Peso extra bold */
+    color: #1e293b;                                            /* Color gris oscuro */
+    margin: 0 0 32px 0;                                        /* Margen solo inferior de 32px */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);                /* Sombra de texto sutil */
+
+    /* Icono del título */
+    mat-icon {
+      color: #2563eb;                                          /* Color azul para el icono */
+      font-size: 36px;                                         /* Tamaño del icono 36px */
+      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));  /* Sombra azul para el icono */
     }
   }
 
-  /* Quick Actions - Mobile */
-  .quick-actions {
-    .section-title {
-      font-size: 1.625rem;
+  /* Actions Grid - Responsive Layout */
+  /* Grid de acciones con layout responsive */
+  .actions-grid {
+    display: grid;                                             /* Usar CSS Grid para layout */
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Columnas automáticas con mínimo 350px */
+    gap: 24px;                                                 /* Espacio de 24px entre tarjetas */
+  }
+}
 
+/* ===========================================
+   ACTION CARDS - INTERACTIVE NAVIGATION
+   =========================================== */
+/* Tarjetas de acción interactivas para navegación */
+.action-card {
+  cursor: pointer;                                             /* Cursor de puntero para indicar clickeable */
+  border-radius: 20px;                                         /* Bordes redondeados de 20px */
+  border: 1px solid rgba(37, 99, 235, 0.1);                    /* Borde azul semi-transparente */
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); /* Fondo con gradiente blanco a gris */
+  backdrop-filter: blur(20px);                                 /* Efecto de desenfoque del fondo */
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06); /* Sombras múltiples */
+  overflow: hidden;                                            /* Ocultar contenido que se desborde */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);           /* Transición suave con curva de aceleración */
+  position: relative;                                          /* Posición relativa para efectos */
+
+  /* Efecto hover - elevar y escalar la tarjeta */
+  &:hover {
+    transform: translateY(-6px) scale(1.02);                   /* Elevar 6px y escalar 2% */
+    box-shadow: 0 16px 48px rgba(37, 99, 235, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1); /* Sombras más pronunciadas */
+    border-color: rgba(37, 99, 235, 0.2);                      /* Borde más visible */
+  }
+
+  /* Efecto active - presionar la tarjeta */
+  &:active {
+    transform: translateY(-2px) scale(1.01);                   /* Elevar menos y escalar menos */
+  }
+
+  /* Card Content Layout */
+  /* Layout del contenido de la tarjeta */
+  mat-card-content {
+    display: flex;                                             /* Layout flexbox */
+    align-items: center;                                       /* Alinear elementos verticalmente al centro */
+    gap: 24px;                                                 /* Espacio de 24px entre elementos */
+    padding: 28px !important;                                  /* Padding interno de 28px */
+    position: relative;                                        /* Posición relativa */
+  }
+
+  /* Card Icon Container */
+  /* Contenedor del icono de la tarjeta */
+  .card-icon {
+    width: 64px;                                               /* Ancho de 64px */
+    height: 64px;                                              /* Alto de 64px */
+    border-radius: 16px;                                       /* Bordes redondeados de 16px */
+    display: flex;                                             /* Layout flexbox */
+    align-items: center;                                       /* Centrar verticalmente */
+    justify-content: center;                                   /* Centrar horizontalmente */
+    flex-shrink: 0;                                            /* No reducir tamaño */
+    transition: all 0.3s ease;                                 /* Transición suave */
+
+    /* Icono dentro del contenedor */
+    mat-icon {
+      font-size: 32px;                                         /* Tamaño del icono 32px */
+      width: 32px;                                             /* Ancho del icono 32px */
+      height: 32px;                                            /* Alto del icono 32px */
+      color: white;                                            /* Color blanco */
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));      /* Sombra del icono */
+    }
+  }
+
+  /* Card Text Content */
+  /* Contenido de texto de la tarjeta */
+  .card-content {
+    flex: 1;                                                   /* Ocupar espacio disponible */
+
+    /* Título de la tarjeta */
+    h3 {
+      font-size: 1.375rem;                                     /* Tamaño de fuente (22px) */
+      font-weight: 700;                                        /* Peso bold */
+      color: #1e293b;                                          /* Color gris oscuro */
+      margin: 0 0 8px 0;                                       /* Margen inferior de 8px */
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);              /* Sombra de texto sutil */
+    }
+
+    /* Descripción de la tarjeta */
+    p {
+      font-size: 0.95rem;                                      /* Tamaño de fuente pequeño */
+      color: #64748b;                                          /* Color gris medio */
+      margin: 0;                                               /* Sin margen */
+      line-height: 1.6;                                        /* Altura de línea espaciada */
+      font-weight: 500;                                        /* Peso medio */
+    }
+  }
+
+  /* Card Arrow Indicator */
+  /* Indicador de flecha de la tarjeta */
+  .card-arrow {
+    transition: all 0.3s ease;                                 /* Transición suave */
+
+    /* Icono de flecha */
+    mat-icon {
+      color: #94a3b8;                                          /* Color gris claro */
+      font-size: 28px;                                         /* Tamaño del icono 28px */
+      transition: all 0.3s ease;                               /* Transición suave */
+    }
+  }
+
+  /* Efecto hover en la flecha - mover a la derecha */
+  &:hover .card-arrow mat-icon {
+    color: #2563eb;                                            /* Cambiar a azul */
+    transform: translateX(4px);                                /* Mover 4px a la derecha */
+  }
+
+  /* ===========================================
+     SPECIFIC CARD THEMES - ENHANCED COLORS
+     =========================================== */
+  
+  /* Settings Card - Primary Blue */
+  /* Tarjeta de configuraciones con tema azul primario */
+  &.settings-card .card-icon {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);     /* Gradiente azul */
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);             /* Sombra azul */
+  }
+
+  /* Reports Card - Success Green */
+  /* Tarjeta de reportes con tema verde éxito */
+  &.reports-card .card-icon {
+    background: linear-gradient(135deg, #059669, #047857);     /* Gradiente verde */
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);             /* Sombra verde */
+  }
+
+  /* Machines Card - Danger Red */
+  /* Tarjeta de máquinas con tema rojo peligro */
+  &.machines-card .card-icon {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);     /* Gradiente rojo */
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);             /* Sombra roja */
+  }
+
+  /* Design Card - Info Cyan */
+  /* Tarjeta de diseño con tema cyan información */
+  &.design-card .card-icon {
+    background: linear-gradient(135deg, #0891b2, #0e7490);     /* Gradiente cyan */
+    box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);             /* Sombra cyan */
+  }
+
+  /* Document Card - Warning Orange */
+  /* Tarjeta de documentos con tema naranja advertencia */
+  &.documento-card .card-icon {
+    background: linear-gradient(135deg, #ea580c, #c2410c);     /* Gradiente naranja */
+    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);             /* Sombra naranja */
+  }
+
+  /* Information Card - Purple */
+  /* Tarjeta de información con tema morado */
+  &.informacion-card .card-icon {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);     /* Gradiente morado */
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);            /* Sombra morada */
+  }
+
+  /* Condición Única Card - Amber/Yellow */
+  /* Tarjeta de condición única con tema ámbar/amarillo */
+  &.condicion-unica-card .card-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);     /* Gradiente ámbar */
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);            /* Sombra ámbar */
+  }
+}
+
+/* ===========================================
+   RESPONSIVE - QUICK ACTIONS
+   =========================================== */
+
+/* Tablet - Quick Actions */
+/* Ajustes de acciones rápidas para tablets */
+@media (max-width: 768px) {
+  .quick-actions {
+    /* Título más pequeño */
+    .section-title {
+      font-size: 1.875rem;                                     /* Tamaño de fuente reducido (30px) */
+
+      /* Icono más pequeño */
       mat-icon {
-        font-size: 26px;
+        font-size: 30px;                                       /* Tamaño del icono reducido */
       }
     }
 
+    /* Grid: 1 columna en tablets */
     .actions-grid {
-      gap: 16px;
+      grid-template-columns: 1fr;                              /* 1 columna - tarjetas apiladas */
+      gap: 20px;                                               /* Espacio de 20px entre tarjetas */
+    }
+  }
+
+  /* Tarjetas de acción en tablets */
+  .action-card mat-card-content {
+    padding: 24px !important;                                  /* Padding reducido de 24px */
+    gap: 20px;                                                 /* Espacio de 20px entre elementos */
+
+    /* Icono más pequeño */
+    .card-icon {
+      width: 56px;                                             /* Ancho de 56px */
+      height: 56px;                                            /* Alto de 56px */
+
+      mat-icon {
+        font-size: 28px;                                       /* Tamaño del icono 28px */
+        width: 28px;                                           /* Ancho del icono 28px */
+        height: 28px;                                          /* Alto del icono 28px */
+      }
     }
 
-    .action-card mat-card-content {
-      padding: 20px !important;
+    /* Contenido de texto más pequeño */
+    .card-content {
+      h3 {
+        font-size: 1.25rem;                                    /* Tamaño de fuente reducido (20px) */
+      }
 
+      p {
+        font-size: 0.875rem;                                   /* Tamaño de fuente reducido (14px) */
+      }
+    }
+  }
+}
+
+/* Mobile - Quick Actions */
+/* Ajustes de acciones rápidas para móviles */
+@media (max-width: 480px) {
+  .quick-actions {
+    /* Título aún más pequeño */
+    .section-title {
+      font-size: 1.625rem;                                     /* Tamaño de fuente más pequeño (26px) */
+
+      /* Icono más pequeño */
+      mat-icon {
+        font-size: 26px;                                       /* Tamaño del icono más pequeño */
+      }
+    }
+
+    /* Grid: espacio reducido */
+    .actions-grid {
+      gap: 16px;                                               /* Espacio de 16px entre tarjetas */
+    }
+
+    /* Tarjetas de acción en móviles */
+    .action-card mat-card-content {
+      padding: 20px !important;                                /* Padding mínimo de 20px */
+
+      /* Icono más pequeño */
       .card-icon {
-        width: 52px;
-        height: 52px;
+        width: 52px;                                           /* Ancho de 52px */
+        height: 52px;                                          /* Alto de 52px */
 
         mat-icon {
-          font-size: 26px;
-          width: 26px;
-          height: 26px;
+          font-size: 26px;                                     /* Tamaño del icono 26px */
+          width: 26px;                                         /* Ancho del icono 26px */
+          height: 26px;                                        /* Alto del icono 26px */
         }
       }
 
+      /* Contenido de texto más pequeño */
       .card-content {
         h3 {
-          font-size: 1.125rem;
+          font-size: 1.125rem;                                 /* Tamaño de fuente reducido (18px) */
         }
 
         p {
-          font-size: 0.85rem;
+          font-size: 0.85rem;                                  /* Tamaño de fuente reducido (13.6px) */
         }
       }
     }

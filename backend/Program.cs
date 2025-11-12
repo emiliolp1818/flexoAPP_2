@@ -292,6 +292,7 @@ try
     builder.Services.AddScoped<IDesignRepository, DesignRepository>();
     builder.Services.AddScoped<IDesignService, DesignService>();
     builder.Services.AddScoped<ICondicionUnicaRepository, CondicionUnicaRepository>();
+    builder.Services.AddScoped<IMaquinaRepository, MaquinaRepository>();
 
     // Reports & Backup Services
     builder.Services.AddScoped<IReportsService, ReportsService>();

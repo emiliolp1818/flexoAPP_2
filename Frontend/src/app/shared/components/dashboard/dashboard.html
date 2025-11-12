@@ -10,49 +10,88 @@
       <mat-icon>analytics</mat-icon>
       Estadísticas del Sistema
     </h2>
+    <!-- Grid de estadísticas - 4 tarjetas en una fila -->
     <div class="stats-grid">
+      
+      <!-- Tarjeta 1: Usuarios Totales -->
+      <!-- Muestra el número total de usuarios registrados en el sistema -->
       <mat-card class="stat-card users-stat">
         <mat-card-content>
+          <!-- Icono de usuarios -->
           <div class="stat-icon">
             <mat-icon>people</mat-icon>
           </div>
+          <!-- Información de la estadística -->
           <div class="stat-info">
+            <!-- Número principal: total de usuarios -->
             <h3 class="stat-number">{{ systemStats().totalUsers }}</h3>
+            <!-- Etiqueta descriptiva -->
             <p class="stat-label">Usuarios Totales</p>
+            <!-- Indicador de cambio: usuarios nuevos este mes -->
             <span class="stat-change positive">+{{ systemStats().newUsersThisMonth }} este mes</span>
           </div>
         </mat-card-content>
       </mat-card>
 
+      <!-- Tarjeta 2: Órdenes Listas -->
+      <!-- Muestra el número de órdenes en estado "Listo" del módulo de máquinas -->
       <mat-card class="stat-card orders-stat">
         <mat-card-content>
+          <!-- Icono de check/completado -->
           <div class="stat-icon">
-            <mat-icon>work</mat-icon>
+            <mat-icon>check_circle</mat-icon>
           </div>
+          <!-- Información de la estadística -->
           <div class="stat-info">
-            <h3 class="stat-number">{{ systemStats().activeOrders }}</h3>
-            <p class="stat-label">Órdenes Activas</p>
-            <span class="stat-change positive">+{{ systemStats().ordersToday }} hoy</span>
+            <!-- Número principal: órdenes listas -->
+            <h3 class="stat-number">{{ systemStats().readyOrders }}</h3>
+            <!-- Etiqueta descriptiva -->
+            <p class="stat-label">Órdenes Listas</p>
+            <!-- Indicador de cambio: órdenes completadas hoy -->
+            <span class="stat-change positive">+{{ systemStats().readyToday }} hoy</span>
           </div>
         </mat-card-content>
       </mat-card>
 
-
-
-      <!-- Nueva estadística: Diseños Totales -->
+      <!-- Tarjeta 3: Diseños Totales -->
+      <!-- Muestra el número total de diseños en el sistema -->
       <mat-card class="stat-card designs-stat">
         <mat-card-content>
+          <!-- Icono de diseño -->
           <div class="stat-icon">
             <mat-icon>design_services</mat-icon>
           </div>
+          <!-- Información de la estadística -->
           <div class="stat-info">
+            <!-- Número principal: diseños totales -->
             <h3 class="stat-number">{{ systemStats().totalDesigns }}</h3>
+            <!-- Etiqueta descriptiva -->
             <p class="stat-label">Diseños Totales</p>
+            <!-- Indicador de cambio: diseños nuevos esta semana -->
             <span class="stat-change positive">+{{ systemStats().newDesignsThisWeek }} esta semana</span>
           </div>
         </mat-card-content>
       </mat-card>
 
+      <!-- Tarjeta 4: Tiempos de Preparación -->
+      <!-- Muestra el tiempo promedio de cambio de preparación de máquinas -->
+      <mat-card class="stat-card times-stat">
+        <mat-card-content>
+          <!-- Icono de reloj/tiempo -->
+          <div class="stat-icon">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <!-- Información de la estadística -->
+          <div class="stat-info">
+            <!-- Número principal: tiempo promedio en minutos -->
+            <h3 class="stat-number">{{ systemStats().averageSetupTime }} min</h3>
+            <!-- Etiqueta descriptiva -->
+            <p class="stat-label">Tiempo Promedio</p>
+            <!-- Indicador de cambio: total de cambios realizados -->
+            <span class="stat-change neutral">{{ systemStats().totalSetupChanges }} cambios</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
     </div>
   </div>
