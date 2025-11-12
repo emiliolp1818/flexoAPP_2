@@ -83,8 +83,8 @@
           </div>
           <!-- Información de la estadística -->
           <div class="stat-info">
-            <!-- Número principal: tiempo promedio en minutos -->
-            <h3 class="stat-number">{{ systemStats().averageSetupTime }} min</h3>
+            <!-- Número principal: tiempo promedio (minutos u horas según el valor) -->
+            <h3 class="stat-number">{{ getFormattedSetupTime() }}</h3>
             <!-- Etiqueta descriptiva -->
             <p class="stat-label">Tiempo Promedio</p>
             <!-- Indicador de cambio: total de cambios realizados -->
