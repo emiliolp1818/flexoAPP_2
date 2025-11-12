@@ -189,13 +189,20 @@ namespace FlexoAPP.API.Services
                 user.ProfileImageUrl = updateUserDto.ProfileImageUrl;
             
             if (updateUserDto.Email != null)
-                user.Email = updateUserDto.Email;              // ✅ AGREGADO
+                user.Email = updateUserDto.Email;
             
             if (updateUserDto.Phone != null)
                 user.Phone = updateUserDto.Phone;
             
             if (updateUserDto.IsActive.HasValue)
                 user.IsActive = updateUserDto.IsActive.Value;
+
+            // ✅ IMPORTANTE: Hashear la contraseña si se está actualizando
+            if (!string.IsNullOrEmpty(updateUserDto.Password))
+            {
+                Console.WriteLine($"🔐 Actualizando contraseña para usuario {user.UserCode}");
+                user.Password = BCrypt.Net.BCrypt.HashPassword(updateUserDto.Password);
+            }
 
             user.UpdatedAt = DateTime.UtcNow;
 

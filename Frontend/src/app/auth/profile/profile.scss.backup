@@ -1461,104 +1461,71 @@
 }
 
 /* ===== INFORMACIÓN DEL USUARIO RESPONSIVE ===== */
-/* Contenedor de la información del usuario - Ocupa todo el espacio disponible */
+/* Contenedor de la información del usuario */
 .user-info-responsive {
-    flex: 1;                         /* Ocupar todo el espacio disponible horizontalmente */
-    min-width: 0;                    /* Permitir reducción de tamaño si es necesario */
-    display: flex;                   /* Layout flexbox para organizar contenido */
-    flex-direction: column;          /* Disposición vertical de elementos internos */
-    justify-content: center;         /* Centrar verticalmente el contenido */
+    flex: 1;                         /* Ocupar espacio disponible */
+    min-width: 0;                    /* Permitir reducción de tamaño */
 }
 
-/* Nombre del usuario - Título principal */
+/* Nombre del usuario */
 .user-name-responsive {
-    font-size: 28px;                 /* Tamaño de fuente grande para destacar */
-    font-weight: 600;                /* Peso de fuente semi-bold para énfasis */
-    color: #1e293b;                  /* Color gris oscuro para buena legibilidad */
-    margin: 0 0 16px 0;              /* Margen solo inferior para separar de detalles */
-    line-height: 1.2;                /* Altura de línea compacta */
+    font-size: 28px;                 /* Tamaño de fuente grande */
+    font-weight: 600;                /* Peso de fuente semi-bold */
+    color: #1e293b;                  /* Color gris oscuro */
+    margin: 0 0 16px 0;              /* Margen solo inferior */
+    line-height: 1.2;               /* Altura de línea compacta */
 
     /* Responsive: Tamaño más pequeño en móviles */
     @media (max-width: 768px) {
-        font-size: 24px;             /* Tamaño reducido para pantallas pequeñas */
+        font-size: 24px;             /* Tamaño reducido */
         text-align: center;          /* Centrado en móviles */
     }
 }
 
-/* Contenedor de detalles del usuario - Grid para distribución horizontal */
+/* Contenedor de detalles del usuario */
 .user-details-responsive {
-    display: grid;                   /* Layout grid para distribución en cuadrícula */
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Columnas automáticas que se ajustan */
-    gap: 12px 16px;                  /* Espacio entre filas (12px) y columnas (16px) */
-    margin-bottom: 16px;             /* Margen inferior para separar del estado */
-    width: 100%;                     /* Ocupar todo el ancho disponible */
-
-    /* Responsive: Cambiar a 2 columnas en tablets */
-    @media (max-width: 1024px) and (min-width: 769px) {
-        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
-    }
-
-    /* Responsive: Cambiar a 1 columna en móviles */
-    @media (max-width: 768px) {
-        grid-template-columns: 1fr;  /* 1 columna en móviles */
-        gap: 8px;                    /* Espacio reducido */
-    }
+    display: flex;                   /* Layout flexbox */
+    flex-direction: column;          /* Disposición vertical */
+    gap: 8px;                        /* Espacio entre elementos */
+    margin-bottom: 16px;             /* Margen inferior */
 }
 
-/* Elemento individual de detalle - Tarjeta con icono y texto */
+/* Elemento individual de detalle */
 .detail-item-responsive {
-    display: flex;                   /* Layout flexbox para alinear icono y texto */
+    display: flex;                   /* Layout flexbox */
     align-items: center;             /* Alineación vertical centrada */
     gap: 8px;                        /* Espacio entre icono y texto */
     font-size: 14px;                 /* Tamaño de fuente pequeño */
     color: #64748b;                  /* Color gris medio */
-    padding: 8px 12px;               /* Espaciado interno para crear tarjeta */
-    background: rgba(255, 255, 255, 0.6); /* Fondo blanco semi-transparente */
-    border-radius: 8px;              /* Bordes redondeados */
-    border: 1px solid rgba(37, 99, 235, 0.1); /* Borde azul muy sutil */
-    transition: all 0.3s ease;       /* Transición suave para efectos hover */
-
-    /* Efecto hover - Resaltar al pasar el mouse */
-    &:hover {
-        background: rgba(255, 255, 255, 0.9); /* Fondo más opaco */
-        border-color: rgba(37, 99, 235, 0.2); /* Borde más visible */
-        transform: translateY(-2px); /* Elevación ligera */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Sombra suave */
-    }
 
     /* Responsive: Centrado en móviles */
     @media (max-width: 768px) {
-        justify-content: center;     /* Centrado horizontal en móviles */
+        justify-content: center;     /* Centrado horizontal */
     }
 }
 
-/* Icono de detalle - Icono visual para cada campo */
+/* Icono de detalle */
 .detail-icon-responsive {
     font-size: 18px !important;      /* Tamaño del icono */
-    width: 18px;                     /* Ancho fijo para consistencia */
-    height: 18px;                    /* Alto fijo para consistencia */
-    color: #2563eb;                  /* Color azul para destacar */
-    flex-shrink: 0;                  /* No reducir tamaño del icono */
+    width: 18px;                     /* Ancho fijo */
+    height: 18px;                    /* Alto fijo */
+    color: #2563eb;                  /* Color azul */
 }
 
-/* Texto de detalle - Información del usuario */
+/* Texto de detalle */
 .detail-text-responsive {
-    font-weight: 500;                /* Peso de fuente medio para legibilidad */
-    color: #374151;                  /* Color gris oscuro para contraste */
-    white-space: nowrap;             /* No permitir salto de línea */
-    overflow: hidden;                /* Ocultar texto que se desborde */
-    text-overflow: ellipsis;         /* Mostrar puntos suspensivos si es muy largo */
+    font-weight: 500;                /* Peso de fuente medio */
+    color: #374151;                  /* Color gris oscuro */
 }
 
-/* Estado del usuario - Chips de estado activo/inactivo */
+/* Estado del usuario */
 .user-status-responsive {
-    display: flex;                   /* Layout flexbox para alinear chips */
+    display: flex;                   /* Layout flexbox */
     gap: 8px;                        /* Espacio entre chips */
-    flex-wrap: wrap;                 /* Permitir salto de línea si hay muchos chips */
 
     /* Responsive: Centrado en móviles */
     @media (max-width: 768px) {
-        justify-content: center;     /* Centrado horizontal en móviles */
+        justify-content: center;     /* Centrado horizontal */
     }
 }
 
@@ -2360,42 +2327,62 @@
 }
 
 /* Estado vacío de actividades */
-/* Muestra un mensaje cuando no hay actividades registradas */
 .empty-activity-responsive {
-    display: flex;                   /* Layout flexbox - permite alinear elementos */
-    flex-direction: column;          /* Disposición vertical - elementos uno debajo del otro */
-    align-items: center;             /* Centrado horizontal - centra elementos en el eje X */
-    justify-content: center;         /* Centrado vertical - centra elementos en el eje Y */
-    padding: 60px 20px;              /* Espaciado interno - 60px arriba/abajo, 20px izq/der */
-    text-align: center;              /* Centrado de texto - alinea el texto al centro */
-    color: #64748b;                  /* Color gris - color de texto por defecto */
+    display: flex;                   /* Layout flexbox */
+    flex-direction: column;          /* Disposición vertical */
+    align-items: center;             /* Centrado horizontal */
+    justify-content: center;         /* Centrado vertical */
+    padding: 60px 20px;              /* Espaciado interno */
+    text-align: center;              /* Centrado de texto */
+    color: #64748b;                  /* Color gris */
 
     /* Icono de estado vacío */
-    /* Muestra un icono grande para indicar que no hay datos */
     mat-icon {
-        font-size: 64px !important;  /* Tamaño muy grande - icono prominente */
-        width: 64px;                 /* Ancho del icono - dimensión horizontal */
-        height: 64px;                /* Alto del icono - dimensión vertical */
-        margin-bottom: 16px;         /* Margen inferior - espacio debajo del icono */
-        opacity: 0.4;                /* Opacidad reducida - icono semi-transparente */
-        color: #cbd5e1;              /* Color gris claro - tono suave */
+        font-size: 64px !important;  /* Tamaño muy grande */
+        width: 64px;                 /* Ancho del icono */
+        height: 64px;                /* Alto del icono */
+        margin-bottom: 16px;         /* Margen inferior */
+        opacity: 0.4;                /* Opacidad reducida */
+        color: #cbd5e1;              /* Color gris claro */
     }
 
     /* Título de estado vacío */
-    /* Mensaje principal que indica que no hay actividades */
     h3 {
-        margin: 0 0 8px 0;           /* Margen solo inferior - espacio debajo del título */
-        font-size: 18px;             /* Tamaño de fuente - texto mediano */
-        font-weight: 600;            /* Peso semi-bold - texto destacado */
-        color: #6b7280;              /* Color gris - tono medio */
+        margin: 0 0 8px 0;           /* Margen solo inferior */
+        font-size: 18px;             /* Tamaño de fuente */
+        font-weight: 600;            /* Peso semi-bold */
+        color: #6b7280;              /* Color gris */
     }
 
     /* Descripción de estado vacío */
-    /* Texto secundario con información adicional */
     p {
-        margin: 0;                   /* Sin margen - sin espacios externos */
-        font-size: 14px;             /* Tamaño de fuente - texto pequeño */
-        color: #9ca3af;              /* Color gris claro - texto secundario */
+        margin: 0;                   /* Sin margen */
+        font-size: 14px;             /* Tamaño de fuente */
+        color: #9ca3af;              /* Color gris claro */
+    }
+}
+    border-radius: 8px !important;  /* Bordes redondeados */
+    min-width: 160px;               /* Ancho mínimo */
+    transition: all 0.3s ease;     /* Transición suave */
+
+    /* Efecto hover */
+    &:hover:not(:disabled) {
+        background: #1d4ed8 !important; /* Azul más oscuro */
+        transform: translateY(-2px); /* Elevación */
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3); /* Sombra azul */
+    }
+
+    /* Estado deshabilitado */
+    &:disabled {
+        opacity: 0.6 !important;    /* Opacidad reducida */
+        cursor: not-allowed;        /* Cursor de no permitido */
+        transform: none !important; /* Sin transformación */
+    }
+
+    /* Responsive: Ancho completo en móviles */
+    @media (max-width: 768px) {
+        width: 100%;                /* Ancho completo */
+        min-width: auto;            /* Sin ancho mínimo */
     }
 }
 

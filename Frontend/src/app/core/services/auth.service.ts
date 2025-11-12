@@ -217,4 +217,96 @@ export class AuthService {
       return true;
     }
   }
+
+  /**
+   * Actualizar perfil del usuario
+   * Envía los datos actualizados al backend y actualiza el usuario en localStorage
+   */
+  updateUserProfile(userId: string, userData: Partial<User>): Observable<User> {
+    return this.http.put<User>(`${environment.apiUrl}/users/${userId}`, userData).pipe(
+      tap(updatedUser => {
+        // Actualizar el usuario en localStorage y en el BehaviorSubject
+        const currentUser = this.getCurrentUser();
+        if (currentUser && currentUser.id === userId) {
+          const mergedUser = { ...currentUser, ...updatedUser };
+          localStorage.setItem(this.USER_KEY, JSON.stringify(mergedUser));
+          this.currentUserSubject.next(mergedUser);
+        }
+      }),
+      catchError(error => {
+        console.error('Error actualizando perfil:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Actualizar foto de perfil del usuario
+   * Envía la imagen al backend y actualiza la URL en el usuario
+   */
+  updateUserProfileImage(userId: string, imageFile: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('profileImage', imageFile);
+
+    return this.http.post<User>(`${environment.apiUrl}/users/${userId}/profile-image`, formData).pipe(
+      tap(updatedUser => {
+        // Actualizar el usuario en localStorage y en el BehaviorSubject
+        const currentUser = this.getCurrentUser();
+        if (currentUser && currentUser.id === userId) {
+          const mergedUser = { ...currentUser, ...updatedUser };
+          localStorage.setItem(this.USER_KEY, JSON.stringify(mergedUser));
+          this.currentUserSubject.next(mergedUser);
+        }
+      }),
+      catchError(error => {
+        console.error('Error actualizando foto de perfil:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Eliminar foto de perfil del usuario
+   */
+  deleteUserProfileImage(userId: string): Observable<User> {
+    return this.http.delete<User>(`${environment.apiUrl}/users/${userId}/profile-image`).pipe(
+      tap(updatedUser => {
+        // Actualizar el usuario en localStorage y en el BehaviorSubject
+        const currentUser = this.getCurrentUser();
+        if (currentUser && currentUser.id === userId) {
+          const mergedUser = { ...currentUser, profileImage: undefined, profileImageUrl: undefined };
+          localStorage.setItem(this.USER_KEY, JSON.stringify(mergedUser));
+          this.currentUserSubject.next(mergedUser);
+        }
+      }),
+      catchError(error => {
+        console.error('Error eliminando foto de perfil:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Cambiar contraseña del usuario
+   * Envía la contraseña actual y la nueva al backend para validación y actualización
+   */
+  changePassword(userId: string, currentPassword: string, newPassword: string): Observable<{ success: boolean; message: string }> {
+    const passwordData = {
+      currentPassword,
+      newPassword
+    };
+
+    return this.http.put<{ success: boolean; message: string }>(
+      `${environment.apiUrl}/users/${userId}/change-password`, 
+      passwordData
+    ).pipe(
+      tap(response => {
+        console.log('Contraseña cambiada exitosamente:', response.message);
+      }),
+      catchError(error => {
+        console.error('Error cambiando contraseña:', error);
+        return throwError(() => error);
+      })
+    );
+  }
 }

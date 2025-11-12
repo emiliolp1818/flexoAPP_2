@@ -395,6 +395,94 @@ namespace FlexoAPP.API.Controllers
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+        /// <summary>
+        /// Cambiar contraseña del usuario
+        /// Valida la contraseña actual y actualiza a la nueva contraseña
+        /// </summary>
+        [HttpPut("{id}/change-password")]
+        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordDto changePasswordDto)
+        {
+            try
+            {
+                // Validar que se proporcionaron las contraseñas
+                if (string.IsNullOrWhiteSpace(changePasswordDto.CurrentPassword) || 
+                    string.IsNullOrWhiteSpace(changePasswordDto.NewPassword))
+                {
+                    return BadRequest(new { 
+                        success = false,
+                        message = "La contraseña actual y la nueva contraseña son requeridas" 
+                    });
+                }
 
+                // Validar longitud mínima de la nueva contraseña
+                if (changePasswordDto.NewPassword.Length < 6)
+                {
+                    return BadRequest(new { 
+                        success = false,
+                        message = "La nueva contraseña debe tener al menos 6 caracteres" 
+                    });
+                }
+
+                // Obtener el usuario
+                var user = await _authService.GetCurrentUserAsync(id);
+                if (user == null)
+                {
+                    return NotFound(new { 
+                        success = false,
+                        message = "Usuario no encontrado" 
+                    });
+                }
+
+                // Validar la contraseña actual usando el servicio de autenticación
+                var loginRequest = new LoginDto 
+                { 
+                    UserCode = user.UserCode, 
+                    Password = changePasswordDto.CurrentPassword 
+                };
+
+                var loginResult = await _authService.LoginAsync(loginRequest);
+                
+                // Si el login falla, la contraseña actual es incorrecta
+                if (loginResult == null || string.IsNullOrEmpty(loginResult.Token))
+                {
+                    return Unauthorized(new { 
+                        success = false,
+                        message = "La contraseña actual es incorrecta" 
+                    });
+                }
+
+                // Actualizar a la nueva contraseña
+                var updateDto = new UpdateUserDto
+                {
+                    Password = changePasswordDto.NewPassword
+                };
+
+                var updatedUser = await _authService.UpdateUserProfileAsync(id, updateDto);
+                if (updatedUser != null)
+                {
+                    Console.WriteLine($"✅ Contraseña actualizada exitosamente para el usuario: {user.UserCode}");
+                    
+                    return Ok(new { 
+                        success = true,
+                        message = "Contraseña actualizada exitosamente" 
+                    });
+                }
+
+                return BadRequest(new { 
+                    success = false,
+                    message = "No se pudo actualizar la contraseña" 
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ChangePassword error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, new { 
+                    success = false,
+                    message = "Error interno del servidor al cambiar la contraseña", 
+                    error = ex.Message 
+                });
+            }
+        }
     }
 }

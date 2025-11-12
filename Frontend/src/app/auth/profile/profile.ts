@@ -129,7 +129,7 @@ export class ProfileComponent implements OnInit {
       firstName: ['', [Validators.required]],        // Nombre (requerido)
       lastName: ['', [Validators.required]],         // Apellidos (requerido)
       phone: ['', [Validators.required]],            // Teléfono (requerido para contacto)
-      email: ['', [Validators.email]]                // Email (opcional pero con validación de formato)
+      email: ['']                                    // Email (opcional sin validación estricta)
     });
 
     /* ===== INICIALIZACIÓN DEL FORMULARIO DE CONTRASEÑA ===== */
@@ -289,8 +289,10 @@ export class ProfileComponent implements OnInit {
 
   /**
    * Actualizar perfil
+   * Guarda los cambios del perfil en la base de datos a través del AuthService
    */
   onUpdateProfile() {
+    // Validar que el formulario sea válido antes de enviar
     if (this.profileForm.invalid) {
       this.snackBar.open('Por favor completa todos los campos requeridos', 'Cerrar', {
         duration: 3000,
@@ -299,49 +301,83 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
+    // Obtener el usuario actual
+    const currentUser = this.currentUser();
+    if (!currentUser) {
+      this.snackBar.open('Error: No se encontró el usuario actual', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    // Activar indicador de carga
     this.loading.set(true);
 
-    // Simular actualización
-    setTimeout(() => {
-      const formValue = this.profileForm.value;
-      const updatedUser: User = {
-        ...this.currentUser()!,
-        firstName: formValue.firstName,
-        lastName: formValue.lastName,
-        phone: formValue.phone,
-        email: formValue.email
-      };
+    // Obtener los valores del formulario
+    const formValue = this.profileForm.value;
+    
+    // Identificar campos que cambiaron para el registro de actividad
+    const changedFields: string[] = [];
+    if (formValue.firstName !== currentUser.firstName) changedFields.push('nombre');
+    if (formValue.lastName !== currentUser.lastName) changedFields.push('apellidos');
+    if (formValue.phone !== currentUser.phone) changedFields.push('teléfono');
+    if (formValue.email !== currentUser.email) changedFields.push('email');
 
-      this.currentUser.set(updatedUser);
-      
-      // Registrar actividad
-      const changedFields = [];
-      if (formValue.firstName !== this.currentUser()?.firstName) changedFields.push('nombre');
-      if (formValue.lastName !== this.currentUser()?.lastName) changedFields.push('apellidos');
-      if (formValue.phone !== this.currentUser()?.phone) changedFields.push('teléfono');
-      if (formValue.email !== this.currentUser()?.email) changedFields.push('email');
-      
-      this.registerActivity(
-        'Actualización de perfil',
-        `Información personal actualizada - Campos: ${changedFields.join(', ')}`,
-        'PROFILE',
-        'ProfileComponent',
-        { changedFields, timestamp: new Date() }
-      );
-      
-      this.loading.set(false);
+    // Preparar datos para actualizar (solo los campos editables)
+    const updateData: Partial<User> = {
+      firstName: formValue.firstName,
+      lastName: formValue.lastName,
+      phone: formValue.phone,
+      email: formValue.email
+    };
 
-      this.snackBar.open('Perfil actualizado correctamente', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
-    }, 1000);
+    // Llamar al servicio de autenticación para actualizar en la base de datos
+    this.authService.updateUserProfile(currentUser.id, updateData).subscribe({
+      next: (updatedUser) => {
+        // Actualizar el usuario en el componente
+        this.currentUser.set(updatedUser);
+        
+        // Registrar actividad de actualización
+        this.registerActivity(
+          'Actualización de perfil',
+          `Información personal actualizada - Campos: ${changedFields.join(', ')}`,
+          'PROFILE',
+          'ProfileComponent',
+          { changedFields, timestamp: new Date() }
+        );
+        
+        // Desactivar indicador de carga
+        this.loading.set(false);
+
+        // Mostrar mensaje de éxito
+        this.snackBar.open('Perfil actualizado correctamente en la base de datos', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: (error) => {
+        // Desactivar indicador de carga
+        this.loading.set(false);
+
+        // Mostrar mensaje de error específico
+        const errorMessage = error.error?.message || error.message || 'Error al actualizar el perfil';
+        this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+
+        console.error('Error actualizando perfil:', error);
+      }
+    });
   }
 
   /**
    * Cambiar contraseña
+   * Valida y envía la solicitud de cambio de contraseña al backend
    */
   onChangePassword() {
+    // Validar que el formulario sea válido
     if (this.passwordForm.invalid) {
       this.snackBar.open('Por favor completa todos los campos correctamente', 'Cerrar', {
         duration: 3000,
@@ -350,32 +386,88 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    const formValue = this.passwordForm.value;
-    
-    // Validar contraseña actual (simulado)
-    if (formValue.currentPassword !== 'admin123') {
-      this.snackBar.open('La contraseña actual es incorrecta', 'Cerrar', {
+    // Obtener el usuario actual
+    const currentUser = this.currentUser();
+    if (!currentUser) {
+      this.snackBar.open('Error: No se encontró el usuario actual', 'Cerrar', {
         duration: 3000,
         panelClass: ['error-snackbar']
       });
       return;
     }
 
+    // Obtener los valores del formulario
+    const formValue = this.passwordForm.value;
+    
+    // Validar que las contraseñas nuevas coincidan (ya validado por passwordMatchValidator)
+    if (formValue.newPassword !== formValue.confirmPassword) {
+      this.snackBar.open('Las contraseñas nuevas no coinciden', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    // Activar indicador de carga
     this.loading.set(true);
 
-    // Simular llamada al backend para cambiar contraseña
-    setTimeout(() => {
-      // Registrar actividad de cambio de contraseña
-      this.registerActivity('Cambio de contraseña', 'Contraseña actualizada exitosamente', 'SECURITY');
-      
-      this.passwordForm.reset();
-      this.loading.set(false);
+    // Llamar al servicio de autenticación para cambiar la contraseña en la base de datos
+    this.authService.changePassword(
+      currentUser.id, 
+      formValue.currentPassword, 
+      formValue.newPassword
+    ).subscribe({
+      next: (response) => {
+        // Registrar actividad de cambio de contraseña exitoso
+        this.registerActivity(
+          'Cambio de contraseña', 
+          'Contraseña actualizada exitosamente en la base de datos', 
+          'SECURITY',
+          'ProfileComponent',
+          { timestamp: new Date() }
+        );
+        
+        // Limpiar el formulario
+        this.passwordForm.reset();
+        
+        // Resetear visibilidad de contraseñas
+        this.showCurrentPassword.set(false);
+        this.showNewPassword.set(false);
+        this.showConfirmPassword.set(false);
+        
+        // Desactivar indicador de carga
+        this.loading.set(false);
 
-      this.snackBar.open('Contraseña cambiada correctamente', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
-    }, 2000);
+        // Mostrar mensaje de éxito
+        this.snackBar.open('Contraseña cambiada correctamente en la base de datos', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: (error) => {
+        // Desactivar indicador de carga
+        this.loading.set(false);
+
+        // Manejar diferentes tipos de errores
+        let errorMessage = 'Error al cambiar la contraseña';
+        
+        if (error.status === 401 || error.status === 403) {
+          errorMessage = 'La contraseña actual es incorrecta';
+        } else if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        // Mostrar mensaje de error
+        this.snackBar.open(errorMessage, 'Cerrar', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+
+        console.error('Error cambiando contraseña:', error);
+      }
+    });
   }
 
   /**
@@ -617,41 +709,70 @@ export class ProfileComponent implements OnInit {
 
   /**
    * Subir foto de perfil
+   * Envía la imagen al servidor y actualiza el perfil del usuario
    */
   uploadPhoto() {
+    // Validar que haya un archivo seleccionado
     if (!this.selectedFile) return;
 
+    // Obtener el usuario actual
+    const currentUser = this.currentUser();
+    if (!currentUser) {
+      this.snackBar.open('Error: No se encontró el usuario actual', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    // Activar indicador de carga
     this.uploadingPhoto.set(true);
 
-    // Simular subida
-    setTimeout(() => {
-      const fileSize = this.selectedFile ? this.selectedFile.size : 0;
-      
-      const updatedUser: User = {
-        ...this.currentUser()!,
-        profileImage: this.profileImagePreview()
-      };
+    // Guardar el tamaño del archivo para el registro de actividad
+    const fileSize = this.selectedFile.size;
 
-      this.currentUser.set(updatedUser);
-      
-      // Registrar actividad antes de limpiar selectedFile
-      this.registerActivity(
-        'Actualización de foto de perfil',
-        'Imagen de perfil actualizada exitosamente',
-        'PROFILE',
-        'ProfileComponent',
-        { action: 'upload', fileSize }
-      );
-      
-      this.selectedFile = null;
-      this.profileImagePreview.set('');
-      this.uploadingPhoto.set(false);
+    // Llamar al servicio de autenticación para subir la imagen
+    this.authService.updateUserProfileImage(currentUser.id, this.selectedFile).subscribe({
+      next: (updatedUser) => {
+        // Actualizar el usuario en el componente
+        this.currentUser.set(updatedUser);
+        
+        // Registrar actividad de actualización de foto
+        this.registerActivity(
+          'Actualización de foto de perfil',
+          'Imagen de perfil actualizada exitosamente en la base de datos',
+          'PROFILE',
+          'ProfileComponent',
+          { action: 'upload', fileSize }
+        );
+        
+        // Limpiar el archivo seleccionado y el preview
+        this.selectedFile = null;
+        this.profileImagePreview.set('');
+        
+        // Desactivar indicador de carga
+        this.uploadingPhoto.set(false);
 
-      this.snackBar.open('Foto de perfil actualizada', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
-    }, 2000);
+        // Mostrar mensaje de éxito
+        this.snackBar.open('Foto de perfil actualizada correctamente', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: (error) => {
+        // Desactivar indicador de carga
+        this.uploadingPhoto.set(false);
+
+        // Mostrar mensaje de error específico
+        const errorMessage = error.error?.message || error.message || 'Error al subir la foto de perfil';
+        this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+
+        console.error('Error subiendo foto de perfil:', error);
+      }
+    });
   }
 
   /**
@@ -664,33 +785,60 @@ export class ProfileComponent implements OnInit {
 
   /**
    * Eliminar foto de perfil
+   * Elimina la imagen del servidor y actualiza el perfil del usuario
    */
   removePhoto() {
+    // Obtener el usuario actual
+    const currentUser = this.currentUser();
+    if (!currentUser) {
+      this.snackBar.open('Error: No se encontró el usuario actual', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    // Activar indicador de carga
     this.uploadingPhoto.set(true);
 
-    setTimeout(() => {
-      const updatedUser: User = {
-        ...this.currentUser()!,
-        profileImage: undefined
-      };
+    // Llamar al servicio de autenticación para eliminar la imagen
+    this.authService.deleteUserProfileImage(currentUser.id).subscribe({
+      next: (updatedUser) => {
+        // Actualizar el usuario en el componente
+        this.currentUser.set(updatedUser);
+        
+        // Desactivar indicador de carga
+        this.uploadingPhoto.set(false);
 
-      this.currentUser.set(updatedUser);
-      this.uploadingPhoto.set(false);
+        // Registrar actividad de eliminación de foto
+        this.registerActivity(
+          'Eliminación de foto de perfil',
+          'Imagen de perfil eliminada por el usuario de la base de datos',
+          'PROFILE',
+          'ProfileComponent',
+          { action: 'delete' }
+        );
 
-      // Registrar actividad
-      this.registerActivity(
-        'Eliminación de foto de perfil',
-        'Imagen de perfil eliminada por el usuario',
-        'PROFILE',
-        'ProfileComponent',
-        { action: 'delete' }
-      );
+        // Mostrar mensaje de éxito
+        this.snackBar.open('Foto de perfil eliminada correctamente', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: (error) => {
+        // Desactivar indicador de carga
+        this.uploadingPhoto.set(false);
 
-      this.snackBar.open('Foto de perfil eliminada', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
-    }, 1000);
+        // Mostrar mensaje de error específico
+        const errorMessage = error.error?.message || error.message || 'Error al eliminar la foto de perfil';
+        this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+
+        console.error('Error eliminando foto de perfil:', error);
+      }
+    });
   }
 
   /**
@@ -738,31 +886,66 @@ export class ProfileComponent implements OnInit {
   /**
    * Formatear timestamp
    */
+  /**
+   * Formatear timestamp a texto legible
+   * Convierte una fecha en un texto amigable como "Hoy", "Ayer", "Hace X días" o fecha completa
+   * @param timestamp - Fecha a formatear
+   * @returns Texto formateado de la fecha
+   */
   formatTimestamp(timestamp: Date): string {
+    // Obtener la fecha y hora actual para calcular la diferencia
     const now = new Date();
+    
+    // Calcular la diferencia en milisegundos entre ahora y el timestamp
     const diff = now.getTime() - timestamp.getTime();
+    
+    // Convertir la diferencia de milisegundos a días completos
+    // 1000 ms * 60 seg * 60 min * 24 horas = milisegundos en un día
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     
+    // Si la diferencia es 0 días, mostrar "Hoy"
     if (days === 0) return 'Hoy';
+    
+    // Si la diferencia es 1 día, mostrar "Ayer"
     if (days === 1) return 'Ayer';
+    
+    // Si la diferencia es menos de 7 días, mostrar "Hace X días"
     if (days < 7) return `Hace ${days} días`;
     
+    // Para fechas más antiguas, mostrar la fecha completa en formato local
+    // Ejemplo: "11/11/2025" según la configuración regional del navegador
     return timestamp.toLocaleDateString();
   }
 
   /**
-   * Obtener texto de días restantes
+   * Obtener texto descriptivo de días restantes
+   * Convierte un número de días en un texto descriptivo para mostrar al usuario
+   * @param days - Número de días restantes
+   * @returns Texto descriptivo de los días restantes
    */
   getDaysRemainingText(days: number): string {
+    // Si no quedan días, el registro ha expirado
     if (days === 0) return 'Expirado';
+    
+    // Si queda exactamente 1 día, usar singular
     if (days === 1) return '1 día restante';
+    
+    // Para cualquier otro número de días, usar plural
+    // Ejemplo: "5 días restantes", "30 días restantes"
     return `${days} días restantes`;
   }
 
   /**
-   * Cerrar sesión
+   * Cerrar sesión del usuario
+   * Llama al servicio de autenticación para cerrar la sesión actual
+   * Esto limpiará el token, los datos del usuario y redirigirá al login
    */
   logout() {
+    // Llamar al método logout del servicio de autenticación
+    // Este método se encarga de:
+    // 1. Limpiar el token del localStorage
+    // 2. Limpiar los datos del usuario en memoria
+    // 3. Redirigir a la página de login
     this.authService.logout();
   }
 }
