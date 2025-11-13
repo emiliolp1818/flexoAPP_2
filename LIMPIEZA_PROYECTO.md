@@ -183,5 +183,71 @@ npm start
 
 ---
 
-**Estado:** ✅ Proyecto limpio y listo para desarrollo local
+---
+
+## 🔧 Limpieza del Backend (Fase 2)
+
+**Fecha:** 2024-11-13
+**Commit:** f33a023
+
+### Archivos Eliminados del Backend (23)
+
+#### Controllers (4)
+- `TestController.cs`
+- `DatabaseSetupController.cs`
+- `DatabaseTestController.cs`
+- `DiagnosticController.cs`
+
+#### Services (3)
+- `IMachineProgramService2.cs`
+- `MachineProgramService2.cs`
+- `AutomaticBackupService.cs`
+
+#### Repositories (2)
+- `IMachineProgramRepository2.cs`
+- `MachineProgramRepository2.cs`
+
+#### Scripts SQL (8)
+- `CheckAdminUser.sql`
+- `DiagnosticarProblema.sql`
+- `MarkMigrationsAsApplied.sql`
+- `test-machine-programs.sql`
+- `verify-database-connections.sql`
+- `complete_reports_schema.sql`
+- `fix_users_table.sql`
+- `machine_programs_schema.sql`
+
+#### Configuración (5)
+- `appsettings.example.json`
+- `appsettings.Enhanced.json`
+- `flexoAPP3.sln.backup`
+- `test-connection.bat`
+- `healthcheck.sh`
+
+#### Data (1)
+- `MachineProgramTableInitializer.cs`
+
+#### Carpetas Limpiadas
+- `Extensions/` (eliminada - vacía)
+- `Database/Scripts/` (eliminada - vacía)
+- `logs/` (logs antiguos eliminados)
+
+### Backend Final - Archivos Esenciales
+
+#### Controllers (13)
+✅ ActivitiesController, AuthController, CondicionUnicaController, DashboardController, DesignsController, MachineBackupController, MachineProgramsController, MachinesController, MaquinasController, PedidosController, ReportsController, UsersController
+
+#### Services (17)
+✅ ActivityService, AuditService, AuthService, JwtService, RefreshTokenService, DesignService, MachineBackupService, MachineProgramService, MaquinaService, PedidoService, ReportsService, RealTimeSyncService, MemoryCacheService, ActivityCleanupService
+
+#### Repositories (11)
+✅ ActivityRepository, CondicionUnicaRepository, DesignRepository, MachineProgramRepository, MaquinaRepository, PedidoRepository, UserRepository
+
+#### Scripts SQL Esenciales (7)
+✅ AddEmailToUsers.sql, CrearYPoblarTablaMaquinas.sql, CreateUserTable.sql, create_machine_programs_table.sql, PoblarTablaMaquinas.sql, UpdateUsersTable.sql, VerificarYPoblarMachinePrograms.sql
+
+---
+
+**Estado:** ✅ Proyecto completamente limpio y listo para desarrollo local
 **Última actualización:** 2024-11-13
+**Total eliminado:** 95 archivos (72 generales + 23 backend)
