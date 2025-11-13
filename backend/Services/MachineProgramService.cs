@@ -361,9 +361,12 @@ namespace flexoAPP.Services
                 var validationErrors = new List<string>();
 
                 // Configurar EPPlus para uso no comercial
-                ExcelPackage.LicenseContext = Lider(stream);
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 
-                // Leer líneas del archivo
+                // Leer el archivo Excel
+                using var stream = file.OpenReadStream();
+                using var reader = new StreamReader(stream);
+                
                 var lines = new List<string>();
                 string? line;
                 while ((line = await reader.ReadLineAsync()) != null)
