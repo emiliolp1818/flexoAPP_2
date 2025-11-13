@@ -7,6 +7,7 @@ using FlexoAPP.API.Services;
 using Microsoft.AspNetCore.SignalR;
 using System.Text.Json;
 using System.IO;
+using OfficeOpenXml;
 
 namespace flexoAPP.Services
 {
@@ -359,8 +360,8 @@ namespace flexoAPP.Services
                 var programs = new List<MachineProgramDto>();
                 var validationErrors = new List<string>();
 
-                using var stream = file.OpenReadStream();
-                using var reader = new StreamReader(stream);
+                // Configurar EPPlus para uso no comercial
+                ExcelPackage.LicenseContext = Lider(stream);
                 
                 // Leer líneas del archivo
                 var lines = new List<string>();

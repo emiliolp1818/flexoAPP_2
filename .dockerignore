@@ -1,61 +1,53 @@
-# Node
-node_modules/
-npm-debug.log
-Frontend/
-
-# .NET - Archivos de build
-**/bin/
-**/obj/
-**/logs/
-**/Backups/
-**/*.db
-**/*.db-shm
-**/*.db-wal
-
-# .NET - Archivos de solución
-**/*.sln
-*.sln
-
 # Git
-.git/
+.git
 .gitignore
-.github/
-
-# IDEs
-.vscode/
-.idea/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
+.github
 
 # Documentation
 *.md
-!README.md
+docs/
 
-# Tests
-**/test/
-**/tests/
-**/*.test.ts
-**/*.spec.ts
-**/*.Test.cs
-**/*.Tests.cs
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
 
-# Environment
-.env
-.env.local
-.env.production
+# .NET
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Scripts
-*.bat
-*.sh
-
-# Otros archivos innecesarios
+# Logs
+logs/
 *.log
-.dockerignore
-Dockerfile*
-render.yaml
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups
+backups/
+*.backup
