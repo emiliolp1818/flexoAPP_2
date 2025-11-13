@@ -423,9 +423,12 @@
   /* Actions Grid - Responsive Layout */
   /* Grid de acciones con layout responsive - 4 columnas por fila */
   .actions-grid {
-    display: grid;                                             /* Usar CSS Grid para layout */
-    grid-template-columns: repeat(4, 1fr);                     /* 4 columnas de igual tamaño (1fr cada una) */
-    gap: 20px;                                                 /* Espacio de 20px entre tarjetas */
+    display: grid;                                             /* Usar CSS Grid para layout de cuadrícula */
+    grid-template-columns: repeat(4, 1fr);                     /* 4 columnas de igual tamaño (1fr = 1 fracción del espacio disponible) */
+    gap: 20px;                                                 /* Espacio uniforme de 20px entre todas las tarjetas */
+    width: 100%;                                               /* Ocupar todo el ancho disponible del contenedor */
+    margin: 0;                                                 /* Sin margen externo */
+    padding: 0;                                                /* Sin padding externo */
   }
 }
 
@@ -434,101 +437,188 @@
    =========================================== */
 /* Tarjetas de acción interactivas para navegación */
 .action-card {
-  cursor: pointer;                                             /* Cursor de puntero para indicar clickeable */
-  border-radius: 20px;                                         /* Bordes redondeados de 20px */
-  border: 1px solid rgba(37, 99, 235, 0.1);                    /* Borde azul semi-transparente */
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); /* Fondo con gradiente blanco a gris */
-  backdrop-filter: blur(20px);                                 /* Efecto de desenfoque del fondo */
-  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06); /* Sombras múltiples */
-  overflow: hidden;                                            /* Ocultar contenido que se desborde */
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);           /* Transición suave con curva de aceleración */
-  position: relative;                                          /* Posición relativa para efectos */
+  /* Propiedades de interacción */
+  cursor: pointer;                                             /* Cursor de puntero para indicar que es clickeable */
+  
+  /* Diseño visual de la tarjeta */
+  border-radius: 20px;                                         /* Bordes redondeados de 20px para apariencia moderna */
+  border: 1px solid rgba(37, 99, 235, 0.1);                    /* Borde azul muy sutil y semi-transparente */
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); /* Fondo con gradiente suave de blanco a gris claro */
+  backdrop-filter: blur(20px);                                 /* Efecto de desenfoque del fondo (efecto glassmorphism) */
+  
+  /* Sombras para profundidad */
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08),              /* Sombra principal azul suave */
+              0 2px 8px rgba(0, 0, 0, 0.06);                   /* Sombra secundaria negra muy sutil */
+  
+  /* Control de contenido */
+  overflow: hidden;                                            /* Ocultar cualquier contenido que se desborde de los bordes */
+  
+  /* Animaciones y transiciones */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);           /* Transición suave de 0.4s con curva de aceleración personalizada */
+  
+  /* Posicionamiento */
+  position: relative;                                          /* Posición relativa para permitir efectos y pseudo-elementos */
+  
+  /* Asegurar que la tarjeta ocupe todo el espacio de la celda del grid */
+  width: 100%;                                                 /* Ancho completo de la celda del grid */
+  height: 100%;                                                /* Alto completo de la celda del grid */
+  min-height: 140px;                                           /* Altura mínima para mantener consistencia */
 
-  /* Efecto hover - elevar y escalar la tarjeta */
+  /* Efecto hover - elevar y escalar la tarjeta cuando el mouse pasa sobre ella */
   &:hover {
-    transform: translateY(-6px) scale(1.02);                   /* Elevar 6px y escalar 2% */
-    box-shadow: 0 16px 48px rgba(37, 99, 235, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1); /* Sombras más pronunciadas */
-    border-color: rgba(37, 99, 235, 0.2);                      /* Borde más visible */
+    transform: translateY(-6px) scale(1.02);                   /* Elevar 6px hacia arriba y escalar 2% más grande */
+    box-shadow: 0 16px 48px rgba(37, 99, 235, 0.15),          /* Sombra principal más pronunciada */
+                0 8px 24px rgba(0, 0, 0, 0.1);                /* Sombra secundaria más visible */
+    border-color: rgba(37, 99, 235, 0.2);                      /* Borde más visible en hover */
   }
 
-  /* Efecto active - presionar la tarjeta */
+  /* Efecto active - presionar la tarjeta cuando se hace click */
   &:active {
-    transform: translateY(-2px) scale(1.01);                   /* Elevar menos y escalar menos */
+    transform: translateY(-2px) scale(1.01);                   /* Elevar menos (2px) y escalar menos (1%) para efecto de presión */
   }
 
   /* Card Content Layout */
-  /* Layout del contenido de la tarjeta */
+  /* Layout del contenido de la tarjeta - Estructura interna */
   mat-card-content {
-    display: flex;                                             /* Layout flexbox */
-    align-items: center;                                       /* Alinear elementos verticalmente al centro */
-    gap: 24px;                                                 /* Espacio de 24px entre elementos */
-    padding: 28px !important;                                  /* Padding interno de 28px */
-    position: relative;                                        /* Posición relativa */
+    /* Sistema de layout flexbox para organizar elementos horizontalmente */
+    display: flex;                                             /* Activar flexbox para layout flexible */
+    align-items: center;                                       /* Alinear todos los elementos verticalmente al centro */
+    gap: 20px;                                                 /* Espacio uniforme de 20px entre icono, texto y flecha */
+    
+    /* Espaciado interno */
+    padding: 24px !important;                                  /* Padding interno de 24px en todos los lados (!important para sobrescribir estilos de Material) */
+    
+    /* Posicionamiento */
+    position: relative;                                        /* Posición relativa para permitir posicionamiento absoluto de elementos hijos */
+    
+    /* Asegurar que el contenido ocupe todo el espacio */
+    width: 100%;                                               /* Ancho completo del contenedor */
+    height: 100%;                                              /* Alto completo del contenedor */
+    box-sizing: border-box;                                    /* Incluir padding en el cálculo de ancho/alto */
   }
 
   /* Card Icon Container */
-  /* Contenedor del icono de la tarjeta */
+  /* Contenedor del icono de la tarjeta - Círculo con gradiente de color */
   .card-icon {
-    width: 64px;                                               /* Ancho de 64px */
-    height: 64px;                                              /* Alto de 64px */
-    border-radius: 16px;                                       /* Bordes redondeados de 16px */
-    display: flex;                                             /* Layout flexbox */
-    align-items: center;                                       /* Centrar verticalmente */
-    justify-content: center;                                   /* Centrar horizontalmente */
-    flex-shrink: 0;                                            /* No reducir tamaño */
-    transition: all 0.3s ease;                                 /* Transición suave */
+    /* Dimensiones fijas del contenedor de icono */
+    width: 60px;                                               /* Ancho fijo de 60px para mantener consistencia */
+    height: 60px;                                              /* Alto fijo de 60px (cuadrado perfecto) */
+    min-width: 60px;                                           /* Ancho mínimo para evitar compresión */
+    min-height: 60px;                                          /* Alto mínimo para evitar compresión */
+    
+    /* Diseño visual */
+    border-radius: 16px;                                       /* Bordes redondeados de 16px para apariencia suave */
+    
+    /* Sistema de layout para centrar el icono */
+    display: flex;                                             /* Activar flexbox */
+    align-items: center;                                       /* Centrar icono verticalmente */
+    justify-content: center;                                   /* Centrar icono horizontalmente */
+    
+    /* Comportamiento en layout flexbox */
+    flex-shrink: 0;                                            /* No permitir que se reduzca el tamaño del contenedor */
+    
+    /* Animación */
+    transition: all 0.3s ease;                                 /* Transición suave de 0.3s para todos los cambios */
 
-    /* Icono dentro del contenedor */
+    /* Icono Material dentro del contenedor */
     mat-icon {
-      font-size: 32px;                                         /* Tamaño del icono 32px */
-      width: 32px;                                             /* Ancho del icono 32px */
-      height: 32px;                                            /* Alto del icono 32px */
-      color: white;                                            /* Color blanco */
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));      /* Sombra del icono */
+      /* Tamaño del icono */
+      font-size: 32px;                                         /* Tamaño de fuente del icono 32px */
+      width: 32px;                                             /* Ancho explícito del icono 32px */
+      height: 32px;                                            /* Alto explícito del icono 32px */
+      
+      /* Color y efectos */
+      color: white;                                            /* Color blanco para contraste con el fondo de color */
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));      /* Sombra sutil para dar profundidad al icono */
     }
   }
 
   /* Card Text Content */
-  /* Contenido de texto de la tarjeta */
+  /* Contenido de texto de la tarjeta - Título y descripción */
   .card-content {
-    flex: 1;                                                   /* Ocupar espacio disponible */
+    /* Comportamiento en flexbox */
+    flex: 1;                                                   /* Ocupar todo el espacio disponible entre el icono y la flecha */
+    
+    /* Asegurar que el texto no se desborde */
+    min-width: 0;                                              /* Permitir que el contenedor se reduzca si es necesario */
+    overflow: hidden;                                          /* Ocultar texto que se desborde */
 
-    /* Título de la tarjeta */
+    /* Título de la tarjeta (h3) */
     h3 {
-      font-size: 1.375rem;                                     /* Tamaño de fuente (22px) */
-      font-weight: 700;                                        /* Peso bold */
-      color: #1e293b;                                          /* Color gris oscuro */
-      margin: 0 0 8px 0;                                       /* Margen inferior de 8px */
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);              /* Sombra de texto sutil */
+      /* Tipografía */
+      font-size: 1.25rem;                                      /* Tamaño de fuente 20px (1.25rem) */
+      font-weight: 700;                                        /* Peso bold (negrita) para destacar */
+      
+      /* Color */
+      color: #1e293b;                                          /* Color gris oscuro para buen contraste */
+      
+      /* Espaciado */
+      margin: 0 0 6px 0;                                       /* Sin margen superior/lateral, 6px margen inferior */
+      
+      /* Efectos visuales */
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);              /* Sombra de texto muy sutil para profundidad */
+      
+      /* Control de texto largo */
+      white-space: nowrap;                                     /* No permitir saltos de línea */
+      overflow: hidden;                                        /* Ocultar texto que se desborde */
+      text-overflow: ellipsis;                                 /* Mostrar "..." si el texto es muy largo */
     }
 
-    /* Descripción de la tarjeta */
+    /* Descripción de la tarjeta (p) */
     p {
-      font-size: 0.95rem;                                      /* Tamaño de fuente pequeño */
-      color: #64748b;                                          /* Color gris medio */
-      margin: 0;                                               /* Sin margen */
-      line-height: 1.6;                                        /* Altura de línea espaciada */
+      /* Tipografía */
+      font-size: 0.875rem;                                     /* Tamaño de fuente pequeño 14px (0.875rem) */
       font-weight: 500;                                        /* Peso medio */
+      
+      /* Color */
+      color: #64748b;                                          /* Color gris medio para texto secundario */
+      
+      /* Espaciado */
+      margin: 0;                                               /* Sin margen */
+      line-height: 1.5;                                        /* Altura de línea 1.5 para buena legibilidad */
+      
+      /* Control de texto largo - permitir 2 líneas máximo */
+      display: -webkit-box;                                    /* Usar box layout de webkit */
+      -webkit-line-clamp: 2;                                   /* Limitar a 2 líneas */
+      -webkit-box-orient: vertical;                            /* Orientación vertical */
+      overflow: hidden;                                        /* Ocultar texto que exceda 2 líneas */
+      text-overflow: ellipsis;                                 /* Mostrar "..." si el texto es muy largo */
     }
   }
 
   /* Card Arrow Indicator */
-  /* Indicador de flecha de la tarjeta */
+  /* Indicador de flecha de la tarjeta - Muestra que es clickeable */
   .card-arrow {
-    transition: all 0.3s ease;                                 /* Transición suave */
+    /* Animación del contenedor */
+    transition: all 0.3s ease;                                 /* Transición suave de 0.3s para todos los cambios */
+    
+    /* Comportamiento en flexbox */
+    flex-shrink: 0;                                            /* No permitir que se reduzca el tamaño */
+    
+    /* Asegurar alineación */
+    display: flex;                                             /* Activar flexbox */
+    align-items: center;                                       /* Centrar verticalmente */
+    justify-content: center;                                   /* Centrar horizontalmente */
 
-    /* Icono de flecha */
+    /* Icono de flecha Material */
     mat-icon {
-      color: #94a3b8;                                          /* Color gris claro */
-      font-size: 28px;                                         /* Tamaño del icono 28px */
-      transition: all 0.3s ease;                               /* Transición suave */
+      /* Color por defecto */
+      color: #94a3b8;                                          /* Color gris claro cuando no hay hover */
+      
+      /* Tamaño */
+      font-size: 24px;                                         /* Tamaño del icono 24px */
+      width: 24px;                                             /* Ancho explícito 24px */
+      height: 24px;                                            /* Alto explícito 24px */
+      
+      /* Animación */
+      transition: all 0.3s ease;                               /* Transición suave para color y posición */
     }
   }
 
-  /* Efecto hover en la flecha - mover a la derecha */
+  /* Efecto hover en la flecha - animación de movimiento */
   &:hover .card-arrow mat-icon {
-    color: #2563eb;                                            /* Cambiar a azul */
-    transform: translateX(4px);                                /* Mover 4px a la derecha */
+    color: #2563eb;                                            /* Cambiar a azul brillante en hover */
+    transform: translateX(4px);                                /* Mover 4px a la derecha para indicar acción */
   }
 
   /* ===========================================
