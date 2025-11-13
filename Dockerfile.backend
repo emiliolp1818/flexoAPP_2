@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy csproj and restore dependencies
-COPY backend/*.csproj ./backend/
-RUN dotnet restore "./backend/flexoAPP.csproj"
+COPY ["backend/flexoAPP.csproj", "backend/"]
+RUN dotnet restore "backend/flexoAPP.csproj"
 
 # Copy everything else and build
-COPY backend/ ./backend/
+COPY backend/ backend/
 WORKDIR /src/backend
 RUN dotnet build "flexoAPP.csproj" -c Release -o /app/build
 RUN dotnet publish "flexoAPP.csproj" -c Release -o /app/publish /p:UseAppHost=false
