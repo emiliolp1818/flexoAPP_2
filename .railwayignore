@@ -1,0 +1,48 @@
+# Railway ignore file - optimiza el build
+
+# Frontend (no necesario para el backend)
+Frontend/
+node_modules/
+
+# Documentación
+*.md
+docs/
+
+# Git
+.git/
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build artifacts locales
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backups
+backups/
+*.backup
+
+# Tests
+**/tests/
+**/*.Tests/
