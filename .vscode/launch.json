@@ -1,0 +1,70 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 Backend (.NET)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-backend",
+      "program": "${workspaceFolder}/backend/bin/Debug/net8.0/FlexoAPP.API.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/backend",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      }
+    },
+    {
+      "name": "🎨 Frontend (Angular)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "start-frontend",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/Frontend",
+      "sourceMapPathOverrides": {
+        "webpack:/*": "${webRoot}/*",
+        "/./*": "${webRoot}/*",
+        "/src/*": "${webRoot}/*",
+        "/*": "*",
+        "/./~/*": "${webRoot}/node_modules/*"
+      }
+    },
+    {
+      "name": "🚀 Full Stack (Backend + Frontend)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "start-fullstack",
+      "program": "${workspaceFolder}/backend/bin/Debug/net8.0/FlexoAPP.API.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/backend",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+        "uriFormat": "http://localhost:4200"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "🎯 FlexoAPP Completo",
+      "configurations": ["🚀 Backend (.NET)", "🎨 Frontend (Angular)"],
+      "stopAll": true,
+      "presentation": {
+        "hidden": false,
+        "group": "FlexoAPP",
+        "order": 1
+      }
+    }
+  ]
+}

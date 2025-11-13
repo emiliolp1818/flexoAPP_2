@@ -35,7 +35,7 @@ import { environment } from '../../../../environments/environment';     // Varia
 // Clase principal del componente header - Implementa hooks de ciclo de vida
 export class HeaderComponent implements OnInit, OnDestroy {
   // Señales reactivas (Angular Signals) - Estado reactivo del componente
-  currentUser = signal(this.authService.getCurrentUser());    // Usuario actualmente autenticado
+  currentUser = signal<any>(null);                            // Usuario actualmente autenticado
   currentTime = signal(new Date());                           // Tiempo actual para mostrar en el header
   isLoading = signal(false);                                  // Estado de carga para activar LED parpadeante
   
@@ -48,7 +48,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private authService: AuthService,                         // Servicio de autenticación para gestión de usuarios
     private router: Router,                                   // Router de Angular para navegación entre páginas
     private loadingService: LoadingService                    // Servicio para manejar estados de carga global
-  ) {}
+  ) {
+    // Inicializar el usuario actual después de la inyección de dependencias
+    this.currentUser.set(this.authService.getCurrentUser());
+  }
 
   ngOnInit(): void {
     // Actualizar el tiempo cada minuto
