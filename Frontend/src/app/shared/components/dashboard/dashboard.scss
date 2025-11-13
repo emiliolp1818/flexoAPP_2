@@ -421,11 +421,11 @@
   }
 
   /* Actions Grid - Responsive Layout */
-  /* Grid de acciones con layout responsive */
+  /* Grid de acciones con layout responsive - 4 columnas por fila */
   .actions-grid {
     display: grid;                                             /* Usar CSS Grid para layout */
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Columnas automáticas con mínimo 350px */
-    gap: 24px;                                                 /* Espacio de 24px entre tarjetas */
+    grid-template-columns: repeat(4, 1fr);                     /* 4 columnas de igual tamaño (1fr cada una) */
+    gap: 20px;                                                 /* Espacio de 20px entre tarjetas */
   }
 }
 
@@ -589,8 +589,20 @@
    RESPONSIVE - QUICK ACTIONS
    =========================================== */
 
+/* Large Tablet - Quick Actions */
+/* Ajustes de acciones rápidas para tablets grandes (1024px o menos) */
+@media (max-width: 1024px) {
+  .quick-actions {
+    /* Grid: 3 columnas en tablets grandes */
+    .actions-grid {
+      grid-template-columns: repeat(3, 1fr);                   /* 3 columnas de igual tamaño */
+      gap: 20px;                                               /* Espacio de 20px entre tarjetas */
+    }
+  }
+}
+
 /* Tablet - Quick Actions */
-/* Ajustes de acciones rápidas para tablets */
+/* Ajustes de acciones rápidas para tablets (768px o menos) */
 @media (max-width: 768px) {
   .quick-actions {
     /* Título más pequeño */
@@ -603,9 +615,9 @@
       }
     }
 
-    /* Grid: 1 columna en tablets */
+    /* Grid: 2 columnas en tablets */
     .actions-grid {
-      grid-template-columns: 1fr;                              /* 1 columna - tarjetas apiladas */
+      grid-template-columns: repeat(2, 1fr);                   /* 2 columnas de igual tamaño */
       gap: 20px;                                               /* Espacio de 20px entre tarjetas */
     }
   }
@@ -640,8 +652,20 @@
   }
 }
 
+/* Small Tablet - Quick Actions */
+/* Ajustes de acciones rápidas para tablets pequeñas (640px o menos) */
+@media (max-width: 640px) {
+  .quick-actions {
+    /* Grid: 1 columna en tablets pequeñas */
+    .actions-grid {
+      grid-template-columns: 1fr;                              /* 1 columna - tarjetas apiladas */
+      gap: 16px;                                               /* Espacio de 16px entre tarjetas */
+    }
+  }
+}
+
 /* Mobile - Quick Actions */
-/* Ajustes de acciones rápidas para móviles */
+/* Ajustes de acciones rápidas para móviles (480px o menos) */
 @media (max-width: 480px) {
   .quick-actions {
     /* Título aún más pequeño */
