@@ -1,0 +1,165 @@
+// =====================================================
+// ESTILOS GLOBALES PARA VISUALIZADORES - OPTIMIZADOS
+// Propósito: Estilos compartidos y optimizados para todos los visualizadores
+// =====================================================
+
+// Clase personalizada para los diálogos de visualización
+::ng-deep .viewer-dialog {
+  // Optimizar animaciones para mejor rendimiento
+  .mat-mdc-dialog-container {
+    // Usar transform en lugar de otras propiedades para mejor rendimiento
+    will-change: transform, opacity;
+    
+    // Reducir la duración de la animación para apertura más rápida
+    transition: transform 200ms cubic-bezier(0.25, 0.8, 0.25, 1),
+                opacity 200ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    
+    // Habilitar aceleración por hardware
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  // Optimizar el backdrop
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    // Mejorar rendimiento del rendering
+    contain: layout style paint;
+  }
+}
+
+// Optimizaciones para el backdrop
+::ng-deep .cdk-overlay-backdrop {
+  // Animación más rápida del backdrop
+  transition: opacity 200ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  
+  // Habilitar aceleración por hardware
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+// Optimizaciones para spinners de carga
+::ng-deep .mat-mdc-progress-spinner {
+  // Usar transform para animaciones más suaves
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+// Optimizaciones para tablas grandes (Excel)
+.excel-table {
+  // Habilitar scroll virtual para mejor rendimiento
+  contain: layout style paint;
+  
+  // Optimizar rendering de celdas
+  td, th {
+    // Evitar reflows innecesarios
+    contain: layout style;
+  }
+}
+
+// Optimizaciones para contenido HTML (Word)
+.word-content {
+  // Optimizar rendering del contenido
+  contain: layout style paint;
+  
+  // Habilitar aceleración por hardware
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+// Optimizaciones para iframes (PDF)
+.pdf-iframe {
+  // Habilitar aceleración por hardware
+  transform: translateZ(0);
+  will-change: contents;
+  
+  // Optimizar rendering
+  contain: strict;
+}
+
+// Animaciones optimizadas para entrada/salida
+@keyframes fadeInFast {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+}
+
+@keyframes fadeOutFast {
+  from {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateZ(0);
+  }
+}
+
+// Aplicar animaciones rápidas a los diálogos
+::ng-deep .viewer-dialog .mat-mdc-dialog-container {
+  animation: fadeInFast 200ms cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+// Optimizaciones para dispositivos móviles
+@media (max-width: 768px) {
+  ::ng-deep .viewer-dialog {
+    .mat-mdc-dialog-container {
+      // Animaciones aún más rápidas en móviles
+      transition: transform 150ms cubic-bezier(0.25, 0.8, 0.25, 1),
+                  opacity 150ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    }
+  }
+}
+
+// Optimizaciones para scroll suave
+.excel-container,
+.word-container,
+.pdf-container {
+  // Scroll suave pero no demasiado lento
+  scroll-behavior: smooth;
+  
+  // Optimizar scroll en dispositivos táctiles
+  -webkit-overflow-scrolling: touch;
+  
+  // Mejorar rendimiento del scroll
+  will-change: scroll-position;
+}
+
+// Reducir el impacto visual durante la carga
+.loading-container {
+  // Optimizar animación del spinner
+  mat-spinner {
+    // Usar transform para mejor rendimiento
+    transform: translateZ(0);
+  }
+}
+
+// Optimizaciones para botones de acción
+.dialog-actions button {
+  // Transiciones rápidas para mejor UX
+  transition: background-color 150ms cubic-bezier(0.25, 0.8, 0.25, 1),
+              box-shadow 150ms cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  // Habilitar aceleración por hardware
+  will-change: background-color, box-shadow;
+  transform: translateZ(0);
+}
+
+// Optimizaciones para pestañas de Excel
+.sheet-tabs {
+  // Optimizar rendering de pestañas
+  contain: layout style;
+  
+  .sheet-tab {
+    // Transiciones rápidas
+    transition: all 150ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    // Habilitar aceleración por hardware
+    will-change: background-color, color;
+    transform: translateZ(0);
+  }
+}

@@ -21,6 +21,7 @@ namespace FlexoAPP.API.Data.Context
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<CondicionUnica> CondicionUnica { get; set; }
+        public DbSet<Documento> Documentos { get; set; } // Tabla de documentos
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
