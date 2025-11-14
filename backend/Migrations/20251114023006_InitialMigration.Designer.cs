@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlexoAPP.API.Migrations
 {
     [DbContext(typeof(FlexoAPPDbContext))]
-    [Migration("20251024001115_AddMachineProgramsTable")]
-    partial class AddMachineProgramsTable
+    [Migration("20251114023006_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,8 +53,8 @@ namespace FlexoAPP.API.Migrations
 
                     b.Property<DateTime>("Timestamp")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+                        .HasColumnType("TIMESTAMP")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("UserCode")
                         .HasMaxLength(50)
@@ -74,6 +74,59 @@ namespace FlexoAPP.API.Migrations
                     b.HasIndex("UserId", "Timestamp");
 
                     b.ToTable("Activities", (string)null);
+                });
+
+            modelBuilder.Entity("FlexoAPP.API.Models.Entities.CondicionUnica", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TIMESTAMP")
+                        .HasColumnName("createddate")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Estante")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("estante");
+
+                    b.Property<string>("FArticulo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("farticulo");
+
+                    b.Property<DateTime?>("LastModified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TIMESTAMP")
+                        .HasColumnName("lastmodified")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+
+                    b.Property<string>("NumeroCarpeta")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("numerocarpeta");
+
+                    b.Property<string>("Referencia")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("referencia");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Estante");
+
+                    b.HasIndex("FArticulo");
+
+                    b.HasIndex("LastModified");
+
+                    b.ToTable("condicionunica", (string)null);
                 });
 
             modelBuilder.Entity("FlexoAPP.API.Models.Entities.Design", b =>
@@ -137,9 +190,6 @@ namespace FlexoAPP.API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Designer")
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime(6)");
 
@@ -182,8 +232,8 @@ namespace FlexoAPP.API.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+                        .HasColumnType("TIMESTAMP")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
@@ -199,6 +249,9 @@ namespace FlexoAPP.API.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("FechaTintaEnMaquina")
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal>("Kilos")
@@ -222,6 +275,9 @@ namespace FlexoAPP.API.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
+
+                    b.Property<int>("NumeroColores")
+                        .HasColumnType("int");
 
                     b.Property<string>("Observaciones")
                         .HasMaxLength(1000)
@@ -258,16 +314,10 @@ namespace FlexoAPP.API.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+                        .HasColumnType("TIMESTAMP")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
                     b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UserId1")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -280,15 +330,135 @@ namespace FlexoAPP.API.Migrations
 
                     b.HasIndex("MachineNumber");
 
+                    b.HasIndex("OtSap")
+                        .IsUnique();
+
                     b.HasIndex("UpdatedBy");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.HasIndex("MachineNumber", "Estado");
 
                     b.ToTable("machine_programs", (string)null);
+                });
+
+            modelBuilder.Entity("FlexoAPP.API.Models.Entities.Maquina", b =>
+                {
+                    b.Property<string>("Articulo")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("articulo");
+
+                    b.Property<string>("Cliente")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("cliente");
+
+                    b.Property<string>("Colores")
+                        .IsRequired()
+                        .HasColumnType("JSON")
+                        .HasColumnName("colores");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TIMESTAMP")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("LISTO")
+                        .HasColumnName("estado");
+
+                    b.Property<DateTime>("FechaTintaEnMaquina")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fecha_tinta_en_maquina");
+
+                    b.Property<decimal>("Kilos")
+                        .HasColumnType("DECIMAL(10,2)")
+                        .HasColumnName("kilos");
+
+                    b.Property<DateTime?>("LastActionAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("last_action_at");
+
+                    b.Property<string>("LastActionBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("last_action_by");
+
+                    b.Property<int>("NumeroColores")
+                        .HasColumnType("int")
+                        .HasColumnName("numero_colores");
+
+                    b.Property<int>("NumeroMaquina")
+                        .HasColumnType("int")
+                        .HasColumnName("numero_maquina");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("observaciones");
+
+                    b.Property<string>("OtSap")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ot_sap");
+
+                    b.Property<string>("Referencia")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("referencia");
+
+                    b.Property<string>("Sustrato")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("sustrato");
+
+                    b.Property<string>("Td")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("td");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TIMESTAMP")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Articulo");
+
+                    b.HasIndex("Cliente");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("Estado");
+
+                    b.HasIndex("FechaTintaEnMaquina");
+
+                    b.HasIndex("NumeroMaquina");
+
+                    b.HasIndex("OtSap");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("NumeroMaquina", "Estado");
+
+                    b.ToTable("maquinas", (string)null);
                 });
 
             modelBuilder.Entity("FlexoAPP.API.Models.Entities.Pedido", b =>
@@ -316,14 +486,13 @@ namespace FlexoAPP.API.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+                        .HasColumnType("TIMESTAMP")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
                     b.Property<string>("Descripcion")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
@@ -371,8 +540,8 @@ namespace FlexoAPP.API.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+                        .HasColumnType("TIMESTAMP")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
                     b.Property<int?>("UpdatedBy")
                         .HasColumnType("int");
@@ -410,8 +579,13 @@ namespace FlexoAPP.API.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+                        .HasColumnType("TIMESTAMP")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("Email");
 
                     b.Property<string>("FirstName")
                         .HasMaxLength(50)
@@ -460,8 +634,8 @@ namespace FlexoAPP.API.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+                        .HasColumnType("TIMESTAMP")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 
                     b.Property<string>("UserCode")
                         .IsRequired()
@@ -495,6 +669,23 @@ namespace FlexoAPP.API.Migrations
             modelBuilder.Entity("FlexoAPP.API.Models.Entities.MachineProgram", b =>
                 {
                     b.HasOne("FlexoAPP.API.Models.Entities.User", "CreatedByUser")
+                        .WithMany("CreatedPrograms")
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("FlexoAPP.API.Models.Entities.User", "UpdatedByUser")
+                        .WithMany("UpdatedPrograms")
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("FlexoAPP.API.Models.Entities.Maquina", b =>
+                {
+                    b.HasOne("FlexoAPP.API.Models.Entities.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -503,14 +694,6 @@ namespace FlexoAPP.API.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedBy")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("FlexoAPP.API.Models.Entities.User", null)
-                        .WithMany("CreatedPrograms")
-                        .HasForeignKey("UserId");
-
-                    b.HasOne("FlexoAPP.API.Models.Entities.User", null)
-                        .WithMany("UpdatedPrograms")
-                        .HasForeignKey("UserId1");
 
                     b.Navigation("CreatedByUser");
 

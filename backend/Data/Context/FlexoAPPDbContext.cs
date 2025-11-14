@@ -48,9 +48,9 @@ namespace FlexoAPP.API.Data.Context
                 entity.Property(e => e.Phone).HasMaxLength(20);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 
-                // MySQL: CURRENT_TIMESTAMP
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                // MySQL: CURRENT_TIMESTAMP - usando TIMESTAMP para compatibilidad
+                entity.Property(e => e.CreatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
                 
                 entity.HasIndex(e => e.Role);
                 entity.HasIndex(e => e.IsActive);
@@ -100,9 +100,9 @@ namespace FlexoAPP.API.Data.Context
                 entity.Property(e => e.Observaciones).HasMaxLength(1000);
                 entity.Property(e => e.AsignadoA).HasMaxLength(100);
                 
-                // MySQL timestamps
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                // MySQL timestamps - usando TIMESTAMP para compatibilidad
+                entity.Property(e => e.CreatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
                 
                 entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
                 entity.HasOne(e => e.UpdatedByUser).WithMany().HasForeignKey(e => e.UpdatedBy).OnDelete(DeleteBehavior.SetNull);
@@ -144,9 +144,9 @@ namespace FlexoAPP.API.Data.Context
                 entity.Property(e => e.LastAction).HasMaxLength(200);
                 entity.Property(e => e.OperatorName).HasMaxLength(100);
                 
-                // MySQL timestamps
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                // MySQL timestamps - usando TIMESTAMP para compatibilidad
+                entity.Property(e => e.CreatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
                 
                 entity.HasOne(e => e.CreatedByUser).WithMany(u => u.CreatedPrograms).HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
                 entity.HasOne(e => e.UpdatedByUser).WithMany(u => u.UpdatedPrograms).HasForeignKey(e => e.UpdatedBy).OnDelete(DeleteBehavior.SetNull);
@@ -286,12 +286,14 @@ namespace FlexoAPP.API.Data.Context
                 // Propiedad C#: CreatedAt -> Columna MySQL: created_at
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("created_at") // Mapeo explícito a snake_case
+                    .HasColumnType("TIMESTAMP")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
                 
                 // UpdatedAt: timestamp de última actualización
                 // Propiedad C#: UpdatedAt -> Columna MySQL: updated_at
                 entity.Property(e => e.UpdatedAt)
                     .HasColumnName("updated_at") // Mapeo explícito a snake_case
+                    .HasColumnType("TIMESTAMP")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
                 
                 // ===== RELACIONES CON TABLA USERS =====
@@ -322,8 +324,8 @@ namespace FlexoAPP.API.Data.Context
                 entity.Property(e => e.UserCode).HasMaxLength(50);
                 entity.Property(e => e.IpAddress).HasMaxLength(45);
                 
-                // MySQL timestamp
-                entity.Property(e => e.Timestamp).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP");
+                // MySQL timestamp - usando TIMESTAMP para compatibilidad
+                entity.Property(e => e.Timestamp).IsRequired().HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
                 
                 entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
                 
@@ -345,9 +347,9 @@ namespace FlexoAPP.API.Data.Context
                 entity.Property(e => e.Estante).IsRequired().HasMaxLength(50).HasColumnName("estante");
                 entity.Property(e => e.NumeroCarpeta).IsRequired().HasMaxLength(50).HasColumnName("numerocarpeta");
                 
-                // MySQL timestamps
-                entity.Property(e => e.CreatedDate).HasColumnName("createddate").HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.LastModified).HasColumnName("lastmodified").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                // MySQL timestamps - usando TIMESTAMP en lugar de DATETIME para compatibilidad
+                entity.Property(e => e.CreatedDate).HasColumnName("createddate").HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.LastModified).HasColumnName("lastmodified").HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
                 
                 // Índices para mejorar el rendimiento de búsquedas
                 entity.HasIndex(e => e.FArticulo);

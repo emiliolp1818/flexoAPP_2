@@ -443,8 +443,6 @@ try
     {
         // Crear usuario administrador si no existe
         await FlexoAPP.API.Data.SeedData.InitializeAsync(app.Services);
-        // Crear tabla de programas de máquinas si no existe
-        await FlexoAPP.API.Data.MachineProgramTableInitializer.InitializeAsync(app.Services);
         Log.Information("✅ Base de datos inicializada con datos esenciales");
     }
     catch (Exception ex)
