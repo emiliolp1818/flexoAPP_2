@@ -278,6 +278,11 @@ try
     // ===== DEPENDENCY INJECTION =====
     // Authentication & Authorization
     builder.Services.AddScoped<IAuthService, AuthService>();
+    
+    // PDF Conversion Service - Conversión sin marca de agua
+    builder.Services.AddScoped<IPdfConversionService, PdfConversionService>();
+    Log.Information("✅ PdfConversionService registered (Free, No Watermark)");
+    
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IJwtService, JwtService>();
     builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
@@ -331,6 +336,46 @@ try
 
     // Static Files - Para servir imágenes de perfil y otros archivos
     app.UseStaticFiles();
+    
+    // Static Files - Para servir archivos subidos (documentos)
+    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+    if (!Directory.Exists(uploadsPath))
+    {
+        Directory.CreateDirectory(uploadsPath);
+        Log.Information("📁 Created uploads directory: {Path}", uploadsPath);
+    }
+    
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+        RequestPath = "/uploads",
+        OnPrepareResponse = ctx =>
+        {
+            // Configurar headers para que los archivos se visualicen en el navegador
+            // en lugar de descargarse automáticamente
+            var path = ctx.File.Name.ToLower();
+            
+            // Para PDFs: visualizar en el navegador (inline)
+            if (path.EndsWith(".pdf"))
+            {
+                ctx.Context.Response.Headers["Content-Disposition"] = "inline";
+                ctx.Context.Response.Headers["Content-Type"] = "application/pdf";
+            }
+            // Para imágenes: visualizar en el navegador (inline)
+            else if (path.EndsWith(".png") || path.EndsWith(".jpg") || path.EndsWith(".jpeg") || path.EndsWith(".gif"))
+            {
+                ctx.Context.Response.Headers["Content-Disposition"] = "inline";
+            }
+            // Para Excel y Word: forzar descarga (attachment)
+            else if (path.EndsWith(".xlsx") || path.EndsWith(".xls") || path.EndsWith(".docx") || path.EndsWith(".doc"))
+            {
+                ctx.Context.Response.Headers["Content-Disposition"] = "attachment";
+            }
+            
+            // Agregar headers de caché para mejorar rendimiento
+            ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=3600";
+        }
+    });
 
     // Swagger (development and staging)
     if (app.Environment.IsDevelopment() || app.Environment.IsStaging())

@@ -1,210 +1,345 @@
+<!-- ===== CONTENEDOR PRINCIPAL DE DOCUMENTOS ===== -->
+<!-- Sistema de gestión de Documentos con diseño tipo cuadrícula Excel -->
+<!-- Contenedor raíz que ocupa toda la ventana con flexbox vertical -->
+<!-- Clase: documento-container - Define el layout principal del componente -->
 <div class="documento-container">
-    <!-- Header Section -->
-    <div class="header-section">
-        <div class="title-section">
-            <mat-icon class="page-icon">folder_open</mat-icon>
-            <h1>Gestión de Documentos</h1>
-        </div>
-        <div class="action-buttons">
-            <button mat-raised-button color="primary" (click)="uploadDocument()">
-                <mat-icon>cloud_upload</mat-icon>
-                Subir Documento
-            </button>
-            <button mat-raised-button color="accent" (click)="createNewDocument()">
-                <mat-icon>add</mat-icon>
-                Crear Nuevo
-            </button>
-        </div>
+
+  <!-- ===== HEADER FIJO ===== -->
+  <!-- Header principal que permanece fijo en la parte superior (no hace scroll) -->
+  <!-- Clase: documento-header - Estilo glassmorphism con backdrop-filter -->
+  <div class="documento-header">
+    <!-- Contenedor del contenido del header con flexbox -->
+    <div class="header-content">
+      <!-- Sección izquierda: Información del header (título y subtítulo) -->
+      <div class="header-info">
+        <!-- Título principal con icono de Material Design -->
+        <!-- h1 con clase page-title - Tamaño 1.5rem, peso 700 -->
+        <h1 class="page-title">
+          <!-- Icono de documento de Material Icons -->
+          <mat-icon>description</mat-icon>
+          <!-- Texto del título -->
+          Gestión de Documentos
+        </h1>
+        <!-- Subtítulo descriptivo del módulo -->
+        <!-- p con clase page-subtitle - Tamaño 0.9rem, color gris medio -->
+        <p class="page-subtitle">
+          Administración centralizada de documentos del sistema FlexoAPP
+        </p>
+      </div>
+
+      <!-- Sección derecha: Acciones del header (botones de acción) -->
+      <div class="header-actions">
+        <!-- Botón Subir Documento - Botón primario elevado (raised) -->
+        <!-- (click) - Evento que llama al método uploadDocument() -->
+        <!-- matTooltip - Muestra tooltip al pasar el mouse -->
+        <button mat-raised-button color="primary" (click)="uploadDocument()" 
+          matTooltip="Subir nuevo documento">
+          <!-- Icono de subir archivo -->
+          <mat-icon>upload_file</mat-icon>
+          <!-- Texto del botón -->
+          Subir Documento
+        </button>
+
+        <!-- Botón Crear Nuevo - Botón secundario con borde (stroked) -->
+        <!-- (click) - Evento que llama al método createNewDocument() -->
+        <button mat-stroked-button color="primary" (click)="createNewDocument()" 
+          matTooltip="Crear nuevo documento">
+          <!-- Icono de agregar -->
+          <mat-icon>add</mat-icon>
+          <!-- Texto del botón -->
+          Crear Nuevo
+        </button>
+      </div>
     </div>
+  </div>
 
-    <!-- Filters Section -->
-    <mat-card class="filters-card">
-        <mat-card-content>
-            <div class="filters-container">
-                <!-- Search Input -->
-                <mat-form-field appearance="outline" class="search-field">
-                    <mat-label>Buscar documentos</mat-label>
-                    <input matInput placeholder="Nombre o tipo de documento" (input)="onSearchChange($event)">
-                    <mat-icon matSuffix>search</mat-icon>
-                </mat-form-field>
+  <!-- ===== ÁREA DE BÚSQUEDA Y FILTROS COMPACTA ===== -->
+  <!-- Sección de búsqueda y filtros - Versión compacta que no hace scroll -->
+  <!-- Clase: search-area-compact - Padding horizontal, flex-shrink: 0 -->
+  <div class="search-area-compact">
+    <!-- Contenedor con fondo glassmorphism y bordes redondeados -->
+    <div class="search-container-compact">
+      <!-- Campo de búsqueda compacto con Material Form Field -->
+      <!-- appearance="outline" - Estilo con borde -->
+      <mat-form-field appearance="outline" class="search-field-compact">
+        <!-- Etiqueta flotante del campo -->
+        <mat-label>Buscar documento</mat-label>
+        <!-- Input de texto vinculado al signal searchTerm -->
+        <!-- [value] - Binding unidireccional desde el signal -->
+        <!-- (input) - Evento que se dispara al escribir -->
+        <input matInput [value]="searchTerm()" (input)="onSearchChange($event)"
+          placeholder="Ej: Manual de Usuario">
+        <!-- Icono de búsqueda al inicio del campo (matPrefix) -->
+        <mat-icon matPrefix class="search-icon-compact">search</mat-icon>
+        <!-- Botón limpiar integrado al final del campo (matSuffix) -->
+        <!-- *ngIf - Solo se muestra si hay texto en searchTerm -->
+        <!-- (click) - Limpia el signal al hacer clic -->
+        <button mat-icon-button matSuffix (click)="searchTerm.set('')" *ngIf="searchTerm()" 
+          class="clear-btn-compact" matTooltip="Limpiar búsqueda">
+          <!-- Icono de cerrar/limpiar -->
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
 
-                <!-- Category Filter -->
-                <mat-form-field appearance="outline" class="filter-field">
-                    <mat-label>Categoría</mat-label>
-                    <mat-select [value]="selectedCategory()" (selectionChange)="onCategoryChange($event.value)">
-                        <mat-option *ngFor="let category of categories" [value]="category.value">
-                            {{ category.label }}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
+      <!-- Filtro de Categoría - Select de Material -->
+      <mat-form-field appearance="outline" class="filter-field-compact">
+        <!-- Etiqueta del filtro -->
+        <mat-label>Categoría</mat-label>
+        <!-- Select vinculado al signal selectedCategory -->
+        <!-- [value] - Valor actual del signal -->
+        <!-- (selectionChange) - Evento al cambiar la selección -->
+        <mat-select [value]="selectedCategory()" (selectionChange)="onCategoryChange($event.value)">
+          <!-- Opciones generadas dinámicamente desde el array categories -->
+          <!-- *ngFor - Itera sobre cada categoría -->
+          <mat-option *ngFor="let category of categories" [value]="category.value">
+            <!-- Muestra la etiqueta legible de la categoría -->
+            {{ category.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-                <!-- Status Filter -->
-                <mat-form-field appearance="outline" class="filter-field">
-                    <mat-label>Estado</mat-label>
-                    <mat-select [value]="selectedStatus()" (selectionChange)="onStatusChange($event.value)">
-                        <mat-option *ngFor="let status of statuses" [value]="status.value">
-                            {{ status.label }}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-            </div>
-        </mat-card-content>
-    </mat-card>
+      <!-- Filtro de Estado - Select de Material -->
+      <mat-form-field appearance="outline" class="filter-field-compact">
+        <!-- Etiqueta del filtro -->
+        <mat-label>Estado</mat-label>
+        <!-- Select vinculado al signal selectedStatus -->
+        <!-- [value] - Valor actual del signal -->
+        <!-- (selectionChange) - Evento al cambiar la selección -->
+        <mat-select [value]="selectedStatus()" (selectionChange)="onStatusChange($event.value)">
+          <!-- Opciones generadas dinámicamente desde el array statuses -->
+          <!-- *ngFor - Itera sobre cada estado -->
+          <mat-option *ngFor="let status of statuses" [value]="status.value">
+            <!-- Muestra la etiqueta legible del estado -->
+            {{ status.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <!-- Contador de resultados compacto - Badge con número de documentos filtrados -->
+      <!-- Clase: results-badge - Badge azul con gradiente -->
+      <span class="results-badge">
+        <!-- Interpolación que muestra el número de documentos filtrados -->
+        <!-- filteredDocuments() - Computed signal que se recalcula automáticamente -->
+        {{ filteredDocuments().length }} documento(s)
+      </span>
+    </div>
+  </div>""
 
-    <!-- Documents Table -->
-    <mat-card class="documents-card">
-        <mat-card-header>
-            <mat-card-title>
-                <mat-icon>description</mat-icon>
-                Documentos ({{ filteredDocuments().length }})
-            </mat-card-title>
-        </mat-card-header>
+  <!-- ===== ÁREA DE TABLA TIPO EXCEL =====  -->
+  <!-- Tabla estilo cuadrícula con celdas y columnas para mostrar los documentos -->
+  <div class="grid-area">
+    <mat-card class="grid-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>table_view</mat-icon>
+          Lista de Documentos
+          <span style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+            ({{ filteredDocuments().length }} documentos)
+          </span>
+        </mat-card-title>
+      </mat-card-header>
 
-        <mat-card-content>
-            <div class="table-container">
-                <table mat-table [dataSource]="filteredDocuments()" class="documents-table">
+      <mat-card-content>
 
-                    <!-- Name Column -->
-                    <ng-container matColumnDef="name">
-                        <th mat-header-cell *matHeaderCellDef>Nombre</th>
-                        <td mat-cell *matCellDef="let document">
-                            <div class="document-name">
-                                <mat-icon class="type-icon">{{ getTypeIcon(document.type) }}</mat-icon>
-                                <span>{{ document.name }}</span>
-                            </div>
-                        </td>
-                    </ng-container>
+        <!-- Tabla estilo Excel con cuadrícula -->
+        <div *ngIf="filteredDocuments().length > 0" class="table-container">
+          <table class="excel-table">
+            <!-- Header de la tabla con columnas -->
+            <thead>
+              <tr>
+                <!-- Columna: Nombre del Documento -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>description</mat-icon>
+                    <span>Nombre del Documento</span>
+                  </div>
+                </th>
+                <!-- Columna: Tipo -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>category</mat-icon>
+                    <span>Tipo</span>
+                  </div>
+                </th>
+                <!-- Columna: Categoría -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>folder</mat-icon>
+                    <span>Categoría</span>
+                  </div>
+                </th>
+                <!-- Columna: Descripción -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>notes</mat-icon>
+                    <span>Descripción</span>
+                  </div>
+                </th>
+                <!-- Columna: Tamaño -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>storage</mat-icon>
+                    <span>Tamaño</span>
+                  </div>
+                </th>
+                <!-- Columna: Fecha de Creación -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>calendar_today</mat-icon>
+                    <span>Fecha de Creación</span>
+                  </div>
+                </th>
+                <!-- Columna: Estado -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>info</mat-icon>
+                    <span>Estado</span>
+                  </div>
+                </th>
+                <!-- Columna: Acciones -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>settings</mat-icon>
+                    <span>Acciones</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
 
-                    <!-- Type Column -->
-                    <ng-container matColumnDef="type">
-                        <th mat-header-cell *matHeaderCellDef>Tipo</th>
-                        <td mat-cell *matCellDef="let document">
-                            <span class="document-type">{{ document.type }}</span>
-                        </td>
-                    </ng-container>
-
-                    <!-- Size Column -->
-                    <ng-container matColumnDef="size">
-                        <th mat-header-cell *matHeaderCellDef>Tamaño</th>
-                        <td mat-cell *matCellDef="let document">{{ document.size }}</td>
-                    </ng-container>
-
-                    <!-- Created Date Column -->
-                    <ng-container matColumnDef="createdDate">
-                        <th mat-header-cell *matHeaderCellDef>Fecha Creación</th>
-                        <td mat-cell *matCellDef="let document">
-                            {{ document.createdDate | date:'dd/MM/yyyy' }}
-                        </td>
-                    </ng-container>
-
-                    <!-- Status Column -->
-                    <ng-container matColumnDef="status">
-                        <th mat-header-cell *matHeaderCellDef>Estado</th>
-                        <td mat-cell *matCellDef="let document">
-                            <div class="status-badge" [ngClass]="'status-' + document.status">
-                                <mat-icon>{{ getStatusIcon(document.status) }}</mat-icon>
-                                <span>
-                                    {{ document.status === 'active' ? 'Activo' :
-                                    document.status === 'archived' ? 'Archivado' : 'Borrador' }}
-                                </span>
-                            </div>
-                        </td>
-                    </ng-container>
-
-                    <!-- Actions Column -->
-                    <ng-container matColumnDef="actions">
-                        <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                        <td mat-cell *matCellDef="let document">
-                            <div class="action-buttons">
-                                <button mat-icon-button color="primary" matTooltip="Ver documento"
-                                    (click)="viewDocument(document)">
-                                    <mat-icon>visibility</mat-icon>
-                                </button>
-
-                                <button mat-icon-button color="accent" matTooltip="Descargar"
-                                    (click)="downloadDocument(document)">
-                                    <mat-icon>download</mat-icon>
-                                </button>
-
-                                <button mat-icon-button color="primary" matTooltip="Editar"
-                                    (click)="editDocument(document)" *ngIf="document.status !== 'archived'">
-                                    <mat-icon>edit</mat-icon>
-                                </button>
-
-                                <button mat-icon-button color="warn" matTooltip="Eliminar"
-                                    (click)="deleteDocument(document)">
-                                    <mat-icon>delete</mat-icon>
-                                </button>
-                            </div>
-                        </td>
-                    </ng-container>
-
-                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                </table>
-
-                <!-- Empty State -->
-                <div class="empty-state" *ngIf="filteredDocuments().length === 0">
-                    <mat-icon class="empty-icon">folder_open</mat-icon>
-                    <h3>No se encontraron documentos</h3>
-                    <p>No hay documentos que coincidan con los filtros seleccionados.</p>
-                    <button mat-raised-button color="primary" (click)="uploadDocument()">
-                        <mat-icon>cloud_upload</mat-icon>
-                        Subir Primer Documento
+            <!-- Cuerpo de la tabla con filas de datos -->
+            <tbody>
+              <!-- Fila por cada documento - Itera sobre la lista filtrada de documentos -->
+              <tr *ngFor="let doc of filteredDocuments()" class="excel-row">
+                <!-- Celda: Nombre del Documento - Muestra icono según tipo y nombre -->
+                <td class="excel-cell name-cell">
+                  <div class="name-content">
+                    <!-- Icono dinámico según el tipo de documento -->
+                    <mat-icon>{{ getTypeIcon(doc.tipo) }}</mat-icon>
+                    <!-- Nombre del documento -->
+                    <span class="name-text">{{ doc.nombre }}</span>
+                  </div>
+                </td>
+                <!-- Celda: Tipo - Badge con icono y tipo de documento -->
+                <td class="excel-cell type-cell">
+                  <span class="type-badge">
+                    <!-- Icono del tipo de documento -->
+                    <mat-icon>{{ getTypeIcon(doc.tipo) }}</mat-icon>
+                    <!-- Texto del tipo (PDF, Word, Excel, etc.) -->
+                    {{ doc.tipo }}
+                  </span>
+                </td>
+                <!-- Celda: Categoría - Badge verde con la categoría -->
+                <td class="excel-cell category-cell">
+                  <span class="category-badge">
+                    <!-- Etiqueta legible de la categoría (Reportes, Formatos, etc.) -->
+                    {{ getCategoryLabel(doc.categoria) }}
+                  </span>
+                </td>
+                <!-- Celda: Descripción - Texto truncado con tooltip -->
+                <td class="excel-cell description-cell">
+                  <!-- Tooltip muestra descripción completa al pasar el mouse -->
+                  <span class="description-text" [matTooltip]="doc.descripcion || 'Sin descripción'">
+                    <!-- Texto truncado con ellipsis si es muy largo -->
+                    {{ doc.descripcion || 'Sin descripción' }}
+                  </span>
+                </td>
+                <!-- Celda: Tamaño - Tamaño formateado del archivo -->
+                <td class="excel-cell size-cell">
+                  <span class="size-text">{{ doc.tamanoFormateado }}</span>
+                </td>
+                <!-- Celda: Fecha de Creación - Fecha formateada dd/MM/yyyy -->
+                <td class="excel-cell date-cell">
+                  <!-- Pipe date formatea la fecha al formato español -->
+                  <span class="date-text">{{ doc.fechaCreacion | date:'dd/MM/yyyy' }}</span>
+                </td>
+                <!-- Celda: Estado - Badge con color según estado -->
+                <td class="excel-cell status-cell">
+                  <!-- ngClass aplica clase CSS según el estado del documento -->
+                  <span class="status-badge" 
+                    [ngClass]="{
+                      'status-active': doc.estado === 'active',
+                      'status-draft': doc.estado === 'draft',
+                      'status-archived': doc.estado === 'archived'
+                    }">
+                    <!-- Icono según el estado -->
+                    <mat-icon>{{ getStatusIcon(doc.estado) }}</mat-icon>
+                    <!-- Texto del estado en español -->
+                    {{ doc.estado === 'active' ? 'Activo' : 
+                       doc.estado === 'draft' ? 'Borrador' : 'Archivado' }}
+                  </span>
+                </td>
+                <!-- Celda: Acciones - Botones de acción para cada documento -->
+                <td class="excel-cell actions-cell">
+                  <!-- Contenedor flex para los botones de acción -->
+                  <div class="action-buttons">
+                    <!-- Botón Ver - Abre documento en ventana emergente -->
+                    <!-- mat-icon-button - Botón circular solo con icono -->
+                    <!-- (click) - Llama a viewDocument() pasando el documento -->
+                    <!-- $event.stopPropagation() - Evita que el evento se propague a otros elementos -->
+                    <button mat-icon-button color="primary" (click)="$event.stopPropagation(); viewDocument(doc)"
+                      class="action-btn view-btn"
+                      matTooltip="Ver documento">
+                      <!-- Icono de ojo/visibilidad -->
+                      <mat-icon>visibility</mat-icon>
                     </button>
-                </div>
-            </div>
-        </mat-card-content>
+                    <!-- Botón Imprimir - Imprime el documento -->
+                    <!-- (click) - Llama a printDocument() pasando el documento -->
+                    <!-- $event.stopPropagation() - Evita que el evento se propague a otros elementos -->
+                    <!-- style inline - Color morado para el icono de imprimir -->
+                    <button mat-icon-button (click)="$event.stopPropagation(); printDocument(doc)"
+                      class="action-btn print-btn"
+                      matTooltip="Imprimir documento"
+                      style="color: #7c3aed;">
+                      <!-- Icono de impresora -->
+                      <mat-icon>print</mat-icon>
+                    </button>
+                    <!-- Botón Editar - Abre diálogo de edición -->
+                    <!-- (click) - Llama a editDocument() pasando el documento -->
+                    <!-- $event.stopPropagation() - Evita que el evento se propague a otros elementos -->
+                    <button mat-icon-button color="primary" (click)="$event.stopPropagation(); editDocument(doc)"
+                      class="action-btn edit-btn"
+                      matTooltip="Editar documento">
+                      <!-- Icono de lápiz/editar -->
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <!-- Botón Eliminar - Elimina documento con confirmación -->
+                    <!-- color="warn" - Color rojo de advertencia -->
+                    <!-- (click) - Llama a deleteDocument() pasando el documento -->
+                    <!-- $event.stopPropagation() - Evita que el evento se propague a otros elementos -->
+                    <button mat-icon-button color="warn" (click)="$event.stopPropagation(); deleteDocument(doc)"
+                      class="action-btn delete-btn"
+                      matTooltip="Eliminar documento">
+                      <!-- Icono de papelera/eliminar -->
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mensaje cuando no hay documentos - Estado vacío -->
+        <!-- *ngIf - Solo se muestra si no hay documentos filtrados -->
+        <div *ngIf="filteredDocuments().length === 0" class="no-data">
+          <!-- Icono grande de documento -->
+          <mat-icon>description</mat-icon>
+          <!-- Mensaje informativo -->
+          <p>No se encontraron documentos</p>
+          <!-- Botón para subir el primer documento -->
+          <!-- (click) - Abre el diálogo de subida de archivos -->
+          <button mat-raised-button color="primary" (click)="uploadDocument()">
+            <!-- Icono de subir archivo -->
+            <mat-icon>upload_file</mat-icon>
+            <!-- Texto del botón -->
+            Subir Primer Documento
+          </button>
+        </div>
+
+      </mat-card-content>
     </mat-card>
+  </div>
 
-    <!-- Statistics Cards -->
-    <div class="stats-section">
-        <mat-card class="stat-card">
-            <mat-card-content>
-                <div class="stat-content">
-                    <mat-icon class="stat-icon active">description</mat-icon>
-                    <div class="stat-info">
-                        <h3>{{ getActiveDocumentsCount() }}</h3>
-                        <p>Documentos Activos</p>
-                    </div>
-                </div>
-            </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-            <mat-card-content>
-                <div class="stat-content">
-                    <mat-icon class="stat-icon draft">edit</mat-icon>
-                    <div class="stat-info">
-                        <h3>{{ getDraftDocumentsCount() }}</h3>
-                        <p>Borradores</p>
-                    </div>
-                </div>
-            </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-            <mat-card-content>
-                <div class="stat-content">
-                    <mat-icon class="stat-icon archived">archive</mat-icon>
-                    <div class="stat-info">
-                        <h3>{{ getArchivedDocumentsCount() }}</h3>
-                        <p>Archivados</p>
-                    </div>
-                </div>
-            </mat-card-content>
-        </mat-card>
-
-        <mat-card class="stat-card">
-            <mat-card-content>
-                <div class="stat-content">
-                    <mat-icon class="stat-icon total">folder</mat-icon>
-                    <div class="stat-info">
-                        <h3>{{ getTotalDocumentsCount() }}</h3>
-                        <p>Total Documentos</p>
-                    </div>
-                </div>
-            </mat-card-content>
-        </mat-card>
-    </div>
 </div>
+<!-- Fin del contenedor principal de Documentos -->
+<!-- Cierre del div.documento-container -->
