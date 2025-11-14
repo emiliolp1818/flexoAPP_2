@@ -1,10 +1,21 @@
--- Script para crear tabla condicionunica en la base de datos flexoBD existente
+-- Script para crear base de datos y tabla condicionunica en MySQL LOCAL
 -- Ejecutar en MySQL Workbench o mysql CLI
 
--- Usar la base de datos existente
-USE flexoBD;
+-- =====================================================
+-- SCRIPT PARA CREAR BASE DE DATOS MYSQL
+-- Base de datos: flexoapp_bd
+-- =====================================================
 
--- Eliminar tabla si existe (solo para desarrollo)
+-- ===== CREAR BASE DE DATOS =====
+-- CREATE DATABASE: crea la base de datos si no existe
+-- CHARACTER SET utf8mb4: soporte completo para caracteres Unicode
+-- COLLATE utf8mb4_unicode_ci: ordenamiento case-insensitive
+CREATE DATABASE IF NOT EXISTS flexoapp_bd CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- ===== SELECCIONAR BASE DE DATOS =====
+USE flexoapp_bd;
+
+-- Eliminar tabla si existe
 DROP TABLE IF EXISTS condicionunica;
 
 -- Crear tabla condicionunica
@@ -30,6 +41,6 @@ INSERT INTO condicionunica (farticulo, referencia, estante, numerocarpeta) VALUE
 ('F204571', 'REF-ETIQUETA-005', 'E-03', 'C-005');
 
 -- Verificar
-SELECT 'Tabla condicionunica creada exitosamente en flexoBD' as mensaje;
+SELECT 'Tabla creada exitosamente' as mensaje;
 SELECT COUNT(*) as total_registros FROM condicionunica;
 SELECT * FROM condicionunica;

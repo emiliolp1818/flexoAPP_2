@@ -1,18 +1,24 @@
--- Script para ejecutar la migración completa de la base de datos
+-- =====================================================
+-- SCRIPT PARA EJECUTAR LA MIGRACIÓN COMPLETA
 -- FlexoAPP - Sistema de Gestión Flexográfica
+-- Base de datos: flexoapp_bd
+-- =====================================================
 
--- Crear la base de datos si no existe
-CREATE DATABASE IF NOT EXISTS flexoapp_db 
+-- ===== CREAR BASE DE DATOS =====
+-- CREATE DATABASE: crea la base de datos si no existe
+CREATE DATABASE IF NOT EXISTS flexoapp_bd 
 CHARACTER SET utf8mb4 
 COLLATE utf8mb4_unicode_ci;
 
-USE flexoapp_db;
+-- ===== SELECCIONAR BASE DE DATOS =====
+USE flexoapp_bd;
 
--- Verificar si la tabla Designs ya existe
+-- ===== VERIFICAR SI LA TABLA DESIGNS YA EXISTE =====
+-- Consulta a information_schema para verificar la existencia de la tabla
 SELECT COUNT(*) as table_exists 
 FROM information_schema.tables 
-WHERE table_schema = 'flexoapp_db' 
-AND table_name = 'Designs';
+WHERE table_schema = 'flexoapp_bd'  -- Base de datos: flexoapp_bd
+AND table_name = 'Designs';         -- Tabla: Designs
 
 -- Si la tabla no existe, ejecutar el script de creación
 -- (Este script debe ejecutarse manualmente si la tabla no existe)
