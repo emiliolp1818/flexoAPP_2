@@ -4,11 +4,16 @@
 USE flexoapp_bd;
 
 -- Verificar si la columna Email ya existe
+-- ===== VERIFICAR SI LA COLUMNA EMAIL YA EXISTE =====
+-- Consulta a INFORMATION_SCHEMA para verificar la existencia de la columna
+-- TABLE_SCHEMA: nombre de la base de datos (flexoapp_bd)
+-- TABLE_NAME: nombre de la tabla (users)
+-- COLUMN_NAME: nombre de la columna a verificar (Email)
 SELECT COUNT(*) as email_exists 
 FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE TABLE_SCHEMA = 'flexoapp_db' 
-  AND TABLE_NAME = 'users' 
-  AND COLUMN_NAME = 'Email';
+WHERE TABLE_SCHEMA = 'flexoapp_bd'  -- Base de datos: flexoapp_bd
+  AND TABLE_NAME = 'users'          -- Tabla: users
+  AND COLUMN_NAME = 'Email';        -- Columna: Email
 
 -- Agregar la columna Email si no existe
 ALTER TABLE users 

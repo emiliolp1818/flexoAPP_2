@@ -46,9 +46,12 @@ cd flexoAPP_2
 
 ### 2. Configurar Base de Datos
 ```bash
-# Crear base de datos en MySQL
+# ===== CREAR BASE DE DATOS EN MYSQL =====
+# Conectar a MySQL con el usuario root
 mysql -u root -p
-CREATE DATABASE flexoapp_bd;
+
+# Crear la base de datos flexoapp_bd con soporte Unicode completo
+CREATE DATABASE flexoapp_bd CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ### 3. Configurar Backend

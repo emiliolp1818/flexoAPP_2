@@ -1,14 +1,19 @@
 -- =====================================================
 -- SCRIPT COMPLETO DE CONFIGURACIÓN - FLEXOAPP
--- Base de datos unificada: flexoapp_db
+-- Base de datos unificada: flexoapp_bd
+-- Propósito: Crear todas las tablas, vistas, triggers y datos iniciales
 -- =====================================================
 
--- Crear base de datos si no existe
-CREATE DATABASE IF NOT EXISTS flexoapp_db 
+-- ===== CREAR BASE DE DATOS =====
+-- CREATE DATABASE: crea la base de datos si no existe
+-- CHARACTER SET utf8mb4: soporte completo para caracteres Unicode
+-- COLLATE utf8mb4_unicode_ci: ordenamiento case-insensitive
+CREATE DATABASE IF NOT EXISTS flexoapp_bd 
 CHARACTER SET utf8mb4 
 COLLATE utf8mb4_unicode_ci;
 
-USE flexoapp_db;
+-- ===== SELECCIONAR BASE DE DATOS =====
+USE flexoapp_bd;
 
 -- =====================================================
 -- TABLA USERS
