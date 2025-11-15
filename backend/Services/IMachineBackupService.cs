@@ -28,7 +28,7 @@ namespace FlexoAPP.API.Services
         /// <summary>
         /// Obtener datos de backup para reportes
         /// </summary>
-        Task<List<MachineProgram>> GetBackupDataForReportsAsync(string backupId);
+        Task<List<Maquina>> GetBackupDataForReportsAsync(string backupId);
 
         /// <summary>
         /// Crear backup automático diario

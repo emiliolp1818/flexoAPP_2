@@ -20,7 +20,7 @@ namespace FlexoAPP.API.Services
 
         public async Task<ReportSummaryDto> GetReportSummaryAsync(ReportFilterDto filter)
         {
-            var query = _context.MachinePrograms.AsQueryable();
+            var query = _context.Maquinas.AsQueryable();
 
             // Aplicar filtros
             if (filter.StartDate.HasValue)
@@ -55,7 +55,7 @@ namespace FlexoAPP.API.Services
 
         public async Task<List<ProductionReportDto>> GetProductionReportAsync(ReportFilterDto filter)
         {
-            var query = _context.MachinePrograms.AsQueryable();
+            var query = _context.Maquinas.AsQueryable();
 
             // Aplicar filtros
             if (filter.StartDate.HasValue)
@@ -100,7 +100,7 @@ namespace FlexoAPP.API.Services
 
         public async Task<List<MachineEfficiencyReportDto>> GetMachineEfficiencyReportAsync(ReportFilterDto filter)
         {
-            var query = _context.MachinePrograms.AsQueryable();
+            var query = _context.Maquinas.AsQueryable();
 
             // Aplicar filtros
             if (filter.StartDate.HasValue)
@@ -144,7 +144,7 @@ namespace FlexoAPP.API.Services
 
         public async Task<List<ClientReportDto>> GetClientReportAsync(ReportFilterDto filter)
         {
-            var query = _context.MachinePrograms.AsQueryable();
+            var query = _context.Maquinas.AsQueryable();
 
             // Aplicar filtros
             if (filter.StartDate.HasValue)
@@ -189,8 +189,8 @@ namespace FlexoAPP.API.Services
             var startDate = filter.StartDate ?? DateTime.Now.AddDays(-30);
             var endDate = filter.EndDate ?? DateTime.Now;
 
-            var programs = await _context.MachinePrograms
-                .Where(p => p.FechaInicio >= startDate && p.FechaInicio <= endDate)
+            var programs = await _context.Maquinas
+                .Where(p => p.FechaTintaEnMaquina >= startDate && p.FechaTintaEnMaquina <= endDate)
                 .ToListAsync();
 
             var dailyGroups = programs.GroupBy(p => p.FechaInicio.Date);
@@ -222,7 +222,7 @@ namespace FlexoAPP.API.Services
 
         public async Task<List<string>> GetClientsListAsync()
         {
-            return await _context.MachinePrograms
+            return await _context.Maquinas
                 .Select(p => p.Cliente)
                 .Distinct()
                 .OrderBy(c => c)
@@ -231,7 +231,7 @@ namespace FlexoAPP.API.Services
 
         public async Task<List<string>> GetArticulosListAsync()
         {
-            return await _context.MachinePrograms
+            return await _context.Maquinas
                 .Select(p => p.Articulo)
                 .Distinct()
                 .OrderBy(a => a)
@@ -281,7 +281,7 @@ namespace FlexoAPP.API.Services
             return Encoding.UTF8.GetBytes(data);
         }
 
-        private double CalculateEfficiency(MachineProgram program)
+        private double CalculateEfficiency(Maquina program)
         {
             if (program.Estado == "TERMINADO" && program.FechaFin.HasValue)
             {
@@ -292,14 +292,14 @@ namespace FlexoAPP.API.Services
             return program.Progreso;
         }
 
-        private double CalculateDowntime(List<MachineProgram> programs)
+        private double CalculateDowntime(List<Maquina> programs)
         {
             // Cálculo simplificado del tiempo inactivo
             var suspendedPrograms = programs.Where(p => p.Estado == "SUSPENDIDO");
             return suspendedPrograms.Count() * 2; // Ejemplo: 2 horas promedio por suspensión
         }
 
-        private double CalculateUtilizationRate(List<MachineProgram> programs)
+        private double CalculateUtilizationRate(List<Maquina> programs)
         {
             var totalPrograms = programs.Count;
             var activePrograms = programs.Count(p => p.Estado == "CORRIENDO" || p.Estado == "TERMINADO");

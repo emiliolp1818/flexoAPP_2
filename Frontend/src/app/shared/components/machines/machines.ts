@@ -354,7 +354,7 @@ export class MachinesComponent implements OnInit {
       // Log detallado del error con información técnica
       console.error(`❌ ${errorMessage}`, {
         detallesTecnicos: technicalDetails,
-        urlAPI: `${environment.apiUrl}/machine-programs`
+        urlAPI: `${environment.apiUrl}/maquinas`
       });
       
       // Establecer array vacío en caso de error para evitar errores en la UI
@@ -790,59 +790,112 @@ Error: ${loginError.message || 'Error de conexión'}`);
     }
   }
 
-  // ===== MÉTODO PARA CARGAR PROGRAMACIÓN DESDE ARCHIVO EXCEL/CSV =====
-  // Método asíncrono que maneja la selección y procesamiento de archivos Excel/CSV
+  // ===== MÉTODO PARA CARGAR PROGRAMACIÓN DESDE ARCHIVO EXCEL =====
+  // Método asíncrono que maneja la selección y procesamiento de archivos Excel
   // 
   // FORMATO ESPERADO DEL ARCHIVO (11 columnas en este orden):
-  // (A) MÁQUINA - Número de máquina (11-21)
-  // (B) ARTÍCULO - Código del artículo (único)
+  // (A) MQ - Número de máquina (11-21)
+  // (B) ARTICULO - Código del artículo (único)
   // (C) OT SAP - Orden de trabajo SAP
   // (D) CLIENTE - Nombre del cliente
   // (E) REFERENCIA - Referencia del producto
-  // (F) TD - Código TD (Tipo de Diseño)
-  // (G) N° COLORES - Cantidad de colores (1-10)
-  // (H) COLORES - Lista de colores separados por coma (ej: CYAN,MAGENTA,AMARILLO,NEGRO)
+  // (F) F - Campo adicional (se ignora)
+  // (G) TD - Código TD (Tipo de Diseño)
+  // (H) N° COLORES - Cantidad de colores (1-10)
   // (I) KILOS - Cantidad en kilogramos
-  // (J) FECHA TINTA EN MÁQUINA - Fecha y hora (dd/mm/yyyy HH:mm)
-  // (K) SUSTRATO - Tipo de material base (ej: BOPP, PE, PET)
+  // (J) FECHA DE TINTAS EN MAQUINA - Fecha y hora
+  // (K) SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
   //
   // IMPORTANTE: Al cargar nueva programación, solo se eliminan los programas en estado CORRIENDO
   // Los programas en PREPARANDO, LISTO y SUSPENDIDO se mantienen para no perder el trabajo del operario
-  async onFileSelected(event: any) {
+  async onFileSelected(event: any): Promise<void> {
+    console.log('🎯 onFileSelected ejecutado - Evento recibido');
+    console.log('📂 Event:', event);
+    console.log('📂 Event.target:', event?.target);
+    console.log('📂 Event.target.files:', event?.target?.files);
+    
     // ===== OBTENER ARCHIVO SELECCIONADO =====
     const file = event.target.files[0]; // Obtener el primer archivo seleccionado del input file
-    if (!file) return; // Salir si no hay archivo seleccionado (usuario canceló)
+    
+    console.log('📄 Archivo seleccionado:', file);
+    
+    if (!file) {
+      console.warn('⚠️ No se seleccionó ningún archivo');
+      return; // Salir si no hay archivo seleccionado (usuario canceló)
+    }
+    
+    console.log('✅ Archivo válido:', {
+      nombre: file.name,
+      tamaño: file.size,
+      tipo: file.type
+    });
 
     // ===== VERIFICAR AUTENTICACIÓN =====
-    if (!this.authService.isLoggedIn()) {
-      console.error('❌ Usuario no autenticado');
-      this.snackBar.open(
+    const token = this.authService.getToken();
+    const isLoggedIn = this.authService.isLoggedIn();
+    
+    console.log('🔐 Estado de autenticación:', {
+      tieneToken: !!token,
+      tokenLength: token?.length || 0,
+      tokenPreview: token?.substring(0, 30) + '...',
+      isLoggedIn: isLoggedIn,
+      usuario: this.authService.getCurrentUser()
+    });
+
+    // Intentar decodificar el token para ver su contenido
+    if (token) {
+      try {
+        const tokenParts = token.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('📋 Payload del token:', {
+            exp: payload.exp,
+            expDate: new Date(payload.exp * 1000),
+            now: new Date(),
+            isExpired: payload.exp < Math.floor(Date.now() / 1000),
+            userId: payload.nameid || payload.sub,
+            role: payload.role
+          });
+        }
+      } catch (e) {
+        console.error('❌ Error decodificando token:', e);
+      }
+    }
+
+    if (!isLoggedIn) {
+      console.error('❌ Usuario no autenticado - Token:', token ? 'existe pero expirado' : 'no existe');
+      
+      const snackBarRef = this.snackBar.open(
         'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 
         'Ir a Login', 
         { duration: 10000 }
-      ).onAction().subscribe(() => {
+      );
+      
+      snackBarRef.onAction().subscribe(() => {
         window.location.href = '/login';
       });
+      
+      // Limpiar el input file
+      event.target.value = '';
       return;
     }
 
     // ===== VALIDACIÓN DE TIPO DE ARCHIVO =====
-    // Definir tipos MIME permitidos para validación de seguridad
+    // Definir tipos MIME permitidos para validación de seguridad - Solo Excel
     const allowedTypes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx (Excel moderno)
-      'application/vnd.ms-excel', // .xls (Excel antiguo)
-      'text/csv' // .csv (valores separados por comas)
+      'application/vnd.ms-excel' // .xls (Excel antiguo)
     ];
     
-    // Definir extensiones permitidas como respaldo de validación
-    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+    // Definir extensiones permitidas como respaldo de validación - Solo Excel
+    const allowedExtensions = ['.xlsx', '.xls'];
     // Extraer la extensión del archivo seleccionado
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
     
     // Validar que el archivo sea del tipo correcto (por MIME type o extensión)
     if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
       console.warn('⚠️ Tipo de archivo no válido:', file.type, fileExtension);
-      this.snackBar.open('Tipo de archivo no válido. Solo se permiten Excel o CSV', 'Cerrar', { duration: 5000 });
+      this.snackBar.open('Tipo de archivo no válido. Solo se permiten archivos Excel (.xlsx, .xls)', 'Cerrar', { duration: 5000 });
       return; // Salir si el tipo no es válido
     }
 
@@ -876,15 +929,20 @@ Error: ${loginError.message || 'Error de conexión'}`);
       // Realizar petición HTTP POST para subir y procesar el archivo
       // El backend procesará el Excel/CSV y retornará los programas parseados
       const response = await firstValueFrom(
-        this.http.post<any>(`${environment.apiUrl}/machine-programs/upload-programming`, formData)
+        this.http.post<any>(`${environment.apiUrl}/maquinas/upload`, formData)
       );
       
       // ===== VALIDACIÓN DE LA RESPUESTA DEL SERVIDOR =====
       // Verificar que la respuesta del servidor sea exitosa
       if (response && response.success) {
+        console.log('📡 Respuesta del servidor:', response);
+        console.log('📦 Datos recibidos:', response.data);
+        console.log('📊 Cantidad de programas en response.data:', response.data?.length || 0);
+        
         // ===== OBTENER PROGRAMAS ACTUALES =====
         // Obtener los programas actuales antes de actualizar
         const currentPrograms = this.programs();
+        console.log('📋 Programas actuales antes de cargar:', currentPrograms.length);
         
         // ===== FILTRAR PROGRAMAS A MANTENER =====
         // Mantener solo los programas que NO están en estado CORRIENDO
@@ -894,16 +952,23 @@ Error: ${loginError.message || 'Error de conexión'}`);
           p.estado === 'LISTO' || 
           p.estado === 'SUSPENDIDO'
         );
+        console.log('💾 Programas a mantener:', programsToKeep.length);
         
         // ===== OBTENER NUEVOS PROGRAMAS DEL SERVIDOR =====
         // Los nuevos programas vienen del archivo Excel/CSV procesado
         // Estos programas se cargan sin color (estado PREPARANDO por defecto)
         const newPrograms = response.data || [];
+        console.log('🆕 Nuevos programas del servidor:', newPrograms.length);
+        
+        if (newPrograms.length > 0) {
+          console.log('📝 Primer programa nuevo:', newPrograms[0]);
+        }
         
         // ===== COMBINAR PROGRAMAS =====
         // Combinar los programas a mantener con los nuevos programas
         // Los programas a mantener van primero para preservar su orden
         const combinedPrograms = [...programsToKeep, ...newPrograms];
+        console.log('🔗 Total de programas combinados:', combinedPrograms.length);
         
         // ===== ACTUALIZAR ESTADO REACTIVO =====
         // Actualizar la señal reactiva con los programas combinados
@@ -951,10 +1016,21 @@ Error: ${loginError.message || 'Error de conexión'}`);
     } catch (error: any) {
       // ===== MANEJO DE ERRORES =====
       console.error('❌ Error procesando archivo:', error);
+      console.error('📋 Detalles completos del error:', {
+        status: error.status,
+        statusText: error.statusText,
+        message: error.message,
+        error: error.error,
+        url: error.url,
+        headers: error.headers
+      });
       
       // ===== MANEJO ESPECÍFICO DE ERROR 401 (NO AUTORIZADO) =====
       if (error.status === 401) {
         console.error('🔒 Sesión expirada o no autorizado');
+        console.error('🔑 Token actual:', this.authService.getToken() ? 'existe' : 'no existe');
+        console.error('👤 Usuario actual:', this.authService.getCurrentUser());
+        
         this.snackBar.open(
           'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', 
           'Ir a Login', 
@@ -1110,171 +1186,133 @@ Error: ${loginError.message || 'Error de conexión'}`);
   }
 
   /**
-   * Exportar datos de programación a Excel (CSV)
-   * Genera un archivo CSV compatible con Excel con todos los programas de máquinas
+   * Exportar datos de programación a Excel (XLSX)
+   * Genera un archivo Excel real con formato usando la librería xlsx
    * Exportación del lado del cliente (no requiere backend)
    */
   exportToExcel() {
     try {
       // ===== ACTIVAR INDICADOR DE CARGA =====
-      this.loading.set(true); // Mostrar spinner en el botón
-      console.log('📊 Exportando programación a Excel (CSV)...');
+      this.loading.set(true);
+      console.log('📊 Exportando programación a Excel (XLSX)...');
       
       // ===== OBTENER DATOS A EXPORTAR =====
-      // Obtener todos los programas actuales desde la señal reactiva
       const dataToExport = this.programs();
       
       // ===== VALIDAR QUE HAY DATOS =====
-      // Verificar que haya al menos un programa para exportar
       if (dataToExport.length === 0) {
         console.warn('⚠️ No hay datos para exportar');
         this.snackBar.open('No hay programas para exportar', 'Cerrar', { duration: 3000 });
-        return; // Salir del método si no hay datos
+        return;
       }
 
-      // ===== DEFINIR ENCABEZADOS DEL CSV =====
-      // Array con los nombres de las columnas en español, organizados por categorías
-      const headers = [
-        // === IDENTIFICACIÓN ===
-        'MÁQUINA',              // Número de máquina (11-21)
-        'ARTÍCULO',             // Código del artículo (ej: F204567)
-        'OT SAP',               // Orden de trabajo SAP
-        
-        // === CLIENTE Y PRODUCTO ===
-        'CLIENTE',              // Nombre del cliente
-        'REFERENCIA',           // Referencia del producto
-        'TD',                   // Código TD (Tipo de Diseño)
-        
-        // === ESPECIFICACIONES TÉCNICAS ===
-        'N° COLORES',           // Cantidad de colores
-        'COLORES',              // Lista de colores separados por punto y coma
-        'KILOS',                // Cantidad en kilogramos
-        'SUSTRATO',             // Tipo de material base
-        
-        // === PROGRAMACIÓN ===
-        'FECHA TINTA EN MÁQUINA', // Fecha y hora de tinta en máquina
-        'ESTADO',               // Estado actual del programa
-        
-        // === INFORMACIÓN ADICIONAL ===
-        'OBSERVACIONES',        // Observaciones adicionales
-        'ÚLTIMA ACCIÓN POR',    // Usuario que realizó la última acción
-        'ÚLTIMA ACCIÓN FECHA'   // Fecha de la última acción
-      ];
+      // ===== IMPORTAR LIBRERÍA XLSX =====
+      import('xlsx').then(XLSX => {
+        // ===== PREPARAR DATOS PARA EXCEL =====
+        const excelData = dataToExport.map(program => {
+          // Formatear fecha de tinta
+          let fechaTintaFormatted = '';
+          if (program.fechaTintaEnMaquina) {
+            const fecha = new Date(program.fechaTintaEnMaquina);
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const anio = fecha.getFullYear();
+            const hora = String(fecha.getHours()).padStart(2, '0');
+            const minuto = String(fecha.getMinutes()).padStart(2, '0');
+            fechaTintaFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`;
+          }
 
-      // ===== CONVERTIR DATOS A FILAS CSV =====
-      // Mapear cada programa a un array de valores para CSV
-      const rows = dataToExport.map(program => {
-        // ===== FORMATEAR FECHA DE TINTA =====
-        // Convertir fecha a formato dd/mm/yyyy HH:mm
-        let fechaTintaFormatted = '';
-        if (program.fechaTintaEnMaquina) {
-          const fecha = new Date(program.fechaTintaEnMaquina);
-          const dia = String(fecha.getDate()).padStart(2, '0'); // Día con 2 dígitos
-          const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos (0-11)
-          const anio = fecha.getFullYear(); // Año completo
-          const hora = String(fecha.getHours()).padStart(2, '0'); // Hora con 2 dígitos
-          const minuto = String(fecha.getMinutes()).padStart(2, '0'); // Minuto con 2 dígitos
-          fechaTintaFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`; // Formato: dd/mm/yyyy HH:mm
-        }
+          // Formatear fecha de última acción
+          let lastActionFormatted = '';
+          if (program.lastActionAt) {
+            const fecha = new Date(program.lastActionAt);
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const anio = fecha.getFullYear();
+            const hora = String(fecha.getHours()).padStart(2, '0');
+            const minuto = String(fecha.getMinutes()).padStart(2, '0');
+            lastActionFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`;
+          }
 
-        // ===== FORMATEAR FECHA DE ÚLTIMA ACCIÓN =====
-        // Convertir fecha a formato dd/mm/yyyy HH:mm
-        let lastActionFormatted = '';
-        if (program.lastActionAt) {
-          const fecha = new Date(program.lastActionAt);
-          const dia = String(fecha.getDate()).padStart(2, '0');
-          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-          const anio = fecha.getFullYear();
-          const hora = String(fecha.getHours()).padStart(2, '0');
-          const minuto = String(fecha.getMinutes()).padStart(2, '0');
-          lastActionFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`;
-        }
+          // Formatear colores
+          const coloresFormatted = program.colores && program.colores.length > 0 
+            ? program.colores.join(', ')
+            : '';
 
-        // ===== FORMATEAR COLORES =====
-        // Unir array de colores con punto y coma para mejor legibilidad en Excel
-        const coloresFormatted = program.colores && program.colores.length > 0 
-          ? program.colores.join('; ') // Separar colores con punto y coma
-          : ''; // Cadena vacía si no hay colores
+          // Retornar objeto con las columnas para Excel
+          return {
+            'MÁQUINA': program.machineNumber || program.numeroMaquina || '',
+            'ARTÍCULO': program.articulo || '',
+            'OT SAP': program.otSap || '',
+            'CLIENTE': program.cliente || '',
+            'REFERENCIA': program.referencia || '',
+            'TD': program.td || '',
+            'N° COLORES': program.numeroColores || 0,
+            'COLORES': coloresFormatted,
+            'KILOS': program.kilos || 0,
+            'FECHA TINTA EN MÁQUINA': fechaTintaFormatted,
+            'SUSTRATO': program.sustrato || '',
+            'ESTADO': program.estado || '',
+            'OBSERVACIONES': program.observaciones || '',
+            'ÚLTIMA ACCIÓN POR': program.lastActionBy || '',
+            'ÚLTIMA ACCIÓN FECHA': lastActionFormatted
+          };
+        });
 
-        // ===== RETORNAR FILA CON TODOS LOS DATOS =====
-        // Array con todos los valores de la fila en el orden de los encabezados
-        return [
-          program.machineNumber || program.numeroMaquina || '', // Número de máquina
-          program.articulo || '', // Código del artículo
-          program.otSap || '', // Orden de trabajo SAP
-          program.cliente || '', // Nombre del cliente
-          program.referencia || '', // Referencia del producto
-          program.td || '', // Código TD
-          program.numeroColores || 0, // Número de colores
-          coloresFormatted, // Lista de colores formateada
-          program.kilos || 0, // Cantidad en kilos
-          fechaTintaFormatted, // Fecha de tinta formateada
-          program.sustrato || '', // Tipo de sustrato
-          program.estado || '', // Estado actual
-          program.observaciones || '', // Observaciones
-          program.lastActionBy || '', // Usuario de última acción
-          lastActionFormatted // Fecha de última acción formateada
+        // ===== CREAR LIBRO DE EXCEL =====
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Programación');
+
+        // ===== AJUSTAR ANCHO DE COLUMNAS =====
+        const columnWidths = [
+          { wch: 10 },  // MÁQUINA
+          { wch: 15 },  // ARTÍCULO
+          { wch: 15 },  // OT SAP
+          { wch: 35 },  // CLIENTE
+          { wch: 20 },  // REFERENCIA
+          { wch: 12 },  // TD
+          { wch: 12 },  // N° COLORES
+          { wch: 40 },  // COLORES
+          { wch: 10 },  // KILOS
+          { wch: 20 },  // FECHA TINTA EN MÁQUINA
+          { wch: 15 },  // SUSTRATO
+          { wch: 12 },  // ESTADO
+          { wch: 30 },  // OBSERVACIONES
+          { wch: 20 },  // ÚLTIMA ACCIÓN POR
+          { wch: 20 }   // ÚLTIMA ACCIÓN FECHA
         ];
+        worksheet['!cols'] = columnWidths;
+
+        // ===== GENERAR NOMBRE DE ARCHIVO =====
+        const timestamp = new Date().toISOString().split('T')[0];
+        const fileName = `programacion-maquinas-${timestamp}.xlsx`;
+
+        // ===== DESCARGAR ARCHIVO =====
+        XLSX.writeFile(workbook, fileName);
+
+        // ===== LOG DE ÉXITO =====
+        console.log(`✅ Archivo Excel exportado exitosamente: ${fileName}`);
+        console.log(`📊 Total de programas exportados: ${dataToExport.length}`);
+        
+        // ===== MOSTRAR MENSAJE AL USUARIO =====
+        this.snackBar.open(
+          `Exportación exitosa: ${dataToExport.length} programas exportados a ${fileName}`, 
+          'Cerrar', 
+          { duration: 5000 }
+        );
+      }).catch(error => {
+        console.error('❌ Error cargando librería xlsx:', error);
+        this.snackBar.open(
+          'Error al cargar la librería de Excel', 
+          'Cerrar', 
+          { duration: 5000 }
+        );
       });
-
-      // ===== CONSTRUIR CONTENIDO CSV =====
-      // Combinar encabezados y filas en formato CSV
-      const csvContent = [
-        // Primera línea: encabezados separados por comas
-        headers.join(','),
-        // Resto de líneas: filas de datos
-        // Cada celda se envuelve en comillas dobles para manejar comas y saltos de línea
-        ...rows.map(row => 
-          row.map(cell => {
-            // Convertir el valor a string y escapar comillas dobles
-            const cellStr = String(cell).replace(/"/g, '""'); // Escapar comillas dobles
-            return `"${cellStr}"`; // Envolver en comillas dobles
-          }).join(',') // Unir celdas con comas
-        )
-      ].join('\n'); // Unir todas las líneas con salto de línea
-
-      // ===== CREAR BLOB CON BOM UTF-8 =====
-      // Crear Blob (objeto binario) con el contenido CSV
-      // \ufeff es el BOM (Byte Order Mark) para UTF-8, necesario para que Excel reconozca caracteres especiales
-      const blob = new Blob(['\ufeff' + csvContent], { 
-        type: 'text/csv;charset=utf-8;' // Tipo MIME para CSV con UTF-8
-      });
-      
-      // ===== CREAR ENLACE DE DESCARGA =====
-      // Crear elemento <a> (enlace) temporal para descargar el archivo
-      const url = window.URL.createObjectURL(blob); // Crear URL temporal del Blob
-      const link = document.createElement('a'); // Crear elemento <a>
-      link.href = url; // Asignar URL del Blob al href
-      
-      // ===== GENERAR NOMBRE DE ARCHIVO =====
-      // Formato: programacion-maquinas-YYYY-MM-DD.csv
-      const timestamp = new Date().toISOString().split('T')[0]; // Obtener fecha actual (YYYY-MM-DD)
-      const fileName = `programacion-maquinas-${timestamp}.csv`; // Nombre del archivo
-      link.download = fileName; // Asignar nombre al atributo download
-      
-      // ===== OCULTAR ENLACE Y HACER CLIC =====
-      link.style.visibility = 'hidden'; // Ocultar el enlace (no visible en la página)
-      document.body.appendChild(link); // Agregar enlace al DOM
-      link.click(); // Simular clic para iniciar descarga
-      
-      // ===== LIMPIAR RECURSOS =====
-      document.body.removeChild(link); // Remover enlace del DOM
-      window.URL.revokeObjectURL(url); // Liberar URL del Blob (liberar memoria)
-
-      // ===== LOG DE ÉXITO =====
-      console.log(`✅ Archivo CSV exportado exitosamente: ${fileName}`);
-      console.log(`📊 Total de programas exportados: ${dataToExport.length}`);
-      
-      // ===== MOSTRAR MENSAJE AL USUARIO =====
-      this.snackBar.open(
-        `Exportación exitosa: ${dataToExport.length} programas exportados a ${fileName}`, 
-        'Cerrar', 
-        { duration: 5000 }
-      );
       
     } catch (error: any) {
       // ===== MANEJO DE ERRORES =====
-      console.error('❌ Error exportando a CSV:', error);
+      console.error('❌ Error exportando a Excel:', error);
       
       // ===== MOSTRAR ERROR AL USUARIO =====
       this.snackBar.open(
@@ -1285,7 +1323,6 @@ Error: ${loginError.message || 'Error de conexión'}`);
       
     } finally {
       // ===== DESACTIVAR INDICADOR DE CARGA =====
-      // Siempre desactivar el indicador de carga, sin importar el resultado
       this.loading.set(false);
     }
   }
