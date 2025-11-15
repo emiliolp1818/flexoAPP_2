@@ -1474,6 +1474,121 @@ Error: ${loginError.message || 'Error de conexión'}`);
     return coloresFF459;
   }
 
+  // ===== MÉTODO PARA CAMBIAR ESTADO DE UN PROGRAMA =====
+  // Actualiza el estado de un programa en la base de datos y refresca la vista
+  async changeStatus(program: MachineProgram, newStatus: string) {
+    try {
+      // ===== LOG DE INICIO =====
+      console.log(`🔄 Cambiando estado de programa ${program.articulo} a ${newStatus}`);
+      
+      // ===== ACTIVAR INDICADOR DE CARGA =====
+      this.loading.set(true);
+      
+      // ===== LLAMAR AL ENDPOINT DEL BACKEND =====
+      // Endpoint: PATCH /api/maquinas/{articulo}/status
+      const response = await firstValueFrom(
+        this.http.patch<any>(`${environment.apiUrl}/maquinas/${program.articulo}/status`, {
+          Estado: newStatus,
+          Observaciones: null
+        })
+      );
+      
+      // ===== LOG DE RESPUESTA =====
+      console.log('✅ Estado actualizado:', response);
+      
+      // ===== ACTUALIZAR EL PROGRAMA EN LA LISTA LOCAL =====
+      const currentPrograms = this.programs();
+      const updatedPrograms = currentPrograms.map(p => 
+        p.articulo === program.articulo 
+          ? { ...p, estado: newStatus, lastActionBy: response.data?.lastActionBy || 'Sistema', lastActionAt: new Date() }
+          : p
+      );
+      this.programs.set(updatedPrograms);
+      
+      // ===== MOSTRAR NOTIFICACIÓN DE ÉXITO =====
+      this.snackBar.open(
+        `Estado cambiado a ${newStatus}`, 
+        'Cerrar', 
+        { duration: 3000 }
+      );
+      
+    } catch (error: any) {
+      // ===== MANEJO DE ERRORES =====
+      console.error('❌ Error cambiando estado:', error);
+      
+      // ===== MOSTRAR ERROR AL USUARIO =====
+      this.snackBar.open(
+        `Error al cambiar estado: ${error.error?.message || error.message || 'Error desconocido'}`, 
+        'Cerrar', 
+        { duration: 5000 }
+      );
+    } finally {
+      // ===== DESACTIVAR INDICADOR DE CARGA =====
+      this.loading.set(false);
+    }
+  }
 
+  // ===== MÉTODO PARA SUSPENDER UN PROGRAMA CON MOTIVO =====
+  // Abre un diálogo para ingresar el motivo de suspensión y actualiza el estado
+  async suspendProgram(program: MachineProgram) {
+    try {
+      // ===== SOLICITAR MOTIVO DE SUSPENSIÓN AL USUARIO =====
+      const motivo = prompt('Ingrese el motivo de suspensión:');
+      
+      // ===== VALIDAR QUE SE INGRESÓ UN MOTIVO =====
+      if (!motivo || motivo.trim() === '') {
+        console.log('⚠️ Suspensión cancelada: no se ingresó motivo');
+        return; // Salir si no se ingresó motivo
+      }
+      
+      // ===== LOG DE INICIO =====
+      console.log(`🔄 Suspendiendo programa ${program.articulo} con motivo: ${motivo}`);
+      
+      // ===== ACTIVAR INDICADOR DE CARGA =====
+      this.loading.set(true);
+      
+      // ===== LLAMAR AL ENDPOINT DEL BACKEND =====
+      // Endpoint: PATCH /api/maquinas/{articulo}/status
+      const response = await firstValueFrom(
+        this.http.patch<any>(`${environment.apiUrl}/maquinas/${program.articulo}/status`, {
+          Estado: 'SUSPENDIDO',
+          Observaciones: motivo.trim()
+        })
+      );
+      
+      // ===== LOG DE RESPUESTA =====
+      console.log('✅ Programa suspendido:', response);
+      
+      // ===== ACTUALIZAR EL PROGRAMA EN LA LISTA LOCAL =====
+      const currentPrograms = this.programs();
+      const updatedPrograms = currentPrograms.map(p => 
+        p.articulo === program.articulo 
+          ? { ...p, estado: 'SUSPENDIDO', observaciones: motivo.trim(), lastActionBy: response.data?.lastActionBy || 'Sistema', lastActionAt: new Date() }
+          : p
+      );
+      this.programs.set(updatedPrograms);
+      
+      // ===== MOSTRAR NOTIFICACIÓN DE ÉXITO =====
+      this.snackBar.open(
+        `Programa suspendido: ${motivo}`, 
+        'Cerrar', 
+        { duration: 3000 }
+      );
+      
+    } catch (error: any) {
+      // ===== MANEJO DE ERRORES =====
+      console.error('❌ Error suspendiendo programa:', error);
+      
+      // ===== MOSTRAR ERROR AL USUARIO =====
+      this.snackBar.open(
+        `Error al suspender: ${error.error?.message || error.message || 'Error desconocido'}`, 
+        'Cerrar', 
+        { duration: 5000 }
+      );
+    } finally {
+      // ===== DESACTIVAR INDICADOR DE CARGA =====
+      this.loading.set(false);
+    }
+  }
 
 }
