@@ -35,7 +35,7 @@ namespace flexoAPP.Models.DTOs
         public decimal Kilos { get; set; }
         public DateTime? FechaTintaEnMaquina { get; set; }
         public string Sustrato { get; set; } = string.Empty;
-        public string Estado { get; set; } = "PREPARANDO";
+        public string? Estado { get; set; } = null; // NULL por defecto - El operario debe asignar el estado
         public string? Observaciones { get; set; }
     }
 

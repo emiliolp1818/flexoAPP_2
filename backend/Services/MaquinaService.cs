@@ -90,7 +90,7 @@ namespace flexoAPP.Services
                     updateCommand.Parameters.AddWithValue("@kilos", createDto.Kilos);
                     updateCommand.Parameters.AddWithValue("@fechaTinta", fechaTinta);
                     updateCommand.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
-                    updateCommand.Parameters.AddWithValue("@estado", createDto.Estado);
+                    updateCommand.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(createDto.Estado) ? (object)DBNull.Value : createDto.Estado);
                     updateCommand.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
                     updateCommand.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
                     updateCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
@@ -125,7 +125,7 @@ namespace flexoAPP.Services
                     insertCommand.Parameters.AddWithValue("@kilos", createDto.Kilos);
                     insertCommand.Parameters.AddWithValue("@fechaTinta", fechaTinta);
                     insertCommand.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
-                    insertCommand.Parameters.AddWithValue("@estado", createDto.Estado);
+                    insertCommand.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(createDto.Estado) ? (object)DBNull.Value : createDto.Estado);
                     insertCommand.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
                     insertCommand.Parameters.AddWithValue("@createdBy", userId ?? (object)DBNull.Value);
                     insertCommand.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
@@ -442,19 +442,38 @@ namespace flexoAPP.Services
                 _logger.LogWarning("⚠️ Fecha vacía, usando fecha actual");
             }
 
-            // Parsear kilos (índice 7) - manejar formato con coma
+            // Parsear kilos (índice 7) - manejar formato con coma y punto
             decimal kilos = 0;
-            if (!string.IsNullOrWhiteSpace(columns[7]))
+            _logger.LogInformation("🔍 Parseando kilos - Valor original: '{Kilos}' (índice 7)", columns.Count > 7 ? columns[7] : "NO EXISTE");
+            
+            if (columns.Count > 7 && !string.IsNullOrWhiteSpace(columns[7]))
             {
-                var kilosStr = columns[7].Replace(",", ".");
-                if (!decimal.TryParse(kilosStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out kilos))
+                var kilosStr = columns[7]
+                    .Replace(",", ".") // Reemplazar coma por punto
+                    .Replace(" ", "")  // Eliminar espacios
+                    .Trim();
+                
+                _logger.LogInformation("🔍 Kilos después de limpieza: '{KilosLimpio}'", kilosStr);
+                
+                if (decimal.TryParse(kilosStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out kilos))
+                {
+                    _logger.LogInformation("✅ Kilos parseados exitosamente: {Kilos}", kilos);
+                }
+                else
                 {
                     _logger.LogWarning("⚠️ No se pudo parsear kilos '{Kilos}', usando 0", columns[7]);
                     kilos = 0;
                 }
             }
+            else
+            {
+                _logger.LogWarning("⚠️ Columna de kilos vacía o no existe (índice 7), usando 0");
+                kilos = 0;
+            }
 
             // Crear DTO según el formato real
+            // IMPORTANTE: Los programas nuevos se cargan SIN ESTADO (vacío)
+            // El operario debe aplicar la primera acción (PREPARANDO, LISTO, etc.)
             var createDto = new CreateMaquinaDto
             {
                 NumeroMaquina = int.TryParse(columns[0], out var machine) ? machine : 11,
@@ -467,12 +486,12 @@ namespace flexoAPP.Services
                 Kilos = kilos,
                 FechaTintaEnMaquina = fechaTintaEnMaquina,
                 Sustrato = columns[9],
-                Estado = "PREPARANDO",
-                Observaciones = null
+                Estado = "", // SIN ESTADO - El operario debe aplicar la primera acción
+                Observaciones = "Programa nuevo - Pendiente de asignación de estado por operario"
             };
 
-            _logger.LogInformation("✅ DTO creado: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}", 
-                createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente);
+            _logger.LogInformation("✅ DTO creado: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Kilos={Kilos}", 
+                createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Kilos);
 
             return await CreateAsync(createDto, userId);
         }

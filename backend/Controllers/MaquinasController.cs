@@ -96,7 +96,7 @@ namespace backend.Controllers
                         kilos = reader.GetDecimal("kilos"),
                         fechaTintaEnMaquina = reader.GetDateTime("fecha_tinta_en_maquina"),
                         sustrato = reader.GetString("sustrato"),
-                        estado = reader.GetString("estado"),
+                        estado = reader.IsDBNull(reader.GetOrdinal("estado")) ? null : reader.GetString("estado"),
                         observaciones = reader.IsDBNull(reader.GetOrdinal("observaciones")) ? null : reader.GetString("observaciones"),
                         lastActionBy = reader.IsDBNull(reader.GetOrdinal("last_action_by")) ? null : reader.GetString("last_action_by"),
                         lastActionAt = reader.IsDBNull(reader.GetOrdinal("last_action_at")) ? (DateTime?)null : reader.GetDateTime("last_action_at"),
@@ -139,7 +139,7 @@ namespace backend.Controllers
         /// PATCH: api/maquinas/{articulo}/status
         /// Actualiza el estado de un programa de máquina y cambia el color de toda la línea en el frontend
         /// Guarda la acción en la base de datos con información del usuario que realizó el cambio
-        /// Estados válidos: LISTO (verde), CORRIENDO (amarillo), SUSPENDIDO (rojo), TERMINADO (gris)
+        /// Estados válidos: PREPARANDO, LISTO (verde), CORRIENDO (amarillo), SUSPENDIDO (rojo), TERMINADO (gris)
         /// </summary>
         /// <param name="articulo">Código del artículo (clave primaria) de la máquina a actualizar</param>
         /// <param name="request">Objeto con el nuevo estado y observaciones opcionales</param>
@@ -147,30 +147,72 @@ namespace backend.Controllers
         [HttpPatch("{articulo}/status")] // Ruta: PATCH /api/maquinas/F204567/status
         public async Task<ActionResult<object>> UpdateMachineStatus(string articulo, [FromBody] UpdateStatusRequest request)
         {
+            MySqlConnector.MySqlConnection? connection = null;
             try
             {
-                // ===== OBTENER INFORMACIÓN DEL USUARIO AUTENTICADO =====
-                // Extraer ID y nombre del usuario desde el token JWT
-                var userId = GetCurrentUserId(); // ID numérico del usuario (ej: 123)
-                var userName = GetCurrentUserName(); // Nombre completo del usuario (ej: "Juan Pérez")
+                // ===== LOG DE ENTRADA =====
+                _logger.LogInformation($"🎯 PATCH /api/maquinas/{articulo}/status - Estado: {request?.Estado}, Observaciones: {request?.Observaciones}");
+                _logger.LogInformation($"🔐 Usuario autenticado: {User?.Identity?.IsAuthenticated ?? false}");
+                _logger.LogInformation($"🔐 Claims count: {User?.Claims?.Count() ?? 0}");
                 
-                // Si no hay usuario autenticado, usar valores por defecto
-                if (userId == 0)
+                // ===== VALIDAR REQUEST =====
+                if (request == null)
                 {
-                    userId = 1; // Usuario por defecto (admin)
-                    userName = string.IsNullOrEmpty(userName) ? "Sistema" : userName;
-                    _logger.LogWarning("⚠️ No se encontró usuario autenticado, usando usuario por defecto");
+                    _logger.LogError("❌ Request es null");
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Request body es requerido",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+                
+                if (string.IsNullOrWhiteSpace(request.Estado))
+                {
+                    _logger.LogError("❌ Estado es null o vacío");
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "El campo 'estado' es requerido",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+                
+                // ===== OBTENER INFORMACIÓN DEL USUARIO AUTENTICADO (CON MANEJO DE ERRORES) =====
+                int userId = 1; // Usuario por defecto
+                string userName = "Sistema"; // Nombre por defecto
+                
+                try
+                {
+                    userId = GetCurrentUserId();
+                    userName = GetCurrentUserName();
+                    
+                    if (userId == 0)
+                    {
+                        userId = 1;
+                        userName = string.IsNullOrEmpty(userName) ? "Sistema" : userName;
+                        _logger.LogWarning("⚠️ No se encontró usuario autenticado, usando usuario por defecto");
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"✅ Usuario autenticado: {userId} ({userName})");
+                    }
+                }
+                catch (Exception userEx)
+                {
+                    _logger.LogWarning(userEx, "⚠️ Error obteniendo información del usuario, usando valores por defecto");
+                    userId = 1;
+                    userName = "Sistema";
                 }
                 
                 // ===== LOG DE INICIO DE OPERACIÓN =====
-                // Registrar en el log que se está iniciando la actualización de estado
                 _logger.LogInformation($"🔄 Actualizando estado de máquina {articulo} a {request.Estado} por usuario {userId} ({userName})");
 
                 // ===== VALIDAR ESTADO =====
-                // Verificar que el estado sea válido
                 var estadosValidos = new[] { "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO" };
                 if (!estadosValidos.Contains(request.Estado?.ToUpper()))
                 {
+                    _logger.LogError($"❌ Estado inválido: {request.Estado}");
                     return BadRequest(new
                     {
                         success = false,
@@ -179,89 +221,120 @@ namespace backend.Controllers
                     });
                 }
 
-                // ===== BUSCAR LA MÁQUINA EN LA BASE DE DATOS =====
-                // Buscar el registro de máquina por su clave primaria (articulo)
-                var maquina = await _context.Maquinas.FindAsync(articulo); // Ejecuta: SELECT * FROM maquinas WHERE articulo = 'F204567'
+                // ===== BUSCAR LA MÁQUINA EN LA BASE DE DATOS USANDO RAW SQL =====
+                _logger.LogInformation($"🔍 Buscando máquina con artículo: {articulo}");
                 
-                // ===== VALIDAR EXISTENCIA DEL REGISTRO =====
-                // Verificar si se encontró la máquina en la base de datos
-                if (maquina == null) // Si no existe el registro
+                var connectionString = _context.Database.GetConnectionString();
+                _logger.LogInformation($"🔗 Connection string obtenido");
+                
+                connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+                _logger.LogInformation($"✅ Conexión a base de datos abierta");
+                
+                // Primero verificar si existe
+                using var checkCommand = connection.CreateCommand();
+                checkCommand.CommandText = "SELECT COUNT(*) FROM maquinas WHERE articulo = @articulo";
+                checkCommand.Parameters.AddWithValue("@articulo", articulo);
+                var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
+                _logger.LogInformation($"📊 Registros encontrados: {count}");
+                
+                if (count == 0)
                 {
-                    // Retornar respuesta HTTP 404 Not Found con mensaje descriptivo
+                    _logger.LogWarning($"⚠️ Máquina con artículo {articulo} no encontrada");
                     return NotFound(new
                     {
-                        success = false, // Indicador de operación fallida
-                        message = $"Registro de máquina con artículo {articulo} no encontrado", // Mensaje de error
-                        timestamp = DateTime.UtcNow // Timestamp UTC de la respuesta
+                        success = false,
+                        message = $"Registro de máquina con artículo {articulo} no encontrado",
+                        timestamp = DateTime.UtcNow
                     });
                 }
-
-                // ===== GUARDAR ESTADO ANTERIOR PARA AUDITORÍA =====
-                // Almacenar el estado actual antes de modificarlo (para logging y respuesta)
-                var estadoAnterior = maquina.Estado; // Ejemplo: "LISTO"
-
-                // ===== ACTUALIZAR CAMPOS DEL REGISTRO =====
-                // Actualizar el estado de la máquina con el nuevo valor recibido
-                maquina.Estado = request.Estado; // Nuevo estado: "CORRIENDO", "SUSPENDIDO", etc.
                 
-                // Actualizar observaciones solo si se proporcionaron nuevas, sino mantener las existentes
-                maquina.Observaciones = request.Observaciones ?? maquina.Observaciones; // Operador ?? mantiene valor actual si request.Observaciones es null
+                // Obtener el estado anterior
+                using var getCommand = connection.CreateCommand();
+                getCommand.CommandText = "SELECT estado FROM maquinas WHERE articulo = @articulo";
+                getCommand.Parameters.AddWithValue("@articulo", articulo);
+                var estadoAnterior = (await getCommand.ExecuteScalarAsync())?.ToString() ?? "DESCONOCIDO";
                 
-                // Registrar el ID del usuario que realizó la actualización
-                maquina.UpdatedBy = userId; // ID del usuario para relación con tabla users
+                _logger.LogInformation($"📊 Estado anterior: {estadoAnterior}, Estado nuevo: {request.Estado}");
                 
-                // Actualizar timestamp de última modificación
-                maquina.UpdatedAt = DateTime.UtcNow; // Fecha y hora actual en UTC
+                // Actualizar usando RAW SQL
+                using var updateCommand = connection.CreateCommand();
+                updateCommand.CommandText = @"
+                    UPDATE maquinas 
+                    SET estado = @estado,
+                        observaciones = @observaciones,
+                        updated_by = @updatedBy,
+                        updated_at = @updatedAt,
+                        last_action_by = @lastActionBy,
+                        last_action_at = @lastActionAt
+                    WHERE articulo = @articulo";
                 
-                // Registrar el nombre del usuario que realizó la última acción
-                maquina.LastActionBy = userName; // Nombre completo del usuario
+                updateCommand.Parameters.AddWithValue("@estado", request.Estado.ToUpper());
+                updateCommand.Parameters.AddWithValue("@observaciones", request.Observaciones ?? (object)DBNull.Value);
+                updateCommand.Parameters.AddWithValue("@updatedBy", userId);
+                updateCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+                updateCommand.Parameters.AddWithValue("@lastActionBy", userName);
+                updateCommand.Parameters.AddWithValue("@lastActionAt", DateTime.UtcNow);
+                updateCommand.Parameters.AddWithValue("@articulo", articulo);
                 
-                // Actualizar timestamp de última acción
-                maquina.LastActionAt = DateTime.UtcNow; // Fecha y hora actual en UTC
-
-                // ===== GUARDAR CAMBIOS EN LA BASE DE DATOS =====
-                // Ejecutar UPDATE en MySQL para persistir los cambios
-                await _context.SaveChangesAsync(); // Ejecuta: UPDATE maquinas SET estado=..., observaciones=..., updated_by=..., updated_at=..., last_action_by=..., last_action_at=... WHERE articulo='F204567'
+                _logger.LogInformation($"🔄 Ejecutando UPDATE...");
+                var rowsAffected = await updateCommand.ExecuteNonQueryAsync();
+                
+                _logger.LogInformation($"✅ Filas afectadas: {rowsAffected}");
 
                 // ===== LOG DE OPERACIÓN EXITOSA =====
-                // Registrar en el log que la actualización fue exitosa
                 _logger.LogInformation($"✅ Estado de máquina {articulo} actualizado exitosamente de {estadoAnterior} a {request.Estado}");
 
                 // ===== RETORNAR RESPUESTA EXITOSA =====
-                // Retornar HTTP 200 OK con los datos actualizados
                 return Ok(new
                 {
-                    success = true, // Indicador de operación exitosa
-                    message = $"Estado actualizado exitosamente a {request.Estado}", // Mensaje de confirmación
-                    data = new // Objeto con los datos actualizados
+                    success = true,
+                    message = $"Estado actualizado exitosamente a {request.Estado}",
+                    data = new
                     {
-                        id = maquina.Articulo, // ID para compatibilidad con frontend (usa articulo como ID)
-                        articulo = maquina.Articulo, // Código del artículo (clave primaria)
-                        numeroMaquina = maquina.NumeroMaquina, // Número de máquina (11-21)
-                        estadoAnterior = estadoAnterior, // Estado previo al cambio
-                        estadoNuevo = maquina.Estado, // Estado después del cambio
-                        lastActionBy = maquina.LastActionBy, // Usuario que realizó el cambio
-                        lastActionAt = maquina.LastActionAt, // Timestamp del cambio
-                        observaciones = maquina.Observaciones // Observaciones actualizadas
+                        id = articulo,
+                        articulo = articulo,
+                        estadoAnterior = estadoAnterior,
+                        estadoNuevo = request.Estado.ToUpper(),
+                        lastActionBy = userName,
+                        lastActionAt = DateTime.UtcNow,
+                        observaciones = request.Observaciones
                     },
-                    timestamp = DateTime.UtcNow // Timestamp UTC de la respuesta
+                    timestamp = DateTime.UtcNow
                 });
             }
-            catch (Exception ex) // Capturar cualquier excepción no controlada
+            catch (Exception ex)
             {
-                // ===== LOG DE ERROR =====
-                // Registrar el error en el log con stack trace completo
+                // ===== LOG DE ERROR DETALLADO =====
                 _logger.LogError(ex, $"❌ Error actualizando estado de máquina {articulo}");
+                _logger.LogError($"❌ Tipo de excepción: {ex.GetType().Name}");
+                _logger.LogError($"❌ Mensaje: {ex.Message}");
+                _logger.LogError($"❌ Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"❌ Inner Exception: {ex.InnerException.Message}");
+                    _logger.LogError($"❌ Inner Stack Trace: {ex.InnerException.StackTrace}");
+                }
                 
-                // ===== RETORNAR RESPUESTA DE ERROR =====
-                // Retornar HTTP 500 Internal Server Error con detalles del error
+                // ===== RETORNAR RESPUESTA DE ERROR DETALLADA =====
                 return StatusCode(500, new
                 {
-                    success = false, // Indicador de operación fallida
-                    message = "Error interno del servidor al actualizar estado", // Mensaje genérico
-                    error = ex.Message, // Mensaje específico de la excepción
-                    timestamp = DateTime.UtcNow // Timestamp UTC de la respuesta
+                    success = false,
+                    message = "Error interno del servidor al actualizar estado",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message,
+                    stackTrace = ex.StackTrace,
+                    timestamp = DateTime.UtcNow
                 });
+            }
+            finally
+            {
+                // ===== CERRAR CONEXIÓN =====
+                if (connection != null)
+                {
+                    await connection.DisposeAsync();
+                    _logger.LogInformation("🔌 Conexión a base de datos cerrada");
+                }
             }
         }
 
@@ -308,6 +381,81 @@ namespace backend.Controllers
                     success = false,
                     error = ex.Message,
                     stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        /// <summary>
+        /// GET: api/maquinas/test-update/{articulo}
+        /// ENDPOINT DE PRUEBA - Verificar que se puede actualizar un registro
+        /// </summary>
+        [HttpGet("test-update/{articulo}")]
+        public async Task<ActionResult<object>> TestUpdate(string articulo)
+        {
+            try
+            {
+                _logger.LogInformation($"🧪 TEST: Intentando actualizar artículo {articulo}");
+                
+                var connectionString = _context.Database.GetConnectionString();
+                _logger.LogInformation($"🔗 Connection String: {connectionString}");
+                
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+                _logger.LogInformation("✅ Conexión abierta exitosamente");
+                
+                // Verificar si existe
+                using var checkCommand = connection.CreateCommand();
+                checkCommand.CommandText = "SELECT COUNT(*) FROM maquinas WHERE articulo = @articulo";
+                checkCommand.Parameters.AddWithValue("@articulo", articulo);
+                var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
+                _logger.LogInformation($"📊 Registros encontrados: {count}");
+                
+                if (count == 0)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"Artículo {articulo} no encontrado",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+                
+                // Intentar actualizar
+                using var updateCommand = connection.CreateCommand();
+                updateCommand.CommandText = @"
+                    UPDATE maquinas 
+                    SET estado = 'LISTO',
+                        updated_at = @updatedAt,
+                        last_action_by = 'TEST',
+                        last_action_at = @lastActionAt
+                    WHERE articulo = @articulo";
+                
+                updateCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+                updateCommand.Parameters.AddWithValue("@lastActionAt", DateTime.UtcNow);
+                updateCommand.Parameters.AddWithValue("@articulo", articulo);
+                
+                var rowsAffected = await updateCommand.ExecuteNonQueryAsync();
+                _logger.LogInformation($"✅ Filas afectadas: {rowsAffected}");
+                
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Test exitoso. {rowsAffected} filas actualizadas",
+                    articulo = articulo,
+                    rowsAffected = rowsAffected,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error en test de actualización");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message,
+                    stackTrace = ex.StackTrace,
+                    timestamp = DateTime.UtcNow
                 });
             }
         }

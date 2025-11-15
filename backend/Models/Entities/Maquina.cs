@@ -97,11 +97,11 @@ namespace FlexoAPP.API.Models.Entities
 
         /// <summary>
         /// Estado actual del programa de la máquina
-        /// Valores: LISTO, CORRIENDO, SUSPENDIDO, TERMINADO
+        /// Valores: PREPARANDO, LISTO, CORRIENDO, SUSPENDIDO, TERMINADO
+        /// NULL o vacío = Sin asignar (programa nuevo)
         /// </summary>
-        [Required]
         [MaxLength(20)]
-        public string Estado { get; set; } = "LISTO";
+        public string? Estado { get; set; } = null; // NULL por defecto - El operario debe asignar
 
         /// <summary>
         /// Observaciones adicionales (opcional)
@@ -195,7 +195,11 @@ namespace FlexoAPP.API.Models.Entities
         /// <returns>True si el estado es válido</returns>
         public bool IsEstadoValido()
         {
-            var estadosValidos = new[] { "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO" };
+            // NULL o vacío es válido (programa nuevo sin estado asignado)
+            if (string.IsNullOrWhiteSpace(Estado))
+                return true;
+                
+            var estadosValidos = new[] { "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO" };
             return estadosValidos.Contains(Estado?.ToUpper());
         }
     }
