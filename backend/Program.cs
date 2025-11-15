@@ -290,18 +290,19 @@ try
     // Business Services
     builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
     builder.Services.AddScoped<IActivityService, ActivityService>();
-    builder.Services.AddScoped<flexoAPP.Repositories.IMachineProgramRepository, flexoAPP.Repositories.MachineProgramRepository>();
-    builder.Services.AddScoped<flexoAPP.Services.IMachineProgramService, flexoAPP.Services.MachineProgramService>();
     builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
     builder.Services.AddScoped<IPedidoService, PedidoService>();
     builder.Services.AddScoped<IDesignRepository, DesignRepository>();
     builder.Services.AddScoped<IDesignService, DesignService>();
     builder.Services.AddScoped<ICondicionUnicaRepository, CondicionUnicaRepository>();
+    
+    // Módulo de Máquinas (tabla: maquinas)
     builder.Services.AddScoped<IMaquinaRepository, MaquinaRepository>();
+    builder.Services.AddScoped<IMaquinaService, MaquinaService>();
 
-    // Reports & Backup Services
-    builder.Services.AddScoped<IReportsService, ReportsService>();
-    builder.Services.AddScoped<IMachineBackupService, MachineBackupService>();
+    // Reports & Backup Services (deshabilitados temporalmente hasta migrar a Maquina)
+    // builder.Services.AddScoped<IReportsService, ReportsService>(); // Deshabilitado temporalmente
+    // builder.Services.AddScoped<IMachineBackupService, MachineBackupService>(); // Deshabilitado temporalmente
 
     // Automatic Backup Service deshabilitado para estabilidad
 
@@ -399,8 +400,8 @@ try
     // Controllers
     app.MapControllers();
 
-    // SignalR Hubs
-    app.MapHub<flexoAPP.Hubs.MachineProgramHub>("/hubs/machine-programs");
+    // SignalR Hubs (deshabilitado temporalmente)
+    // app.MapHub<flexoAPP.Hubs.MachineProgramHub>("/hubs/machine-programs");
 
     // Health Check Endpoints
     app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions

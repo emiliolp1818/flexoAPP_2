@@ -142,18 +142,11 @@ namespace FlexoAPP.API.Models.Entities
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Propiedades de navegación para relaciones con usuarios
-        /// <summary>
-        /// Usuario que creó el registro
-        /// </summary>
-        [ForeignKey("CreatedBy")]
-        public virtual User? CreatedByUser { get; set; }
-
-        /// <summary>
-        /// Usuario que actualizó el registro por última vez
-        /// </summary>
-        [ForeignKey("UpdatedBy")]
-        public virtual User? UpdatedByUser { get; set; }
+        // NOTA: Propiedades de navegación comentadas temporalmente para evitar problemas con Entity Framework
+        // [ForeignKey("CreatedBy")]
+        // public virtual User? CreatedByUser { get; set; }
+        // [ForeignKey("UpdatedBy")]
+        // public virtual User? UpdatedByUser { get; set; }
 
         /// <summary>
         /// Método para obtener los colores como array de strings

@@ -26,13 +26,13 @@
 
       <!-- Sección derecha: Acciones del header - Solo botones funcionales -->
       <div class="header-actions">
-        <!-- Input oculto para selección de archivos Excel/CSV - No visible pero funcional -->
-        <input #fileInput type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" style="display: none;">
+        <!-- Input oculto para selección de archivos Excel - No visible pero funcional -->
+        <input #fileInput type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" style="display: none;">
         
-        <!-- ✅ Botón Agregar Programación - Cargar archivo Excel/CSV con programación -->
+        <!-- ✅ Botón Agregar Programación - Cargar archivo Excel con programación -->
         <button mat-raised-button color="primary" (click)="fileInput.click()" class="load-programming-btn"
           [disabled]="loading()" 
-          matTooltip="Agregar programación desde archivo Excel o CSV">
+          matTooltip="Agregar programación desde archivo Excel">
           <!-- Spinner mostrado durante el procesamiento del archivo -->
           <mat-spinner *ngIf="loading()" diameter="16"></mat-spinner>
           <!-- Icono de agregar cuando no está cargando -->

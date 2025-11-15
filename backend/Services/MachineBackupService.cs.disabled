@@ -410,13 +410,13 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        public async Task<List<MachineProgram>> GetBackupDataForReportsAsync(string backupId)
+        public async Task<List<Maquina>> GetBackupDataForReportsAsync(string backupId)
         {
             try
             {
                 var zipFile = Path.Combine(_backupPath, $"{backupId}.zip");
                 if (!File.Exists(zipFile))
-                    return new List<MachineProgram>();
+                    return new List<Maquina>();
 
                 var tempFolder = Path.Combine(Path.GetTempPath(), $"report_{backupId}");
                 if (Directory.Exists(tempFolder))
@@ -426,22 +426,20 @@ namespace FlexoAPP.API.Services
 
                 var dataFile = Path.Combine(tempFolder, backupId, "machine_programs.json");
                 if (!File.Exists(dataFile))
-                    return new List<MachineProgram>();
+                    return new List<Maquina>();
 
                 var jsonData = await File.ReadAllTextAsync(dataFile);
                 var backupData = JsonSerializer.Deserialize<MachineBackupDataDto>(jsonData,
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
                 if (backupData?.MachinePrograms == null)
-                    return new List<MachineProgram>();
+                    return new List<Maquina>();
 
                 // Convertir DTOs a entidades para reportes
-                var programs = backupData.MachinePrograms.Select(dto => new MachineProgram
+                var programs = backupData.MachinePrograms.Select(dto => new Maquina
                 {
-                    Id = dto.Id,
-                    MachineNumber = dto.MachineNumber,
-                    Name = dto.Name,
                     Articulo = dto.Articulo,
+                    NumeroMaquina = dto.MachineNumber,
                     OtSap = dto.OtSap,
                     Cliente = dto.Cliente,
                     Referencia = dto.Referencia,
@@ -450,14 +448,10 @@ namespace FlexoAPP.API.Services
                     Sustrato = dto.Sustrato,
                     Kilos = dto.Kilos,
                     Estado = dto.Estado,
-                    FechaInicio = dto.FechaInicio,
-                    FechaFin = dto.FechaFin,
-                    Progreso = dto.Progreso,
+                    FechaTintaEnMaquina = dto.FechaInicio,
                     Observaciones = dto.Observaciones,
                     LastActionBy = dto.LastActionBy,
                     LastActionAt = dto.LastActionAt,
-                    LastAction = dto.LastAction,
-                    OperatorName = dto.OperatorName,
                     CreatedBy = dto.CreatedBy,
                     UpdatedBy = dto.UpdatedBy,
                     CreatedAt = dto.CreatedAt,
@@ -472,7 +466,7 @@ namespace FlexoAPP.API.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error obteniendo datos de backup para reportes: {backupId}");
-                return new List<MachineProgram>();
+                return new List<Maquina>();
             }
         }
 

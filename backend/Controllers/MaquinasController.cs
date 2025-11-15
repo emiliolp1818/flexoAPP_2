@@ -5,12 +5,13 @@ using FlexoAPP.API.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Newtonsoft.Json;
+using flexoAPP.Services;
 
 namespace backend.Controllers
 {
     /// <summary>
     /// Controlador específico para el módulo de máquinas
-    /// Maneja los datos de la tabla machine_programs con alias "maquinas"
+    /// Maneja los datos de la tabla maquinas
     /// Implementa todas las funcionalidades solicitadas para el módulo de máquinas
     /// </summary>
     [ApiController]
@@ -20,11 +21,16 @@ namespace backend.Controllers
     {
         private readonly FlexoAPPDbContext _context;
         private readonly ILogger<MaquinasController> _logger;
+        private readonly IMaquinaService _maquinaService;
 
-        public MaquinasController(FlexoAPPDbContext context, ILogger<MaquinasController> logger)
+        public MaquinasController(
+            FlexoAPPDbContext context, 
+            ILogger<MaquinasController> logger,
+            IMaquinaService maquinaService)
         {
             _context = context;
             _logger = logger;
+            _maquinaService = maquinaService;
         }
 
         /// <summary>
@@ -39,132 +45,76 @@ namespace backend.Controllers
             try
             {
                 // ===== LOG DE INICIO DE CONSULTA =====
-                // Registrar en el log que se está iniciando la consulta a la tabla maquinas de MySQL
-                _logger.LogInformation("🔄 Obteniendo datos de máquinas desde tabla 'maquinas' de la base de datos flexoapp_bd");
+                _logger.LogInformation("🔄 Obteniendo datos de máquinas usando RAW SQL");
 
-                // ===== CONSTRUCCIÓN DE LA CONSULTA BASE =====
-                // Crear consulta LINQ para obtener datos de la tabla 'maquinas' de MySQL
-                // DbSet Maquinas: representa la tabla 'maquinas' en la base de datos flexoapp_bd
-                var query = _context.Maquinas // Acceder al DbSet Maquinas del contexto de Entity Framework
-                    .Include(p => p.CreatedByUser) // Incluir relación con usuario creador (JOIN con tabla users usando created_by)
-                    .Include(p => p.UpdatedByUser) // Incluir relación con usuario actualizador (JOIN con tabla users usando updated_by)
-                    .AsQueryable(); // Convertir a IQueryable para permitir composición dinámica de consultas
-
-                // ===== APLICAR ORDENAMIENTO DINÁMICO =====
-                // Ordenar los resultados según los parámetros recibidos del frontend
-                // Por defecto: ordenar por fecha_tinta_en_maquina descendente (más reciente primero)
-                if (orderBy?.ToLower() == "fechatintaenmaquina" || orderBy?.ToLower() == "fechatinta" || string.IsNullOrEmpty(orderBy))
+                // ===== USAR RAW SQL TEMPORALMENTE PARA EVITAR PROBLEMAS CON EF =====
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+                
+                // Construir ORDER BY dinámico
+                var orderByClause = "fecha_tinta_en_maquina DESC, numero_maquina";
+                if (orderBy?.ToLower() == "numeromaquina" || orderBy?.ToLower() == "machinenumber")
                 {
-                    // Ordenamiento por fecha de tinta en máquina (columna fecha_tinta_en_maquina)
-                    query = order?.ToLower() == "asc" 
-                        ? query.OrderBy(p => p.FechaTintaEnMaquina).ThenBy(p => p.NumeroMaquina) // Ascendente: más antiguo primero
-                        : query.OrderByDescending(p => p.FechaTintaEnMaquina).ThenBy(p => p.NumeroMaquina); // Descendente: más reciente primero
+                    orderByClause = order?.ToLower() == "desc" 
+                        ? "numero_maquina DESC, fecha_tinta_en_maquina DESC"
+                        : "numero_maquina ASC, fecha_tinta_en_maquina DESC";
                 }
-                else if (orderBy?.ToLower() == "numeromaquina" || orderBy?.ToLower() == "machinenumber")
+                else if (orderBy?.ToLower() == "fechatintaenmaquina" || orderBy?.ToLower() == "fechatinta" || string.IsNullOrEmpty(orderBy))
                 {
-                    // Ordenamiento por número de máquina (columna numero_maquina: 11-21)
-                    query = order?.ToLower() == "desc" 
-                        ? query.OrderByDescending(p => p.NumeroMaquina).ThenByDescending(p => p.FechaTintaEnMaquina) // Descendente: 21 a 11
-                        : query.OrderBy(p => p.NumeroMaquina).ThenByDescending(p => p.FechaTintaEnMaquina); // Ascendente: 11 a 21
+                    orderByClause = order?.ToLower() == "asc"
+                        ? "fecha_tinta_en_maquina ASC, numero_maquina"
+                        : "fecha_tinta_en_maquina DESC, numero_maquina";
                 }
-
-                // ===== EJECUTAR CONSULTA EN LA BASE DE DATOS =====
-                // Ejecutar la consulta SQL generada por Entity Framework en la base de datos MySQL flexoapp_bd
-                // ToListAsync: ejecuta SELECT * FROM maquinas con los JOINs y ORDER BY configurados de forma asíncrona
-                var maquinas = await query.ToListAsync(); // Consulta asíncrona: SELECT id, numero_maquina, articulo, ot_sap, cliente, referencia, td, numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato, estado, observaciones, last_action_by, last_action_at, created_at, updated_at, created_by, updated_by FROM maquinas LEFT JOIN users...
+                
+                using var command = connection.CreateCommand();
+                command.CommandText = $@"
+                    SELECT 
+                        articulo, numero_maquina, ot_sap, cliente, referencia, td,
+                        numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
+                        estado, observaciones, last_action_by, last_action_at,
+                        created_by, updated_by, created_at, updated_at
+                    FROM maquinas
+                    ORDER BY {orderByClause}";
+                
+                var maquinas = new List<object>();
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    maquinas.Add(new
+                    {
+                        id = reader.GetString("articulo"),
+                        articulo = reader.GetString("articulo"),
+                        numeroMaquina = reader.GetInt32("numero_maquina"),
+                        machineNumber = reader.GetInt32("numero_maquina"),
+                        otSap = reader.GetString("ot_sap"),
+                        cliente = reader.GetString("cliente"),
+                        referencia = reader.IsDBNull(reader.GetOrdinal("referencia")) ? null : reader.GetString("referencia"),
+                        td = reader.IsDBNull(reader.GetOrdinal("td")) ? null : reader.GetString("td"),
+                        numeroColores = reader.GetInt32("numero_colores"),
+                        colores = ParseColores(reader.GetString("colores")),
+                        kilos = reader.GetDecimal("kilos"),
+                        fechaTintaEnMaquina = reader.GetDateTime("fecha_tinta_en_maquina"),
+                        sustrato = reader.GetString("sustrato"),
+                        estado = reader.GetString("estado"),
+                        observaciones = reader.IsDBNull(reader.GetOrdinal("observaciones")) ? null : reader.GetString("observaciones"),
+                        lastActionBy = reader.IsDBNull(reader.GetOrdinal("last_action_by")) ? null : reader.GetString("last_action_by"),
+                        lastActionAt = reader.IsDBNull(reader.GetOrdinal("last_action_at")) ? (DateTime?)null : reader.GetDateTime("last_action_at"),
+                        createdBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? (int?)null : reader.GetInt32("created_by"),
+                        updatedBy = reader.IsDBNull(reader.GetOrdinal("updated_by")) ? (int?)null : reader.GetInt32("updated_by"),
+                        createdAt = reader.GetDateTime("created_at"),
+                        updatedAt = reader.GetDateTime("updated_at")
+                    });
+                }
 
                 // ===== LOG DE RESULTADOS OBTENIDOS =====
-                // Registrar en el log la cantidad de registros obtenidos de la tabla maquinas
-                _logger.LogInformation($"✅ {maquinas.Count} registros de máquinas encontrados en la tabla 'maquinas' de flexoapp_bd");
-
-                // ===== MAPEO DE DATOS PARA EL FRONTEND =====
-                // Transformar los objetos Maquina de Entity Framework a objetos anónimos para serialización JSON
-                // Este mapeo convierte los nombres de columnas de MySQL (snake_case) a formato camelCase para JavaScript
-                // ===== TRANSFORMACIÓN DE DATOS PARA EL FRONTEND =====
-                // Convertir cada objeto Maquina de Entity Framework a un objeto anónimo JSON-friendly
-                var result = maquinas.Select(m => new // m = cada registro individual de la tabla maquinas obtenido de MySQL
-                {
-                    // ===== CAMPO ID (PARA COMPATIBILIDAD CON FRONTEND) =====
-                    // El frontend espera un campo 'id' para identificar cada registro
-                    // Usamos el valor de 'articulo' como ID ya que es la clave primaria
-                    id = m.Articulo, // Usar articulo como ID para compatibilidad con frontend
-                    
-                    // ===== CAMPO ARTICULO (CLAVE PRIMARIA) =====
-                    // Código único del artículo que identifica el programa de máquina
-                    // Este campo es la PRIMARY KEY de la tabla (no hay campo 'id' auto-incremental)
-                    articulo = m.Articulo, // Ejemplo: "F204567", "F204568" | Columna MySQL: articulo VARCHAR(50) PRIMARY KEY
-                    
-                    // ===== CAMPOS PRINCIPALES DE LA TABLA MAQUINAS =====
-                    // Número de la máquina flexográfica donde se ejecutará el programa
-                    numeroMaquina = m.NumeroMaquina, // Rango válido: 11-21 | Columna MySQL: numero_maquina INT NOT NULL
-                    
-                    // Número de orden de trabajo del sistema SAP
-                    otSap = m.OtSap, // Ejemplo: "OT123456" | Columna MySQL: ot_sap VARCHAR(50) NOT NULL
-                    
-                    // Nombre completo del cliente que solicita la producción
-                    cliente = m.Cliente, // Ejemplo: "ABSORBENTES DE COLOMBIA S.A" | Columna MySQL: cliente VARCHAR(200) NOT NULL
-                    
-                    // Referencia interna del producto a fabricar
-                    referencia = m.Referencia, // Ejemplo: "REF-001" | Columna MySQL: referencia VARCHAR(100) NULL
-                    
-                    // Código TD (Tipo de Diseño) asociado al trabajo
-                    td = m.Td, // Ejemplo: "TD-ABC" | Columna MySQL: td VARCHAR(10) NULL
-                    
-                    // Cantidad total de colores que se utilizarán en la impresión flexográfica
-                    numeroColores = m.NumeroColores, // Rango válido: 1-10 | Columna MySQL: numero_colores INT NOT NULL
-                    
-                    // Array de nombres de colores parseado desde formato JSON almacenado en MySQL
-                    colores = ParseColores(m.Colores), // Ejemplo: ["CYAN","MAGENTA","AMARILLO","NEGRO"] | Columna MySQL: colores JSON NOT NULL
-                    
-                    // Cantidad en kilogramos del material a producir
-                    kilos = m.Kilos, // Ejemplo: 1500.50 | Columna MySQL: kilos DECIMAL(10,2) NOT NULL
-                    
-                    // Fecha y hora exacta cuando se aplicó la tinta en la máquina (inicio del trabajo)
-                    fechaTintaEnMaquina = m.FechaTintaEnMaquina, // Formato: DateTime | Columna MySQL: fecha_tinta_en_maquina DATETIME NOT NULL
-                    
-                    // Tipo de material base sobre el que se imprimirá
-                    sustrato = m.Sustrato, // Ejemplo: "BOPP", "PE", "PET" | Columna MySQL: sustrato VARCHAR(100) NOT NULL
-                    
-                    // Estado actual del programa de máquina (controla el color de la fila en el frontend)
-                    estado = m.Estado, // Valores válidos: "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO" | Columna MySQL: estado VARCHAR(20) NOT NULL DEFAULT 'LISTO'
-                    
-                    // Notas u observaciones adicionales sobre el programa de máquina
-                    observaciones = m.Observaciones, // Texto libre hasta 1000 caracteres | Columna MySQL: observaciones VARCHAR(1000) NULL
-                    
-                    // ===== CAMPOS DE AUDITORÍA Y TRACKING =====
-                    // Nombre del usuario que realizó la última acción sobre este registro
-                    lastActionBy = m.LastActionBy, // Ejemplo: "Juan Pérez" | Columna MySQL: last_action_by VARCHAR(100) NULL
-                    
-                    // Fecha y hora de la última acción realizada sobre este registro
-                    lastActionAt = m.LastActionAt, // Formato: DateTime | Columna MySQL: last_action_at DATETIME NULL
-                    
-                    // Fecha y hora de creación del registro (timestamp automático de MySQL)
-                    createdAt = m.CreatedAt, // Formato: DateTime | Columna MySQL: created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    
-                    // Fecha y hora de la última actualización del registro (timestamp automático de MySQL)
-                    updatedAt = m.UpdatedAt, // Formato: DateTime | Columna MySQL: updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                    
-                    // ===== ALIAS PARA COMPATIBILIDAD CON FRONTEND =====
-                    // Campo duplicado para mantener compatibilidad con código legacy del frontend Angular
-                    machineNumber = m.NumeroMaquina, // Alias de numeroMaquina | Mismo valor que numeroMaquina
-                    
-                    // ===== INFORMACIÓN DEL USUARIO QUE ACTUALIZÓ (JOIN CON TABLA USERS) =====
-                    // Objeto anidado con información del usuario que realizó la última actualización
-                    // Datos obtenidos mediante LEFT JOIN con la tabla 'users' usando la columna 'updated_by'
-                    updatedByUser = m.UpdatedByUser != null ? new // Verificar si existe relación con usuario (puede ser null)
-                    {
-                        id = m.UpdatedByUser.Id, // ID único del usuario en la tabla users
-                        firstName = m.UpdatedByUser.FirstName, // Nombre del usuario
-                        lastName = m.UpdatedByUser.LastName, // Apellido del usuario
-                        userCode = m.UpdatedByUser.UserCode // Código de usuario único
-                    } : null // Si no hay usuario relacionado, retornar null
-                }).ToList(); // Ejecutar la proyección y convertir a lista en memoria
+                _logger.LogInformation($"✅ {maquinas.Count} registros de máquinas encontrados");
 
                 return Ok(new
                 {
                     success = true,
                     message = $"{maquinas.Count} registros de máquinas obtenidos exitosamente",
-                    data = result,
+                    data = maquinas,
                     orderBy = orderBy ?? "fechaTintaEnMaquina",
                     order = order ?? "desc",
                     timestamp = DateTime.UtcNow
@@ -316,6 +266,53 @@ namespace backend.Controllers
         }
 
         /// <summary>
+        /// GET: api/maquinas/test-raw
+        /// ENDPOINT DE PRUEBA - Consulta directa a MySQL sin Entity Framework
+        /// </summary>
+        [HttpGet("test-raw")]
+        public async Task<ActionResult<object>> GetMaquinasRaw()
+        {
+            try
+            {
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+                
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT articulo, numero_maquina, cliente, estado FROM maquinas LIMIT 5";
+                
+                var results = new List<object>();
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    results.Add(new
+                    {
+                        articulo = reader.GetString(0),
+                        numeroMaquina = reader.GetInt32(1),
+                        cliente = reader.GetString(2),
+                        estado = reader.GetString(3)
+                    });
+                }
+                
+                return Ok(new
+                {
+                    success = true,
+                    message = $"{results.Count} registros obtenidos con consulta RAW SQL",
+                    data = results
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        /// <summary>
         /// POST: api/maquinas/test
         /// ENDPOINT TEMPORAL DE PRUEBA - Crea un registro de prueba en la tabla maquinas
         /// Útil para verificar que la tabla existe y funciona correctamente
@@ -433,8 +430,9 @@ namespace backend.Controllers
                 // ===== CONSULTA A LA BASE DE DATOS =====
                 // Construir y ejecutar consulta LINQ para obtener todos los programas de la máquina especificada
                 var programs = await _context.Maquinas // Acceder al DbSet de Maquinas
-                    .Include(p => p.CreatedByUser) // LEFT JOIN con tabla users para obtener datos del usuario creador
-                    .Include(p => p.UpdatedByUser) // LEFT JOIN con tabla users para obtener datos del usuario actualizador
+                    // NOTA: Include comentado - no hay propiedades de navegación
+                    // .Include(p => p.CreatedByUser) // LEFT JOIN con tabla users para obtener datos del usuario creador
+                    // .Include(p => p.UpdatedByUser) // LEFT JOIN con tabla users para obtener datos del usuario actualizador
                     .Where(p => p.NumeroMaquina == numeroMaquina) // Filtrar por número de máquina específico (WHERE numero_maquina = 15)
                     .OrderByDescending(p => p.FechaTintaEnMaquina) // Ordenar por fecha de tinta descendente (más reciente primero)
                     .ToListAsync(); // Ejecutar consulta asíncrona y convertir a lista
@@ -547,6 +545,144 @@ namespace backend.Controllers
             // ===== CONVERSIÓN Y VALIDACIÓN =====
             // Intentar convertir el string del claim a entero
             return int.TryParse(userIdClaim, out var userId) ? userId : 0; // Si la conversión es exitosa retornar userId, sino retornar 0
+        }
+
+        /// <summary>
+        /// POST: api/maquinas/upload
+        /// Cargar programación desde archivo Excel
+        /// </summary>
+        [HttpPost("upload")]
+        public async Task<ActionResult<object>> UploadProgramming(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = "Archivo requerido",
+                        message = "Debe seleccionar un archivo Excel válido",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Validar tipo de archivo - Solo Excel
+                var allowedExtensions = new[] { ".xlsx", ".xls" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = "Tipo de archivo no válido",
+                        message = "Solo se permiten archivos Excel (.xlsx, .xls)",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Validar tamaño del archivo (máximo 10MB)
+                if (file.Length > 10 * 1024 * 1024)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = "Archivo demasiado grande",
+                        message = "El archivo no debe exceder 10MB",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Obtener el ID del usuario actual
+                var userId = GetCurrentUserId();
+                if (userId == 0) userId = 1; // Usuario por defecto si no hay autenticación
+
+                _logger.LogInformation("📁 Procesando archivo Excel: {FileName} ({FileSize} bytes)", file.FileName, file.Length);
+
+                // Procesar el archivo Excel usando el servicio
+                var result = await _maquinaService.ProcessExcelFileAsync(file, userId);
+
+                if (result.Success)
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        data = result.Programs,
+                        message = $"✅ Archivo procesado exitosamente. {result.ProcessedCount} programas cargados.",
+                        summary = new
+                        {
+                            totalPrograms = result.ProcessedCount,
+                            readyPrograms = result.Programs?.Count(p => p.Estado == "LISTO" || p.Estado == "PREPARANDO") ?? 0,
+                            machinesWithPrograms = result.Programs?.Select(p => p.NumeroMaquina).Distinct().Count() ?? 0,
+                            fileName = file.FileName,
+                            processedAt = DateTime.UtcNow
+                        },
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        error = "Error procesando archivo",
+                        message = result.ErrorMessage,
+                        details = result.ValidationErrors,
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error procesando archivo Excel: {FileName}", file?.FileName);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = "Error interno del servidor",
+                    message = "Error al procesar el archivo Excel",
+                    details = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// DELETE: api/maquinas/clear-all
+        /// Limpiar toda la programación de máquinas
+        /// </summary>
+        [HttpDelete("clear-all")]
+        public async Task<ActionResult<object>> ClearAllProgramming()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == 0) userId = 1; // Usuario por defecto
+
+                _logger.LogWarning("🗑️ Limpiando toda la programación de máquinas - Usuario: {UserId}", userId);
+
+                var deletedCount = await _maquinaService.ClearAllProgrammingAsync(userId);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Programación limpiada exitosamente. {deletedCount} programas eliminados.",
+                    deletedCount = deletedCount,
+                    clearedAt = DateTime.UtcNow,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error limpiando programación de máquinas");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = "Error interno del servidor",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
         }
 
         /// <summary>

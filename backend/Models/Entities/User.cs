@@ -127,15 +127,15 @@ namespace FlexoAPP.API.Models.Entities
         // Se usan para relaciones entre entidades en Entity Framework
         
         /// <summary>
-        /// Programas de máquina creados por este usuario
-        /// Relación: User (1) -> MachinePrograms (N)
+        /// Máquinas creadas por este usuario
+        /// Relación: User (1) -> Maquinas (N)
         /// </summary>
-        public virtual ICollection<MachineProgram> CreatedPrograms { get; set; } = new List<MachineProgram>();
+        public virtual ICollection<Maquina> CreatedMaquinas { get; set; } = new List<Maquina>();
         
         /// <summary>
-        /// Programas de máquina actualizados por este usuario
-        /// Relación: User (1) -> MachinePrograms (N)
+        /// Máquinas actualizadas por este usuario
+        /// Relación: User (1) -> Maquinas (N)
         /// </summary>
-        public virtual ICollection<MachineProgram> UpdatedPrograms { get; set; } = new List<MachineProgram>();
+        public virtual ICollection<Maquina> UpdatedMaquinas { get; set; } = new List<Maquina>();
     }
 }

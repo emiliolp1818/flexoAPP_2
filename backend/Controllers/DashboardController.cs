@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;                    // Para usar ControllerBase, 
 using Microsoft.AspNetCore.Authorization;          // Para usar [Authorize], [AllowAnonymous]
 using FlexoAPP.API.Services;                       // Para acceder a los servicios de la aplicación
 using FlexoAPP.API.Repositories;                   // Para acceder a los repositorios
+using flexoAPP.Repositories;                       // Para acceder a IMaquinaRepository
 using System.Linq;                                 // Para usar LINQ (consultas)
 
 namespace FlexoAPP.API.Controllers

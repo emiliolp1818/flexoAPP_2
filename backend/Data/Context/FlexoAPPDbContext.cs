@@ -16,7 +16,6 @@ namespace FlexoAPP.API.Data.Context
         // Conjuntos de entidades (tablas) de la base de datos
         public DbSet<User> Users { get; set; }
         public DbSet<Design> Designs { get; set; }
-        public DbSet<MachineProgram> MachinePrograms { get; set; }
         public DbSet<Maquina> Maquinas { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<Activity> Activities { get; set; }
@@ -114,48 +113,6 @@ namespace FlexoAPP.API.Data.Context
                 entity.HasIndex(e => e.Prioridad);
                 entity.HasIndex(e => new { e.MachineNumber, e.Estado });
                 entity.HasIndex(e => new { e.Cliente, e.Estado });
-            });
-
-            // ===== CONFIGURACIÓN PROGRAMA DE MÁQUINA =====
-            modelBuilder.Entity<MachineProgram>(entity =>
-            {
-                entity.ToTable("machine_programs");
-                entity.HasKey(e => e.Id);
-                
-                entity.Property(e => e.MachineNumber).IsRequired();
-                entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Articulo).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.OtSap).IsRequired().HasMaxLength(50);
-                entity.HasIndex(e => e.OtSap).IsUnique();
-                
-                entity.Property(e => e.Cliente).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Referencia).HasMaxLength(500);
-                entity.Property(e => e.Td).HasMaxLength(3);
-                
-                // MySQL: JSON en lugar de jsonb
-                entity.Property(e => e.Colores).IsRequired().HasColumnType("JSON");
-                
-                entity.Property(e => e.Sustrato).HasMaxLength(200);
-                entity.Property(e => e.Kilos).IsRequired().HasColumnType("DECIMAL(10,2)");
-                entity.Property(e => e.Estado).IsRequired().HasMaxLength(20).HasDefaultValue("LISTO");
-                entity.Property(e => e.FechaInicio).IsRequired();
-                entity.Property(e => e.Progreso).HasDefaultValue(0);
-                entity.Property(e => e.Observaciones).HasMaxLength(1000);
-                entity.Property(e => e.LastActionBy).HasMaxLength(100);
-                entity.Property(e => e.LastAction).HasMaxLength(200);
-                entity.Property(e => e.OperatorName).HasMaxLength(100);
-                
-                // MySQL timestamps - usando TIMESTAMP para compatibilidad
-                entity.Property(e => e.CreatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.UpdatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-                
-                entity.HasOne(e => e.CreatedByUser).WithMany(u => u.CreatedPrograms).HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
-                entity.HasOne(e => e.UpdatedByUser).WithMany(u => u.UpdatedPrograms).HasForeignKey(e => e.UpdatedBy).OnDelete(DeleteBehavior.SetNull);
-                
-                entity.HasIndex(e => e.MachineNumber);
-                entity.HasIndex(e => e.Estado);
-                entity.HasIndex(e => e.FechaInicio);
-                entity.HasIndex(e => new { e.MachineNumber, e.Estado });
             });
 
             // ===== CONFIGURACIÓN MÁQUINA =====
@@ -298,9 +255,12 @@ namespace FlexoAPP.API.Data.Context
                     .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
                 
                 // ===== RELACIONES CON TABLA USERS =====
-                // Configurar relaciones de clave foránea con la tabla users
-                entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
-                entity.HasOne(e => e.UpdatedByUser).WithMany().HasForeignKey(e => e.UpdatedBy).OnDelete(DeleteBehavior.SetNull);
+                // NOTA: Relaciones comentadas temporalmente - las foreign keys existen en la BD pero no se mapean en EF
+                // entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+                // entity.HasOne(e => e.UpdatedByUser).WithMany().HasForeignKey(e => e.UpdatedBy).OnDelete(DeleteBehavior.SetNull);
+                
+                // Ignorar cualquier propiedad shadow que EF pueda intentar crear
+                entity.Ignore("UserId");
                 
                 // ===== ÍNDICES PARA OPTIMIZACIÓN DE CONSULTAS =====
                 // Crear índices en columnas frecuentemente consultadas
