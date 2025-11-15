@@ -43,7 +43,7 @@ interface MachineProgram {
   kilos: number; // Cantidad en kilogramos a producir
   fechaTintaEnMaquina: Date; // Fecha y hora cuando se aplicó la tinta en la máquina (formato dd/mm/aaaa: hora)
   sustrato: string; // Tipo de material base (ej: BOPP, PE, PET)
-  estado: 'PREPARANDO' | 'LISTO' | 'SUSPENDIDO' | 'CORRIENDO' | 'TERMINADO'; // Estado actual del programa - NUEVOS ESTADOS
+  estado: 'SIN_ASIGNAR' | 'PREPARANDO' | 'LISTO' | 'SUSPENDIDO' | 'CORRIENDO' | 'TERMINADO'; // Estado actual del programa - SIN_ASIGNAR = Programa nuevo sin acción del operario
   observaciones?: string; // Observaciones adicionales (opcional)
   lastActionBy?: string; // Usuario que realizó la última acción (opcional)
   lastActionAt?: Date; // Fecha de la última acción (opcional)
@@ -154,7 +154,7 @@ export class MachinesComponent implements OnInit {
     return {
       totalPrograms: programs.length, // Cuenta total de programas
       // Cuenta programas por estado usando filter - NUEVOS ESTADOS
-      readyPrograms: programs.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length, // Listo + Preparando
+      readyPrograms: programs.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO' || p.estado === 'SIN_ASIGNAR').length, // Listo + Preparando + Sin Asignar
       runningPrograms: programs.filter(p => p.estado === 'CORRIENDO').length, // Corriendo
       suspendedPrograms: programs.filter(p => p.estado === 'SUSPENDIDO').length, // Suspendido
       completedPrograms: programs.filter(p => p.estado === 'TERMINADO').length // Terminado
@@ -255,7 +255,7 @@ export class MachinesComponent implements OnInit {
             kilos: program.kilos || 0, // Cantidad en kilogramos (columna kilos) - 0 si es null
             fechaTintaEnMaquina: program.fechaTintaEnMaquina ? new Date(program.fechaTintaEnMaquina) : new Date(), // Fecha de tinta (columna fecha_tinta_en_maquina)
             sustrato: program.sustrato || '', // Tipo de material base (columna sustrato) - vacío si es null
-            estado: program.estado || 'PREPARANDO', // Estado del programa (columna estado) - PREPARANDO por defecto (sin color para que operario elija)
+            estado: program.estado || 'SIN_ASIGNAR', // Estado del programa - SIN_ASIGNAR si viene vacío (el operario debe asignar)
             observaciones: program.observaciones || '', // Observaciones adicionales (columna observaciones) - vacío si es null
             
             // ===== CAMPOS DE COMPATIBILIDAD =====
@@ -431,8 +431,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
     // Filtrar programas de la máquina específica por número de máquina
     const machinePrograms = this.programs().filter(p => p.machineNumber === machineNumber);
     
-    // Contar programas en estado LISTO y PREPARANDO (ambos cuentan como "listos")
-    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length;
+    // Contar programas en estado LISTO, PREPARANDO y SIN_ASIGNAR (todos cuentan como "listos")
+    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO' || p.estado === 'SIN_ASIGNAR').length;
     
     // ===== DETERMINAR CLASE CSS BASADA EN LA CANTIDAD DE PROGRAMAS LISTOS =====
     // Según especificaciones del usuario:
@@ -465,8 +465,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
   getMachineStatusTooltip(machineNumber: number): string {
     // Filtrar programas de la máquina específica
     const machinePrograms = this.programs().filter(p => p.machineNumber === machineNumber);
-    // Contar programas en estado LISTO y PREPARANDO
-    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length;
+    // Contar programas en estado LISTO, PREPARANDO y SIN_ASIGNAR
+    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO' || p.estado === 'SIN_ASIGNAR').length;
     // Retornar texto descriptivo para el tooltip
     return `Máquina ${machineNumber}: ${readyCount} programas listos/preparando`;
   }
@@ -550,6 +550,9 @@ Error: ${loginError.message || 'Error de conexión'}`);
   // Se conecta con el endpoint PATCH api/maquinas/{id}/status del backend
   // Este endpoint actualiza la columna 'estado' en la tabla machine_programs
   async changeStatus(program: MachineProgram, newStatus: MachineProgram['estado']) {
+    // ===== LOG DE ENTRADA AL MÉTODO =====
+    console.log('🎯 changeStatus llamado con:', { program, newStatus });
+    
     // ===== VALIDACIÓN DE ID =====
     // Verificar que el programa tenga un ID válido antes de intentar actualizar
     if (!program.id) {
@@ -582,14 +585,21 @@ Error: ${loginError.message || 'Error de conexión'}`);
         observaciones: newStatus === 'SUSPENDIDO' ? program.observaciones : null
       };
       
+      // ===== LOG DEL DTO Y URL =====
+      const url = `${environment.apiUrl}/maquinas/${program.id}/status`;
+      console.log('📤 Enviando petición PATCH:', { url, dto: changeStatusDto });
+      
       // ===== PETICIÓN HTTP PATCH AL BACKEND =====
       // Realizar petición HTTP PATCH al endpoint api/maquinas/{id}/status
       // Este endpoint actualiza las columnas: estado, observaciones, updated_at, updated_by, last_action_by, last_action_at
       // en la tabla machine_programs de la base de datos flexoapp_bd
       const response = await firstValueFrom(this.http.patch<any>(
-        `${environment.apiUrl}/maquinas/${program.id}/status`, // URL del endpoint con el ID del programa
+        url, // URL del endpoint con el ID del programa
         changeStatusDto // Objeto DTO serializado a JSON en el body de la petición
       ));
+      
+      // ===== LOG DE RESPUESTA =====
+      console.log('📥 Respuesta recibida del servidor:', response);
       
       // ===== VALIDACIÓN DE LA RESPUESTA DEL BACKEND =====
       // Verificar que la respuesta del servidor tenga la estructura esperada: { success: true, data: {...} }
@@ -601,6 +611,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
         // Esto evita tener que recargar todos los datos desde el servidor
         const programs = this.programs(); // Obtener array actual de programas desde la señal reactiva
         const programIndex = programs.findIndex(p => p.id === program.id); // Encontrar índice del programa modificado
+        console.log('🔍 Índice del programa en el array:', programIndex);
+        
         if (programIndex !== -1) {
           // ===== CREAR NUEVO ARRAY CON EL PROGRAMA ACTUALIZADO =====
           // Crear un nuevo array inmutable para disparar la detección de cambios de Angular
@@ -632,12 +644,16 @@ Error: ${loginError.message || 'Error de conexión'}`);
         
         // Definir mensajes de éxito específicos para cada estado
         const statusMessages = {
+          'SIN_ASIGNAR': 'Estado asignado - Programa activado',
           'PREPARANDO': 'Programa en PREPARACIÓN',
           'LISTO': 'Programa marcado como LISTO',
           'CORRIENDO': 'Programa iniciado - CORRIENDO',
           'SUSPENDIDO': 'Programa SUSPENDIDO',
           'TERMINADO': 'Programa TERMINADO exitosamente'
         };
+        
+        // Mostrar notificación de éxito al usuario
+        this.snackBar.open(statusMessages[newStatus] || 'Estado actualizado', 'Cerrar', { duration: 3000 });
         
         // Log de confirmación con detalles
         console.log(`✅ ${statusMessages[newStatus] || 'Estado actualizado'}`, {
@@ -653,6 +669,13 @@ Error: ${loginError.message || 'Error de conexión'}`);
       
     } catch (error: any) {
       console.error('❌ Error cambiando estado:', error); // Log del error
+      console.error('❌ Error completo:', {
+        status: error.status,
+        statusText: error.statusText,
+        message: error.message,
+        error: error.error,
+        url: error.url
+      });
       
       // Determinar mensaje de error específico basado en el código de estado HTTP
       let errorMessage = 'Error al cambiar el estado del programa'; // Mensaje por defecto
@@ -662,7 +685,12 @@ Error: ${loginError.message || 'Error de conexión'}`);
         errorMessage = 'Estado inválido o datos incorrectos'; // Datos mal formateados
       } else if (error.status === 500) {
         errorMessage = 'Error interno del servidor al actualizar el estado'; // Error del servidor
+      } else if (error.status === 0) {
+        errorMessage = 'No se puede conectar con el servidor'; // Sin conexión
       }
+      
+      // Mostrar notificación de error al usuario
+      this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
       
       // Log de error detallado
       console.error(`❌ ${errorMessage}`, {
@@ -1099,7 +1127,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
   /**
    * Obtiene el color hexadecimal asociado a cada estado de programa - ACTUALIZADO CON NUEVOS COLORES
    * Usado para aplicar estilos visuales consistentes en la UI
-   * PREPARANDO: Amarillo - Programa sin color asignado, esperando que operario elija acción
+   * SIN_ASIGNAR: Gris claro - Programa nuevo sin acción del operario (debe asignar estado)
+   * PREPARANDO: Amarillo - Programa en preparación
    * LISTO: Verde - Programa listo para producción
    * SUSPENDIDO: Naranja - Programa pausado temporalmente
    * CORRIENDO: Rojo - Programa en ejecución activa
@@ -1107,7 +1136,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
    */
   getStatusColor(estado: string): string {
     const colors = { // Mapeo de estados a colores hexadecimales - NUEVOS COLORES
-      'PREPARANDO': '#eab308',  // Amarillo - Programa en preparación (sin color asignado por operario)
+      'SIN_ASIGNAR': '#94a3b8', // Gris claro - Programa nuevo sin estado asignado
+      'PREPARANDO': '#eab308',  // Amarillo - Programa en preparación
       'LISTO': '#16a34a',       // Verde - Programa listo para ejecutar
       'SUSPENDIDO': '#f97316',  // Naranja - Programa pausado/suspendido
       'CORRIENDO': '#dc2626',   // Rojo - Programa en ejecución
@@ -1123,6 +1153,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
    */
   getStatusIcon(estado: string): string {
     const icons = { // Mapeo de estados a nombres de iconos Material - NUEVOS ICONOS
+      'SIN_ASIGNAR': 'radio_button_unchecked', // Círculo vacío - Sin asignar
       'PREPARANDO': 'schedule',     // Icono de reloj - Preparando
       'LISTO': 'check_circle',      // Círculo con check - Listo
       'SUSPENDIDO': 'pause_circle', // Círculo con pausa - Suspendido
@@ -1474,121 +1505,6 @@ Error: ${loginError.message || 'Error de conexión'}`);
     return coloresFF459;
   }
 
-  // ===== MÉTODO PARA CAMBIAR ESTADO DE UN PROGRAMA =====
-  // Actualiza el estado de un programa en la base de datos y refresca la vista
-  async changeStatus(program: MachineProgram, newStatus: string) {
-    try {
-      // ===== LOG DE INICIO =====
-      console.log(`🔄 Cambiando estado de programa ${program.articulo} a ${newStatus}`);
-      
-      // ===== ACTIVAR INDICADOR DE CARGA =====
-      this.loading.set(true);
-      
-      // ===== LLAMAR AL ENDPOINT DEL BACKEND =====
-      // Endpoint: PATCH /api/maquinas/{articulo}/status
-      const response = await firstValueFrom(
-        this.http.patch<any>(`${environment.apiUrl}/maquinas/${program.articulo}/status`, {
-          Estado: newStatus,
-          Observaciones: null
-        })
-      );
-      
-      // ===== LOG DE RESPUESTA =====
-      console.log('✅ Estado actualizado:', response);
-      
-      // ===== ACTUALIZAR EL PROGRAMA EN LA LISTA LOCAL =====
-      const currentPrograms = this.programs();
-      const updatedPrograms = currentPrograms.map(p => 
-        p.articulo === program.articulo 
-          ? { ...p, estado: newStatus, lastActionBy: response.data?.lastActionBy || 'Sistema', lastActionAt: new Date() }
-          : p
-      );
-      this.programs.set(updatedPrograms);
-      
-      // ===== MOSTRAR NOTIFICACIÓN DE ÉXITO =====
-      this.snackBar.open(
-        `Estado cambiado a ${newStatus}`, 
-        'Cerrar', 
-        { duration: 3000 }
-      );
-      
-    } catch (error: any) {
-      // ===== MANEJO DE ERRORES =====
-      console.error('❌ Error cambiando estado:', error);
-      
-      // ===== MOSTRAR ERROR AL USUARIO =====
-      this.snackBar.open(
-        `Error al cambiar estado: ${error.error?.message || error.message || 'Error desconocido'}`, 
-        'Cerrar', 
-        { duration: 5000 }
-      );
-    } finally {
-      // ===== DESACTIVAR INDICADOR DE CARGA =====
-      this.loading.set(false);
-    }
-  }
 
-  // ===== MÉTODO PARA SUSPENDER UN PROGRAMA CON MOTIVO =====
-  // Abre un diálogo para ingresar el motivo de suspensión y actualiza el estado
-  async suspendProgram(program: MachineProgram) {
-    try {
-      // ===== SOLICITAR MOTIVO DE SUSPENSIÓN AL USUARIO =====
-      const motivo = prompt('Ingrese el motivo de suspensión:');
-      
-      // ===== VALIDAR QUE SE INGRESÓ UN MOTIVO =====
-      if (!motivo || motivo.trim() === '') {
-        console.log('⚠️ Suspensión cancelada: no se ingresó motivo');
-        return; // Salir si no se ingresó motivo
-      }
-      
-      // ===== LOG DE INICIO =====
-      console.log(`🔄 Suspendiendo programa ${program.articulo} con motivo: ${motivo}`);
-      
-      // ===== ACTIVAR INDICADOR DE CARGA =====
-      this.loading.set(true);
-      
-      // ===== LLAMAR AL ENDPOINT DEL BACKEND =====
-      // Endpoint: PATCH /api/maquinas/{articulo}/status
-      const response = await firstValueFrom(
-        this.http.patch<any>(`${environment.apiUrl}/maquinas/${program.articulo}/status`, {
-          Estado: 'SUSPENDIDO',
-          Observaciones: motivo.trim()
-        })
-      );
-      
-      // ===== LOG DE RESPUESTA =====
-      console.log('✅ Programa suspendido:', response);
-      
-      // ===== ACTUALIZAR EL PROGRAMA EN LA LISTA LOCAL =====
-      const currentPrograms = this.programs();
-      const updatedPrograms = currentPrograms.map(p => 
-        p.articulo === program.articulo 
-          ? { ...p, estado: 'SUSPENDIDO', observaciones: motivo.trim(), lastActionBy: response.data?.lastActionBy || 'Sistema', lastActionAt: new Date() }
-          : p
-      );
-      this.programs.set(updatedPrograms);
-      
-      // ===== MOSTRAR NOTIFICACIÓN DE ÉXITO =====
-      this.snackBar.open(
-        `Programa suspendido: ${motivo}`, 
-        'Cerrar', 
-        { duration: 3000 }
-      );
-      
-    } catch (error: any) {
-      // ===== MANEJO DE ERRORES =====
-      console.error('❌ Error suspendiendo programa:', error);
-      
-      // ===== MOSTRAR ERROR AL USUARIO =====
-      this.snackBar.open(
-        `Error al suspender: ${error.error?.message || error.message || 'Error desconocido'}`, 
-        'Cerrar', 
-        { duration: 5000 }
-      );
-    } finally {
-      // ===== DESACTIVAR INDICADOR DE CARGA =====
-      this.loading.set(false);
-    }
-  }
 
 }
