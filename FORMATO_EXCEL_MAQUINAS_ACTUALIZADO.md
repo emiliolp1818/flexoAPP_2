@@ -14,7 +14,7 @@ El archivo Excel debe contener **10 columnas** en el siguiente orden:
 | 6 | F | **TD** | Texto | ❌ No | Código TD (Tipo de Diseño) | `TD-ABC`, `DIS-123` |
 | 7 | G | **NUMERO DE COLORES** | Número | ✅ Sí | Cantidad de colores (1-10) | `4`, `6`, `8` |
 | 8 | H | **KILOS** | Decimal | ✅ Sí | Cantidad en kilogramos | `1500`, `2000.5`, `3250,75` |
-| 9 | I | **COLORES EN MAQUINA** | Texto | ✅ Sí | Lista de colores separados por coma<br>**NOTA:** El encabezado puede mostrar una fecha (ej: "10-nov-25 05 PM") pero el contenido son los colores | `CYAN,MAGENTA,AMARILLO,NEGRO` |
+| 9 | I | **COLORES EN MAQUINA** | Fecha/Hora | ✅ Sí | Fecha y hora de preparación de colores<br>**IMPORTANTE:** Esta columna contiene la FECHA de preparación, NO los nombres de colores | `10-nov-25 05 PM`, `16/11/2024 14:30` |
 | 10 | J | **SUSTRATOS** | Texto | ✅ Sí | Tipo de material base | `BOPP`, `PE`, `PET` |
 
 ---
@@ -23,18 +23,18 @@ El archivo Excel debe contener **10 columnas** en el siguiente orden:
 
 ### Fila de Encabezados (Fila 1):
 ```
-MQ IMP | ARTICULO F | OT SAP | CLIENTE | REFERENCIA | TD | NUMERO DE COLORES | KILOS | COLORES EN MAQUINA (10-nov-25 05 PM) | SUSTRATOS
+MQ IMP | ARTICULO F | OT SAP | CLIENTE | REFERENCIA | TD | NUMERO DE COLORES | KILOS | COLORES EN MAQUINA | SUSTRATOS
 ```
-**NOTA:** El encabezado de la columna 9 puede mostrar una fecha como "10-nov-25 05 PM", pero el contenido de las celdas son los colores.
+**NOTA:** El encabezado de la columna 9 es "COLORES EN MAQUINA" y contiene la fecha de preparación de colores.
 
 ### Ejemplo de Datos (Fila 2):
 ```
-11 | F204567 | OT123456 | ABSORBENTES DE COLOMBIA S.A | REF-001 | TD-ABC | 4 | 1500 | CYAN,MAGENTA,AMARILLO,NEGRO | BOPP
+11 | F204567 | OT123456 | ABSORBENTES DE COLOMBIA S.A | REF-001 | TD-ABC | 4 | 1500 | 10-nov-25 05 PM | BOPP
 ```
 
 ### Ejemplo de Datos (Fila 3):
 ```
-12 | F204568 | OT123457 | CLIENTE EJEMPLO S.A.S | REF-002 | TD-XYZ | 6 | 2000.5 | CYAN,MAGENTA,AMARILLO,NEGRO,BLANCO,VERDE | PE
+12 | F204568 | OT123457 | CLIENTE EJEMPLO S.A.S | REF-002 | TD-XYZ | 6 | 2000.5 | 16/11/2024 14:30 | PE
 ```
 
 ---
@@ -52,11 +52,13 @@ Los siguientes campos **NO pueden estar vacíos**:
 - ✅ COLORES EN MAQUINA (Columna I)
 - ✅ SUSTRATOS (Columna K)
 
-### 2. **Formato de Colores**
-- Los colores deben estar separados por **coma** (`,`) o **punto y coma** (`;`)
-- Ejemplo válido: `CYAN,MAGENTA,AMARILLO,NEGRO`
-- Ejemplo válido: `CYAN;MAGENTA;AMARILLO;NEGRO`
-- Los espacios antes y después de cada color se eliminan automáticamente
+### 2. **Formato de Fecha de Preparación de Colores**
+- La columna 9 contiene la **fecha y hora** de preparación de colores
+- Formatos aceptados:
+  - `dd-MMM-yy hh tt` → `10-nov-25 05 PM`
+  - `dd/MM/yyyy HH:mm` → `16/11/2024 14:30`
+  - `yyyy-MM-dd HH:mm` → `2024-11-16 14:30`
+- Si no se puede parsear la fecha, se usa la **fecha actual**
 
 ### 3. **Formato de Kilos**
 - Se acepta formato con **coma** (`,`) o **punto** (`.`) como separador decimal
@@ -65,12 +67,12 @@ Los siguientes campos **NO pueden estar vacíos**:
 - Ejemplo válido: `3250,75` (decimal con coma)
 - Los espacios se eliminan automáticamente
 
-### 4. **Formato de Fecha**
-- Si no se proporciona fecha, se usa la **fecha y hora actual**
-- Formatos aceptados:
-  - `dd/MM/yyyy HH:mm` → `16/11/2024 14:30`
-  - `yyyy-MM-dd` → `2024-11-16`
-  - `dd/MM/yyyy` → `16/11/2024`
+### 4. **Generación de Colores**
+- Los **nombres de colores NO vienen en el archivo Excel**
+- El sistema genera automáticamente nombres genéricos basados en el número de colores:
+  - Si NUMERO DE COLORES = 4, se generan: `COLOR1`, `COLOR2`, `COLOR3`, `COLOR4`
+  - Si NUMERO DE COLORES = 6, se generan: `COLOR1`, `COLOR2`, `COLOR3`, `COLOR4`, `COLOR5`, `COLOR6`
+- Los colores reales se asignan manualmente después en el sistema
 
 ### 5. **Número de Máquina**
 - Debe ser un número entre **11 y 21**
@@ -126,14 +128,14 @@ Los siguientes campos **NO pueden estar vacíos**:
 ## 📊 Ejemplo Completo de Archivo Excel
 
 ```
-MQ IMP | ARTICULO F | OT SAP    | CLIENTE                      | REFERENCIA | TD     | NUMERO DE COLORES | KILOS  | COLORES EN MAQUINA (10-nov-25 05 PM)  | SUSTRATOS
--------|------------|-----------|------------------------------|------------|--------|-------------------|--------|---------------------------------------|----------
-11     | F204567    | OT123456  | ABSORBENTES DE COLOMBIA S.A  | REF-001    | TD-ABC | 4                 | 1500   | CYAN,MAGENTA,AMARILLO,NEGRO           | BOPP
-12     | F204568    | OT123457  | CLIENTE EJEMPLO S.A.S        | REF-002    | TD-XYZ | 6                 | 2000.5 | CYAN,MAGENTA,AMARILLO,NEGRO,BLANCO,VERDE | PE
-13     | F204569    | OT123458  | EMPRESA PRUEBA LTDA          | REF-003    | TD-123 | 3                 | 1750   | CYAN,MAGENTA,AMARILLO                 | PET
+MQ IMP | ARTICULO F | OT SAP    | CLIENTE                      | REFERENCIA | TD     | NUMERO DE COLORES | KILOS  | COLORES EN MAQUINA  | SUSTRATOS
+-------|------------|-----------|------------------------------|------------|--------|-------------------|--------|---------------------|----------
+11     | F204567    | OT123456  | ABSORBENTES DE COLOMBIA S.A  | REF-001    | TD-ABC | 4                 | 1500   | 10-nov-25 05 PM     | BOPP
+12     | F204568    | OT123457  | CLIENTE EJEMPLO S.A.S        | REF-002    | TD-XYZ | 6                 | 2000.5 | 16/11/2024 14:30    | PE
+13     | F204569    | OT123458  | EMPRESA PRUEBA LTDA          | REF-003    | TD-123 | 3                 | 1750   | 16/11/2024 16:00    | PET
 ```
 
-**NOTA:** El encabezado de la columna 9 muestra "COLORES EN MAQUINA (10-nov-25 05 PM)" pero el contenido de las celdas son los colores, no fechas.
+**IMPORTANTE:** La columna 9 "COLORES EN MAQUINA" contiene la **FECHA Y HORA** de preparación de colores, NO los nombres de colores.
 
 ---
 
@@ -148,4 +150,4 @@ MQ IMP | ARTICULO F | OT SAP    | CLIENTE                      | REFERENCIA | TD
 ---
 
 **Última actualización:** 2024-11-16  
-**Versión:** 2.1 (10 columnas - Estructura corregida con COLORES EN MAQUINA)
+**Versión:** 2.2 (10 columnas - COLORES EN MAQUINA contiene FECHA de preparación)
