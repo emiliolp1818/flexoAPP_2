@@ -2,7 +2,7 @@
 
 ## 📋 Estructura del Archivo
 
-El archivo Excel debe contener **11 columnas** en el siguiente orden:
+El archivo Excel debe contener **10 columnas** en el siguiente orden:
 
 | # | Columna | Nombre | Tipo | Obligatorio | Descripción | Ejemplo |
 |---|---------|--------|------|-------------|-------------|---------|
@@ -14,9 +14,8 @@ El archivo Excel debe contener **11 columnas** en el siguiente orden:
 | 6 | F | **TD** | Texto | ❌ No | Código TD (Tipo de Diseño) | `TD-ABC`, `DIS-123` |
 | 7 | G | **NUMERO DE COLORES** | Número | ✅ Sí | Cantidad de colores (1-10) | `4`, `6`, `8` |
 | 8 | H | **KILOS** | Decimal | ✅ Sí | Cantidad en kilogramos | `1500`, `2000.5`, `3250,75` |
-| 9 | I | **COLORES EN MAQUINA** | Texto | ✅ Sí | Lista de colores separados por coma | `CYAN,MAGENTA,AMARILLO,NEGRO` |
-| 10 | J | **FECHA DE TINTAS EN MAQUINA** | Fecha/Hora | ❌ No | Fecha y hora cuando se aplicó la tinta | `16/11/2024 14:30`, `2024-11-16` |
-| 11 | K | **SUSTRATOS** | Texto | ✅ Sí | Tipo de material base | `BOPP`, `PE`, `PET` |
+| 9 | I | **COLORES EN MAQUINA** | Texto | ✅ Sí | Lista de colores separados por coma<br>**NOTA:** El encabezado puede mostrar una fecha (ej: "10-nov-25 05 PM") pero el contenido son los colores | `CYAN,MAGENTA,AMARILLO,NEGRO` |
+| 10 | J | **SUSTRATOS** | Texto | ✅ Sí | Tipo de material base | `BOPP`, `PE`, `PET` |
 
 ---
 
@@ -24,17 +23,18 @@ El archivo Excel debe contener **11 columnas** en el siguiente orden:
 
 ### Fila de Encabezados (Fila 1):
 ```
-MQ IMP | ARTICULO F | OT SAP | CLIENTE | REFERENCIA | TD | NUMERO DE COLORES | KILOS | COLORES EN MAQUINA | FECHA DE TINTAS EN MAQUINA | SUSTRATOS
+MQ IMP | ARTICULO F | OT SAP | CLIENTE | REFERENCIA | TD | NUMERO DE COLORES | KILOS | COLORES EN MAQUINA (10-nov-25 05 PM) | SUSTRATOS
 ```
+**NOTA:** El encabezado de la columna 9 puede mostrar una fecha como "10-nov-25 05 PM", pero el contenido de las celdas son los colores.
 
 ### Ejemplo de Datos (Fila 2):
 ```
-11 | F204567 | OT123456 | ABSORBENTES DE COLOMBIA S.A | REF-001 | TD-ABC | 4 | 1500 | CYAN,MAGENTA,AMARILLO,NEGRO | 16/11/2024 14:30 | BOPP
+11 | F204567 | OT123456 | ABSORBENTES DE COLOMBIA S.A | REF-001 | TD-ABC | 4 | 1500 | CYAN,MAGENTA,AMARILLO,NEGRO | BOPP
 ```
 
 ### Ejemplo de Datos (Fila 3):
 ```
-12 | F204568 | OT123457 | CLIENTE EJEMPLO S.A.S | REF-002 | TD-XYZ | 6 | 2000.5 | CYAN,MAGENTA,AMARILLO,NEGRO,BLANCO,VERDE | 16/11/2024 15:00 | PE
+12 | F204568 | OT123457 | CLIENTE EJEMPLO S.A.S | REF-002 | TD-XYZ | 6 | 2000.5 | CYAN,MAGENTA,AMARILLO,NEGRO,BLANCO,VERDE | PE
 ```
 
 ---
@@ -105,8 +105,8 @@ Los siguientes campos **NO pueden estar vacíos**:
 
 ## ⚠️ Errores Comunes
 
-### Error: "Se esperan al menos 11 columnas"
-**Causa:** El archivo no tiene las 11 columnas requeridas  
+### Error: "Se esperan al menos 10 columnas"
+**Causa:** El archivo no tiene las 10 columnas requeridas  
 **Solución:** Verifica que el archivo tenga todas las columnas en el orden correcto
 
 ### Error: "El campo ARTICULO F es obligatorio"
@@ -126,12 +126,14 @@ Los siguientes campos **NO pueden estar vacíos**:
 ## 📊 Ejemplo Completo de Archivo Excel
 
 ```
-MQ IMP | ARTICULO F | OT SAP    | CLIENTE                      | REFERENCIA | TD     | NUMERO DE COLORES | KILOS  | COLORES EN MAQUINA                    | FECHA DE TINTAS EN MAQUINA | SUSTRATOS
--------|------------|-----------|------------------------------|------------|--------|-------------------|--------|---------------------------------------|----------------------------|----------
-11     | F204567    | OT123456  | ABSORBENTES DE COLOMBIA S.A  | REF-001    | TD-ABC | 4                 | 1500   | CYAN,MAGENTA,AMARILLO,NEGRO           | 16/11/2024 14:30          | BOPP
-12     | F204568    | OT123457  | CLIENTE EJEMPLO S.A.S        | REF-002    | TD-XYZ | 6                 | 2000.5 | CYAN,MAGENTA,AMARILLO,NEGRO,BLANCO,VERDE | 16/11/2024 15:00       | PE
-13     | F204569    | OT123458  | EMPRESA PRUEBA LTDA          | REF-003    | TD-123 | 3                 | 1750   | CYAN,MAGENTA,AMARILLO                 | 16/11/2024 16:00          | PET
+MQ IMP | ARTICULO F | OT SAP    | CLIENTE                      | REFERENCIA | TD     | NUMERO DE COLORES | KILOS  | COLORES EN MAQUINA (10-nov-25 05 PM)  | SUSTRATOS
+-------|------------|-----------|------------------------------|------------|--------|-------------------|--------|---------------------------------------|----------
+11     | F204567    | OT123456  | ABSORBENTES DE COLOMBIA S.A  | REF-001    | TD-ABC | 4                 | 1500   | CYAN,MAGENTA,AMARILLO,NEGRO           | BOPP
+12     | F204568    | OT123457  | CLIENTE EJEMPLO S.A.S        | REF-002    | TD-XYZ | 6                 | 2000.5 | CYAN,MAGENTA,AMARILLO,NEGRO,BLANCO,VERDE | PE
+13     | F204569    | OT123458  | EMPRESA PRUEBA LTDA          | REF-003    | TD-123 | 3                 | 1750   | CYAN,MAGENTA,AMARILLO                 | PET
 ```
+
+**NOTA:** El encabezado de la columna 9 muestra "COLORES EN MAQUINA (10-nov-25 05 PM)" pero el contenido de las celdas son los colores, no fechas.
 
 ---
 
@@ -146,4 +148,4 @@ MQ IMP | ARTICULO F | OT SAP    | CLIENTE                      | REFERENCIA | TD
 ---
 
 **Última actualización:** 2024-11-16  
-**Versión:** 2.0 (11 columnas con COLORES EN MAQUINA)
+**Versión:** 2.1 (10 columnas - Estructura corregida con COLORES EN MAQUINA)

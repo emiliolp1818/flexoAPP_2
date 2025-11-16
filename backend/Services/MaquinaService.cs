@@ -231,18 +231,7 @@ namespace flexoAPP.Services
                 // Configurar EPPlus para uso no comercial
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-                // Eliminar programas en estado CORRIENDO antes de cargar nuevos
-                // NOTA: Comentado temporalmente debido a problemas con Entity Framework
-                // _logger.LogInformation("🗑️ Eliminando programas en estado CORRIENDO antes de cargar nuevos...");
-                // var allPrograms = await _repository.GetAllAsync();
-                // var runningPrograms = allPrograms.Where(p => p.Estado == "CORRIENDO").ToList();
-                // foreach (var runningProgram in runningPrograms)
-                // {
-                //     await _repository.DeleteAsync(runningProgram.Articulo);
-                //     _logger.LogInformation("🗑️ Programa eliminado: {Articulo} - Máquina {Machine}", runningProgram.Articulo, runningProgram.NumeroMaquina);
-                // }
-
-                // Procesar archivo Excel usando EPPlus
+           
                 var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
                 _logger.LogInformation("📄 Tipo de archivo: {Extension}", fileExtension);
                 _logger.LogInformation("📊 Procesando archivo Excel con EPPlus...");
@@ -362,21 +351,35 @@ namespace flexoAPP.Services
             // ===== PARSEAR LA LÍNEA CSV EN COLUMNAS =====
             // Convertir la línea CSV en un array de strings (una por cada columna)
             // El método ParseCsvLine maneja correctamente las comillas y comas dentro de valores
+        // ===== MÉTODO PRIVADO PARA PROCESAR UNA LÍNEA DEL ARCHIVO EXCEL =====
+        // Este método toma una línea del archivo Excel (en formato CSV) y la convierte en un objeto MaquinaDto
+        // Parámetros:
+        //   - line: Línea del archivo en formato CSV (valores separados por comas)
+        //   - userId: ID del usuario que está cargando el archivo (para auditoría)
+        // Retorna: MaquinaDto con los datos procesados o null si hay error
+        private async Task<MaquinaDto?> ProcessExcelLine(string line, int? userId)
+        {
+            // ===== PASO 1: PARSEAR LA LÍNEA CSV EN COLUMNAS =====
+            // Llamar al método ParseCsvLine que convierte la línea CSV en un array de strings
+            // Este método maneja correctamente las comillas y comas dentro de valores
             var columns = ParseCsvLine(line);
             
-            // ===== LOG DE INFORMACIÓN DE LA LÍNEA =====
-            // Registrar cuántas columnas se encontraron en esta línea
+            // ===== PASO 2: LOG DE INFORMACIÓN DE LA LÍNEA =====
+            // Registrar en el log cuántas columnas se encontraron en esta línea para debugging
             _logger.LogInformation("📋 Procesando línea con {Count} columnas", columns.Count);
-            // Registrar el contenido de cada columna con su índice para debugging
+            
+            // Registrar el contenido de cada columna con su índice para facilitar el debugging
+            // Formato: [0]=valor1 | [1]=valor2 | [2]=valor3 ...
             _logger.LogInformation("📋 Datos: {Data}", string.Join(" | ", columns.Select((c, i) => $"[{i}]={c}")));
             
-            // ===== VALIDACIÓN: VERIFICAR NÚMERO MÍNIMO DE COLUMNAS =====
-            // El archivo debe tener al menos 11 columnas para ser válido según el nuevo formato
-            // Si tiene menos, lanzar excepción con mensaje detallado
-            if (columns.Count < 11)
+            // ===== PASO 3: VALIDACIÓN DEL NÚMERO DE COLUMNAS =====
+            // Verificar que el archivo tenga al menos 10 columnas según el formato esperado
+            // Si tiene menos columnas, el archivo no es válido y se debe rechazar
+            if (columns.Count < 10)
             {
-                // Construir mensaje de error detallado con la lista de columnas esperadas
-                var errorMsg = $"Formato inválido: Se esperan al menos 11 columnas, se encontraron {columns.Count}.\n" +
+                // Construir un mensaje de error detallado que explique el formato esperado
+                // Este mensaje ayuda al usuario a corregir el archivo Excel
+                var errorMsg = $"Formato inválido: Se esperan al menos 10 columnas, se encontraron {columns.Count}.\n" +
                               $"Columnas esperadas:\n" +
                               $"1. MQ IMP (Número de máquina impresora)\n" +
                               $"2. ARTICULO F (Código del artículo)\n" +
@@ -387,29 +390,38 @@ namespace flexoAPP.Services
                               $"7. NUMERO DE COLORES (Cantidad de colores)\n" +
                               $"8. KILOS (Cantidad en kilogramos)\n" +
                               $"9. COLORES EN MAQUINA (Lista de colores separados por coma)\n" +
-                              $"10. FECHA DE TINTAS EN MAQUINA (Fecha y hora)\n" +
-                              $"11. SUSTRATOS (Tipo de material)";
+                              $"10. SUSTRATOS (Tipo de material)";
+                
+                // Lanzar excepción con el mensaje de error para detener el procesamiento
                 throw new ArgumentException(errorMsg);
             }
             
-            // ===== VALIDACIÓN DE CAMPOS OBLIGATORIOS =====
-            // Verificar que los campos críticos no estén vacíos
+            // ===== PASO 4: VALIDACIÓN DE CAMPOS OBLIGATORIOS =====
+            // Verificar que el campo ARTICULO F (columna 1) no esté vacío
+            // Este campo es la clave primaria y debe ser único y obligatorio
             if (string.IsNullOrWhiteSpace(columns[1]))
             {
+                // Lanzar excepción si el artículo está vacío
                 throw new ArgumentException("El campo ARTICULO F (columna 2) es obligatorio y no puede estar vacío");
             }
             
+            // Verificar que el campo OT SAP (columna 2) no esté vacío
+            // La orden de trabajo es obligatoria para identificar el trabajo
             if (string.IsNullOrWhiteSpace(columns[2]))
             {
+                // Lanzar excepción si la OT SAP está vacía
                 throw new ArgumentException("El campo OT SAP (columna 3) es obligatorio y no puede estar vacío");
             }
             
+            // Verificar que el campo CLIENTE (columna 3) no esté vacío
+            // El nombre del cliente es obligatorio para la trazabilidad
             if (string.IsNullOrWhiteSpace(columns[3]))
             {
+                // Lanzar excepción si el cliente está vacío
                 throw new ArgumentException("El campo CLIENTE (columna 4) es obligatorio y no puede estar vacío");
             }
 
-            // ===== FORMATO ACTUALIZADO DEL ARCHIVO (11 COLUMNAS) =====
+            // ===== DOCUMENTACIÓN: FORMATO CORRECTO DEL ARCHIVO (10 COLUMNAS) =====
             // Columna 0: MQ IMP - Número de máquina impresora (11-21)
             // Columna 1: ARTICULO F - Código del artículo (único, clave primaria)
             // Columna 2: OT SAP - Orden de trabajo SAP
@@ -419,143 +431,185 @@ namespace flexoAPP.Services
             // Columna 6: NUMERO DE COLORES - Cantidad de colores (1-10)
             // Columna 7: KILOS - Cantidad en kilogramos
             // Columna 8: COLORES EN MAQUINA - Lista de colores reales separados por coma (ej: "CYAN,MAGENTA,AMARILLO")
-            // Columna 9: FECHA DE TINTAS EN MAQUINA - Fecha y hora cuando se aplicó la tinta
-            // Columna 10: SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
+            //            NOTA: El encabezado puede mostrar una fecha (ej: "10-nov-25 05 PM") pero el contenido son los colores
+            // Columna 9: SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
 
-            // ===== PARSEAR NÚMERO DE MÁQUINA (COLUMNA 0) =====
-            int numeroMaquina = 11; // Valor por defecto
+            // ===== PASO 5: PARSEAR NÚMERO DE MÁQUINA (COLUMNA 0) =====
+            // Declarar variable para almacenar el número de máquina con valor por defecto 11
+            int numeroMaquina = 11;
+            
+            // Intentar convertir el valor de la columna 0 a número entero
             if (int.TryParse(columns[0], out var machine))
             {
+                // Si la conversión es exitosa, usar el valor parseado
                 numeroMaquina = machine;
+                // Registrar en el log el número de máquina parseado
                 _logger.LogInformation("🖨️ Máquina impresora: {Machine}", numeroMaquina);
             }
             else
             {
+                // Si la conversión falla, registrar advertencia y usar valor por defecto (11)
                 _logger.LogWarning("⚠️ No se pudo parsear número de máquina '{Machine}', usando 11 por defecto", columns[0]);
             }
 
-            // ===== PARSEAR NÚMERO DE COLORES (COLUMNA 6) =====
+            // ===== PASO 6: PARSEAR NÚMERO DE COLORES (COLUMNA 6) =====
+            // Declarar variable para almacenar la cantidad de colores con valor inicial 0
             int numeroColores = 0;
+            
+            // Intentar convertir el valor de la columna 6 a número entero
             if (int.TryParse(columns[6], out var numCol))
             {
+                // Si la conversión es exitosa, usar el valor parseado
                 numeroColores = numCol;
+                // Registrar en el log la cantidad de colores parseada
                 _logger.LogInformation("🎨 Número de colores: {Count}", numeroColores);
             }
             else
             {
+                // Si la conversión falla, registrar advertencia y usar 0 por defecto
                 _logger.LogWarning("⚠️ No se pudo parsear número de colores '{NumColores}', usando 0", columns[6]);
             }
 
-            // ===== PARSEAR COLORES EN MÁQUINA (COLUMNA 8) =====
-            // Los colores vienen separados por coma en una sola celda (ej: "CYAN,MAGENTA,AMARILLO")
+            // ===== PASO 7: PARSEAR COLORES EN MÁQUINA (COLUMNA 8) =====
+            // Los colores vienen en una sola celda separados por coma (ej: "CYAN,MAGENTA,AMARILLO")
+            // Crear una lista vacía para almacenar los colores parseados
             var colores = new List<string>();
+            
+            // Verificar si la columna 8 tiene contenido (no está vacía ni es solo espacios)
             if (!string.IsNullOrWhiteSpace(columns[8]))
             {
-                // Dividir por coma y limpiar espacios
+                // Procesar la cadena de colores:
+                // 1. Split: Dividir por coma (,) o punto y coma (;)
+                // 2. RemoveEmptyEntries: Eliminar entradas vacías
+                // 3. Select: Aplicar Trim() a cada color para eliminar espacios al inicio y final
+                // 4. Where: Filtrar solo los colores que no estén vacíos después del Trim
+                // 5. ToList: Convertir el resultado a una lista
                 colores = columns[8]
                     .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Trim())
                     .Where(c => !string.IsNullOrWhiteSpace(c))
                     .ToList();
                 
+                // Registrar en el log los colores parseados unidos por coma
                 _logger.LogInformation("🎨 Colores parseados: {Colores}", string.Join(", ", colores));
             }
             else
             {
-                // Si no hay colores especificados, crear lista genérica basada en el número
+                // Si no hay colores especificados en la columna 8, crear nombres genéricos
+                // Usar un bucle for para crear colores genéricos basados en el número de colores
                 for (int i = 0; i < numeroColores; i++)
                 {
+                    // Agregar color genérico con formato "COLOR1", "COLOR2", etc.
                     colores.Add($"COLOR{i + 1}");
                 }
+                // Registrar advertencia indicando que se usaron nombres genéricos
                 _logger.LogWarning("⚠️ No se especificaron colores, usando nombres genéricos: {Colores}", string.Join(", ", colores));
             }
 
-            // ===== PARSEAR KILOS (COLUMNA 7) =====
-            // Manejar formato con coma y punto decimal
+            // ===== PASO 8: PARSEAR KILOS (COLUMNA 7) =====
+            // Los kilos pueden venir con coma (,) o punto (.) como separador decimal
+            // Declarar variable para almacenar los kilos con valor inicial 0
             decimal kilos = 0;
+            
+            // Registrar en el log el valor original de kilos antes de procesarlo
             _logger.LogInformation("🔍 Parseando kilos - Valor original: '{Kilos}' (columna 8)", columns[7]);
             
+            // Verificar si la columna 7 tiene contenido (no está vacía ni es solo espacios)
             if (!string.IsNullOrWhiteSpace(columns[7]))
             {
+                // Limpiar el valor de kilos:
+                // 1. Replace(",", "."): Reemplazar coma por punto para formato decimal estándar
+                // 2. Replace(" ", ""): Eliminar todos los espacios
+                // 3. Trim(): Eliminar espacios al inicio y final
                 var kilosStr = columns[7]
-                    .Replace(",", ".") // Reemplazar coma por punto para formato decimal
-                    .Replace(" ", "")  // Eliminar espacios
+                    .Replace(",", ".")
+                    .Replace(" ", "")
                     .Trim();
                 
+                // Registrar en el log el valor de kilos después de la limpieza
                 _logger.LogInformation("🔍 Kilos después de limpieza: '{KilosLimpio}'", kilosStr);
                 
+                // Intentar convertir el valor limpio a decimal usando cultura invariante
+                // NumberStyles.Any: Acepta cualquier formato numérico válido
+                // InvariantCulture: Usa punto como separador decimal
                 if (decimal.TryParse(kilosStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out kilos))
                 {
+                    // Si la conversión es exitosa, registrar el valor parseado
                     _logger.LogInformation("✅ Kilos parseados exitosamente: {Kilos}", kilos);
                 }
                 else
                 {
+                    // Si la conversión falla, registrar advertencia y usar 0 por defecto
                     _logger.LogWarning("⚠️ No se pudo parsear kilos '{Kilos}', usando 0", columns[7]);
                     kilos = 0;
                 }
             }
             else
             {
+                // Si la columna de kilos está vacía, registrar advertencia y usar 0
                 _logger.LogWarning("⚠️ Columna de kilos vacía (columna 8), usando 0");
                 kilos = 0;
             }
 
-            // ===== PARSEAR FECHA DE TINTA EN MÁQUINA (COLUMNA 9) =====
-            DateTime? fechaTintaEnMaquina = null;
-            if (!string.IsNullOrWhiteSpace(columns[9]))
-            {
-                if (DateTime.TryParse(columns[9], out var fecha))
-                {
-                    fechaTintaEnMaquina = fecha;
-                    _logger.LogInformation("📅 Fecha parseada: {Fecha}", fechaTintaEnMaquina);
-                }
-                else
-                {
-                    fechaTintaEnMaquina = DateTime.Now;
-                    _logger.LogWarning("⚠️ No se pudo parsear la fecha '{Fecha}', usando fecha actual", columns[9]);
-                }
-            }
-            else
-            {
-                fechaTintaEnMaquina = DateTime.Now;
-                _logger.LogWarning("⚠️ Fecha vacía, usando fecha actual");
-            }
+            // ===== PASO 9: ESTABLECER FECHA DE TINTA EN MÁQUINA =====
+            // Como la fecha no viene en el archivo Excel, usar la fecha y hora actual del sistema
+            DateTime? fechaTintaEnMaquina = DateTime.Now;
+            
+            // Registrar en el log la fecha que se está usando
+            _logger.LogInformation("📅 Usando fecha actual: {Fecha}", fechaTintaEnMaquina);
 
-            // ===== CREAR DTO CON LOS DATOS PROCESADOS =====
-            // IMPORTANTE: Los programas nuevos se cargan SIN ESTADO (vacío)
-            // El operario debe aplicar la primera acción (PREPARANDO, LISTO, etc.)
+            // ===== PASO 10: CREAR DTO CON LOS DATOS PROCESADOS =====
+            // Crear un objeto CreateMaquinaDto con todos los datos parseados y validados
+            // Este DTO se usará para crear o actualizar el registro en la base de datos
             var createDto = new CreateMaquinaDto
             {
-                NumeroMaquina = numeroMaquina,           // Columna 0: MQ IMP
-                Articulo = columns[1],                   // Columna 1: ARTICULO F
-                OtSap = columns[2],                      // Columna 2: OT SAP
-                Cliente = columns[3],                    // Columna 3: CLIENTE
-                Referencia = columns[4],                 // Columna 4: REFERENCIA
-                Td = columns[5],                         // Columna 5: TD
-                Colores = colores,                       // Columna 8: COLORES EN MAQUINA (parseados)
-                Kilos = kilos,                           // Columna 7: KILOS (parseados)
-                FechaTintaEnMaquina = fechaTintaEnMaquina, // Columna 9: FECHA DE TINTAS EN MAQUINA
-                Sustrato = columns[10],                  // Columna 10: SUSTRATOS
-                Estado = "", // SIN ESTADO - El operario debe aplicar la primera acción
+                // Asignar número de máquina parseado de la columna 0
+                NumeroMaquina = numeroMaquina,
+                
+                // Asignar código de artículo directamente de la columna 1 (ya validado como no vacío)
+                Articulo = columns[1],
+                
+                // Asignar orden de trabajo SAP directamente de la columna 2 (ya validado como no vacío)
+                OtSap = columns[2],
+                
+                // Asignar nombre del cliente directamente de la columna 3 (ya validado como no vacío)
+                Cliente = columns[3],
+                
+                // Asignar referencia del producto directamente de la columna 4
+                Referencia = columns[4],
+                
+                // Asignar código TD (Tipo de Diseño) directamente de la columna 5
+                Td = columns[5],
+                
+                // Asignar lista de colores parseada de la columna 8
+                Colores = colores,
+                
+                // Asignar kilos parseados de la columna 7
+                Kilos = kilos,
+                
+                // Asignar fecha actual (no viene en el archivo)
+                FechaTintaEnMaquina = fechaTintaEnMaquina,
+                
+                // Asignar tipo de sustrato directamente de la columna 9
+                Sustrato = columns[9],
+                
+                // Establecer estado como vacío - El operario debe asignar el primer estado manualmente
+                Estado = "",
+                
+                // Agregar observación indicando que es un programa nuevo pendiente de asignación
                 Observaciones = "Programa nuevo - Pendiente de asignación de estado por operario"
             };
 
+            // ===== PASO 11: LOG DE CONFIRMACIÓN =====
+            // Registrar en el log un resumen del DTO creado con los datos más importantes
             _logger.LogInformation("✅ DTO creado: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Kilos={Kilos}, Colores={Colores}", 
                 createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Kilos, string.Join(",", createDto.Colores));
 
+            // ===== PASO 12: CREAR O ACTUALIZAR REGISTRO EN LA BASE DE DATOS =====
+            // Llamar al método CreateAsync que inserta o actualiza el registro en la base de datos
+            // Este método retorna un MaquinaDto con los datos guardados
             return await CreateAsync(createDto, userId);
         }
-
-        private List<string> ParseCsvLine(string line)
-        {
-            var columns = new List<string>();
-            var currentColumn = new System.Text.StringBuilder();
-            bool inQuotes = false;
-
-            for (int i = 0; i < line.Length; i++)
-            {
-                char c = line[i];
-
                 if (c == '"')
                 {
                     inQuotes = !inQuotes;
