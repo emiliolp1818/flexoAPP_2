@@ -111,6 +111,16 @@
       th.style46 { vertical-align:middle; text-align:left; padding-left:45px; border-bottom:1px solid #000000 !important; border-top:1px solid #000000 !important; border-left:1px solid #000000 !important; border-right:none #000000; font-weight:bold; color:#000000; font-family:'Arial'; font-size:7.5pt; background-color:white }
       td.style47 { vertical-align:middle; text-align:left; padding-left:45px; border-bottom:1px solid #000000 !important; border-top:1px solid #000000 !important; border-left:none #000000; border-right:1px solid #000000 !important; font-weight:bold; color:#000000; font-family:'Arial'; font-size:7.5pt; background-color:white }
       th.style47 { vertical-align:middle; text-align:left; padding-left:45px; border-bottom:1px solid #000000 !important; border-top:1px solid #000000 !important; border-left:none #000000; border-right:1px solid #000000 !important; font-weight:bold; color:#000000; font-family:'Arial'; font-size:7.5pt; background-color:white }
+      
+      /* Estilo unificado para todos los campos dinámicos ${} */
+      .dynamic-field {
+        font-family: 'Times New Roman', serif !important;
+        font-size: 10pt !important;
+        font-weight: normal !important;
+        color: #000000 !important;
+      }
+      td.style47 { vertical-align:middle; text-align:left; padding-left:45px; border-bottom:1px solid #000000 !important; border-top:1px solid #000000 !important; border-left:none #000000; border-right:1px solid #000000 !important; font-weight:bold; color:#000000; font-family:'Arial'; font-size:7.5pt; background-color:white }
+      th.style47 { vertical-align:middle; text-align:left; padding-left:45px; border-bottom:1px solid #000000 !important; border-top:1px solid #000000 !important; border-left:none #000000; border-right:1px solid #000000 !important; font-weight:bold; color:#000000; font-family:'Arial'; font-size:7.5pt; background-color:white }
       td.style48 { vertical-align:top; border-bottom:1px solid #000000 !important; border-top:1px solid #000000 !important; border-left:none #000000; border-right:none #000000; font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt; background-color:white }
       th.style48 { vertical-align:top; border-bottom:1px solid #000000 !important; border-top:1px solid #000000 !important; border-left:none #000000; border-right:none #000000; font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt; background-color:white }
       td.style49 { vertical-align:top; border-bottom:1px solid #000000 !important; border-top:1px solid #000000 !important; border-left:none #000000; border-right:1px solid #000000 !important; font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt; background-color:white }
@@ -245,7 +255,7 @@ body { margin-left: 0in; margin-right: 0in; margin-top: 0in; margin-bottom: 0in;
         <tbody>
           <tr class="row0">
             <td class="column0 style16 null">
-<div style="position: relative;"><img style="position: absolute; z-index: 1; left: 43px; top: 0px; width: 57px; height: 36px;" src="zip:///home/CloudConvertio/tmp/in_work/b7d49150d34b41d485e4806284222883.xlsx#xl/media/image1.png" border="0" /></div></td>
+<div style="position: relative;"><img style="position: absolute; z-index: 1; left: 43px; top: 0px; width: 57px; height: 36px;" src="ff459.png" border="0" /></div></td>
             <td class="column1 style22 s style22" colspan="8"><span style="font-weight:bold; color:#000000; font-family:'Arial'; font-size:11pt">PREALISTAMIENTO Y AJUSTES EN IMPRESIÓN</span></td>
             <td class="column9 style23 s style23" colspan="2"><span style="font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt">FF-459</span></td>
           </tr>
@@ -254,26 +264,26 @@ body { margin-left: 0in; margin-right: 0in; margin-top: 0in; margin-bottom: 0in;
           </tr>
           <tr class="row2">
             <td class="column0 style17 s"><span style="font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt">FECHA PREALISTAMIENTO</span></td>
-            <td class="column1 style23 null style23" colspan="3">${fechaActual}</td>
+            <td class="column1 style23 null style23" colspan="3"><span class="dynamic-field">${fechaActual}</span></td>
             <td class="column4 style18 null"></td>
             <td class="column5 style28 s style29" colspan="2">NOMBRE PREALISTADOR :</td>
-            <td class="column7 style30 null style32" colspan="4">${nombreCompleto}</td>
+            <td class="column7 style30 null style32" colspan="4"><span class="dynamic-field">${nombreCompleto}</span></td>
           </tr>
           <tr class="row3">
             <td class="column0 style66 s"><span style="font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt">CLIENTE</span></td>
-            <td class="column1 style33 null style36" colspan="4">${program.cliente || ''}</td>
+            <td class="column1 style33 null style36" colspan="4"><span class="dynamic-field">${program.cliente || ''}</span></td>
             <td class="column5 style37 s style29" colspan="2">REFERENCIA :</td>
-            <td class="column7 style38 null style40" colspan="4">${program.referencia || ''}</td>
+            <td class="column7 style38 null style40" colspan="4"><span class="dynamic-field">${program.referencia || ''}</span></td>
           </tr>
           <tr class="row4">
             <td class="column0 style67 s"><span style="font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt">DISEÑO (F)</span></td>
-            <td class="column1 style30 null style31" colspan="2">${program.td || ''}</td>
+            <td class="column1 style30 null style31" colspan="2"><span class="dynamic-field">${program.articulo || ''}</span></td>
             <td class="column3 style12 s">Ot PRODUCCION :</td>
-            <td class="column4 style41 null style42" colspan="3">${program.otSap || ''}</td>
+            <td class="column4 style41 null style42" colspan="3"><span class="dynamic-field">${program.otSap || ''}</span></td>
             <td class="column7 style12 s">IMPRESORA :</td>
-            <td class="column8 style9 null">${program.machineNumber || program.numeroMaquina || ''}</td>
+            <td class="column8 style9 null"><span class="dynamic-field">${program.machineNumber || program.numeroMaquina || ''}</span></td>
             <td class="column9 style12 s">CANTIDAD :</td>
-            <td class="column10 style11 null">${program.kilos || 0} kg</td>
+            <td class="column10 style11 null"><span class="dynamic-field">${program.kilos || 0} kg</span></td>
           </tr>
           <tr class="row5">
             <td class="column0 style68 s"><span style="font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt">UNIDAD</span></td>
@@ -290,16 +300,16 @@ body { margin-left: 0in; margin-right: 0in; margin-top: 0in; margin-bottom: 0in;
           </tr>
           <tr class="row6">
             <td class="column0 style67 s"><span style="font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt">COLOR</span></td>
-            <td class="column1 style1 null">${color1}</td>
-            <td class="column2 style1 null">${color2}</td>
-            <td class="column3 style1 null">${color3}</td>
-            <td class="column4 style1 null">${color4}</td>
-            <td class="column5 style1 null">${color5}</td>
-            <td class="column6 style1 null">${color6}</td>
-            <td class="column7 style1 null">${color7}</td>
-            <td class="column8 style1 null">${color8}</td>
-            <td class="column9 style1 null">${color9}</td>
-            <td class="column10 style1 null">${color10}</td>
+            <td class="column1 style1 null"><span class="dynamic-field">${color1}</span></td>
+            <td class="column2 style1 null"><span class="dynamic-field">${color2}</span></td>
+            <td class="column3 style1 null"><span class="dynamic-field">${color3}</span></td>
+            <td class="column4 style1 null"><span class="dynamic-field">${color4}</span></td>
+            <td class="column5 style1 null"><span class="dynamic-field">${color5}</span></td>
+            <td class="column6 style1 null"><span class="dynamic-field">${color6}</span></td>
+            <td class="column7 style1 null"><span class="dynamic-field">${color7}</span></td>
+            <td class="column8 style1 null"><span class="dynamic-field">${color8}</span></td>
+            <td class="column9 style1 null"><span class="dynamic-field">${color9}</span></td>
+            <td class="column10 style1 null"><span class="dynamic-field">${color10}</span></td>
           </tr>
           <tr class="row7">
             <td class="column0 style67 s"><span style="font-weight:bold; color:#000000; font-family:'Arial'; font-size:7pt">LINEATURA ANILOX</span></td>
