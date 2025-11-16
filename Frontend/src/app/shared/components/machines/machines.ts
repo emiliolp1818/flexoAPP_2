@@ -414,12 +414,26 @@ Error: ${loginError.message || 'Error de conexión'}`);
     }
   }
 
-  // Método para seleccionar una máquina - Actualiza la señal reactiva
+  // ===== MÉTODO PARA SELECCIONAR UNA MÁQUINA =====
+  // Actualiza la señal reactiva con el número de máquina seleccionada
+  // Esto dispara automáticamente la actualización de la UI mostrando los programas de esa máquina
+  // Parámetro: machineNumber - Número de la máquina a seleccionar (11-21)
   selectMachine(machineNumber: number) {
-    this.selectedMachineNumber.set(machineNumber); // Establece el número de máquina seleccionada
+    // Establecer el número de máquina seleccionada en la señal reactiva
+    this.selectedMachineNumber.set(machineNumber);
+    
+    // Log para debugging - muestra qué máquina fue seleccionada
+    console.log(`🎯 Máquina seleccionada: ${machineNumber}`);
   }
 
-  // Función de tracking para *ngFor - Mejora el rendimiento de la lista de máquinas
+  // ===== FUNCIÓN DE TRACKING PARA *ngFor =====
+  // Mejora el rendimiento de la lista de máquinas en el template
+  // Angular usa esta función para identificar qué elementos cambiaron en la lista
+  // Esto evita re-renderizar elementos que no han cambiado
+  // Parámetros:
+  //   - _: índice del elemento (no se usa, por eso el guión bajo)
+  //   - machineNumber: número de máquina que sirve como identificador único
+  // Retorna: el número de máquina como identificador único
   trackByMachineNumber(_: number, machineNumber: number): number {
     return machineNumber; // Retorna el número de máquina como identificador único
   }
@@ -461,39 +475,71 @@ Error: ${loginError.message || 'Error de conexión'}`);
     return statusClass;
   }  
 
-  // Genera el texto del tooltip para mostrar información de estado de la máquina
+  // ===== MÉTODO PARA GENERAR TEXTO DEL TOOLTIP DE ESTADO DE MÁQUINA =====
+  // Genera el texto del tooltip que se muestra al pasar el mouse sobre el indicador LED de una máquina
+  // Muestra información resumida del estado de la máquina
+  // Parámetro: machineNumber - Número de la máquina (11-21)
+  // Retorna: String con el texto del tooltip (ej: "Máquina 11: 5 programas listos/preparando")
   getMachineStatusTooltip(machineNumber: number): string {
-    // Filtrar programas de la máquina específica
+    // Filtrar todos los programas para obtener solo los de la máquina específica
     const machinePrograms = this.programs().filter(p => p.machineNumber === machineNumber);
-    // Contar programas en estado LISTO, PREPARANDO y SIN_ASIGNAR
-    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO' || p.estado === 'SIN_ASIGNAR').length;
-    // Retornar texto descriptivo para el tooltip
+    
+    // Contar programas en estados que se consideran "listos" para producción
+    // Incluye: LISTO, PREPARANDO y SIN_ASIGNAR
+    const readyCount = machinePrograms.filter(p => 
+      p.estado === 'LISTO' || 
+      p.estado === 'PREPARANDO' || 
+      p.estado === 'SIN_ASIGNAR'
+    ).length;
+    
+    // Retornar texto descriptivo para el tooltip con formato legible
     return `Máquina ${machineNumber}: ${readyCount} programas listos/preparando`;
   }
 
-  // Determina si se debe mostrar la tabla de programación
+  // ===== MÉTODO PARA DETERMINAR SI MOSTRAR LA TABLA DE PROGRAMACIÓN =====
+  // Verifica si se debe mostrar la tabla de programación en la UI
+  // La tabla solo se muestra cuando hay una máquina seleccionada
+  // Retorna: true si hay máquina seleccionada, false si no
   showProgramTable(): boolean {
-    return this.selectedMachineNumber() !== null; // Mostrar solo si hay máquina seleccionada
+    // Verificar si selectedMachineNumber no es null
+    // Si es null, significa que no hay máquina seleccionada
+    return this.selectedMachineNumber() !== null;
   }
 
-  // Extrae solo los números de la orden de trabajo SAP (remueve letras y caracteres especiales)
+  // ===== MÉTODO PARA EXTRAER NÚMEROS DE LA ORDEN DE TRABAJO SAP =====
+  // Extrae solo los dígitos numéricos de la orden de trabajo SAP
+  // Remueve letras, espacios y caracteres especiales
+  // Útil para mostrar solo el número de OT sin prefijos
+  // Parámetro: otSap - Orden de trabajo completa (ej: "OT123456")
+  // Retorna: Solo los números (ej: "123456")
   getNumericOtSap(otSap: string): string {
-    return otSap.replace(/\D/g, ''); // Regex que remueve todo lo que no sea dígito
+    // Usar regex \D para remover todo lo que NO sea dígito (0-9)
+    // \D es equivalente a [^0-9]
+    return otSap.replace(/\D/g, '');
   }
 
-  // Formatea el código TD a mayúsculas para consistencia visual
+  // ===== MÉTODO PARA FORMATEAR CÓDIGO TD A MAYÚSCULAS =====
+  // Convierte el código TD (Tipo de Diseño) a mayúsculas para consistencia visual
+  // Asegura que todos los códigos TD se muestren en el mismo formato
+  // Parámetro: td - Código TD en cualquier formato (ej: "td-abc", "TD-ABC", "Td-Abc")
+  // Retorna: Código TD en mayúsculas (ej: "TD-ABC")
   formatTdCode(td: string): string {
-    return td.toUpperCase(); // Convierte todo el texto a mayúsculas
+    // Convertir todo el texto a mayúsculas usando el método toUpperCase()
+    return td.toUpperCase();
   }
 
-  // Métodos para manejo del dropdown de colores
+  // ===== MÉTODOS PARA MANEJO DEL DROPDOWN DE COLORES =====
   
-  // Verifica si el dropdown de colores está expandido para un programa específico
+  // ===== MÉTODO PARA VERIFICAR SI UN DROPDOWN ESTÁ EXPANDIDO =====
+  // Verifica si el dropdown de colores está abierto para un programa específico
+  // Usado en el template para aplicar clases CSS y mostrar/ocultar el dropdown
+  // Parámetro: programId - ID único del programa
+  // Retorna: true si el dropdown está expandido, false si está cerrado
   isColorsExpanded(programId: string): boolean {
-    return this.expandedColors().has(programId); // Verifica si el ID está en el Set
+    // Verificar si el ID del programa está en el Set de dropdowns expandidos
+    // El Set almacena los IDs de todos los dropdowns que están abiertos
+    return this.expandedColors().has(programId);
   }
-
-  // Función toggleColors eliminada - se usa la versión mejorada más abajo
 
   // ===== MÉTODO PARA ALTERNAR (TOGGLE) EL DROPDOWN DE COLORES =====
   // Método mejorado que maneja la apertura/cierre del dropdown de colores de un programa
@@ -1164,54 +1210,86 @@ Error: ${loginError.message || 'Error de conexión'}`);
     return icons[estado as keyof typeof icons] || 'help';
   }
 
-  /**
-   * Calcula y formatea el tiempo transcurrido entre dos fechas
-   * Útil para mostrar duración de procesos o tiempo desde última acción
-   */
+  // ===== MÉTODO PARA CALCULAR Y FORMATEAR TIEMPO TRANSCURRIDO =====
+  // Calcula la diferencia entre dos fechas y la formatea en horas y minutos
+  // Útil para mostrar duración de procesos o tiempo desde última acción
+  // Parámetros:
+  //   - startDate: Fecha de inicio (obligatoria)
+  //   - endDate: Fecha de fin (opcional, usa fecha actual si no se proporciona)
+  // Retorna: String con formato "Xh Ym" (ej: "2h 30m")
   formatElapsedTime(startDate: Date, endDate?: Date): string {
-    const end = endDate || new Date(); // Usar fecha actual si no se proporciona fecha final
-    const diff = end.getTime() - startDate.getTime(); // Diferencia en milisegundos
-    // Convertir milisegundos a horas y minutos
-    const hours = Math.floor(diff / (1000 * 60 * 60)); // Calcular horas completas
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); // Calcular minutos restantes
-    return hours + 'h ' + minutes + 'm'; // Formato "Xh Ym"
+    // Si no se proporciona fecha final, usar la fecha y hora actual
+    const end = endDate || new Date();
+    
+    // Calcular diferencia en milisegundos entre las dos fechas
+    // getTime() convierte la fecha a timestamp (milisegundos desde 1970)
+    const diff = end.getTime() - startDate.getTime();
+    
+    // Convertir milisegundos a horas completas
+    // 1 hora = 1000ms * 60s * 60min = 3,600,000ms
+    // Math.floor redondea hacia abajo para obtener solo horas completas
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    
+    // Calcular minutos restantes después de quitar las horas
+    // Usar módulo (%) para obtener el resto después de dividir por horas
+    // Luego dividir por 1000ms * 60s para convertir a minutos
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    // Retornar string formateado con horas y minutos
+    return hours + 'h ' + minutes + 'm';
   }
 
-  /**
-   * Convierte un valor de progreso numérico a porcentaje CSS
-   * Asegura que el valor esté entre 0% y 100%
-   */
+  // ===== MÉTODO PARA CONVERTIR PROGRESO A PORCENTAJE CSS =====
+  // Convierte un valor numérico de progreso (0-100) a formato de porcentaje CSS
+  // Asegura que el valor esté siempre entre 0% y 100% para evitar errores visuales
+  // Parámetro: progreso - Valor numérico del progreso (puede ser cualquier número)
+  // Retorna: String con formato "X%" (ej: "75%")
   getProgressWidth(progreso: number): string {
-    // Limitar el valor entre 0 y 100, luego agregar símbolo de porcentaje
+    // Limitar el valor entre 0 y 100 usando Math.min y Math.max
+    // Math.max(0, progreso): Asegura que no sea menor a 0
+    // Math.min(100, ...): Asegura que no sea mayor a 100
+    // Luego agregar el símbolo de porcentaje (%)
     return Math.min(100, Math.max(0, progreso)) + '%';
   }
 
-  /**
-   * Verifica si una máquina tiene al menos un programa en estado CORRIENDO
-   * Usado para determinar el estado visual de actividad de la máquina
-   */
+  // ===== MÉTODO PARA VERIFICAR SI UNA MÁQUINA ESTÁ ACTIVA =====
+  // Verifica si una máquina tiene al menos un programa en estado CORRIENDO
+  // Usado para determinar el estado visual de actividad de la máquina en la UI
+  // Parámetro: machineNumber - Número de la máquina (11-21)
+  // Retorna: true si hay al menos un programa corriendo, false si no
   isMachineActive(machineNumber: number): boolean {
-    // Filtrar programas de la máquina específica
+    // Filtrar todos los programas para obtener solo los de la máquina específica
     const programs = this.programs().filter(p => p.machineNumber === machineNumber);
-    // Verificar si algún programa está en estado CORRIENDO
+    
+    // Verificar si ALGÚN programa está en estado CORRIENDO usando some()
+    // some() retorna true si al menos un elemento cumple la condición
     return programs.some(p => p.estado === 'CORRIENDO');
   }
 
-  /**
-   * Genera un resumen textual del estado de una máquina - ACTUALIZADO CON NUEVOS ESTADOS
-   * Muestra cantidad de programas corriendo y listos de forma legible
-   */
+  // ===== MÉTODO PARA GENERAR RESUMEN TEXTUAL DEL ESTADO DE UNA MÁQUINA =====
+  // Genera un resumen legible del estado de una máquina mostrando cantidad de programas
+  // Muestra programas corriendo y listos de forma concisa
+  // ACTUALIZADO CON NUEVOS ESTADOS (incluye PREPARANDO)
+  // Parámetro: machineNumber - Número de la máquina (11-21)
+  // Retorna: String con resumen (ej: "2 corriendo, 5 listos" o "7 programas listos")
   getMachineSummary(machineNumber: number): string {
-    // Filtrar programas de la máquina específica
+    // Filtrar todos los programas para obtener solo los de la máquina específica
     const programs = this.programs().filter(p => p.machineNumber === machineNumber);
-    // Contar programas por estado - NUEVOS ESTADOS
-    const running = programs.filter(p => p.estado === 'CORRIENDO').length; // Programas corriendo
-    const ready = programs.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length; // Programas listos + preparando
+    
+    // Contar programas en estado CORRIENDO
+    const running = programs.filter(p => p.estado === 'CORRIENDO').length;
+    
+    // Contar programas en estados LISTO o PREPARANDO (ambos se consideran "listos")
+    const ready = programs.filter(p => 
+      p.estado === 'LISTO' || 
+      p.estado === 'PREPARANDO'
+    ).length;
     
     // Si hay programas corriendo, mostrar ambos conteos
     if (running > 0) {
       return running + ' corriendo, ' + ready + ' listos';
     }
+    
     // Si no hay programas corriendo, solo mostrar los listos
     return ready + ' programas listos';
   }
