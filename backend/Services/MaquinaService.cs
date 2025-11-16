@@ -653,6 +653,20 @@ namespace flexoAPP.Services
             // Este método retorna un MaquinaDto con los datos guardados
             return await CreateAsync(createDto, userId);
         }
+
+        // ===== MÉTODO PRIVADO PARA PARSEAR LÍNEA CSV =====
+        // Convierte una línea CSV en un array de strings (columnas)
+        // Maneja correctamente comillas y comas dentro de valores
+        private List<string> ParseCsvLine(string line)
+        {
+            var columns = new List<string>();
+            var currentColumn = new System.Text.StringBuilder();
+            bool inQuotes = false;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                char c = line[i];
+
                 if (c == '"')
                 {
                     inQuotes = !inQuotes;
