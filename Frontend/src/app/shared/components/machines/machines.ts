@@ -821,7 +821,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
   // ===== MÉTODO PARA CARGAR PROGRAMACIÓN DESDE ARCHIVO EXCEL =====
   // Método asíncrono que maneja la selección y procesamiento de archivos Excel
   // 
-  // FORMATO ESPERADO DEL ARCHIVO (11 columnas en este orden):
+  // FORMATO ESPERADO DEL ARCHIVO (10 columnas en este orden):
   // (A) MQ IMP - Número de máquina impresora (11-21)
   // (B) ARTICULO F - Código del artículo (único, clave primaria)
   // (C) OT SAP - Orden de trabajo SAP
@@ -831,8 +831,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
   // (G) NUMERO DE COLORES - Cantidad de colores (1-10)
   // (H) KILOS - Cantidad en kilogramos
   // (I) COLORES EN MAQUINA - Lista de colores separados por coma (ej: "CYAN,MAGENTA,AMARILLO")
-  // (J) FECHA DE TINTAS EN MAQUINA - Fecha y hora cuando se aplicó la tinta
-  // (K) SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
+  //     NOTA: El encabezado puede mostrar una fecha (ej: "10-nov-25 05 PM") pero el contenido son los colores
+  // (J) SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
   //
   // IMPORTANTE: Al cargar nueva programación, solo se eliminan los programas en estado CORRIENDO
   // Los programas en PREPARANDO, LISTO y SUSPENDIDO se mantienen para no perder el trabajo del operario
