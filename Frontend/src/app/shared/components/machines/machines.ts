@@ -876,8 +876,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
   // (F) TD - Código TD (Tipo de Diseño)
   // (G) NUMERO DE COLORES - Cantidad de colores (1-10)
   // (H) KILOS - Cantidad en kilogramos
-  // (I) COLORES EN MAQUINA - Lista de colores separados por coma (ej: "CYAN,MAGENTA,AMARILLO")
-  //     NOTA: El encabezado puede mostrar una fecha (ej: "10-nov-25 05 PM") pero el contenido son los colores
+  // (I) COLORES EN MAQUINA - Fecha y hora de preparación de colores (ej: "10-nov-25 05 PM")
+  //     IMPORTANTE: Esta columna contiene la FECHA de preparación, NO los nombres de colores
   // (J) SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
   //
   // IMPORTANTE: Al cargar nueva programación, solo se eliminan los programas en estado CORRIENDO

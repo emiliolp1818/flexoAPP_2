@@ -389,7 +389,7 @@ namespace flexoAPP.Services
                               $"6. TD (Tipo de diseño)\n" +
                               $"7. NUMERO DE COLORES (Cantidad de colores)\n" +
                               $"8. KILOS (Cantidad en kilogramos)\n" +
-                              $"9. COLORES EN MAQUINA (Lista de colores separados por coma)\n" +
+                              $"9. COLORES EN MAQUINA (Fecha de preparación - ej: '10-nov-25 05 PM')\n" +
                               $"10. SUSTRATOS (Tipo de material)";
                 
                 // Lanzar excepción con el mensaje de error para detener el procesamiento
@@ -430,8 +430,8 @@ namespace flexoAPP.Services
             // Columna 5: TD - Código TD (Tipo de Diseño)
             // Columna 6: NUMERO DE COLORES - Cantidad de colores (1-10)
             // Columna 7: KILOS - Cantidad en kilogramos
-            // Columna 8: COLORES EN MAQUINA - Lista de colores reales separados por coma (ej: "CYAN,MAGENTA,AMARILLO")
-            //            NOTA: El encabezado puede mostrar una fecha (ej: "10-nov-25 05 PM") pero el contenido son los colores
+            // Columna 8: COLORES EN MAQUINA - Fecha y hora de preparación de colores (ej: "10-nov-25 05 PM")
+            //            IMPORTANTE: Esta columna contiene la FECHA de preparación, NO los nombres de colores
             // Columna 9: SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
 
             // ===== PASO 5: PARSEAR NÚMERO DE MÁQUINA (COLUMNA 0) =====
@@ -470,41 +470,57 @@ namespace flexoAPP.Services
                 _logger.LogWarning("⚠️ No se pudo parsear número de colores '{NumColores}', usando 0", columns[6]);
             }
 
-            // ===== PASO 7: PARSEAR COLORES EN MÁQUINA (COLUMNA 8) =====
-            // Los colores vienen en una sola celda separados por coma (ej: "CYAN,MAGENTA,AMARILLO")
-            // Crear una lista vacía para almacenar los colores parseados
-            var colores = new List<string>();
+            // ===== PASO 7: PARSEAR FECHA DE PREPARACIÓN DE COLORES (COLUMNA 8) =====
+            // La columna 8 "COLORES EN MAQUINA" contiene la FECHA Y HORA de preparación de colores
+            // Formato esperado: "10-nov-25 05 PM" o "dd-MMM-yy hh tt"
+            // Declarar variable para almacenar la fecha de preparación de colores
+            DateTime? fechaTintaEnMaquina = null;
+            
+            // Registrar en el log el valor original de la fecha antes de procesarlo
+            _logger.LogInformation("📅 Parseando fecha de preparación de colores - Valor original: '{Fecha}' (columna 9)", columns[8]);
             
             // Verificar si la columna 8 tiene contenido (no está vacía ni es solo espacios)
             if (!string.IsNullOrWhiteSpace(columns[8]))
             {
-                // Procesar la cadena de colores:
-                // 1. Split: Dividir por coma (,) o punto y coma (;)
-                // 2. RemoveEmptyEntries: Eliminar entradas vacías
-                // 3. Select: Aplicar Trim() a cada color para eliminar espacios al inicio y final
-                // 4. Where: Filtrar solo los colores que no estén vacíos después del Trim
-                // 5. ToList: Convertir el resultado a una lista
-                colores = columns[8]
-                    .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(c => c.Trim())
-                    .Where(c => !string.IsNullOrWhiteSpace(c))
-                    .ToList();
-                
-                // Registrar en el log los colores parseados unidos por coma
-                _logger.LogInformation("🎨 Colores parseados: {Colores}", string.Join(", ", colores));
+                // Intentar parsear la fecha usando DateTime.TryParse
+                // Este método intenta automáticamente varios formatos de fecha comunes
+                if (DateTime.TryParse(columns[8], out var fecha))
+                {
+                    // Si la conversión es exitosa, usar la fecha parseada
+                    fechaTintaEnMaquina = fecha;
+                    // Registrar en el log la fecha parseada exitosamente
+                    _logger.LogInformation("✅ Fecha de preparación parseada exitosamente: {Fecha}", fechaTintaEnMaquina);
+                }
+                else
+                {
+                    // Si la conversión falla, usar la fecha actual como fallback
+                    fechaTintaEnMaquina = DateTime.Now;
+                    // Registrar advertencia indicando que no se pudo parsear la fecha
+                    _logger.LogWarning("⚠️ No se pudo parsear la fecha '{Fecha}', usando fecha actual", columns[8]);
+                }
             }
             else
             {
-                // Si no hay colores especificados en la columna 8, crear nombres genéricos
-                // Usar un bucle for para crear colores genéricos basados en el número de colores
-                for (int i = 0; i < numeroColores; i++)
-                {
-                    // Agregar color genérico con formato "COLOR1", "COLOR2", etc.
-                    colores.Add($"COLOR{i + 1}");
-                }
-                // Registrar advertencia indicando que se usaron nombres genéricos
-                _logger.LogWarning("⚠️ No se especificaron colores, usando nombres genéricos: {Colores}", string.Join(", ", colores));
+                // Si la columna 8 está vacía, usar la fecha actual
+                fechaTintaEnMaquina = DateTime.Now;
+                // Registrar advertencia indicando que la fecha está vacía
+                _logger.LogWarning("⚠️ Fecha de preparación vacía (columna 9), usando fecha actual");
             }
+            
+            // ===== PASO 7B: GENERAR COLORES GENÉRICOS BASADOS EN EL NÚMERO =====
+            // Como los colores NO vienen en el archivo Excel, generar nombres genéricos
+            // Crear una lista vacía para almacenar los colores
+            var colores = new List<string>();
+            
+            // Usar un bucle for para crear colores genéricos basados en el número de colores (columna 6)
+            for (int i = 0; i < numeroColores; i++)
+            {
+                // Agregar color genérico con formato "COLOR1", "COLOR2", "COLOR3", etc.
+                colores.Add($"COLOR{i + 1}");
+            }
+            
+            // Registrar en el log los colores genéricos creados
+            _logger.LogInformation("🎨 Colores genéricos creados: {Colores}", string.Join(", ", colores));
 
             // ===== PASO 8: PARSEAR KILOS (COLUMNA 7) =====
             // Los kilos pueden venir con coma (,) o punto (.) como separador decimal
@@ -551,12 +567,19 @@ namespace flexoAPP.Services
                 kilos = 0;
             }
 
-            // ===== PASO 9: ESTABLECER FECHA DE TINTA EN MÁQUINA =====
-            // Como la fecha no viene en el archivo Excel, usar la fecha y hora actual del sistema
-            DateTime? fechaTintaEnMaquina = DateTime.Now;
+            // ===== PASO 9: VALIDAR FECHA DE TINTA EN MÁQUINA =====
+            // La fecha ya fue parseada en el PASO 7 desde la columna 8
+            // Aquí solo validamos que tengamos una fecha válida
+            if (!fechaTintaEnMaquina.HasValue)
+            {
+                // Si por alguna razón no hay fecha, usar la fecha actual como fallback
+                fechaTintaEnMaquina = DateTime.Now;
+                // Registrar advertencia
+                _logger.LogWarning("⚠️ No hay fecha de tinta válida, usando fecha actual");
+            }
             
-            // Registrar en el log la fecha que se está usando
-            _logger.LogInformation("📅 Usando fecha actual: {Fecha}", fechaTintaEnMaquina);
+            // Registrar en el log la fecha final que se usará
+            _logger.LogInformation("📅 Fecha de tinta en máquina final: {Fecha}", fechaTintaEnMaquina);
 
             // ===== PASO 10: CREAR DTO CON LOS DATOS PROCESADOS =====
             // Crear un objeto CreateMaquinaDto con todos los datos parseados y validados
