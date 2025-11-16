@@ -79,8 +79,35 @@ try
                 "http://localhost:4200",
                 "http://localhost:7003",
                 "http://127.0.0.1:4200",
-                "http://127.0.0.1:7003"
+                "http://127.0.0.1:7003",
+                "http://192.168.1.20:4200", // IP estática - Frontend
+                "http://192.168.1.20:7003"  // IP estática - Backend
             )
+            .SetIsOriginAllowedToAllowWildcardSubdomains()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+        });
+        
+        // Política adicional para permitir toda la red local
+        options.AddPolicy("LocalNetwork", policy =>
+        {
+            policy.SetIsOriginAllowed(origin =>
+            {
+                // Permitir localhost y 127.0.0.1
+                if (origin.Contains("localhost") || origin.Contains("127.0.0.1"))
+                    return true;
+                
+                // Permitir cualquier IP de la red local 192.168.x.x
+                if (origin.Contains("192.168."))
+                    return true;
+                
+                // Permitir redes privadas 10.x.x.x y 172.16-31.x.x
+                if (origin.Contains("10.") || origin.Contains("172."))
+                    return true;
+                
+                return false;
+            })
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -332,8 +359,8 @@ try
         app.UseMiniProfiler();
     }
 
-    // CORS
-    app.UseCors();
+    // CORS - Usar política LocalNetwork para permitir toda la red local
+    app.UseCors("LocalNetwork");
 
     // Static Files - Para servir imágenes de perfil y otros archivos
     app.UseStaticFiles();
