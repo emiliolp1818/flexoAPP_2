@@ -822,16 +822,16 @@ Error: ${loginError.message || 'Error de conexión'}`);
   // Método asíncrono que maneja la selección y procesamiento de archivos Excel
   // 
   // FORMATO ESPERADO DEL ARCHIVO (11 columnas en este orden):
-  // (A) MQ - Número de máquina (11-21)
-  // (B) ARTICULO - Código del artículo (único)
+  // (A) MQ IMP - Número de máquina impresora (11-21)
+  // (B) ARTICULO F - Código del artículo (único, clave primaria)
   // (C) OT SAP - Orden de trabajo SAP
   // (D) CLIENTE - Nombre del cliente
   // (E) REFERENCIA - Referencia del producto
-  // (F) F - Campo adicional (se ignora)
-  // (G) TD - Código TD (Tipo de Diseño)
-  // (H) N° COLORES - Cantidad de colores (1-10)
-  // (I) KILOS - Cantidad en kilogramos
-  // (J) FECHA DE TINTAS EN MAQUINA - Fecha y hora
+  // (F) TD - Código TD (Tipo de Diseño)
+  // (G) NUMERO DE COLORES - Cantidad de colores (1-10)
+  // (H) KILOS - Cantidad en kilogramos
+  // (I) COLORES EN MAQUINA - Lista de colores separados por coma (ej: "CYAN,MAGENTA,AMARILLO")
+  // (J) FECHA DE TINTAS EN MAQUINA - Fecha y hora cuando se aplicó la tinta
   // (K) SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
   //
   // IMPORTANTE: Al cargar nueva programación, solo se eliminan los programas en estado CORRIENDO

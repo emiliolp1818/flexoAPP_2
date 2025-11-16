@@ -351,33 +351,49 @@ namespace flexoAPP.Services
             }
         }
 
+        // ===== MÉTODO PRIVADO PARA PROCESAR UNA LÍNEA DEL ARCHIVO EXCEL =====
+        // Este método toma una línea del archivo Excel (en formato CSV) y la convierte en un objeto MaquinaDto
+        // Parámetros:
+        //   - line: Línea del archivo en formato CSV (valores separados por comas)
+        //   - userId: ID del usuario que está cargando el archivo (para auditoría)
+        // Retorna: MaquinaDto con los datos procesados o null si hay error
         private async Task<MaquinaDto?> ProcessExcelLine(string line, int? userId)
         {
+            // ===== PARSEAR LA LÍNEA CSV EN COLUMNAS =====
+            // Convertir la línea CSV en un array de strings (una por cada columna)
+            // El método ParseCsvLine maneja correctamente las comillas y comas dentro de valores
             var columns = ParseCsvLine(line);
             
+            // ===== LOG DE INFORMACIÓN DE LA LÍNEA =====
+            // Registrar cuántas columnas se encontraron en esta línea
             _logger.LogInformation("📋 Procesando línea con {Count} columnas", columns.Count);
+            // Registrar el contenido de cada columna con su índice para debugging
             _logger.LogInformation("📋 Datos: {Data}", string.Join(" | ", columns.Select((c, i) => $"[{i}]={c}")));
             
-            // Validar que tenga al menos las columnas mínimas requeridas
-            if (columns.Count < 10)
+            // ===== VALIDACIÓN: VERIFICAR NÚMERO MÍNIMO DE COLUMNAS =====
+            // El archivo debe tener al menos 11 columnas para ser válido según el nuevo formato
+            // Si tiene menos, lanzar excepción con mensaje detallado
+            if (columns.Count < 11)
             {
-                var errorMsg = $"Formato inválido: Se esperan al menos 10 columnas, se encontraron {columns.Count}.\n" +
+                // Construir mensaje de error detallado con la lista de columnas esperadas
+                var errorMsg = $"Formato inválido: Se esperan al menos 11 columnas, se encontraron {columns.Count}.\n" +
                               $"Columnas esperadas:\n" +
-                              $"1. MQ (Número de máquina)\n" +
+                              $"1. MQ IMP (Número de máquina impresora)\n" +
                               $"2. ARTICULO F (Código del artículo)\n" +
-                              $"3. OT SAP\n" +
-                              $"4. CLIENTE\n" +
-                              $"5. REFERENCIA\n" +
-                              $"6. TD\n" +
-                              $"7. N° COLORES\n" +
-                              $"8. KILOS\n" +
-                              $"9. FECHA TINTAS EN MAQUINA\n" +
-                              $"10. SUSTRATOS";
-                _logger.LogError(errorMsg);
+                              $"3. OT SAP (Orden de trabajo)\n" +
+                              $"4. CLIENTE (Nombre del cliente)\n" +
+                              $"5. REFERENCIA (Referencia del producto)\n" +
+                              $"6. TD (Tipo de diseño)\n" +
+                              $"7. NUMERO DE COLORES (Cantidad de colores)\n" +
+                              $"8. KILOS (Cantidad en kilogramos)\n" +
+                              $"9. COLORES EN MAQUINA (Lista de colores separados por coma)\n" +
+                              $"10. FECHA DE TINTAS EN MAQUINA (Fecha y hora)\n" +
+                              $"11. SUSTRATOS (Tipo de material)";
                 throw new ArgumentException(errorMsg);
             }
             
-            // Validar que las columnas críticas no estén vacías
+            // ===== VALIDACIÓN DE CAMPOS OBLIGATORIOS =====
+            // Verificar que los campos críticos no estén vacíos
             if (string.IsNullOrWhiteSpace(columns[1]))
             {
                 throw new ArgumentException("El campo ARTICULO F (columna 2) es obligatorio y no puede estar vacío");
@@ -393,63 +409,76 @@ namespace flexoAPP.Services
                 throw new ArgumentException("El campo CLIENTE (columna 4) es obligatorio y no puede estar vacío");
             }
 
-            // FORMATO REAL DEL ARCHIVO (según imagen actualizada del usuario):
-            // Columna 0: MQ (Máquina)
-            // Columna 1: ARTICULO F (Código del artículo)
-            // Columna 2: OT SAP
-            // Columna 3: CLIENTE
-            // Columna 4: REFERENCIA
-            // Columna 5: TD
-            // Columna 6: N° COLORES
-            // Columna 7: KILOS
-            // Columna 8: FECHA DE TINTAS EN MAQUINA
-            // Columna 9: SUSTRATOS
+            // ===== FORMATO ACTUALIZADO DEL ARCHIVO (11 COLUMNAS) =====
+            // Columna 0: MQ IMP - Número de máquina impresora (11-21)
+            // Columna 1: ARTICULO F - Código del artículo (único, clave primaria)
+            // Columna 2: OT SAP - Orden de trabajo SAP
+            // Columna 3: CLIENTE - Nombre del cliente
+            // Columna 4: REFERENCIA - Referencia del producto
+            // Columna 5: TD - Código TD (Tipo de Diseño)
+            // Columna 6: NUMERO DE COLORES - Cantidad de colores (1-10)
+            // Columna 7: KILOS - Cantidad en kilogramos
+            // Columna 8: COLORES EN MAQUINA - Lista de colores reales separados por coma (ej: "CYAN,MAGENTA,AMARILLO")
+            // Columna 9: FECHA DE TINTAS EN MAQUINA - Fecha y hora cuando se aplicó la tinta
+            // Columna 10: SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
 
-            // Parsear número de colores (índice 6)
+            // ===== PARSEAR NÚMERO DE MÁQUINA (COLUMNA 0) =====
+            int numeroMaquina = 11; // Valor por defecto
+            if (int.TryParse(columns[0], out var machine))
+            {
+                numeroMaquina = machine;
+                _logger.LogInformation("🖨️ Máquina impresora: {Machine}", numeroMaquina);
+            }
+            else
+            {
+                _logger.LogWarning("⚠️ No se pudo parsear número de máquina '{Machine}', usando 11 por defecto", columns[0]);
+            }
+
+            // ===== PARSEAR NÚMERO DE COLORES (COLUMNA 6) =====
             int numeroColores = 0;
             if (int.TryParse(columns[6], out var numCol))
             {
                 numeroColores = numCol;
-            }
-
-            // Crear lista de colores genérica basada en el número
-            var colores = new List<string>();
-            for (int i = 0; i < numeroColores; i++)
-            {
-                colores.Add($"COLOR{i + 1}");
-            }
-
-            _logger.LogInformation("🎨 Número de colores: {Count}", numeroColores);
-
-            // Parsear fecha de tinta en máquina (índice 8)
-            DateTime? fechaTintaEnMaquina = null;
-            if (!string.IsNullOrWhiteSpace(columns[8]))
-            {
-                if (DateTime.TryParse(columns[8], out var fecha))
-                {
-                    fechaTintaEnMaquina = fecha;
-                    _logger.LogInformation("📅 Fecha parseada: {Fecha}", fechaTintaEnMaquina);
-                }
-                else
-                {
-                    fechaTintaEnMaquina = DateTime.Now;
-                    _logger.LogWarning("⚠️ No se pudo parsear la fecha '{Fecha}', usando fecha actual", columns[8]);
-                }
+                _logger.LogInformation("🎨 Número de colores: {Count}", numeroColores);
             }
             else
             {
-                fechaTintaEnMaquina = DateTime.Now;
-                _logger.LogWarning("⚠️ Fecha vacía, usando fecha actual");
+                _logger.LogWarning("⚠️ No se pudo parsear número de colores '{NumColores}', usando 0", columns[6]);
             }
 
-            // Parsear kilos (índice 7) - manejar formato con coma y punto
+            // ===== PARSEAR COLORES EN MÁQUINA (COLUMNA 8) =====
+            // Los colores vienen separados por coma en una sola celda (ej: "CYAN,MAGENTA,AMARILLO")
+            var colores = new List<string>();
+            if (!string.IsNullOrWhiteSpace(columns[8]))
+            {
+                // Dividir por coma y limpiar espacios
+                colores = columns[8]
+                    .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(c => c.Trim())
+                    .Where(c => !string.IsNullOrWhiteSpace(c))
+                    .ToList();
+                
+                _logger.LogInformation("🎨 Colores parseados: {Colores}", string.Join(", ", colores));
+            }
+            else
+            {
+                // Si no hay colores especificados, crear lista genérica basada en el número
+                for (int i = 0; i < numeroColores; i++)
+                {
+                    colores.Add($"COLOR{i + 1}");
+                }
+                _logger.LogWarning("⚠️ No se especificaron colores, usando nombres genéricos: {Colores}", string.Join(", ", colores));
+            }
+
+            // ===== PARSEAR KILOS (COLUMNA 7) =====
+            // Manejar formato con coma y punto decimal
             decimal kilos = 0;
-            _logger.LogInformation("🔍 Parseando kilos - Valor original: '{Kilos}' (índice 7)", columns.Count > 7 ? columns[7] : "NO EXISTE");
+            _logger.LogInformation("🔍 Parseando kilos - Valor original: '{Kilos}' (columna 8)", columns[7]);
             
-            if (columns.Count > 7 && !string.IsNullOrWhiteSpace(columns[7]))
+            if (!string.IsNullOrWhiteSpace(columns[7]))
             {
                 var kilosStr = columns[7]
-                    .Replace(",", ".") // Reemplazar coma por punto
+                    .Replace(",", ".") // Reemplazar coma por punto para formato decimal
                     .Replace(" ", "")  // Eliminar espacios
                     .Trim();
                 
@@ -467,31 +496,52 @@ namespace flexoAPP.Services
             }
             else
             {
-                _logger.LogWarning("⚠️ Columna de kilos vacía o no existe (índice 7), usando 0");
+                _logger.LogWarning("⚠️ Columna de kilos vacía (columna 8), usando 0");
                 kilos = 0;
             }
 
-            // Crear DTO según el formato real
+            // ===== PARSEAR FECHA DE TINTA EN MÁQUINA (COLUMNA 9) =====
+            DateTime? fechaTintaEnMaquina = null;
+            if (!string.IsNullOrWhiteSpace(columns[9]))
+            {
+                if (DateTime.TryParse(columns[9], out var fecha))
+                {
+                    fechaTintaEnMaquina = fecha;
+                    _logger.LogInformation("📅 Fecha parseada: {Fecha}", fechaTintaEnMaquina);
+                }
+                else
+                {
+                    fechaTintaEnMaquina = DateTime.Now;
+                    _logger.LogWarning("⚠️ No se pudo parsear la fecha '{Fecha}', usando fecha actual", columns[9]);
+                }
+            }
+            else
+            {
+                fechaTintaEnMaquina = DateTime.Now;
+                _logger.LogWarning("⚠️ Fecha vacía, usando fecha actual");
+            }
+
+            // ===== CREAR DTO CON LOS DATOS PROCESADOS =====
             // IMPORTANTE: Los programas nuevos se cargan SIN ESTADO (vacío)
             // El operario debe aplicar la primera acción (PREPARANDO, LISTO, etc.)
             var createDto = new CreateMaquinaDto
             {
-                NumeroMaquina = int.TryParse(columns[0], out var machine) ? machine : 11,
-                Articulo = columns[1],
-                OtSap = columns[2],
-                Cliente = columns[3],
-                Referencia = columns[4],
-                Td = columns[5],
-                Colores = colores,
-                Kilos = kilos,
-                FechaTintaEnMaquina = fechaTintaEnMaquina,
-                Sustrato = columns[9],
+                NumeroMaquina = numeroMaquina,           // Columna 0: MQ IMP
+                Articulo = columns[1],                   // Columna 1: ARTICULO F
+                OtSap = columns[2],                      // Columna 2: OT SAP
+                Cliente = columns[3],                    // Columna 3: CLIENTE
+                Referencia = columns[4],                 // Columna 4: REFERENCIA
+                Td = columns[5],                         // Columna 5: TD
+                Colores = colores,                       // Columna 8: COLORES EN MAQUINA (parseados)
+                Kilos = kilos,                           // Columna 7: KILOS (parseados)
+                FechaTintaEnMaquina = fechaTintaEnMaquina, // Columna 9: FECHA DE TINTAS EN MAQUINA
+                Sustrato = columns[10],                  // Columna 10: SUSTRATOS
                 Estado = "", // SIN ESTADO - El operario debe aplicar la primera acción
                 Observaciones = "Programa nuevo - Pendiente de asignación de estado por operario"
             };
 
-            _logger.LogInformation("✅ DTO creado: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Kilos={Kilos}", 
-                createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Kilos);
+            _logger.LogInformation("✅ DTO creado: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Kilos={Kilos}, Colores={Colores}", 
+                createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Kilos, string.Join(",", createDto.Colores));
 
             return await CreateAsync(createDto, userId);
         }

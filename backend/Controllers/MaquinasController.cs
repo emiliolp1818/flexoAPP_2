@@ -840,16 +840,48 @@ namespace backend.Controllers
         /// <returns>Nombre completo del usuario (FirstName + LastName)</returns>
         private string GetCurrentUserName()
         {
-            // ===== EXTRACCIÓN DE CLAIMS DE NOMBRE =====
-            // Buscar el claim "FirstName" en el token JWT
-            var firstName = User.FindFirst("FirstName")?.Value ?? ""; // Obtener nombre o string vacío si no existe
-            
-            // Buscar el claim "LastName" en el token JWT
-            var lastName = User.FindFirst("LastName")?.Value ?? ""; // Obtener apellido o string vacío si no existe
-            
-            // ===== CONCATENACIÓN Y LIMPIEZA =====
-            // Combinar nombre y apellido con un espacio y eliminar espacios extras al inicio/final
-            return $"{firstName} {lastName}".Trim(); // Ejemplo: "Juan Pérez" o "Juan" si no hay apellido
+            try
+            {
+                // ===== INTENTAR OBTENER DisplayName PRIMERO =====
+                // Este claim contiene el nombre completo del usuario (FirstName + LastName)
+                var displayName = User.FindFirst("DisplayName")?.Value;
+                if (!string.IsNullOrWhiteSpace(displayName))
+                {
+                    _logger.LogInformation($"✅ Nombre obtenido de DisplayName: {displayName}");
+                    return displayName;
+                }
+                
+                // ===== INTENTAR OBTENER DE ClaimTypes.Name =====
+                var name = User.FindFirst(ClaimTypes.Name)?.Value;
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    _logger.LogInformation($"✅ Nombre obtenido de ClaimTypes.Name: {name}");
+                    return name;
+                }
+                
+                // ===== INTENTAR OBTENER DE Identity.Name =====
+                if (!string.IsNullOrWhiteSpace(User.Identity?.Name))
+                {
+                    _logger.LogInformation($"✅ Nombre obtenido de Identity.Name: {User.Identity.Name}");
+                    return User.Identity.Name;
+                }
+                
+                // ===== LOG DE CLAIMS DISPONIBLES PARA DEBUGGING =====
+                _logger.LogWarning("⚠️ No se encontró nombre del usuario. Claims disponibles:");
+                foreach (var claim in User.Claims)
+                {
+                    _logger.LogWarning($"   - {claim.Type}: {claim.Value}");
+                }
+                
+                // ===== FALLBACK A "Usuario" =====
+                _logger.LogWarning("⚠️ Usando nombre por defecto: Usuario");
+                return "Usuario";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error obteniendo nombre del usuario");
+                return "Usuario";
+            }
         }
     }
 
