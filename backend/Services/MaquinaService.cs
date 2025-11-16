@@ -49,22 +49,31 @@ namespace flexoAPP.Services
                 using var connection = new MySqlConnector.MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
-                // Verificar si ya existe
+                // ===== VERIFICAR SI YA EXISTE EL REGISTRO =====
+                // Verificar si ya existe un registro con la misma combinación de artículo + máquina
+                // IMPORTANTE: La clave única es articulo + numero_maquina, NO solo articulo
+                // Esto permite tener el mismo artículo en diferentes máquinas
                 using var checkCommand = connection.CreateCommand();
-                checkCommand.CommandText = "SELECT COUNT(*) FROM maquinas WHERE articulo = @articulo";
+                checkCommand.CommandText = "SELECT COUNT(*) FROM maquinas WHERE articulo = @articulo AND numero_maquina = @numeroMaquina";
                 checkCommand.Parameters.AddWithValue("@articulo", createDto.Articulo);
+                checkCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
                 var exists = Convert.ToInt32(await checkCommand.ExecuteScalarAsync()) > 0;
+                
+                // Log para debugging - mostrar si el registro existe o no
+                _logger.LogInformation("🔍 Verificando existencia: Artículo={Articulo}, Máquina={Maquina}, Existe={Existe}", 
+                    createDto.Articulo, createDto.NumeroMaquina, exists);
 
                 var coloresJson = System.Text.Json.JsonSerializer.Serialize(createDto.Colores);
                 var fechaTinta = createDto.FechaTintaEnMaquina ?? DateTime.Now;
 
                 if (exists)
                 {
-                    // Actualizar registro existente
+                    // ===== ACTUALIZAR REGISTRO EXISTENTE =====
+                    // Si ya existe un registro con la misma combinación articulo + máquina, actualizarlo
+                    // Esto permite actualizar datos de un programa que ya fue cargado previamente
                     using var updateCommand = connection.CreateCommand();
                     updateCommand.CommandText = @"
                         UPDATE maquinas SET
-                            numero_maquina = @numeroMaquina,
                             ot_sap = @otSap,
                             cliente = @cliente,
                             referencia = @referencia,
@@ -78,9 +87,10 @@ namespace flexoAPP.Services
                             observaciones = @observaciones,
                             updated_by = @updatedBy,
                             updated_at = @updatedAt
-                        WHERE articulo = @articulo";
+                        WHERE articulo = @articulo AND numero_maquina = @numeroMaquina";
 
-                    updateCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
+                    // Agregar parámetros al comando UPDATE
+                    // NOTA: numero_maquina NO se actualiza, solo se usa en el WHERE
                     updateCommand.Parameters.AddWithValue("@otSap", createDto.OtSap);
                     updateCommand.Parameters.AddWithValue("@cliente", createDto.Cliente);
                     updateCommand.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
@@ -94,10 +104,16 @@ namespace flexoAPP.Services
                     updateCommand.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
                     updateCommand.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
                     updateCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+                    // Parámetros para el WHERE clause
                     updateCommand.Parameters.AddWithValue("@articulo", createDto.Articulo);
+                    updateCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
 
+                    // Ejecutar el comando UPDATE
                     await updateCommand.ExecuteNonQueryAsync();
-                    _logger.LogInformation("✅ Registro actualizado: {Articulo}", createDto.Articulo);
+                    
+                    // Log de confirmación con más detalles
+                    _logger.LogInformation("✅ Registro actualizado: Artículo={Articulo}, Máquina={Maquina}", 
+                        createDto.Articulo, createDto.NumeroMaquina);
                 }
                 else
                 {
@@ -132,8 +148,12 @@ namespace flexoAPP.Services
                     insertCommand.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
                     insertCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
 
+                    // Ejecutar el comando INSERT
                     await insertCommand.ExecuteNonQueryAsync();
-                    _logger.LogInformation("✅ Registro creado: {Articulo}", createDto.Articulo);
+                    
+                    // Log de confirmación con más detalles
+                    _logger.LogInformation("✅ Registro creado: Artículo={Articulo}, Máquina={Maquina}", 
+                        createDto.Articulo, createDto.NumeroMaquina);
                 }
 
                 // Retornar DTO
