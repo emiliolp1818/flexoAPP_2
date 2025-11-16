@@ -368,17 +368,6 @@ namespace flexoAPP.Services
         // Retorna: MaquinaDto con los datos procesados o null si hay error
         private async Task<MaquinaDto?> ProcessExcelLine(string line, int? userId)
         {
-            // ===== PARSEAR LA LÍNEA CSV EN COLUMNAS =====
-            // Convertir la línea CSV en un array de strings (una por cada columna)
-            // El método ParseCsvLine maneja correctamente las comillas y comas dentro de valores
-        // ===== MÉTODO PRIVADO PARA PROCESAR UNA LÍNEA DEL ARCHIVO EXCEL =====
-        // Este método toma una línea del archivo Excel (en formato CSV) y la convierte en un objeto MaquinaDto
-        // Parámetros:
-        //   - line: Línea del archivo en formato CSV (valores separados por comas)
-        //   - userId: ID del usuario que está cargando el archivo (para auditoría)
-        // Retorna: MaquinaDto con los datos procesados o null si hay error
-        private async Task<MaquinaDto?> ProcessExcelLine(string line, int? userId)
-        {
             // ===== PASO 1: PARSEAR LA LÍNEA CSV EN COLUMNAS =====
             // Llamar al método ParseCsvLine que convierte la línea CSV en un array de strings
             // Este método maneja correctamente las comillas y comas dentro de valores
