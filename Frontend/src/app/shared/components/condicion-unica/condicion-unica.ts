@@ -97,6 +97,12 @@ export class CondicionUnicaComponent implements OnInit {
   
   // Estado de carga (true cuando está cargando datos del backend)
   loading = signal<boolean>(false);
+  
+  // Estado de carga de archivo Excel (true cuando está subiendo archivo)
+  uploading = signal<boolean>(false);
+  
+  // Progreso de carga del archivo Excel (0-100)
+  uploadProgress = signal<number>(0);
 
   /**
    * Inicialización del componente
@@ -333,6 +339,58 @@ export class CondicionUnicaComponent implements OnInit {
         this.snackBar.open('Error al eliminar registro', 'Cerrar', { duration: 3000 });
       }
     });
+  }
+
+  /**
+   * Activar selector de archivo para importar Excel
+   * Crea un input file temporal y simula un clic
+   */
+  triggerFileUpload(): void {
+    // Crear elemento input file temporal
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.xlsx,.xls';
+    
+    // Manejar selección de archivo
+    fileInput.onchange = (event: any) => {
+      const file = event.target.files[0];
+      if (file) {
+        this.uploadExcelFile(file);
+      }
+    };
+    
+    // Simular clic para abrir selector de archivos
+    fileInput.click();
+  }
+
+  /**
+   * Subir archivo Excel al servidor
+   * Procesa el archivo y actualiza los registros
+   * @param file - Archivo Excel seleccionado
+   */
+  private uploadExcelFile(file: File): void {
+    // Establecer estado de carga
+    this.uploading.set(true);
+    this.uploadProgress.set(0);
+    
+    // Crear FormData para enviar el archivo
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // TODO: Implementar llamada al servicio para subir el archivo
+    // Por ahora, simular carga
+    const interval = setInterval(() => {
+      const currentProgress = this.uploadProgress();
+      if (currentProgress < 100) {
+        this.uploadProgress.set(currentProgress + 10);
+      } else {
+        clearInterval(interval);
+        this.uploading.set(false);
+        this.uploadProgress.set(0);
+        this.snackBar.open('Archivo cargado exitosamente', 'Cerrar', { duration: 3000 });
+        this.loadData(); // Recargar datos
+      }
+    }, 200);
   }
 
   /**

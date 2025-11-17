@@ -300,6 +300,9 @@ namespace flexoAPP.Services
 
         // ===== MÉTODO PRIVADO PARA PROCESAR UNA LÍNEA DEL ARCHIVO EXCEL =====
         // Este método toma una línea del archivo Excel (en formato CSV) y la convierte en un objeto MaquinaDto
+        // NUEVA FUNCIONALIDAD: Consulta la tabla de diseño para obtener información del artículo
+        // Si el artículo existe en la tabla de diseño, usa esa información (colores, sustrato, etc.)
+        // Si el artículo NO existe en la tabla de diseño, usa la información del Excel
         // Parámetros:
         //   - line: Línea del archivo en formato CSV (valores separados por comas)
         //   - userId: ID del usuario que está cargando el archivo (para auditoría)
@@ -366,6 +369,61 @@ namespace flexoAPP.Services
             {
                 // Lanzar excepción si el cliente está vacío
                 throw new ArgumentException("El campo CLIENTE (columna 4) es obligatorio y no puede estar vacío");
+            }
+
+            // ===== PASO 4B: CONSULTAR TABLA DE DISEÑO PARA OBTENER INFORMACIÓN DEL ARTÍCULO =====
+            // Buscar el artículo en la tabla de diseño (designs) usando el código de artículo (columna 1)
+            // Si el artículo existe en la tabla de diseño, usaremos esa información
+            // Si NO existe, usaremos la información del Excel
+            _logger.LogInformation("🔍 Buscando artículo '{Articulo}' en tabla de diseño...", columns[1]);
+            
+            // Declarar variable para almacenar el diseño encontrado (null si no existe)
+            Design? designFromTable = null;
+            
+            try
+            {
+                // Log del artículo que se está buscando (con trim para eliminar espacios)
+                var articuloBuscar = columns[1].Trim();
+                _logger.LogInformation("🔍 Buscando artículo exacto: '{Articulo}' (longitud: {Length})", articuloBuscar, articuloBuscar.Length);
+                
+                // Contar cuántos diseños hay en total en la tabla
+                var totalDesigns = await _context.Designs.CountAsync();
+                _logger.LogInformation("📊 Total de diseños en tabla: {Total}", totalDesigns);
+                
+                // Intentar buscar el diseño en la base de datos usando el código de artículo
+                // Usamos el contexto de base de datos directamente para consultar la tabla designs
+                designFromTable = await _context.Designs
+                    .Where(d => d.ArticleF == articuloBuscar) // Filtrar por código de artículo (ArticleF) con trim
+                    .FirstOrDefaultAsync(); // Obtener el primer resultado o null si no existe
+                
+                // Verificar si se encontró el diseño en la tabla
+                if (designFromTable != null)
+                {
+                    // Si se encontró, registrar en el log que se usará la información de la tabla de diseño
+                    _logger.LogInformation("✅ Artículo '{Articulo}' encontrado en tabla de diseño - Se usará información de diseño", articuloBuscar);
+                    _logger.LogInformation("📋 Diseño encontrado: ID={Id}, Cliente={Cliente}, Sustrato={Sustrato}, Colores={NumColores}", 
+                        designFromTable.Id, designFromTable.Client, designFromTable.Substrate, designFromTable.ColorCount);
+                    _logger.LogInformation("🎨 Colores del diseño: C1={C1}, C2={C2}, C3={C3}, C4={C4}", 
+                        designFromTable.Color1, designFromTable.Color2, designFromTable.Color3, designFromTable.Color4);
+                }
+                else
+                {
+                    // Si NO se encontró, registrar en el log que se usará la información del Excel
+                    _logger.LogInformation("⚠️ Artículo '{Articulo}' NO encontrado en tabla de diseño - Se usará información del Excel", articuloBuscar);
+                    
+                    // Mostrar algunos artículos de ejemplo de la tabla para debugging
+                    var ejemplosArticulos = await _context.Designs
+                        .Select(d => d.ArticleF)
+                        .Take(5)
+                        .ToListAsync();
+                    _logger.LogInformation("📋 Ejemplos de artículos en tabla designs: {Ejemplos}", string.Join(", ", ejemplosArticulos));
+                }
+            }
+            catch (Exception ex)
+            {
+                // Si hay error al consultar la base de datos, registrar el error y continuar con datos del Excel
+                _logger.LogWarning(ex, "⚠️ Error consultando tabla de diseño para artículo '{Articulo}' - Se usará información del Excel", columns[1]);
+                designFromTable = null; // Asegurar que sea null para usar datos del Excel
             }
 
             // ===== DOCUMENTACIÓN: FORMATO CORRECTO DEL ARCHIVO (10 COLUMNAS) =====
@@ -456,20 +514,49 @@ namespace flexoAPP.Services
                 _logger.LogWarning("⚠️ Fecha límite para colores vacía (columna 8), usando fecha actual");
             }
             
-            // ===== PASO 7B: GENERAR COLORES GENÉRICOS BASADOS EN EL NÚMERO =====
-            // Como los colores NO vienen en el archivo Excel, generar nombres genéricos
-            // Crear una lista vacía para almacenar los colores
+            // ===== PASO 7B: OBTENER COLORES (DESDE TABLA DE DISEÑO O GENÉRICOS) =====
+            // NUEVA LÓGICA: Si el artículo existe en la tabla de diseño, usar esos colores
+            // Si NO existe, generar colores genéricos
             var colores = new List<string>();
             
-            // Usar un bucle for para crear colores genéricos basados en el número de colores (columna 6)
-            for (int i = 0; i < numeroColores; i++)
+            // Verificar si se encontró el diseño en la tabla de diseño
+            if (designFromTable != null)
             {
-                // Agregar color genérico con formato "COLOR1", "COLOR2", "COLOR3", etc.
-                colores.Add($"COLOR{i + 1}");
+                // ===== USAR COLORES DE LA TABLA DE DISEÑO =====
+                _logger.LogInformation("🎨 Usando colores de la tabla de diseño para artículo '{Articulo}'", columns[1]);
+                
+                // Extraer los colores del diseño (Color1, Color2, ..., Color10)
+                // Solo agregar colores que no sean null o vacíos
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color1)) colores.Add(designFromTable.Color1);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color2)) colores.Add(designFromTable.Color2);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color3)) colores.Add(designFromTable.Color3);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color4)) colores.Add(designFromTable.Color4);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color5)) colores.Add(designFromTable.Color5);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color6)) colores.Add(designFromTable.Color6);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color7)) colores.Add(designFromTable.Color7);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color8)) colores.Add(designFromTable.Color8);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color9)) colores.Add(designFromTable.Color9);
+                if (!string.IsNullOrWhiteSpace(designFromTable.Color10)) colores.Add(designFromTable.Color10);
+                
+                // Registrar en el log los colores obtenidos de la tabla de diseño
+                _logger.LogInformation("✅ Colores de tabla de diseño: {Colores}", string.Join(", ", colores));
             }
-            
-            // Registrar en el log los colores genéricos creados
-            _logger.LogInformation("🎨 Colores genéricos creados: {Colores}", string.Join(", ", colores));
+            else
+            {
+                // ===== GENERAR COLORES GENÉRICOS =====
+                // Como el artículo NO está en la tabla de diseño, generar nombres genéricos
+                _logger.LogInformation("🎨 Generando colores genéricos para artículo '{Articulo}'", columns[1]);
+                
+                // Usar un bucle for para crear colores genéricos basados en el número de colores (columna 6)
+                for (int i = 0; i < numeroColores; i++)
+                {
+                    // Agregar color genérico con formato "COLOR1", "COLOR2", "COLOR3", etc.
+                    colores.Add($"COLOR{i + 1}");
+                }
+                
+                // Registrar en el log los colores genéricos creados
+                _logger.LogInformation("✅ Colores genéricos creados: {Colores}", string.Join(", ", colores));
+            }
 
             // ===== PASO 8: PARSEAR KILOS (COLUMNA 7) =====
             // Los kilos pueden venir con coma (,) o punto (.) como separador decimal
@@ -532,7 +619,47 @@ namespace flexoAPP.Services
 
             // ===== PASO 10: CREAR DTO CON LOS DATOS PROCESADOS =====
             // Crear un objeto CreateMaquinaDto con todos los datos parseados y validados
+            // NUEVA LÓGICA: Si el artículo existe en la tabla de diseño, usar esa información
+            // Si NO existe, usar la información del Excel
             // Este DTO se usará para crear o actualizar el registro en la base de datos
+            
+            // Determinar qué información usar para cada campo
+            // REGLA: Si el artículo está en la tabla de diseño, usar esa información
+            //        Si NO está, usar la información del Excel
+            
+            // ===== CLIENTE: Usar tabla de diseño si existe, sino Excel =====
+            string clienteFinal = designFromTable != null && !string.IsNullOrWhiteSpace(designFromTable.Client)
+                ? designFromTable.Client  // Usar cliente de la tabla de diseño
+                : columns[3];             // Usar cliente del Excel (columna 3)
+            
+            // ===== SUSTRATO: Usar tabla de diseño si existe, sino Excel =====
+            string sustratoFinal = designFromTable != null && !string.IsNullOrWhiteSpace(designFromTable.Substrate)
+                ? designFromTable.Substrate  // Usar sustrato de la tabla de diseño
+                : columns[9];                // Usar sustrato del Excel (columna 9)
+            
+            // ===== REFERENCIA: Usar tabla de diseño si existe, sino Excel =====
+            string referenciaFinal = designFromTable != null && !string.IsNullOrWhiteSpace(designFromTable.Description)
+                ? designFromTable.Description  // Usar descripción de la tabla de diseño como referencia
+                : columns[4];                  // Usar referencia del Excel (columna 4)
+            
+            // ===== TD: Usar tabla de diseño si existe, sino Excel =====
+            string tdFinal = designFromTable != null && !string.IsNullOrWhiteSpace(designFromTable.Type)
+                ? designFromTable.Type  // Usar tipo de la tabla de diseño
+                : columns[5];           // Usar TD del Excel (columna 5)
+            
+            // Registrar en el log qué información se está usando
+            if (designFromTable != null)
+            {
+                _logger.LogInformation("📋 Usando información de TABLA DE DISEÑO: Cliente={Cliente}, Sustrato={Sustrato}, Referencia={Ref}, TD={Td}", 
+                    clienteFinal, sustratoFinal, referenciaFinal, tdFinal);
+            }
+            else
+            {
+                _logger.LogInformation("📋 Usando información del EXCEL: Cliente={Cliente}, Sustrato={Sustrato}, Referencia={Ref}, TD={Td}", 
+                    clienteFinal, sustratoFinal, referenciaFinal, tdFinal);
+            }
+            
+            // Crear el DTO con la información determinada
             var createDto = new CreateMaquinaDto
             {
                 // Asignar número de máquina parseado de la columna 0
@@ -544,38 +671,42 @@ namespace flexoAPP.Services
                 // Asignar orden de trabajo SAP directamente de la columna 2 (ya validado como no vacío)
                 OtSap = columns[2],
                 
-                // Asignar nombre del cliente directamente de la columna 3 (ya validado como no vacío)
-                Cliente = columns[3],
+                // Asignar cliente (de tabla de diseño o Excel)
+                Cliente = clienteFinal,
                 
-                // Asignar referencia del producto directamente de la columna 4
-                Referencia = columns[4],
+                // Asignar referencia (de tabla de diseño o Excel)
+                Referencia = referenciaFinal,
                 
-                // Asignar código TD (Tipo de Diseño) directamente de la columna 5
-                Td = columns[5],
+                // Asignar código TD (de tabla de diseño o Excel)
+                Td = tdFinal,
                 
-                // Asignar lista de colores parseada de la columna 8
+                // Asignar lista de colores (de tabla de diseño o genéricos)
                 Colores = colores,
                 
-                // Asignar kilos parseados de la columna 7
+                // Asignar kilos parseados de la columna 7 (siempre del Excel)
                 Kilos = kilos,
                 
-                // Asignar fecha límite para tener colores listos (columna 8)
+                // Asignar fecha límite para tener colores listos (columna 8) (siempre del Excel)
                 FechaTintaEnMaquina = fechaTintaEnMaquina,
                 
-                // Asignar tipo de sustrato directamente de la columna 9
-                Sustrato = columns[9],
+                // Asignar tipo de sustrato (de tabla de diseño o Excel)
+                Sustrato = sustratoFinal,
                 
                 // NO asignar estado - Dejar NULL para que el operario lo asigne manualmente
                 Estado = null,
                 
-                // Agregar observación indicando que es un programa nuevo pendiente de asignación
-                Observaciones = "Programa nuevo - Pendiente de asignación de estado por operario"
+                // Agregar observación indicando de dónde viene la información
+                Observaciones = designFromTable != null 
+                    ? "Programa nuevo - Información de tabla de diseño - Pendiente de asignación de estado por operario"
+                    : "Programa nuevo - Información de Excel - Pendiente de asignación de estado por operario"
             };
 
             // ===== PASO 11: LOG DE CONFIRMACIÓN =====
             // Registrar en el log un resumen del DTO creado con los datos más importantes
-            _logger.LogInformation("✅ DTO creado: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Kilos={Kilos}, Colores={Colores}", 
-                createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Kilos, string.Join(",", createDto.Colores));
+            // Incluir información sobre el origen de los datos (tabla de diseño o Excel)
+            string origenDatos = designFromTable != null ? "TABLA DE DISEÑO" : "EXCEL";
+            _logger.LogInformation("✅ DTO creado desde {Origen}: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Sustrato={Sustrato}, Kilos={Kilos}, Colores={Colores}", 
+                origenDatos, createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Sustrato, createDto.Kilos, string.Join(",", createDto.Colores));
 
             // ===== PASO 12: CREAR O ACTUALIZAR REGISTRO EN LA BASE DE DATOS =====
             // Llamar al método CreateAsync que inserta o actualiza el registro en la base de datos
