@@ -6,19 +6,27 @@ namespace FlexoAPP.API.Models.Entities
     /// <summary>
     /// Entidad que representa una máquina flexográfica en el sistema
     /// Tabla: maquinas (base de datos: flexoapp_bd)
-    /// CLAVE PRIMARIA: Articulo (código único del artículo)
-    /// SIN campo Id - articulo es suficiente como identificador único
+    /// CLAVE PRIMARIA: Id (auto-incremental, interno)
+    /// PERMITE DUPLICADOS: El mismo artículo puede estar varias veces en la misma máquina
     /// </summary>
     [Table("maquinas")] // Nombre de la tabla en MySQL
     public class Maquina
     {
         /// <summary>
-        /// Código del artículo a producir (ej: F204567, F204568)
-        /// CLAVE PRIMARIA (PRIMARY KEY) - Identifica de forma única cada registro
-        /// Se usará para cargar información de otra base de datos
-        /// Columna: articulo VARCHAR(50) PRIMARY KEY
+        /// ID único auto-incremental (PRIMARY KEY)
+        /// Campo interno de la base de datos, no se usa en el frontend ni en Excel
+        /// Columna: id INT AUTO_INCREMENT PRIMARY KEY
         /// </summary>
         [Key] // Atributo que indica que este campo es la clave primaria
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Auto-incremental
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Código del artículo a producir (ej: F204567, F204568)
+        /// Parte de UNIQUE KEY (articulo + numero_maquina)
+        /// Se usará para cargar información de otra base de datos
+        /// Columna: articulo VARCHAR(50) NOT NULL
+        /// </summary>
         [Required] // Campo obligatorio, no puede ser nulo
         [MaxLength(50)] // Longitud máxima de 50 caracteres
         public string Articulo { get; set; } = string.Empty; // Valor por defecto: cadena vacía

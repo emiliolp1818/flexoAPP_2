@@ -300,88 +300,46 @@
                   </ng-container>
                   <!-- Fin de la columna TD -->
 
-                  <!-- ===== COLUMNA NÚMERO DE COLORES ===== -->
-                  <!-- Cantidad total de colores utilizados en la impresión -->
+                  <!-- ===== COLUMNA NÚMERO DE COLORES CON PALETA DESPLEGABLE ===== -->
+                  <!-- Botón desplegable que muestra el número de colores y al hacer clic muestra la paleta -->
                   <ng-container matColumnDef="numeroColores">
-                    <th mat-header-cell *matHeaderCellDef class="excel-header">
-                      <div class="header-content">
-                        <!-- Icono Material Design para números/contadores -->
-                        <mat-icon>format_color_fill</mat-icon>
-                        <span># Colores</span>
-                      </div>
-                    </th>
-                    <td mat-cell *matCellDef="let program" class="excel-cell numero-colores-cell">
-                      <div class="numero-colores-container">
-                        <span class="numero-colores-badge">{{ program.numeroColores || program.colores?.length || 0 }}</span>
-                      </div>
-                    </td>
-                  </ng-container>
-                  <!-- Fin de la columna Número de Colores -->
-
-                  <!-- ===== COLUMNA COLORES PANTONE - FORMATO TEXTO PALETA ===== -->
-                  <!-- Paleta de colores mostrada como texto con despliegue lateral interactivo -->
-                  <ng-container matColumnDef="colores">
-                    <!-- Header de la columna de paleta de colores -->
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
                         <!-- Icono Material Design para paleta de colores -->
                         <mat-icon>palette</mat-icon>
-                        <span>Paleta</span>
+                        <span># Colores</span>
                       </div>
                     </th>
-                    <!-- Celda compleja con sistema de dropdown para mostrar colores -->
-                    <td mat-cell *matCellDef="let program" class="excel-cell colors-cell">
-                      <!-- Contenedor principal de la celda de colores con atributo de datos -->
-                      <div class="colors-cell-container" [attr.data-program-id]="program.id">
-                        <!-- Botón toggle para mostrar/ocultar la paleta de colores -->
-                        <!-- Clase CSS dinámica que cambia según el estado de expansión -->
-                        <button mat-icon-button
-                          [class]="'colors-toggle-btn-modern' + (isColorsExpanded(program.id?.toString() || '') ? ' active' : '')"
-                          (click)="toggleColors(program.id?.toString() || '', $event)"
-                          [attr.title]="'Ver ' + program.colores.length + ' colores'">
-                          <!-- Contenedor del icono con badge de número de colores -->
-                          <div class="colors-icon-container">
-                            <!-- Icono Material Design para lente de color -->
-                            <mat-icon class="colors-icon">color_lens</mat-icon>
-                            <!-- Badge circular con el número de colores -->
-                            <div class="colors-badge">{{ program.colores.length }}</div>
-                          </div>
+                    <td mat-cell *matCellDef="let program" class="excel-cell numero-colores-cell">
+                      <!-- Contenedor principal -->
+                      <div class="numero-colores-container-inline" [attr.data-program-id]="program.id">
+                        <!-- Botón con tooltip de colores -->
+                        <button mat-raised-button
+                          [class]="'numero-colores-btn' + (isColorsExpanded(program.id?.toString() || '') ? ' active' : '')"
+                          (click)="toggleColorsWithLoad(program, $event)"
+                          [matTooltip]="getColorsTooltip(program)"
+                          matTooltipClass="colors-tooltip"
+                          matTooltipPosition="right">
+                          <!-- Icono de paleta -->
+                          <mat-icon class="colors-icon-small">palette</mat-icon>
+                          <!-- Número de colores -->
+                          <span class="numero-colores-text">{{ program.numeroColores || program.colores?.length || 0 }}</span>
                         </button>
                         
-                        <!-- Dropdown de colores con posición fija para evitar overflow -->
-                        <!-- Clase condicional 'visible' controlada por función isColorsExpanded -->
-                        <div class="colors-dropdown" 
-                             [class.visible]="isColorsExpanded(program.id?.toString() || '')">
-                          <!-- Contenido interno del dropdown -->
-                          <div class="colors-dropdown-content">
-                            <!-- Header del dropdown con información del programa -->
-                            <div class="colors-dropdown-header">
-                              <!-- Icono de paleta en el header del dropdown -->
-                              <mat-icon>palette</mat-icon>
-                              <!-- Título dinámico con el artículo del programa -->
-                              <span>Colores para {{ program.articulo }}</span>
-                              <!-- Botón para cerrar el dropdown -->
-                              <button mat-icon-button (click)="closeColors(program.id?.toString() || '')"
-                                class="close-colors-btn">
-                                <!-- Icono de cerrar -->
-                                <mat-icon>close</mat-icon>
-                              </button>
+                        <!-- Chips de colores inline cuando está expandido -->
+                        <div class="colors-chips-inline" *ngIf="isColorsExpanded(program.id?.toString() || '')">
+                          <div *ngFor="let color of program.colores; let i = index" class="color-chip">
+                            <span class="chip-num">{{ i + 1 }}</span>
+                            <div class="chip-color-box" 
+                                 [style.background-color]="getPantoneInfo(color).hex">
                             </div>
-                            <!-- Lista de colores con scroll interno -->
-                            <div class="colors-dropdown-list">
-                              <!-- Iteración sobre el array de colores con índice -->
-                              <div *ngFor="let color of program.colores; let i = index" class="color-item">
-                                <!-- Número del color (índice + 1) -->
-                                <span class="color-number">{{ i + 1 }}</span>
-                                <!-- Nombre del color formateado en mayúsculas -->
-                                <span class="color-name">{{ color }}</span>
-                              </div>
-                            </div>
+                            <span class="chip-name">{{ color }}</span>
                           </div>
                         </div>
                       </div>
                     </td>
                   </ng-container>
+                  <!-- Fin de la columna Número de Colores -->
 
                   <!-- ===== COLUMNA KILOS ===== -->
                   <!-- Cantidad de material en kilogramos para el programa -->

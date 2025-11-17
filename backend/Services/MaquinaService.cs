@@ -49,112 +49,50 @@ namespace flexoAPP.Services
                 using var connection = new MySqlConnector.MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
-                // ===== VERIFICAR SI YA EXISTE EL REGISTRO =====
-                // Verificar si ya existe un registro con la misma combinación de artículo + máquina
-                // IMPORTANTE: La clave única es articulo + numero_maquina, NO solo articulo
-                // Esto permite tener el mismo artículo en diferentes máquinas
-                using var checkCommand = connection.CreateCommand();
-                checkCommand.CommandText = "SELECT COUNT(*) FROM maquinas WHERE articulo = @articulo AND numero_maquina = @numeroMaquina";
-                checkCommand.Parameters.AddWithValue("@articulo", createDto.Articulo);
-                checkCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
-                var exists = Convert.ToInt32(await checkCommand.ExecuteScalarAsync()) > 0;
+                // ===== SIEMPRE INSERTAR NUEVO REGISTRO =====
+                // NO verificar duplicados - El mismo artículo puede estar varias veces en la misma máquina
+                // Cada registro es único gracias al campo id AUTO_INCREMENT
                 
-                // Log para debugging - mostrar si el registro existe o no
-                _logger.LogInformation("🔍 Verificando existencia: Artículo={Articulo}, Máquina={Maquina}, Existe={Existe}", 
-                    createDto.Articulo, createDto.NumeroMaquina, exists);
-
                 var coloresJson = System.Text.Json.JsonSerializer.Serialize(createDto.Colores);
                 var fechaTinta = createDto.FechaTintaEnMaquina ?? DateTime.Now;
 
-                if (exists)
-                {
-                    // ===== ACTUALIZAR REGISTRO EXISTENTE =====
-                    // Si ya existe un registro con la misma combinación articulo + máquina, actualizarlo
-                    // Esto permite actualizar datos de un programa que ya fue cargado previamente
-                    using var updateCommand = connection.CreateCommand();
-                    updateCommand.CommandText = @"
-                        UPDATE maquinas SET
-                            ot_sap = @otSap,
-                            cliente = @cliente,
-                            referencia = @referencia,
-                            td = @td,
-                            numero_colores = @numeroColores,
-                            colores = @colores,
-                            kilos = @kilos,
-                            fecha_tinta_en_maquina = @fechaTinta,
-                            sustrato = @sustrato,
-                            estado = @estado,
-                            observaciones = @observaciones,
-                            updated_by = @updatedBy,
-                            updated_at = @updatedAt
-                        WHERE articulo = @articulo AND numero_maquina = @numeroMaquina";
+                // Insertar nuevo registro
+                using var insertCommand = connection.CreateCommand();
+                insertCommand.CommandText = @"
+                    INSERT INTO maquinas (
+                        articulo, numero_maquina, ot_sap, cliente, referencia, td,
+                        numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
+                        estado, observaciones, created_by, updated_by, created_at, updated_at
+                    ) VALUES (
+                        @articulo, @numeroMaquina, @otSap, @cliente, @referencia, @td,
+                        @numeroColores, @colores, @kilos, @fechaTinta, @sustrato,
+                        @estado, @observaciones, @createdBy, @updatedBy, @createdAt, @updatedAt
+                    )";
 
-                    // Agregar parámetros al comando UPDATE
-                    // NOTA: numero_maquina NO se actualiza, solo se usa en el WHERE
-                    updateCommand.Parameters.AddWithValue("@otSap", createDto.OtSap);
-                    updateCommand.Parameters.AddWithValue("@cliente", createDto.Cliente);
-                    updateCommand.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
-                    updateCommand.Parameters.AddWithValue("@td", createDto.Td ?? (object)DBNull.Value);
-                    updateCommand.Parameters.AddWithValue("@numeroColores", createDto.Colores.Count);
-                    updateCommand.Parameters.AddWithValue("@colores", coloresJson);
-                    updateCommand.Parameters.AddWithValue("@kilos", createDto.Kilos);
-                    updateCommand.Parameters.AddWithValue("@fechaTinta", fechaTinta);
-                    updateCommand.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
-                    updateCommand.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(createDto.Estado) ? (object)DBNull.Value : createDto.Estado);
-                    updateCommand.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
-                    updateCommand.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
-                    updateCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
-                    // Parámetros para el WHERE clause
-                    updateCommand.Parameters.AddWithValue("@articulo", createDto.Articulo);
-                    updateCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
+                insertCommand.Parameters.AddWithValue("@articulo", createDto.Articulo);
+                insertCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
+                insertCommand.Parameters.AddWithValue("@otSap", createDto.OtSap);
+                insertCommand.Parameters.AddWithValue("@cliente", createDto.Cliente);
+                insertCommand.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
+                insertCommand.Parameters.AddWithValue("@td", createDto.Td ?? (object)DBNull.Value);
+                insertCommand.Parameters.AddWithValue("@numeroColores", createDto.Colores.Count);
+                insertCommand.Parameters.AddWithValue("@colores", coloresJson);
+                insertCommand.Parameters.AddWithValue("@kilos", createDto.Kilos);
+                insertCommand.Parameters.AddWithValue("@fechaTinta", fechaTinta);
+                insertCommand.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
+                insertCommand.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(createDto.Estado) ? (object)DBNull.Value : createDto.Estado);
+                insertCommand.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
+                insertCommand.Parameters.AddWithValue("@createdBy", userId ?? (object)DBNull.Value);
+                insertCommand.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
+                insertCommand.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
+                insertCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
 
-                    // Ejecutar el comando UPDATE
-                    await updateCommand.ExecuteNonQueryAsync();
-                    
-                    // Log de confirmación con más detalles
-                    _logger.LogInformation("✅ Registro actualizado: Artículo={Articulo}, Máquina={Maquina}", 
-                        createDto.Articulo, createDto.NumeroMaquina);
-                }
-                else
-                {
-                    // Insertar nuevo registro
-                    using var insertCommand = connection.CreateCommand();
-                    insertCommand.CommandText = @"
-                        INSERT INTO maquinas (
-                            articulo, numero_maquina, ot_sap, cliente, referencia, td,
-                            numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
-                            estado, observaciones, created_by, updated_by, created_at, updated_at
-                        ) VALUES (
-                            @articulo, @numeroMaquina, @otSap, @cliente, @referencia, @td,
-                            @numeroColores, @colores, @kilos, @fechaTinta, @sustrato,
-                            @estado, @observaciones, @createdBy, @updatedBy, @createdAt, @updatedAt
-                        )";
-
-                    insertCommand.Parameters.AddWithValue("@articulo", createDto.Articulo);
-                    insertCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
-                    insertCommand.Parameters.AddWithValue("@otSap", createDto.OtSap);
-                    insertCommand.Parameters.AddWithValue("@cliente", createDto.Cliente);
-                    insertCommand.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
-                    insertCommand.Parameters.AddWithValue("@td", createDto.Td ?? (object)DBNull.Value);
-                    insertCommand.Parameters.AddWithValue("@numeroColores", createDto.Colores.Count);
-                    insertCommand.Parameters.AddWithValue("@colores", coloresJson);
-                    insertCommand.Parameters.AddWithValue("@kilos", createDto.Kilos);
-                    insertCommand.Parameters.AddWithValue("@fechaTinta", fechaTinta);
-                    insertCommand.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
-                    insertCommand.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(createDto.Estado) ? (object)DBNull.Value : createDto.Estado);
-                    insertCommand.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
-                    insertCommand.Parameters.AddWithValue("@createdBy", userId ?? (object)DBNull.Value);
-                    insertCommand.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
-                    insertCommand.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
-                    insertCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
-
-                    // Ejecutar el comando INSERT
-                    await insertCommand.ExecuteNonQueryAsync();
-                    
-                    // Log de confirmación con más detalles
-                    _logger.LogInformation("✅ Registro creado: Artículo={Articulo}, Máquina={Maquina}", 
-                        createDto.Articulo, createDto.NumeroMaquina);
-                }
+                // Ejecutar el comando INSERT
+                await insertCommand.ExecuteNonQueryAsync();
+                
+                // Log de confirmación
+                _logger.LogInformation("✅ Registro creado: Artículo={Articulo}, Máquina={Maquina}", 
+                    createDto.Articulo, createDto.NumeroMaquina);
 
                 // Retornar DTO
                 return new MaquinaDto
@@ -439,8 +377,9 @@ namespace flexoAPP.Services
             // Columna 5: TD - Código TD (Tipo de Diseño)
             // Columna 6: NUMERO DE COLORES - Cantidad de colores (1-10)
             // Columna 7: KILOS - Cantidad en kilogramos
-            // Columna 8: COLORES EN MAQUINA - Fecha y hora de preparación de colores (ej: "10-nov-25 05 PM")
-            //            IMPORTANTE: Esta columna contiene la FECHA de preparación, NO los nombres de colores
+            // Columna 8: COLORES EN MAQUINA - Fecha y hora en que deben estar listos los colores (ej: "10-nov-25 05 PM")
+            //            IMPORTANTE: Esta columna contiene la FECHA Y HORA LÍMITE para tener los colores preparados
+            //            NO contiene los nombres de los colores
             // Columna 9: SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
 
             // ===== PASO 5: PARSEAR NÚMERO DE MÁQUINA (COLUMNA 0) =====
@@ -479,14 +418,15 @@ namespace flexoAPP.Services
                 _logger.LogWarning("⚠️ No se pudo parsear número de colores '{NumColores}', usando 0", columns[6]);
             }
 
-            // ===== PASO 7: PARSEAR FECHA DE PREPARACIÓN DE COLORES (COLUMNA 8) =====
-            // La columna 8 "COLORES EN MAQUINA" contiene la FECHA Y HORA de preparación de colores
+            // ===== PASO 7: PARSEAR FECHA LÍMITE PARA COLORES (COLUMNA 8) =====
+            // La columna 8 "COLORES EN MAQUINA" contiene la FECHA Y HORA LÍMITE en que deben estar listos los colores
             // Formato esperado: "10-nov-25 05 PM" o "dd-MMM-yy hh tt"
-            // Declarar variable para almacenar la fecha de preparación de colores
+            // Esta es la fecha objetivo para tener los colores preparados en la máquina
+            // Declarar variable para almacenar la fecha límite de preparación de colores
             DateTime? fechaTintaEnMaquina = null;
             
             // Registrar en el log el valor original de la fecha antes de procesarlo
-            _logger.LogInformation("📅 Parseando fecha de preparación de colores - Valor original: '{Fecha}' (columna 9)", columns[8]);
+            _logger.LogInformation("📅 Parseando fecha límite para colores - Valor original: '{Fecha}' (columna 8)", columns[8]);
             
             // Verificar si la columna 8 tiene contenido (no está vacía ni es solo espacios)
             if (!string.IsNullOrWhiteSpace(columns[8]))
@@ -497,15 +437,15 @@ namespace flexoAPP.Services
                 {
                     // Si la conversión es exitosa, usar la fecha parseada
                     fechaTintaEnMaquina = fecha;
-                    // Registrar en el log la fecha parseada exitosamente
-                    _logger.LogInformation("✅ Fecha de preparación parseada exitosamente: {Fecha}", fechaTintaEnMaquina);
+                    // Registrar en el log la fecha límite parseada exitosamente
+                    _logger.LogInformation("✅ Fecha límite para colores parseada exitosamente: {Fecha}", fechaTintaEnMaquina);
                 }
                 else
                 {
                     // Si la conversión falla, usar la fecha actual como fallback
                     fechaTintaEnMaquina = DateTime.Now;
                     // Registrar advertencia indicando que no se pudo parsear la fecha
-                    _logger.LogWarning("⚠️ No se pudo parsear la fecha '{Fecha}', usando fecha actual", columns[8]);
+                    _logger.LogWarning("⚠️ No se pudo parsear la fecha límite '{Fecha}', usando fecha actual", columns[8]);
                 }
             }
             else
@@ -513,7 +453,7 @@ namespace flexoAPP.Services
                 // Si la columna 8 está vacía, usar la fecha actual
                 fechaTintaEnMaquina = DateTime.Now;
                 // Registrar advertencia indicando que la fecha está vacía
-                _logger.LogWarning("⚠️ Fecha de preparación vacía (columna 9), usando fecha actual");
+                _logger.LogWarning("⚠️ Fecha límite para colores vacía (columna 8), usando fecha actual");
             }
             
             // ===== PASO 7B: GENERAR COLORES GENÉRICOS BASADOS EN EL NÚMERO =====
@@ -576,7 +516,7 @@ namespace flexoAPP.Services
                 kilos = 0;
             }
 
-            // ===== PASO 9: VALIDAR FECHA DE TINTA EN MÁQUINA =====
+            // ===== PASO 9: VALIDAR FECHA LÍMITE PARA COLORES =====
             // La fecha ya fue parseada en el PASO 7 desde la columna 8
             // Aquí solo validamos que tengamos una fecha válida
             if (!fechaTintaEnMaquina.HasValue)
@@ -584,11 +524,11 @@ namespace flexoAPP.Services
                 // Si por alguna razón no hay fecha, usar la fecha actual como fallback
                 fechaTintaEnMaquina = DateTime.Now;
                 // Registrar advertencia
-                _logger.LogWarning("⚠️ No hay fecha de tinta válida, usando fecha actual");
+                _logger.LogWarning("⚠️ No hay fecha límite válida, usando fecha actual");
             }
             
             // Registrar en el log la fecha final que se usará
-            _logger.LogInformation("📅 Fecha de tinta en máquina final: {Fecha}", fechaTintaEnMaquina);
+            _logger.LogInformation("📅 Fecha límite para colores en máquina: {Fecha}", fechaTintaEnMaquina);
 
             // ===== PASO 10: CREAR DTO CON LOS DATOS PROCESADOS =====
             // Crear un objeto CreateMaquinaDto con todos los datos parseados y validados
@@ -619,14 +559,14 @@ namespace flexoAPP.Services
                 // Asignar kilos parseados de la columna 7
                 Kilos = kilos,
                 
-                // Asignar fecha actual (no viene en el archivo)
+                // Asignar fecha límite para tener colores listos (columna 8)
                 FechaTintaEnMaquina = fechaTintaEnMaquina,
                 
                 // Asignar tipo de sustrato directamente de la columna 9
                 Sustrato = columns[9],
                 
-                // Establecer estado como vacío - El operario debe asignar el primer estado manualmente
-                Estado = "",
+                // NO asignar estado - Dejar NULL para que el operario lo asigne manualmente
+                Estado = null,
                 
                 // Agregar observación indicando que es un programa nuevo pendiente de asignación
                 Observaciones = "Programa nuevo - Pendiente de asignación de estado por operario"
