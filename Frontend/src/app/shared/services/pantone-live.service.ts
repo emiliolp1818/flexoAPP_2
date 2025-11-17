@@ -997,6 +997,35 @@ export class PantoneLiveService {
       rgb: { r: 102, g: 51, b: 153 },
       cmyk: { c: 33, m: 67, y: 0, k: 40 },
       category: 'Purple'
+    },
+
+    // ===== COLORES ADICIONALES SOLICITADOS =====
+    {
+      code: '877',
+      name: 'Pantone 877 C',
+      displayName: 'P 877',
+      hex: '#85878B',
+      rgb: { r: 133, g: 135, b: 139 },
+      cmyk: { c: 4, m: 3, y: 0, k: 45 },
+      category: 'Metallic'
+    },
+    {
+      code: '326',
+      name: 'Pantone 326 C',
+      displayName: 'P 326',
+      hex: '#00B2A9',
+      rgb: { r: 0, g: 178, b: 169 },
+      cmyk: { c: 100, m: 0, y: 5, k: 30 },
+      category: 'Green'
+    },
+    {
+      code: '325',
+      name: 'Pantone 325 C',
+      displayName: 'P 325',
+      hex: '#64CCC9',
+      rgb: { r: 100, g: 204, b: 201 },
+      cmyk: { c: 51, m: 0, y: 1, k: 20 },
+      category: 'Green'
     }
   ];
 

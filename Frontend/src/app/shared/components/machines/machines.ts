@@ -1,5 +1,5 @@
 // Importaciones de Angular Core - Funcionalidades básicas del framework
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ChangeDetectorRef } from '@angular/core';
 // Módulo común de Angular - Directivas básicas como *ngFor, *ngIf
 import { CommonModule } from '@angular/common';
 // Módulos de Angular Material - Componentes de UI
@@ -28,6 +28,8 @@ import { AuthService } from '../../../core/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 // Importar MatSnackBar para notificaciones toast
 import { MatSnackBar } from '@angular/material/snack-bar';
+// Servicio de colores Pantone
+import { PantoneLiveService } from '../../services/pantone-live.service';
 
 // Interfaz que define la estructura de un registro de máquina desde la tabla 'maquinas'
 interface MachineProgram {
@@ -95,6 +97,8 @@ export class MachinesComponent implements OnInit {
   private http = inject(HttpClient); // Cliente HTTP para llamadas al API
   private authService = inject(AuthService); // Servicio de autenticación
   private snackBar = inject(MatSnackBar); // Servicio de notificaciones toast
+  private cdr = inject(ChangeDetectorRef); // Detector de cambios para forzar actualización de vista
+  private pantoneService = inject(PantoneLiveService); // Servicio de colores Pantone
   
   // Señales reactivas de Angular - Estado reactivo del componente
   loading = signal(false); // Estado de carga (true/false)
@@ -115,8 +119,7 @@ export class MachinesComponent implements OnInit {
     'cliente',               // Nombre del cliente
     'referencia',            // Referencia del producto
     'td',                    // Código TD (Tipo de Diseño)
-    'numeroColores',         // Número de colores
-    'colores',               // Botón desplegable con paleta de colores
+    'numeroColores',         // Número de colores con botón desplegable para ver paleta
     'kilos',                 // Cantidad en kilogramos
     'fechaTintaEnMaquina',   // Fecha de tinta en máquina (dd/mm/aaaa: hora)
     'sustrato',              // Tipo de sustrato/material
@@ -591,6 +594,169 @@ Error: ${loginError.message || 'Error de conexión'}`);
     console.log(`🎨 Dropdown de colores cerrado para programa: ${programId}`);
   }
 
+
+
+  // ===== MÉTODO PARA OBTENER INFORMACIÓN DE COLOR PANTONE =====
+  // Obtiene el código Pantone y el color hexadecimal para un color dado
+  // Maneja formato P_209 (extrae el número 209 para buscar en la pantonera)
+  getPantoneInfo(colorName: string): { code: string; hex: string; displayName: string } {
+    console.log('🎨 Buscando color:', colorName);
+    
+    // Si el color tiene formato P_XXX, extraer el número
+    let searchTerm = colorName;
+    if (colorName.toUpperCase().startsWith('P_')) {
+      searchTerm = colorName.substring(2); // Quitar "P_" para obtener el número
+      console.log('🎨 Formato P_ detectado, buscando:', searchTerm);
+    }
+    
+    // Buscar el color en el servicio de Pantone
+    const pantoneColors = this.pantoneService.searchColors(searchTerm);
+    console.log('🎨 Resultados de búsqueda:', pantoneColors);
+    
+    if (pantoneColors && pantoneColors.length > 0) {
+      const pantoneColor = pantoneColors[0];
+      console.log('✅ Color Pantone encontrado:', pantoneColor);
+      return {
+        code: pantoneColor.code,
+        hex: pantoneColor.hex,
+        displayName: pantoneColor.displayName
+      };
+    }
+    
+    // Si no se encuentra en Pantone, usar colores por defecto
+    const defaultHex = this.getDefaultColorHex(colorName);
+    console.log('⚠️ Color no encontrado en Pantone, usando default:', defaultHex);
+    return {
+      code: colorName,
+      hex: defaultHex,
+      displayName: colorName
+    };
+  }
+
+  // ===== MÉTODO PARA OBTENER COLOR HEXADECIMAL POR DEFECTO =====
+  // Retorna colores hexadecimales para colores CMYK básicos
+  private getDefaultColorHex(colorName: string): string {
+    const colorMap: { [key: string]: string } = {
+      'CYAN': '#00FFFF',
+      'MAGENTA': '#FF00FF',
+      'AMARILLO': '#FFFF00',
+      'YELLOW': '#FFFF00',
+      'NEGRO': '#000000',
+      'BLACK': '#000000',
+      'BLANCO': '#FFFFFF',
+      'WHITE': '#FFFFFF'
+    };
+    
+    return colorMap[colorName.toUpperCase()] || '#CCCCCC';
+  }
+
+  // ===== MÉTODO PARA GENERAR TOOLTIP DE COLORES =====
+  // Genera el texto del tooltip que muestra los colores del programa
+  getColorsTooltip(program: MachineProgram): string {
+    if (!program.colores || program.colores.length === 0) {
+      return 'Sin colores asignados';
+    }
+    
+    const colorList = program.colores.map((color, index) => 
+      `${index + 1}. ${color}`
+    ).join('\n');
+    
+    return `Colores del pedido:\n${colorList}`;
+  }
+
+  // ===== MÉTODO PARA CARGAR COLORES DESDE LA BASE DE DATOS DE DISEÑO =====
+  // Obtiene los colores del pedido desde la tabla designs usando el artículo F
+  async loadColorsFromDesign(articulo: string): Promise<string[]> {
+    try {
+      console.log(`🎨 Cargando colores para artículo: ${articulo}`);
+      
+      // Realizar petición HTTP GET al endpoint de colores
+      const response = await firstValueFrom(
+        this.http.get<any>(`${environment.apiUrl}/maquinas/colors/${articulo}`)
+      );
+      
+      if (response && response.success && response.data) {
+        const colors = response.data.colors || [];
+        console.log(`✅ Colores cargados para ${articulo}:`, colors);
+        return colors;
+      }
+      
+      console.warn(`⚠️ No se encontraron colores para artículo: ${articulo}`);
+      return [];
+    } catch (error: any) {
+      console.error(`❌ Error cargando colores para artículo ${articulo}:`, error);
+      return [];
+    }
+  }
+
+  // ===== MÉTODO PARA ALTERNAR DROPDOWN DE COLORES CON CARGA DESDE BD =====
+  // Abre/cierra el dropdown y carga los colores desde la base de datos si es necesario
+  async toggleColorsWithLoad(program: MachineProgram, event?: Event) {
+    console.log('🔵 toggleColorsWithLoad LLAMADO', { program, event });
+    
+    // Prevenir propagación del evento
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const programId = program.id?.toString() || '';
+    console.log('🔵 Program ID:', programId);
+    
+    const expanded = new Set(this.expandedColors());
+    console.log('🔵 Estado actual expandedColors:', Array.from(expanded));
+    
+    // Si ya está expandido, cerrarlo
+    if (expanded.has(programId)) {
+      expanded.delete(programId);
+      console.log(`🎨 Cerrando dropdown de colores para programa: ${programId}`);
+    } else {
+      // Si no está expandido, abrirlo y cargar colores desde BD
+      expanded.clear(); // Cerrar todos los demás
+      expanded.add(programId);
+      console.log(`🎨 Abriendo dropdown de colores para programa: ${programId}`);
+      console.log('🔵 Colores actuales del programa:', program.colores);
+      
+      // Cargar colores desde la base de datos de diseño
+      console.log('🔵 Cargando colores desde BD para artículo:', program.articulo);
+      const colorsFromDB = await this.loadColorsFromDesign(program.articulo);
+      console.log('🔵 Colores obtenidos de BD:', colorsFromDB);
+      
+      // Si se encontraron colores, actualizar el programa
+      if (colorsFromDB.length > 0) {
+        const programs = this.programs();
+        const updatedPrograms = programs.map(p => {
+          if (p.id === program.id) {
+            return {
+              ...p,
+              colores: colorsFromDB,
+              numeroColores: colorsFromDB.length
+            };
+          }
+          return p;
+        });
+        this.programs.set(updatedPrograms);
+        console.log('🔵 Programa actualizado con colores de BD');
+      } else {
+        console.log('⚠️ No se encontraron colores en BD, usando colores actuales');
+      }
+      
+      // Auto-cerrar después de 3 segundos
+      setTimeout(() => {
+        const currentExpanded = new Set(this.expandedColors());
+        if (currentExpanded.has(programId)) {
+          currentExpanded.delete(programId);
+          this.expandedColors.set(currentExpanded);
+          console.log(`⏱️ Auto-cerrado dropdown después de 3 segundos: ${programId}`);
+        }
+      }, 3000);
+    }
+    
+    // Actualizar el estado de expansión
+    console.log('🔵 Actualizando expandedColors a:', Array.from(expanded));
+    this.expandedColors.set(expanded);
+    console.log('🔵 Estado final expandedColors:', Array.from(this.expandedColors()));
+  }
+
   // ===== MÉTODO PARA CAMBIAR EL ESTADO DE UN PROGRAMA =====
   // Método asíncrono que actualiza el estado de un programa en la base de datos
   // Se conecta con el endpoint PATCH api/maquinas/{id}/status del backend
@@ -680,6 +846,9 @@ Error: ${loginError.message || 'Error de conexión'}`);
           
           // Actualizar la señal reactiva con el nuevo array (esto dispara la detección de cambios)
           this.programs.set(updatedPrograms);
+          
+          // Forzar detección de cambios para actualizar la vista inmediatamente
+          this.cdr.detectChanges();
           
           console.log('🔄 Estado actualizado localmente:', {
             programaId: program.id,
@@ -822,6 +991,9 @@ Error: ${loginError.message || 'Error de conexión'}`);
             return p;
           });
           this.programs.set(updatedPrograms); // Actualizar la señal reactiva con nuevo array
+          
+          // Forzar detección de cambios para actualizar la vista inmediatamente
+          this.cdr.detectChanges();
         }
         
         // Log de confirmación detallado

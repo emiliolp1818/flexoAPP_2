@@ -18,9 +18,24 @@ SELECT CONCAT('✅ Respaldo creado: ', COUNT(*), ' registros guardados') AS resu
 FROM `maquinas_backup`;
 
 -- ===== PASO 2: ELIMINAR CLAVES FORÁNEAS =====
--- Eliminar las claves foráneas antes de modificar la estructura
-ALTER TABLE `maquinas` DROP FOREIGN KEY IF EXISTS `fk_maquinas_created_by`;
-ALTER TABLE `maquinas` DROP FOREIGN KEY IF EXISTS `fk_maquinas_updated_by`;
+-- Eliminar las claves foráneas antes de modificar la estructura (si existen)
+SET @exist := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS 
+    WHERE CONSTRAINT_SCHEMA = 'flexoapp_bd' 
+    AND TABLE_NAME = 'maquinas' 
+    AND CONSTRAINT_NAME = 'fk_maquinas_created_by' 
+    AND CONSTRAINT_TYPE = 'FOREIGN KEY');
+SET @sqlstmt := IF(@exist > 0, 'ALTER TABLE `maquinas` DROP FOREIGN KEY `fk_maquinas_created_by`', 'SELECT "FK created_by no existe" AS info');
+PREPARE stmt FROM @sqlstmt;
+EXECUTE stmt;
+
+SET @exist := (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS 
+    WHERE CONSTRAINT_SCHEMA = 'flexoapp_bd' 
+    AND TABLE_NAME = 'maquinas' 
+    AND CONSTRAINT_NAME = 'fk_maquinas_updated_by' 
+    AND CONSTRAINT_TYPE = 'FOREIGN KEY');
+SET @sqlstmt := IF(@exist > 0, 'ALTER TABLE `maquinas` DROP FOREIGN KEY `fk_maquinas_updated_by`', 'SELECT "FK updated_by no existe" AS info');
+PREPARE stmt FROM @sqlstmt;
+EXECUTE stmt;
 
 SELECT '✅ Claves foráneas eliminadas' AS resultado;
 

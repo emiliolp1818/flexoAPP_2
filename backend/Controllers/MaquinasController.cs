@@ -834,6 +834,83 @@ namespace backend.Controllers
         }
 
         /// <summary>
+        /// GET: api/maquinas/colors/{articulo}
+        /// Obtiene los colores de un diseño específico desde la tabla designs usando el artículo F
+        /// </summary>
+        [HttpGet("colors/{articulo}")]
+        public async Task<ActionResult<object>> GetColorsByArticulo(string articulo)
+        {
+            try
+            {
+                _logger.LogInformation("🎨 Obteniendo colores para artículo: {Articulo}", articulo);
+
+                // Buscar el diseño por artículo F
+                var design = await _context.Designs
+                    .Where(d => d.ArticleF == articulo)
+                    .FirstOrDefaultAsync();
+
+                if (design == null)
+                {
+                    _logger.LogWarning("⚠️ No se encontró diseño para artículo: {Articulo}", articulo);
+                    return Ok(new
+                    {
+                        success = true,
+                        data = new
+                        {
+                            articulo = articulo,
+                            colorCount = 0,
+                            colors = new List<string>()
+                        },
+                        message = "No se encontró diseño para este artículo",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Construir lista de colores desde las columnas Color1 a Color10
+                var colors = new List<string>();
+                if (!string.IsNullOrWhiteSpace(design.Color1)) colors.Add(design.Color1);
+                if (!string.IsNullOrWhiteSpace(design.Color2)) colors.Add(design.Color2);
+                if (!string.IsNullOrWhiteSpace(design.Color3)) colors.Add(design.Color3);
+                if (!string.IsNullOrWhiteSpace(design.Color4)) colors.Add(design.Color4);
+                if (!string.IsNullOrWhiteSpace(design.Color5)) colors.Add(design.Color5);
+                if (!string.IsNullOrWhiteSpace(design.Color6)) colors.Add(design.Color6);
+                if (!string.IsNullOrWhiteSpace(design.Color7)) colors.Add(design.Color7);
+                if (!string.IsNullOrWhiteSpace(design.Color8)) colors.Add(design.Color8);
+                if (!string.IsNullOrWhiteSpace(design.Color9)) colors.Add(design.Color9);
+                if (!string.IsNullOrWhiteSpace(design.Color10)) colors.Add(design.Color10);
+
+                _logger.LogInformation("✅ Encontrados {Count} colores para artículo {Articulo}", colors.Count, articulo);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        articulo = articulo,
+                        client = design.Client,
+                        description = design.Description,
+                        substrate = design.Substrate,
+                        printType = design.PrintType,
+                        colorCount = colors.Count,
+                        colors = colors
+                    },
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error obteniendo colores para artículo: {Articulo}", articulo);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = "Error interno del servidor",
+                    message = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
         /// Obtiene el nombre completo del usuario actual desde los claims del JWT
         /// Combina el nombre y apellido del usuario autenticado
         /// </summary>
