@@ -1,93 +1,137 @@
 <!-- ===== CONTENEDOR PRINCIPAL DE CONDICIÓN ÚNICA ===== -->
-<!-- Sistema de gestión de Condición Única con diseño tipo cuadrícula -->
-<!-- Contenedor raíz que ocupa toda la ventana con flexbox vertical -->
+<!-- Sistema completo de gestión de Condición Única con layout optimizado -->
+<!-- Contenedor raíz que ocupa toda la ventana (100vw x 100vh) con flexbox vertical -->
 <div class="condicion-container">
 
   <!-- ===== HEADER FIJO ===== -->
-  <!-- Header principal que permanece fijo en la parte superior -->
+  <!-- Header principal que permanece fijo en la parte superior con estilo del perfil -->
+  <!-- Contenedor del header con fondo blanco translúcido y blur effect -->
   <div class="condicion-header">
+    <!-- Contenedor interno del header con flexbox para distribuir contenido -->
     <div class="header-content">
-      <!-- Sección izquierda: Información del header -->
+      <!-- Sección izquierda: Información del header (título y subtítulo) -->
       <div class="header-info">
-        <!-- Título principal con icono -->
+        <!-- Título principal con icono de inventario y tipografía bold -->
         <h1 class="page-title">
+          <!-- Icono Material Design para inventario -->
           <mat-icon>inventory_2</mat-icon>
-          Condición Única
+          <!-- Texto del título principal -->
+          Gestión de Condición Única
         </h1>
-        <!-- Subtítulo descriptivo -->
+        <!-- Subtítulo descriptivo con información sobre la funcionalidad -->
         <p class="page-subtitle">
-          Gestión de artículos con ubicación física y organización documental
+          Base de datos completa de artículos con ubicación física y organización documental
         </p>
       </div>
 
-      <!-- Sección derecha: Acciones del header -->
+      <!-- Sección derecha: Acciones del header - Solo botones funcionales -->
       <div class="header-actions">
-        <!-- Botón Crear Nuevo Registro -->
-        <button mat-raised-button color="primary" (click)="createNew()" 
+        <!-- Botón Crear Registro - Siempre visible para administradores -->
+        <button mat-raised-button color="primary" (click)="createNew()" class="create-btn"
           [disabled]="loading()" 
           matTooltip="Crear nuevo registro de Condición Única">
           <mat-icon>add</mat-icon>
           Nuevo Registro
         </button>
 
-        <!-- Botón Exportar Excel -->
-        <button mat-stroked-button color="primary" (click)="exportToExcel()" 
-          matTooltip="Exportar a Excel">
+        <!-- Botón Importar Excel - Funcional -->
+        <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn"
+          [disabled]="uploading()" matTooltip="Importar registros desde Excel">
+          <mat-icon>cloud_upload</mat-icon>
+          <span *ngIf="!uploading()">Importar Excel</span>
+          <span *ngIf="uploading()">{{uploadProgress()}}%</span>
+        </button>
+
+        <!-- Botón Exportar Excel - Funcional -->
+        <button mat-stroked-button color="primary" (click)="exportToExcel()" class="export-btn"
+          matTooltip="Exportar registros a Excel">
           <mat-icon>download</mat-icon>
           Exportar
         </button>
       </div>
     </div>
+    <!-- Fin del contenedor interno del header -->
   </div>
+  <!-- Fin del header fijo -->
 
-  <!-- ===== ÁREA DE BÚSQUEDA COMPACTA ===== -->
-  <!-- Sección de búsqueda por F Artículo - Versión compacta -->
-  <div class="search-area-compact">
-    <div class="search-container-compact">
-      <!-- Campo de búsqueda compacto -->
-      <mat-form-field appearance="outline" class="search-field-compact">
-        <mat-label>Buscar F Artículo</mat-label>
-        <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
-          placeholder="Ej: F204567">
-        <mat-icon matPrefix class="search-icon-compact">search</mat-icon>
-        <!-- Botón limpiar integrado -->
-        <button mat-icon-button matSuffix (click)="clearSearch()" *ngIf="searchTerm()" 
-          class="clear-btn-compact" matTooltip="Limpiar">
-          <mat-icon>close</mat-icon>
-        </button>
-      </mat-form-field>
-      
-      <!-- Contador de resultados compacto -->
-      <span class="results-badge" *ngIf="searchTerm()">
-        {{ filteredItems().length }} resultado(s)
-      </span>
-    </div>
+  <!-- ===== ÁREA DE BÚSQUEDA ===== -->
+  <!-- Sección de búsqueda y filtros con diseño optimizado integrado al header -->
+  <!-- Contenedor del área de búsqueda con margen negativo para pegarlo al header -->
+  <div class="search-area">
+    <!-- Tarjeta Material Design para el módulo de búsqueda -->
+    <mat-card class="search-card">
+      <!-- Contenido de la tarjeta de búsqueda -->
+      <mat-card-content>
+        <!-- Sección principal de búsqueda con layout flexbox -->
+        <div class="search-section">
+          <!-- Campo de búsqueda con estilo Material Design outline -->
+          <mat-form-field appearance="outline" class="search-field">
+            <!-- Etiqueta flotante del campo de búsqueda -->
+            <mat-label>Buscar registros</mat-label>
+            <!-- Input principal con binding bidireccional y evento de búsqueda en tiempo real -->
+            <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
+              placeholder="Buscar por F Artículo, Cliente o Descripción (ej: F204567, ABSORBENTES)">
+            <!-- Icono de búsqueda como sufijo del campo -->
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <!-- Botón para limpiar búsqueda - Solo visible cuando hay término de búsqueda -->
+          <!-- Utiliza directiva *ngIf para mostrar/ocultar condicionalmente -->
+          <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm()" class="clear-search-btn"
+            matTooltip="Limpiar búsqueda y mostrar todos los registros">
+            <!-- Icono de limpiar/cerrar -->
+            <mat-icon>clear</mat-icon>
+          </button>
+        </div>
+
+        <!-- Sección de resultados de búsqueda - Solo visible cuando hay término de búsqueda -->
+        <div class="search-results" *ngIf="searchTerm()">
+          <!-- Contador de resultados con interpolación de datos -->
+          <span class="results-count">
+            {{ filteredItems().length }} resultado(s) encontrado(s) para "{{ searchTerm() }}"
+          </span>
+        </div>
+      </mat-card-content>
+      <!-- Fin del contenido de la tarjeta -->
+    </mat-card>
+    <!-- Fin de la tarjeta de búsqueda -->
   </div>
+  <!-- Fin del área de búsqueda -->
 
-  <!-- ===== ÁREA DE TABLA TIPO EXCEL =====  -->
-  <!-- Tabla estilo cuadrícula con celdas y columnas para mostrar los registros -->
-  <div class="grid-area">
-    <mat-card class="grid-card">
+  <!-- ===== ÁREA DE TABLA SCROLLABLE ===== -->
+  <!-- Contenedor principal de la tabla que ocupa el resto del espacio disponible -->
+  <!-- Utiliza flexbox para ocupar todo el espacio restante después del header y búsqueda -->
+  <div class="scrollable-table-area">
+
+    <!-- ===== TARJETA DE TABLA ESTILO EXCEL ===== -->
+    <!-- Tabla principal con diseño profesional estilo Excel y Material Design -->
+    <!-- Contenedor Material Card para la tabla con bordes redondeados y sombra -->
+    <mat-card class="table-card">
+
+      <!-- Header de la tabla con información y estadísticas -->
       <mat-card-header>
+        <!-- Título del header con icono y contador de registros -->
         <mat-card-title>
+          <!-- Icono Material Design para vista de tabla -->
           <mat-icon>table_view</mat-icon>
-          Registros de Condición Única
+          <!-- Título descriptivo de la tabla -->
+          Base de Datos de Condición Única
+          <!-- Contador dinámico de registros - Solo visible cuando no está cargando -->
           <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
             ({{ filteredItems().length }} registros)
           </span>
         </mat-card-title>
       </mat-card-header>
+      <!-- Fin del header de la tabla -->
 
+      <!-- Contenido principal de la tabla -->
       <mat-card-content>
-        
-        <!-- Mensaje de carga -->
-        <div *ngIf="loading()" class="loading-container">
-          <mat-spinner diameter="50"></mat-spinner>
-          <p>Cargando registros...</p>
-        </div>
+        <!-- Contenedor de la tabla con scroll independiente -->
+        <!-- Permite scroll horizontal y vertical mientras mantiene el header fijo -->
+        <div class="table-container">
 
-        <!-- Tabla estilo Excel con cuadrícula -->
-        <div *ngIf="!loading() && filteredItems().length > 0" class="table-container">
+          <!-- ===== TABLA PRINCIPAL ESTILO EXCEL ===== -->
+          <!-- Tabla con scroll horizontal y vertical, headers fijos -->
           <table class="excel-table">
             <!-- Header de la tabla con columnas -->
             <thead>
@@ -176,21 +220,44 @@
               </tr>
             </tbody>
           </table>
-        </div>
+          <!-- Fin de la tabla principal -->
 
-        <!-- Mensaje cuando no hay registros -->
-        <div *ngIf="!loading() && filteredItems().length === 0" class="no-data">
-          <mat-icon>inventory_2</mat-icon>
-          <p>No hay registros de Condición Única</p>
-          <button mat-raised-button color="primary" (click)="createNew()">
-            <mat-icon>add</mat-icon>
-            Crear Primer Registro
-          </button>
-        </div>
+          <!-- ===== MENSAJE SIN DATOS ===== -->
+          <!-- Mostrado cuando no hay registros o no se encuentran resultados de búsqueda -->
+          <!-- Condicional: solo visible cuando no hay datos Y no está cargando -->
+          <div *ngIf="filteredItems().length === 0 && !loading()" class="no-data">
+            <!-- Icono grande para estado vacío -->
+            <mat-icon>inventory_2</mat-icon>
+            <!-- Mensaje condicional cuando no hay registros en la base de datos -->
+            <p *ngIf="!searchTerm()">No hay registros de Condición Única en la base de datos</p>
+            <!-- Mensaje condicional cuando la búsqueda no arroja resultados -->
+            <p *ngIf="searchTerm()">No se encontraron registros que coincidan con "{{ searchTerm() }}"</p>
+            <!-- Botón de acción para crear el primer registro - Solo visible sin búsqueda activa -->
+            <button mat-raised-button color="primary" (click)="createNew()" *ngIf="!searchTerm()">
+              <!-- Icono de agregar -->
+              <mat-icon>add</mat-icon>
+              Crear Primer Registro
+            </button>
+          </div>
 
+          <!-- ===== MENSAJE DE CARGA ===== -->
+          <!-- Mostrado mientras se cargan los datos desde la base de datos -->
+          <!-- Solo visible cuando la señal loading() es true -->
+          <div *ngIf="loading()" class="loading-container">
+            <!-- Icono animado de carga con rotación CSS -->
+            <mat-icon class="loading-icon">refresh</mat-icon>
+            <!-- Mensaje informativo durante la carga -->
+            <p>Cargando registros desde la base de datos...</p>
+          </div>
+
+        </div>
+        <!-- Fin del contenedor de la tabla -->
       </mat-card-content>
+      <!-- Fin del contenido de la tarjeta -->
     </mat-card>
+    <!-- Fin de la tarjeta de la tabla -->
   </div>
+  <!-- Fin del área de tabla scrollable -->
 
 </div>
 <!-- Fin del contenedor principal de Condición Única -->

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Newtonsoft.Json;
 using flexoAPP.Services;
+using OfficeOpenXml;
 
 namespace backend.Controllers
 {
@@ -834,15 +835,16 @@ namespace backend.Controllers
         }
 
         /// <summary>
-        /// GET: api/maquinas/colors/{articulo}
-        /// Obtiene los colores de un diseño específico desde la tabla designs usando el artículo F
+        /// GET: api/maquinas/design-info/{articulo}
+        /// Obtiene información completa del diseño desde la tabla designs usando el artículo F
+        /// Retorna: cliente, referencia, colores y sustrato
         /// </summary>
-        [HttpGet("colors/{articulo}")]
-        public async Task<ActionResult<object>> GetColorsByArticulo(string articulo)
+        [HttpGet("design-info/{articulo}")]
+        public async Task<ActionResult<object>> GetDesignInfo(string articulo)
         {
             try
             {
-                _logger.LogInformation("🎨 Obteniendo colores para artículo: {Articulo}", articulo);
+                _logger.LogInformation("📋 Obteniendo información de diseño para artículo: {Articulo}", articulo);
 
                 // Buscar el diseño por artículo F
                 var design = await _context.Designs
@@ -855,12 +857,8 @@ namespace backend.Controllers
                     return Ok(new
                     {
                         success = true,
-                        data = new
-                        {
-                            articulo = articulo,
-                            colorCount = 0,
-                            colors = new List<string>()
-                        },
+                        found = false,
+                        data = (object?)null,
                         message = "No se encontró diseño para este artículo",
                         timestamp = DateTime.UtcNow
                     });
@@ -879,27 +877,27 @@ namespace backend.Controllers
                 if (!string.IsNullOrWhiteSpace(design.Color9)) colors.Add(design.Color9);
                 if (!string.IsNullOrWhiteSpace(design.Color10)) colors.Add(design.Color10);
 
-                _logger.LogInformation("✅ Encontrados {Count} colores para artículo {Articulo}", colors.Count, articulo);
+                _logger.LogInformation("✅ Información de diseño encontrada para artículo {Articulo}", articulo);
 
                 return Ok(new
                 {
                     success = true,
+                    found = true,
                     data = new
                     {
                         articulo = articulo,
-                        client = design.Client,
-                        description = design.Description,
-                        substrate = design.Substrate,
-                        printType = design.PrintType,
-                        colorCount = colors.Count,
-                        colors = colors
+                        cliente = design.Client ?? "",
+                        referencia = design.Description ?? "",
+                        sustrato = design.Substrate ?? "",
+                        numeroColores = colors.Count,
+                     
                     },
                     timestamp = DateTime.UtcNow
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error obteniendo colores para artículo: {Articulo}", articulo);
+                _logger.LogError(ex, "❌ Error obteniendo información de diseño para artículo: {Articulo}", articulo);
                 return StatusCode(500, new
                 {
                     success = false,
@@ -909,6 +907,20 @@ namespace backend.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// GET: api/maquinas/colors/{articulo}
+        /// Obtiene los colores de un diseño específico desde la tabla designs usando el artículo F
+        /// (Mantenido para compatibilidad)
+        /// </summary>
+        [HttpGet("colors/{articulo}")]
+        public async Task<ActionResult<object>> GetColorsByArticulo(string articulo)
+        {
+            // Redirigir al nuevo endpoint
+            return await GetDesignInfo(articulo);
+        }
+
+
 
         /// <summary>
         /// Obtiene el nombre completo del usuario actual desde los claims del JWT
@@ -956,18 +968,131 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
+                // Capturar cualquier excepción al obtener el nombre del usuario
                 _logger.LogError(ex, "❌ Error obteniendo nombre del usuario");
+                // Retornar "Usuario" como valor por defecto en caso de error
                 return "Usuario";
             }
         }
-    }
+
+        /// <summary>
+        /// GET: api/maquinas/test-design/{articulo}
+        /// ENDPOINT DE PRUEBA - Verificar si un artículo existe en la tabla designs
+        /// Este endpoint permite probar si la consulta a la tabla de diseño funciona correctamente
+        /// </summary>
+        /// <param name="articulo">Código del artículo a buscar (ej: F204567)</param>
+        /// <returns>Información del diseño si existe, o lista de ejemplos si no existe</returns>
+        [HttpGet("test-design/{articulo}")]
+        public async Task<ActionResult<object>> TestDesignLookup(string articulo)
+        {
+            try
+            {
+                // Log de inicio de la prueba con el artículo que se está buscando
+                _logger.LogInformation("🧪 TEST: Buscando artículo '{Articulo}' en tabla designs", articulo);
+                
+                // Contar el total de diseños en la tabla para verificar que hay datos
+                var totalDesigns = await _context.Designs.CountAsync();
+                // Registrar en el log cuántos diseños hay en total
+                _logger.LogInformation("📊 Total de diseños en tabla: {Total}", totalDesigns);
+                
+                // Buscar el diseño específico en la tabla designs usando el código de artículo
+                var design = await _context.Designs
+                    .Where(d => d.ArticleF == articulo) // Filtrar por código de artículo
+                    .FirstOrDefaultAsync(); // Obtener el primer resultado o null
+                
+                // Verificar si se encontró el diseño
+                if (design != null)
+                {
+                    // Si se encontró, registrar en el log el ID del diseño
+                    _logger.LogInformation("✅ Diseño encontrado: ID={Id}", design.Id);
+                    
+                    // Extraer los colores del diseño en una lista
+                    var colores = new List<string>();
+                    // Agregar cada color solo si no es null o vacío
+                    if (!string.IsNullOrWhiteSpace(design.Color1)) colores.Add(design.Color1);
+                    if (!string.IsNullOrWhiteSpace(design.Color2)) colores.Add(design.Color2);
+                    if (!string.IsNullOrWhiteSpace(design.Color3)) colores.Add(design.Color3);
+                    if (!string.IsNullOrWhiteSpace(design.Color4)) colores.Add(design.Color4);
+                    if (!string.IsNullOrWhiteSpace(design.Color5)) colores.Add(design.Color5);
+                    if (!string.IsNullOrWhiteSpace(design.Color6)) colores.Add(design.Color6);
+                    if (!string.IsNullOrWhiteSpace(design.Color7)) colores.Add(design.Color7);
+                    if (!string.IsNullOrWhiteSpace(design.Color8)) colores.Add(design.Color8);
+                    if (!string.IsNullOrWhiteSpace(design.Color9)) colores.Add(design.Color9);
+                    if (!string.IsNullOrWhiteSpace(design.Color10)) colores.Add(design.Color10);
+                    
+                    // Retornar respuesta exitosa con toda la información del diseño
+                    return Ok(new
+                    {
+                        success = true, // Indicador de operación exitosa
+                        found = true, // Indicador de que el artículo fue encontrado
+                        message = $"Artículo '{articulo}' encontrado en tabla designs", // Mensaje descriptivo
+                        totalDesignsInTable = totalDesigns, // Total de diseños en la tabla
+                        design = new // Información completa del diseño encontrado
+                        {
+                            id = design.Id, // ID del diseño
+                            articleF = design.ArticleF, // Código del artículo
+                            client = design.Client, // Cliente
+                            description = design.Description, // Descripción
+                            substrate = design.Substrate, // Sustrato
+                            type = design.Type, // Tipo
+                            printType = design.PrintType, // Tipo de impresión
+                            colorCount = design.ColorCount, // Cantidad de colores
+                            colores = colores, // Lista de colores
+                            status = design.Status // Estado
+                        },
+                        timestamp = DateTime.UtcNow // Timestamp de la respuesta
+                    });
+                }
+                else
+                {
+                    // Si NO se encontró el diseño, registrar advertencia en el log
+                    _logger.LogWarning("⚠️ Diseño NO encontrado");
+                    
+                    // Obtener algunos ejemplos de artículos de la tabla para ayudar al usuario
+                    var ejemplos = await _context.Designs
+                        .Select(d => d.ArticleF) // Seleccionar solo el código de artículo
+                        .Take(10) // Tomar los primeros 10
+                        .ToListAsync(); // Convertir a lista
+                    
+                    // Retornar respuesta indicando que no se encontró el artículo
+                    return Ok(new
+                    {
+                        success = true, // Operación exitosa (aunque no se encontró el artículo)
+                        found = false, // Indicador de que el artículo NO fue encontrado
+                        message = $"Artículo '{articulo}' NO encontrado en tabla designs", // Mensaje descriptivo
+                        totalDesignsInTable = totalDesigns, // Total de diseños en la tabla
+                        ejemplosArticulos = ejemplos, // Lista de ejemplos de artículos
+                        sugerencia = "Verifica que el código de artículo sea exacto (mayúsculas/minúsculas y espacios)", // Sugerencia para el usuario
+                        timestamp = DateTime.UtcNow // Timestamp de la respuesta
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Capturar cualquier excepción durante la búsqueda
+                _logger.LogError(ex, "❌ Error en test de búsqueda de diseño");
+                // Retornar respuesta de error con detalles
+                return StatusCode(500, new
+                {
+                    success = false, // Indicador de operación fallida
+                    error = ex.Message, // Mensaje de error
+                    innerError = ex.InnerException?.Message, // Error interno si existe
+                    stackTrace = ex.StackTrace, // Stack trace para debugging
+                    timestamp = DateTime.UtcNow // Timestamp de la respuesta
+                });
+            }
+        } // Fin del método TestDesignLookup
+    } // Fin de la clase MaquinasController
 
     /// <summary>
     /// DTO para actualizar el estado de un programa de máquina
+    /// Contiene los campos necesarios para cambiar el estado de un programa
     /// </summary>
     public class UpdateStatusRequest
     {
+        // Estado nuevo del programa (PREPARANDO, LISTO, CORRIENDO, SUSPENDIDO, TERMINADO)
         public string Estado { get; set; } = "";
+        // Observaciones opcionales sobre el cambio de estado
         public string? Observaciones { get; set; }
     }
-}
+} // Fin del namespace

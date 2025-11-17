@@ -664,33 +664,39 @@ Error: ${loginError.message || 'Error de conexión'}`);
     return `Colores del pedido:\n${colorList}`;
   }
 
-  // ===== MÉTODO PARA CARGAR COLORES DESDE LA BASE DE DATOS DE DISEÑO =====
-  // Obtiene los colores del pedido desde la tabla designs usando el artículo F
-  async loadColorsFromDesign(articulo: string): Promise<string[]> {
+  // ===== MÉTODO PARA CARGAR INFORMACIÓN COMPLETA DEL DISEÑO =====
+  // Obtiene cliente, referencia, colores y sustrato desde la tabla designs usando el artículo F
+  async loadDesignInfo(articulo: string): Promise<any> {
     try {
-      console.log(`🎨 Cargando colores para artículo: ${articulo}`);
+      console.log(`📋 Cargando información de diseño para artículo: ${articulo}`);
       
-      // Realizar petición HTTP GET al endpoint de colores
+      // Realizar petición HTTP GET al endpoint de información de diseño
       const response = await firstValueFrom(
-        this.http.get<any>(`${environment.apiUrl}/maquinas/colors/${articulo}`)
+        this.http.get<any>(`${environment.apiUrl}/maquinas/design-info/${articulo}`)
       );
       
-      if (response && response.success && response.data) {
-        const colors = response.data.colors || [];
-        console.log(`✅ Colores cargados para ${articulo}:`, colors);
-        return colors;
+      if (response && response.success && response.found && response.data) {
+        console.log(`✅ Información de diseño cargada para ${articulo}:`, response.data);
+        return response.data;
       }
       
-      console.warn(`⚠️ No se encontraron colores para artículo: ${articulo}`);
-      return [];
+      console.warn(`⚠️ No se encontró diseño para artículo: ${articulo}`);
+      return null;
     } catch (error: any) {
-      console.error(`❌ Error cargando colores para artículo ${articulo}:`, error);
-      return [];
+      console.error(`❌ Error cargando información de diseño para artículo ${articulo}:`, error);
+      return null;
     }
   }
 
+  // ===== MÉTODO PARA CARGAR COLORES DESDE LA BASE DE DATOS DE DISEÑO =====
+  // Obtiene los colores del pedido desde la tabla designs usando el artículo F
+  async loadColorsFromDesign(articulo: string): Promise<string[]> {
+    const designInfo = await this.loadDesignInfo(articulo);
+    return designInfo?.colores || [];
+  }
+
   // ===== MÉTODO PARA ALTERNAR DROPDOWN DE COLORES CON CARGA DESDE BD =====
-  // Abre/cierra el dropdown y carga los colores desde la base de datos si es necesario
+  // Abre/cierra el dropdown y carga información completa del diseño desde la base de datos
   async toggleColorsWithLoad(program: MachineProgram, event?: Event) {
     console.log('🔵 toggleColorsWithLoad LLAMADO', { program, event });
     
@@ -710,34 +716,37 @@ Error: ${loginError.message || 'Error de conexión'}`);
       expanded.delete(programId);
       console.log(`🎨 Cerrando dropdown de colores para programa: ${programId}`);
     } else {
-      // Si no está expandido, abrirlo y cargar colores desde BD
+      // Si no está expandido, abrirlo y cargar información completa del diseño desde BD
       expanded.clear(); // Cerrar todos los demás
       expanded.add(programId);
       console.log(`🎨 Abriendo dropdown de colores para programa: ${programId}`);
-      console.log('🔵 Colores actuales del programa:', program.colores);
       
-      // Cargar colores desde la base de datos de diseño
-      console.log('🔵 Cargando colores desde BD para artículo:', program.articulo);
-      const colorsFromDB = await this.loadColorsFromDesign(program.articulo);
-      console.log('🔵 Colores obtenidos de BD:', colorsFromDB);
+      // Cargar información completa del diseño desde la base de datos
+      console.log('📋 Cargando información de diseño desde BD para artículo:', program.articulo);
+      const designInfo = await this.loadDesignInfo(program.articulo);
+      console.log('📋 Información de diseño obtenida:', designInfo);
       
-      // Si se encontraron colores, actualizar el programa
-      if (colorsFromDB.length > 0) {
+      // Si se encontró información del diseño, actualizar el programa
+      if (designInfo) {
         const programs = this.programs();
         const updatedPrograms = programs.map(p => {
           if (p.id === program.id) {
             return {
               ...p,
-              colores: colorsFromDB,
-              numeroColores: colorsFromDB.length
+              // Actualizar campos desde la base de datos de diseño
+              cliente: designInfo.cliente || p.cliente,
+              referencia: designInfo.referencia || p.referencia,
+              sustrato: designInfo.sustrato || p.sustrato,
+              colores: designInfo.colores || p.colores,
+              numeroColores: designInfo.numeroColores || p.numeroColores
             };
           }
           return p;
         });
         this.programs.set(updatedPrograms);
-        console.log('🔵 Programa actualizado con colores de BD');
+        console.log('✅ Programa actualizado con información de diseño desde BD');
       } else {
-        console.log('⚠️ No se encontraron colores en BD, usando colores actuales');
+        console.log('⚠️ No se encontró información de diseño en BD, usando datos actuales');
       }
       
       // Auto-cerrar después de 3 segundos
@@ -1216,27 +1225,30 @@ Error: ${loginError.message || 'Error de conexión'}`);
         const combinedPrograms = [...programsToKeep, ...newPrograms];
         console.log('🔗 Total de programas combinados:', combinedPrograms.length);
         
-        // ===== ACTUALIZAR ESTADO REACTIVO =====
-        // Actualizar la señal reactiva con los programas combinados
-        this.programs.set(combinedPrograms);
+        // ===== RECARGAR DATOS DESDE LA BASE DE DATOS =====
+        // IMPORTANTE: Después de subir el Excel, recargar todos los datos desde la base de datos
+        // Esto asegura que se muestren los datos guardados con la información de la tabla de diseño
+        console.log('🔄 Recargando datos desde la base de datos...');
+        await this.loadPrograms();
         
         // ===== LOG DE ÉXITO DETALLADO =====
         // Log de éxito con estadísticas detalladas de la carga
-        console.log('✅ Archivo procesado exitosamente', {
+        const programasActualizados = this.programs();
+        console.log('✅ Archivo procesado exitosamente y datos recargados', {
           programasNuevos: newPrograms.length, // Cantidad de programas nuevos cargados
-          programasMantenidos: programsToKeep.length, // Cantidad de programas mantenidos
-          programasTotal: combinedPrograms.length, // Total de programas después de la carga
-          programasPreparando: combinedPrograms.filter(p => p.estado === 'PREPARANDO').length,
-          programasListos: combinedPrograms.filter(p => p.estado === 'LISTO').length,
-          programasSuspendidos: combinedPrograms.filter(p => p.estado === 'SUSPENDIDO').length,
-          maquinasProgramadas: new Set(combinedPrograms.map(p => p.machineNumber)).size,
+          programasEnBD: programasActualizados.length, // Total de programas en la base de datos
+          programasPreparando: programasActualizados.filter(p => p.estado === 'PREPARANDO' || p.estado === 'SIN_ASIGNAR').length,
+          programasListos: programasActualizados.filter(p => p.estado === 'LISTO').length,
+          programasSuspendidos: programasActualizados.filter(p => p.estado === 'SUSPENDIDO').length,
+          programasCorriendo: programasActualizados.filter(p => p.estado === 'CORRIENDO').length,
+          maquinasProgramadas: new Set(programasActualizados.map(p => p.machineNumber)).size,
           archivo: file.name
         });
         
         // ===== MOSTRAR MENSAJE AL USUARIO =====
-        // Mostrar notificación de éxito al usuario
+        // Mostrar notificación de éxito al usuario con información de la carga
         this.snackBar.open(
-          `Programación cargada: ${newPrograms.length} nuevos, ${programsToKeep.length} mantenidos`, 
+          `✅ Programación cargada: ${newPrograms.length} programas procesados desde Excel`, 
           'Cerrar', 
           { duration: 5000 }
         );
@@ -1247,8 +1259,9 @@ Error: ${loginError.message || 'Error de conexión'}`);
         
         // ===== SELECCIONAR MÁQUINA AUTOMÁTICAMENTE =====
         // Si hay programas cargados, seleccionar automáticamente la primera máquina con programas
-        if (combinedPrograms.length > 0) {
-          const firstMachineWithPrograms = combinedPrograms[0].machineNumber; // Obtener número de la primera máquina
+        const programasFinales = this.programs();
+        if (programasFinales.length > 0) {
+          const firstMachineWithPrograms = programasFinales[0].machineNumber; // Obtener número de la primera máquina
           this.selectMachine(firstMachineWithPrograms); // Seleccionar esa máquina
           console.log('🎯 Máquina seleccionada automáticamente:', firstMachineWithPrograms);
         }
