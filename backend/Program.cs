@@ -540,6 +540,14 @@ try
     Log.Information("👤 Default Login: admin / admin123"); // Credenciales por defecto
     Log.Information("🔌 MySQL Server: localhost:3306"); // Servidor MySQL
     Log.Information("📁 Database: flexoapp_bd"); // Nombre de la base de datos
+    
+    // ===== CONFIGURACIÓN DE PUERTO PARA RAILWAY =====
+    // Railway asigna el puerto dinámicamente a través de la variable de entorno PORT
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080"; // Puerto por defecto 8080
+    var url = $"http://0.0.0.0:{port}"; // Escuchar en todas las interfaces
+    Log.Information("🌐 Listening on: {Url}", url); // Log del puerto
+    app.Urls.Add(url); // Agregar URL de escucha
+    
     Log.Information("========================================="); 
 
     app.Run();
