@@ -25,15 +25,15 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # COPY: copia el archivo de proyecto desde el host al contenedor
-# ["FlexoAPP.API.csproj", "./"]: copia el .csproj al directorio actual del contenedor
+# ["flexoAPP.csproj", "./"]: copia el .csproj al directorio actual del contenedor
 # Se copia primero solo el .csproj para aprovechar el caché de Docker (si no cambia, no restaura paquetes)
 # Nota: Railway ejecuta desde la raíz, pero el contexto es la carpeta backend
-COPY ["FlexoAPP.API.csproj", "./"]
+COPY ["flexoAPP.csproj", "./"]
 
 # RUN: ejecuta un comando dentro del contenedor durante la construcción
 # dotnet restore: descarga todas las dependencias NuGet especificadas en el .csproj
-# "./FlexoAPP.API.csproj": archivo de proyecto a restaurar
-RUN dotnet restore "./FlexoAPP.API.csproj"
+# "./flexoAPP.csproj": archivo de proyecto a restaurar
+RUN dotnet restore "./flexoAPP.csproj"
 
 # COPY: copia todo el código fuente del backend al contenedor
 # .: copia todo desde el contexto actual (carpeta backend)
@@ -42,10 +42,10 @@ COPY . .
 
 # RUN: compila la aplicación en modo Release
 # dotnet build: comando de compilación de .NET
-# "FlexoAPP.API.csproj": proyecto a compilar
+# "flexoAPP.csproj": proyecto a compilar
 # -c Release: configuración de compilación (Release = optimizado para producción)
 # -o /app/build: directorio de salida de los archivos compilados
-RUN dotnet build "FlexoAPP.API.csproj" -c Release -o /app/build
+RUN dotnet build "flexoAPP.csproj" -c Release -o /app/build
 
 # ===== ETAPA 3: PUBLISH - PUBLICACIÓN DE LA APLICACIÓN =====
 # FROM build: continúa desde la etapa "build" anterior
@@ -54,11 +54,11 @@ FROM build AS publish
 
 # RUN: publica la aplicación (prepara archivos para producción)
 # dotnet publish: crea una versión lista para desplegar
-# "FlexoAPP.API.csproj": proyecto a publicar
+# "flexoAPP.csproj": proyecto a publicar
 # -c Release: configuración Release (optimizado)
 # -o /app/publish: directorio de salida de los archivos publicados
 # /p:UseAppHost=false: no crear ejecutable nativo (usar dotnet para ejecutar)
-RUN dotnet publish "FlexoAPP.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "flexoAPP.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # ===== ETAPA 4: FINAL - IMAGEN FINAL DE PRODUCCIÓN =====
 # FROM base: usa la etapa "base" (runtime ligero, sin SDK)
