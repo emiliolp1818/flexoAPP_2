@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "buildCommand": "npm install && npm run build -- --configuration=railway",
+  "outputDirectory": "dist/Frontend/browser",
+  "framework": "angular",
+  "installCommand": "npm install",
+  "devCommand": "ng serve",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
