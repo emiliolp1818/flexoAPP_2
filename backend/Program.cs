@@ -272,10 +272,11 @@ try
     // AddDbContext: registrar el contexto de base de datos en el contenedor de dependencias
     builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
     {
-        // ===== DETECTAR VERSIÓN DE MYSQL =====
-        // ServerVersion.AutoDetect: detecta automáticamente la versión de MySQL del servidor
-        // Esto es importante para usar las características correctas de MySQL (5.7, 8.0, etc.)
-        var serverVersion = ServerVersion.AutoDetect(connectionString); // Conecta y detecta versión
+        // ===== VERSIÓN DE MYSQL =====
+        // Usar versión fija de MySQL 8.0 en lugar de autodetectar
+        // AutoDetect requiere conexión inmediata que puede fallar en Railway
+        var serverVersion = new MySqlServerVersion(new Version(8, 0, 21)); // MySQL 8.0.21
+        Log.Information("🔧 Using MySQL Server Version 8.0.21");
         
         // ===== CONFIGURAR PROVEEDOR MYSQL =====
         // UseMySql: configura Entity Framework para usar MySQL en lugar de SQL Server o PostgreSQL
@@ -313,8 +314,10 @@ try
     Log.Information("✅ MySQL Local Database configured successfully for flexoapp_bd");
 
     // ===== HEALTH CHECKS =====
+    // Deshabilitar healthcheck de base de datos temporalmente para Railway
+    // Railway tiene problemas de red interna con MySQL
     builder.Services.AddHealthChecks()
-        .AddDbContextCheck<FlexoAPPDbContext>("database")
+        // .AddDbContextCheck<FlexoAPPDbContext>("database") // Deshabilitado temporalmente
         .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy());
 
     Log.Information("✅ Health checks configured");
