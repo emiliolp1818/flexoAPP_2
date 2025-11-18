@@ -27,38 +27,8 @@ git status --short
 Write-Host ""
 
 # Crear commit con mensaje descriptivo
-$commitMessage = @"
-feat: Integración con tabla de diseño en carga de Excel
-
-- Implementada consulta a tabla designs en ProcessExcelLine
-- Si artículo existe en designs: usa cliente, sustrato, referencia, TD y colores de la tabla
-- Si artículo NO existe: usa información del Excel con colores genéricos
-- Agregado endpoint de prueba: GET /api/maquinas/test-design/{articulo}
-- Frontend ahora recarga datos desde BD después de subir Excel
-- Eliminado endpoint duplicado en MaquinasController
-- Agregados logs detallados para debugging
-- Documentación completa de cambios y pruebas
-
-Archivos modificados:
-- backend/Services/MaquinaService.cs
-- backend/Controllers/MaquinasController.cs
-- Frontend/src/app/shared/components/machines/machines.ts
-
-Archivos de documentación:
-- CAMBIOS_TABLA_DISENO.md
-- INSTRUCCIONES_PRUEBA_DESIGNS.md
-- SOLUCION_FINAL_CARGA_EXCEL.md
-- RESUMEN_COMPLETO_CAMBIOS.md
-- INICIAR_BACKEND.md
-- backend/Database/test_designs_table.sql
-
-Scripts:
-- iniciar-backend.ps1
-- guardar-en-git.ps1
-"@
-
 Write-Host "💾 Creando commit..." -ForegroundColor Cyan
-git commit -m $commitMessage
+git commit -m "feat: Integración con tabla de diseño en carga de Excel. Implementada consulta a tabla designs en ProcessExcelLine. Si artículo existe en designs usa cliente, sustrato, referencia, TD y colores de la tabla. Si artículo NO existe usa información del Excel con colores genéricos. Agregado endpoint de prueba. Frontend ahora recarga datos desde BD después de subir Excel. Eliminado endpoint duplicado. Agregados logs detallados para debugging. Documentación completa de cambios y pruebas."
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""

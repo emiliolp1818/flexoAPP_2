@@ -213,6 +213,63 @@ $header-blue-900: #1e3a8a;     // Tono 900
       }
     }
 
+    // Botón de refrescar/actualizar - Solo icono
+    .refresh-btn {
+      width: 44px;                      // Tamaño del botón circular
+      height: 44px;
+      border-radius: 50%;               // Botón circular
+      background: rgba($primary-blue, 0.1); // Fondo azul translúcido
+      border: 2px solid rgba($primary-blue, 0.3); // Borde azul
+      color: $primary-blue;             // Color del icono
+      transition: all 0.3s ease;        // Transición suave
+      
+      mat-icon {
+        font-size: 24px;                // Icono más grande
+        width: 24px;
+        height: 24px;
+        transition: transform 0.3s ease; // Transición para rotación
+      }
+
+      // Estado hover
+      &:hover:not(:disabled) {
+        background: rgba($primary-blue, 0.2); // Fondo más intenso
+        border-color: $primary-blue;    // Borde sólido
+        transform: translateY(-2px) scale(1.05); // Elevación y crecimiento
+        box-shadow: 0 4px 12px rgba($primary-blue, 0.3); // Sombra azul
+        
+        mat-icon {
+          transform: rotate(90deg);     // Rotación del icono en hover
+        }
+      }
+
+      // Estado deshabilitado (cuando está cargando)
+      &:disabled {
+        opacity: 0.6;                   // Opacidad reducida
+        cursor: not-allowed;            // Cursor de no permitido
+        background: rgba($gray-300, 0.1); // Fondo gris
+        border-color: rgba($gray-300, 0.3); // Borde gris
+        
+        mat-icon {
+          color: $gray-400;             // Icono gris
+        }
+      }
+
+      // Animación de rotación cuando está cargando
+      mat-icon.spinning {
+        animation: spin 1s linear infinite; // Rotación continua
+      }
+    }
+
+    // Animación de rotación
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);        // Inicio: 0 grados
+      }
+      to {
+        transform: rotate(360deg);      // Fin: 360 grados (vuelta completa)
+      }
+    }
+
     // Botón de limpiar BD - Solo icono para admin
     .clear-db-btn {
       width: 40px;                      // Botón circular compacto
@@ -427,6 +484,11 @@ $header-blue-900: #1e3a8a;     // Tono 900
       color: white;                    // Texto blanco
       border-radius: 16px 16px 0 0;    // Bordes redondeados solo arriba
       flex-shrink: 0;                  // No permitir que se encoja
+
+      // Header específico para edición (azul)
+      &.edit-header {
+        background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul
+      }
 
       .dialog-title {
         display: flex;                 // Flexbox para icono y título
@@ -917,7 +979,8 @@ $header-blue-900: #1e3a8a;     // Tono 900
 // Solo este contenedor permite scroll - Todo lo demás permanece fijo
 .table-container {
   flex: 1;                          // Ocupar todo el espacio disponible
-  overflow: auto;                   // Permitir scroll vertical y horizontal SOLO aquí
+  overflow-y: auto;                 // Permitir SOLO scroll vertical
+  overflow-x: hidden;               // Ocultar scroll horizontal
   position: relative;               // Posicionamiento relativo
   height: 100%;                     // Altura completa del contenedor padre
   min-height: 0;                    // Importante para que flex funcione correctamente
@@ -927,7 +990,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
   .mat-mdc-table {
     position: relative;             // Posicionamiento relativo para la tabla
     width: 100%;                    // Ancho completo
-    min-width: 1200px;              // Ancho mínimo para evitar compresión
+    table-layout: fixed;            // Layout fijo para controlar anchos de columnas
   }
 
   // Estilos personalizados para scrollbars - Más visibles y atractivos
@@ -990,7 +1053,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 // Estilos para la tabla principal con apariencia de Excel y header fijo
 .excel-table {
   width: 100%;
-  min-width: 1200px; // Ancho mínimo para evitar compresión
+  table-layout: fixed; // Layout fijo para controlar anchos de columnas
   background: white;
   border-collapse: separate;
   border-spacing: 0;
@@ -1105,7 +1168,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna ID
 .id-cell {
-  min-width: 80px;
+  width: 4%;
   text-align: center;
 
   .design-id {
@@ -1134,7 +1197,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Artículo F
 .article-cell {
-  min-width: 120px;
+  width: 8%;
   font-weight: 600;
 
   .article-code {
@@ -1162,7 +1225,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Cliente
 .client-cell {
-  min-width: 200px;
+  width: 12%;
 
   .client-name {
     color: $gray-700;
@@ -1188,8 +1251,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Descripción
 .description-cell {
-  min-width: 250px;
-  max-width: 350px;
+  width: 18%;
 
   .description-text {
     color: #4b5563;
@@ -1208,7 +1270,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Sustrato
 .substrate-cell {
-  min-width: 140px;
+  width: 10%;
 
   .substrate-text {
     color: $success-emerald;
@@ -1235,7 +1297,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Tipo
 .type-cell {
-  min-width: 100px;
+  width: 8%;
   text-align: center;
 
   .type-chip {
@@ -1271,7 +1333,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Tipo de Impresión
 .print-type-cell {
-  min-width: 120px;
+  width: 9%;
   text-align: center;
 
   .print-chip {
@@ -1307,7 +1369,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Número de Colores
 .color-count-cell {
-  min-width: 80px;
+  width: 6%;
   text-align: center;
 
   .color-count-badge {
@@ -1330,6 +1392,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 // ===== COMPONENTE DROPDOWN DE COLORES =====
 // Dropdown que muestra los colores de cada diseño de manera interactiva (copiado de máquinas)
 .colors-cell {
+  width: 7%;
   position: relative;
   overflow: visible !important;
   z-index: 1; // Z-index base para la celda
@@ -1466,98 +1529,145 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // ===== BOTÓN DE COLORES =====
 // Botón empresarial llamativo para mostrar colores con estilo plata
+// ===== BOTÓN MODERNO PARA TOGGLE DE COLORES =====
+// Botón con gradiente y efectos visuales avanzados
 .colors-toggle-btn-modern {
+  // Gradiente de fondo gris claro a medio
   background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%) !important;
+  // Borde sólido gris medio
   border: 2px solid $gray-300 !important;
+  // Bordes redondeados para diseño moderno
   border-radius: 12px !important;
+  // Tamaño del botón (cuadrado)
   width: 48px !important;
   height: 48px !important;
+  // Posicionamiento relativo para pseudo-elementos
   position: relative !important;
+  // Ocultar contenido que sobresalga
   overflow: hidden !important;
-  box-shadow: 
-    0 4px 12px rgba($primary-blue, 0.2) !important,
-    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  // Sombra múltiple: externa e interna para profundidad
+  box-shadow: 0 4px 12px rgba($primary-blue, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  // Transición suave con curva de aceleración personalizada
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 
-  // Efecto de brillo rotativo
+  // Pseudo-elemento para efecto de brillo rotativo
   &::before {
+    // Contenido vacío requerido para pseudo-elemento
     content: '';
+    // Posicionamiento absoluto dentro del botón
     position: absolute;
+    // Posición inicial fuera del botón (arriba e izquierda)
     top: -50%;
     left: -50%;
+    // Tamaño doble para cubrir todo el botón al rotar
     width: 200%;
     height: 200%;
+    // Gradiente cónico para efecto de brillo circular
     background: conic-gradient(from 0deg, transparent, rgba($primary-blue, 0.1), transparent);
+    // Transición suave de la rotación
     transition: transform 0.6s ease;
+    // Rotación inicial en 0 grados
     transform: rotate(0deg);
   }
 
+  // Estado hover del botón
   &:hover {
+    // Gradiente más oscuro en hover
     background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%) !important;
+    // Cambiar color del borde a azul primario
     border-color: $primary-blue !important;
+    // Elevar el botón y aumentar ligeramente su tamaño
     transform: translateY(-2px) scale(1.05) !important;
-    box-shadow: 
-      0 8px 20px rgba($primary-blue, 0.3) !important,
-      0 4px 12px rgba($primary-blue, 0.2) !important,
-      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    // Sombras múltiples más pronunciadas para efecto de elevación
+    box-shadow: 0 8px 20px rgba($primary-blue, 0.3), 0 4px 12px rgba($primary-blue, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 
+    // Rotar el pseudo-elemento de brillo en hover
     &::before {
+      // Rotación de 180 grados para efecto de brillo
       transform: rotate(180deg);
     }
   }
 
+  // Estado activo del botón (cuando está expandido)
   &.active {
+    // Gradiente azul para indicar estado activo
     background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%) !important;
+    // Borde azul para consistencia
     border-color: $primary-blue !important;
-    box-shadow: 
-      0 6px 16px rgba($primary-blue, 0.4) !important,
-      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    // Sombras para estado activo con mayor intensidad
+    box-shadow: 0 6px 16px rgba($primary-blue, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 
+    // Contenedor del icono en estado activo
     .colors-icon-container {
+      // Icono de colores en estado activo
       .colors-icon {
+        // Cambiar color del icono a blanco
         color: white !important;
+        // Aumentar tamaño del icono
         transform: scale(1.1) !important;
       }
 
+      // Badge con número de colores en estado activo
       .colors-badge {
+        // Fondo gris claro para contraste
         background: $gray-300 !important;
+        // Texto gris oscuro
         color: $gray-900 !important;
+        // Borde blanco para destacar
         border: 2px solid white !important;
       }
     }
   }
 
+  // Contenedor del icono y badge
   .colors-icon-container {
+    // Posicionamiento relativo para el badge absoluto
     position: relative;
+    // Z-index para estar sobre el pseudo-elemento de brillo
     z-index: 1;
 
+    // Icono principal de paleta de colores
     .colors-icon {
+      // Color azul primario del icono
       color: $primary-blue;
+      // Tamaño grande del icono
       font-size: 26px !important;
       width: 26px !important;
       height: 26px !important;
+      // Sombra sutil para profundidad
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      // Transición suave para cambios
       transition: all 0.3s ease !important;
     }
 
+    // Badge circular con número de colores
     .colors-badge {
+      // Posicionamiento absoluto en esquina superior derecha
       position: absolute;
       top: -8px;
       right: -8px;
+      // Gradiente azul de fondo
       background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+      // Texto blanco
       color: white;
+      // Forma circular perfecta
       border-radius: 50%;
+      // Tamaño del badge
       width: 22px;
       height: 22px;
+      // Tamaño de fuente pequeño
       font-size: 11px;
+      // Peso de fuente extra bold
       font-weight: 800;
+      // Flexbox para centrar el número
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 
-        0 3px 8px rgba($primary-blue, 0.4),
-        0 1px 3px rgba(0, 0, 0, 0.2);
+      // Sombras múltiples para profundidad
+      box-shadow: 0 3px 8px rgba($primary-blue, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
+      // Borde blanco para destacar
       border: 2px solid white;
+      // Transición suave
       transition: all 0.3s ease !important;
     }
   }
@@ -1565,7 +1675,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // ===== COLUMNA ESTADO - TEXTO BRILLANTE CON COLORES FORZADOS =====
 .status-cell {
-  min-width: 100px !important;
+  width: 7% !important;
   text-align: center !important;
 
   .status-text-display {
@@ -1628,31 +1738,175 @@ $header-blue-900: #1e3a8a;     // Tono 900
   }
 }
 
-// Columna Acciones
+// ===== COLUMNA ACCIONES - ESTILO IDÉNTICO A GESTIÓN DE USUARIOS =====
+// Botones de acción con efectos visuales modernos y profesionales
 .actions-cell {
-  min-width: 160px;
+  // Ancho de la columna (11% del total)
+  width: 11%;
+  // Centrar contenido horizontalmente
   text-align: center;
 
+  // Contenedor flexbox para los botones de acción
   .action-buttons {
+    // Flexbox horizontal para alinear botones
     display: flex;
+    // Espaciado de 10px entre botones
     gap: 10px;
+    // Centrar botones horizontalmente
     justify-content: center;
+    // Centrar botones verticalmente
+    align-items: center;
+    // Margen derecho adicional para separación
+    margin-right: 8px;
 
-    button {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+    // Estilos base para todos los botones de acción
+    .action-btn {
+      // Tamaño del botón (más grande para mejor usabilidad)
+      width: 42px;
+      height: 42px;
+      // Bordes redondeados para diseño moderno
+      border-radius: 10px;
+      // Transición suave para todos los cambios
+      transition: all 0.3s ease;
+      // Posicionamiento relativo para pseudo-elementos
+      position: relative;
+      // Ocultar contenido que sobresalga
+      overflow: hidden;
 
+      // Estilos para iconos Material Design dentro del botón
       mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+        // Tamaño del icono
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+        // Transición rápida para animaciones
+        transition: all 0.2s ease;
       }
 
+      // Clase para iconos extra grandes en acciones principales
+      &.large-icon {
+        // Selector para iconos con clase específica
+        .large-action-icon {
+          // Tamaño aumentado del icono
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      // Estado hover del botón (al pasar el mouse)
       &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        // Elevar el botón y aumentar su tamaño significativamente
+        transform: translateY(-3px) scale(1.2);
+        // Sombra pronunciada para efecto de elevación
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        
+        // Aumentar tamaño del icono en hover
+        mat-icon {
+          // Escalar el icono al 115%
+          transform: scale(1.15);
+        }
+      }
+
+      // ===== BOTÓN EDITAR - AZUL =====
+      // Estilo específico para el botón de editar
+      &.edit-btn {
+        // Fondo azul translúcido (12% de opacidad)
+        background: rgba($primary-blue, 0.12);
+        // Borde azul translúcido (25% de opacidad)
+        border: 2px solid rgba($primary-blue, 0.25);
+        
+        // Estado hover del botón editar
+        &:hover {
+          // Fondo azul más intenso en hover
+          background: rgba($primary-blue, 0.2);
+          // Color del icono azul primario
+          color: $primary-blue;
+          // Borde azul sólido
+          border-color: $primary-blue;
+          // Sombra azul para efecto de profundidad
+          box-shadow: 0 6px 16px rgba($primary-blue, 0.35);
+        }
+      }
+
+      // ===== BOTÓN DUPLICAR - VERDE =====
+      // Estilo específico para el botón de duplicar
+      &.duplicate-btn {
+        // Fondo verde translúcido (12% de opacidad)
+        background: rgba($success-emerald, 0.12);
+        // Borde verde translúcido (25% de opacidad)
+        border: 2px solid rgba($success-emerald, 0.25);
+        
+        // Estado hover del botón duplicar
+        &:hover {
+          // Fondo verde más intenso en hover
+          background: rgba($success-emerald, 0.2);
+          // Color del icono verde esmeralda
+          color: $success-emerald;
+          // Borde verde sólido
+          border-color: $success-emerald;
+          // Sombra verde para efecto de profundidad
+          box-shadow: 0 6px 16px rgba($success-emerald, 0.35);
+        }
+      }
+
+      // ===== BOTÓN ELIMINAR - ROJO =====
+      // Estilo específico para el botón de eliminar
+      &.delete-btn {
+        // Fondo rojo translúcido (12% de opacidad)
+        background: rgba($error-red, 0.12);
+        // Borde rojo translúcido (25% de opacidad)
+        border: 2px solid rgba($error-red, 0.25);
+        
+        // Estado hover del botón eliminar
+        &:hover {
+          // Fondo rojo más intenso en hover
+          background: rgba($error-red, 0.2);
+          // Color del icono rojo
+          color: $error-red;
+          // Borde rojo sólido
+          border-color: $error-red;
+          // Sombra roja para efecto de profundidad
+          box-shadow: 0 6px 16px rgba($error-red, 0.35);
+        }
+      }
+
+      // ===== ESTADO DESHABILITADO =====
+      // Estilos cuando el botón está deshabilitado (loading)
+      &:disabled {
+        // Reducir opacidad para indicar estado inactivo
+        opacity: 0.4;
+        // Cursor de no permitido
+        cursor: not-allowed;
+        // Sin transformaciones
+        transform: none;
+        // Fondo gris translúcido
+        background: rgba($gray-300, 0.1);
+        // Borde gris translúcido
+        border-color: rgba($gray-300, 0.2);
+
+        // Estado hover cuando está deshabilitado (sin efectos)
+        &:hover {
+          // Sin transformaciones en hover
+          transform: none;
+          // Sin sombra en hover
+          box-shadow: none;
+          // Mantener fondo gris
+          background: rgba($gray-300, 0.1);
+          
+          // Icono sin transformaciones en hover
+          mat-icon {
+            // Sin escala en hover cuando está deshabilitado
+            transform: none;
+          }
+        }
+      }
+
+      // ===== ESTADO ACTIVO (AL HACER CLIC) =====
+      // Efecto visual cuando se presiona el botón
+      &:active {
+        // Reducir elevación y escala ligeramente
+        transform: translateY(-1px) scale(1.1);
       }
     }
   }
@@ -2208,11 +2462,11 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 @media (max-width: 1400px) {
   .excel-table {
-    min-width: 1000px;
+    width: 100%;
   }
 
   .description-cell {
-    max-width: 200px;
+    width: 15%;
   }
 
   .colors-grid-horizontal {
@@ -2232,7 +2486,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
   }
 
   .excel-table {
-    min-width: 900px;
+    width: 100%;
   }
 
   .excel-header {
@@ -2319,7 +2573,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
   }
 
   .excel-table {
-    min-width: 800px;                   // Ancho mínimo para scroll horizontal
+    width: 100%;                        // Ancho completo sin scroll horizontal
   }
 
   .colors-grid-horizontal {
@@ -2360,7 +2614,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
   }
 
   .excel-table {
-    min-width: 700px;                   // Ancho mínimo para scroll horizontal
+    width: 100%;                        // Ancho completo sin scroll horizontal
   }
 
   .excel-header {
