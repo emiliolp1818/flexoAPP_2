@@ -13,11 +13,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { PantoneLiveService, PantoneColor } from '../../services/pantone-live.service';
+import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
+import { DuplicateDesignDialogComponent } from './duplicate-design-dialog.component';
 
 interface FlexographicDesign {
   id?: number;
@@ -76,6 +79,7 @@ interface UserPermissions {
     MatTooltipModule,
     MatTableModule,
     MatAutocompleteModule,
+    MatDialogModule,
     ReactiveFormsModule,
     FormsModule
   ],
@@ -86,6 +90,7 @@ interface UserPermissions {
 export class DesignComponent implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
   private pantoneService = inject(PantoneLiveService);
@@ -100,6 +105,8 @@ export class DesignComponent implements OnInit {
   filteredDesigns = signal<FlexographicDesign[]>([]);
   expandedColors = signal<Set<string>>(new Set());
   showCreateForm = signal<boolean>(false);
+  showEditForm = signal<boolean>(false);
+  editingDesign = signal<FlexographicDesign | null>(null);
   
   // Señales para optimización de carga
   currentPage = signal<number>(1);
@@ -112,6 +119,9 @@ export class DesignComponent implements OnInit {
   
   // Formulario para crear diseño
   createDesignForm: FormGroup;
+  
+  // Formulario para editar diseño
+  editDesignForm: FormGroup;
   
   // Colores Pantone
   availablePantoneColors = signal<PantoneColor[]>([]);
@@ -139,6 +149,19 @@ export class DesignComponent implements OnInit {
   constructor() {
     // Inicializar formulario de creación de diseño
     this.createDesignForm = this.fb.group({
+      articleF: ['', [Validators.required, Validators.maxLength(50)]],
+      client: ['', [Validators.required, Validators.maxLength(100)]],
+      description: ['', [Validators.required, Validators.maxLength(200)]],
+      substrate: ['', [Validators.required, Validators.maxLength(50)]],
+      type: ['LAMINA', Validators.required],
+      printType: ['CARA', Validators.required],
+      colorCount: [1, [Validators.required, Validators.min(1), Validators.max(12)]],
+      colors: [['Negro'], Validators.required],
+      status: ['ACTIVO', Validators.required]
+    });
+
+    // Inicializar formulario de edición de diseño (misma estructura)
+    this.editDesignForm = this.fb.group({
       articleF: ['', [Validators.required, Validators.maxLength(50)]],
       client: ['', [Validators.required, Validators.maxLength(100)]],
       description: ['', [Validators.required, Validators.maxLength(200)]],
@@ -994,6 +1017,25 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
   /**
+   * Refrescar/Actualizar la lista de diseños
+   * Recarga los datos desde la base de datos
+   */
+  async refreshDesigns() {
+    console.log('🔄 Refrescando lista de diseños...');
+    
+    // Mostrar mensaje de inicio
+    this.snackBar.open('Actualizando lista de diseños...', '', {
+      duration: 1500,
+      panelClass: ['info-snackbar']
+    });
+
+    // Recargar los datos
+    await this.loadDataDirectly();
+    
+    console.log('✅ Lista de diseños actualizada');
+  }
+
+  /**
    * Método de prueba para verificar endpoint /all
    */
   async testAllEndpoint() {
@@ -1742,35 +1784,264 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
   /**
-   * Editar diseño
+   * Editar diseño - Abrir modal de edición
    */
   editDesign(design: FlexographicDesign) {
-    // TODO: Implementar modal de edición
-    this.snackBar.open(`Función de edición en desarrollo para: ${design.articleF}`, 'Cerrar', {
-      duration: 3000,
-      panelClass: ['info-snackbar']
+    console.log('✏️ Editando diseño:', design.articleF);
+    
+    // Guardar el diseño que se está editando
+    this.editingDesign.set(design);
+    
+    // Cargar los datos del diseño en el formulario de edición
+    this.editDesignForm.patchValue({
+      articleF: design.articleF,
+      client: design.client,
+      description: design.description,
+      substrate: design.substrate,
+      type: design.type,
+      printType: design.printType,
+      colorCount: design.colorCount,
+      colors: design.colors,
+      status: design.status
     });
+    
+    // Cargar los colores Pantone seleccionados
+    const pantoneColors: PantoneColor[] = [];
+    design.colors.forEach(colorName => {
+      const pantoneColor = this.pantoneService.searchColors(colorName)[0];
+      if (pantoneColor) {
+        pantoneColors.push(pantoneColor);
+      }
+    });
+    this.selectedColors.set(pantoneColors);
+    
+    // Mostrar el formulario de edición
+    this.showEditForm.set(true);
+  }
+
+  /**
+   * Cancelar edición de diseño
+   */
+  cancelEditDesign() {
+    this.showEditForm.set(false);
+    this.editingDesign.set(null);
+    this.editDesignForm.reset();
+  }
+
+  /**
+   * Guardar cambios del diseño editado
+   */
+  async saveEditedDesign() {
+    // Validar formulario
+    if (!this.editDesignForm.valid) {
+      console.log('❌ Formulario inválido:', this.editDesignForm.errors);
+      this.snackBar.open('Por favor completa todos los campos requeridos', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    const editingDesign = this.editingDesign();
+    if (!editingDesign) {
+      console.log('❌ No hay diseño en edición');
+      return;
+    }
+
+    this.loading.set(true);
+    try {
+      const formData = this.editDesignForm.value;
+      console.log('💾 Guardando cambios del diseño:');
+      console.log('   ArticleF original:', editingDesign.articleF);
+      console.log('   Datos del formulario:', formData);
+      console.log('   URL:', `${environment.apiUrl}/designs/${encodeURIComponent(editingDesign.articleF)}`);
+
+      // Preparar datos para enviar al backend
+      const updateData = {
+        articleF: formData.articleF,
+        client: formData.client,
+        description: formData.description,
+        substrate: formData.substrate,
+        type: formData.type,
+        printType: formData.printType,
+        colorCount: formData.colorCount,
+        colors: formData.colors,
+        status: formData.status
+      };
+
+      console.log('   Datos a enviar:', updateData);
+
+      // Usar el ArticleF original para la actualización (codificado para URL)
+      const response = await this.http.put<FlexographicDesign>(
+        `${environment.apiUrl}/designs/${encodeURIComponent(editingDesign.articleF)}`, 
+        updateData
+      ).toPromise();
+
+      if (response) {
+        console.log('✅ Diseño actualizado exitosamente:', response);
+        
+        this.snackBar.open(`Diseño "${formData.articleF}" actualizado exitosamente`, 'Cerrar', {
+          duration: 4000,
+          panelClass: ['success-snackbar']
+        });
+
+        // Ocultar formulario y resetear
+        this.showEditForm.set(false);
+        this.editingDesign.set(null);
+        this.editDesignForm.reset();
+
+        // Recargar diseños para mostrar los cambios
+        await this.loadDesigns();
+      }
+    } catch (error: any) {
+      console.error('❌ Error actualizando diseño:', error);
+      console.error('   Status:', error.status);
+      console.error('   Error completo:', error.error);
+      console.error('   Mensaje:', error.message);
+      
+      let errorMessage = 'Error al actualizar el diseño';
+      
+      if (error.status === 400) {
+        if (error.error?.errors) {
+          console.error('   Errores de validación:', error.error.errors);
+          const validationErrors = Object.keys(error.error.errors).map(key => 
+            `${key}: ${error.error.errors[key].join(', ')}`
+          ).join('; ');
+          errorMessage = `Error de validación: ${validationErrors}`;
+        } else if (error.error?.message) {
+          errorMessage = `Error 400: ${error.error.message}`;
+        } else {
+          errorMessage = 'Datos inválidos';
+        }
+      } else if (error.status === 404) {
+        errorMessage = `Diseño no encontrado: ${this.editingDesign()?.articleF}`;
+      } else if (error.status === 405) {
+        errorMessage = 'Método no permitido - El endpoint PUT no está disponible';
+      } else if (error.status === 500) {
+        errorMessage = 'Error interno del servidor';
+      } else if (error.status === 0) {
+        errorMessage = 'Error de conexión con el servidor';
+      } else if (error.error?.message) {
+        errorMessage = error.error.message;
+      }
+
+      this.snackBar.open(errorMessage, 'Cerrar', {
+        duration: 7000,
+        panelClass: ['error-snackbar']
+      });
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Actualizar colores en el formulario de edición
+   */
+  updateEditColors() {
+    const colorCount = this.editDesignForm.get('colorCount')?.value || 1;
+    const currentSelectedColors = this.selectedColors();
+    
+    // Ajustar la lista de colores seleccionados
+    const newSelectedColors = [...currentSelectedColors];
+    
+    // Si necesitamos más colores, agregar colores por defecto
+    while (newSelectedColors.length < colorCount) {
+      const defaultColor = this.pantoneService.getColorByCode('Black');
+      if (defaultColor) {
+        newSelectedColors.push(defaultColor);
+      }
+    }
+    
+    // Si hay demasiados colores, remover los últimos
+    while (newSelectedColors.length > colorCount) {
+      newSelectedColors.pop();
+    }
+    
+    this.selectedColors.set(newSelectedColors);
+    
+    // Actualizar el formulario con los códigos de los colores
+    const colorCodes = newSelectedColors.map(color => color.displayName);
+    this.editDesignForm.patchValue({ colors: colorCodes });
   }
 
   /**
    * Duplicar diseño en la base de datos
+   * Crea una copia del diseño con un nuevo ArticleF
    */
   async duplicateDesign(design: FlexographicDesign) {
-    if (!design.id) return;
+    // Validar que el diseño tenga ArticleF
+    if (!design.articleF) {
+      this.snackBar.open('Error: El diseño no tiene un código válido', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    // Abrir diálogo personalizado para solicitar el nuevo ArticleF
+    const dialogRef = this.dialog.open(DuplicateDesignDialogComponent, {
+      width: '360px',
+      maxWidth: '95vw',
+      data: {
+        originalArticleF: design.articleF,
+        suggestedArticleF: `${design.articleF}-COPIA`
+      },
+      disableClose: false,
+      autoFocus: true
+    });
+
+    // Esperar la respuesta del diálogo
+    const newArticleF = await dialogRef.afterClosed().toPromise();
+
+    // Si el usuario cancela o no ingresa nada
+    if (!newArticleF || newArticleF.trim() === '') {
+      console.log('❌ Duplicación cancelada por el usuario');
+      return;
+    }
+
+    // Validar que el nuevo ArticleF sea diferente (doble verificación)
+    if (newArticleF.trim() === design.articleF) {
+      this.snackBar.open('El nuevo código debe ser diferente al original', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
 
     this.loading.set(true);
     try {
-      console.log(`🔄 Duplicando diseño: ${design.articleF}`);
+      console.log(`🔄 Duplicando diseño: ${design.articleF} → ${newArticleF}`);
       
-      const response = await this.http.post<FlexographicDesign>(`${environment.apiUrl}/designs/${design.id}/duplicate`, {}).toPromise();
+      // Crear objeto con los datos del diseño duplicado
+      const duplicatedDesign = {
+        articleF: newArticleF.trim(),
+        client: design.client,
+        description: design.description,
+        substrate: design.substrate,
+        type: design.type,
+        printType: design.printType,
+        colorCount: design.colorCount,
+        colors: design.colors,
+        status: 'ACTIVO' // Nuevo diseño siempre empieza como ACTIVO
+      };
+
+      // Crear el nuevo diseño mediante POST
+      const response = await this.http.post<FlexographicDesign>(
+        `${environment.apiUrl}/designs`, 
+        duplicatedDesign
+      ).toPromise();
       
       if (response) {
-        console.log(`✅ Diseño duplicado: ${response.articleF}`);
+        console.log(`✅ Diseño duplicado exitosamente: ${response.articleF}`);
         
-        this.snackBar.open(`Diseño duplicado: ${response.articleF}`, 'Cerrar', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
+        this.snackBar.open(
+          `Diseño duplicado exitosamente: ${design.articleF} → ${response.articleF}`, 
+          'Cerrar', 
+          {
+            duration: 4000,
+            panelClass: ['success-snackbar']
+          }
+        );
 
         // Recargar diseños para mostrar el nuevo
         await this.loadDesigns();
@@ -1779,14 +2050,24 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('❌ Error duplicando diseño:', error);
       
       let errorMessage = 'Error al duplicar el diseño';
-      if (error.status === 404) {
-        errorMessage = 'Diseño no encontrado';
+      
+      if (error.status === 400) {
+        if (error.error?.message?.includes('already exists') || 
+            error.error?.message?.includes('ya existe')) {
+          errorMessage = `El código "${newArticleF}" ya existe. Por favor, use un código diferente.`;
+        } else {
+          errorMessage = 'Datos inválidos o código ya existe';
+        }
+      } else if (error.status === 404) {
+        errorMessage = 'Diseño original no encontrado';
+      } else if (error.status === 500) {
+        errorMessage = 'Error interno del servidor';
       } else if (error.status === 0) {
         errorMessage = 'Error de conexión con el servidor';
       }
       
       this.snackBar.open(errorMessage, 'Cerrar', {
-        duration: 3000,
+        duration: 5000,
         panelClass: ['error-snackbar']
       });
     } finally {
@@ -1796,24 +2077,57 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
   /**
    * Eliminar diseño de la base de datos
+   * Muestra un diálogo de confirmación personalizado antes de eliminar
    */
   async deleteDesign(design: FlexographicDesign) {
-    if (!design.id) return;
-
-    if (!confirm(`¿Estás seguro de que quieres eliminar el diseño ${design.articleF}?\n\nEsta acción no se puede deshacer.`)) {
+    // Validar que el diseño tenga ArticleF
+    if (!design.articleF) {
+      this.snackBar.open('Error: El diseño no tiene un código válido', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
       return;
     }
 
+    // Abrir diálogo de confirmación personalizado
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      width: '600px',
+      data: {
+        articleF: design.articleF,
+        client: design.client,
+        description: design.description
+      },
+      disableClose: true, // No cerrar al hacer clic fuera
+      panelClass: 'confirm-delete-dialog-container'
+    });
+
+    // Esperar la respuesta del usuario
+    const confirmed = await dialogRef.afterClosed().toPromise();
+
+    // Si el usuario cancela, no hacer nada
+    if (!confirmed) {
+      console.log('❌ Eliminación cancelada por el usuario');
+      return;
+    }
+
+    // Proceder con la eliminación
     this.loading.set(true);
     try {
-      console.log(`🗑️ Eliminando diseño: ${design.articleF}`);
+      // Usar el ID numérico del diseño (no el ArticleF)
+      const deleteUrl = `${environment.apiUrl}/designs/${design.id}`;
       
-      await this.http.delete(`${environment.apiUrl}/designs/${design.id}`).toPromise();
+      console.log(`🗑️ Eliminando diseño:`);
+      console.log(`   ID: ${design.id}`);
+      console.log(`   ArticleF: ${design.articleF}`);
+      console.log(`   URL: ${deleteUrl}`);
       
-      console.log(`✅ Diseño eliminado: ${design.articleF}`);
+      // Usar ID numérico como identificador en la URL
+      await this.http.delete(deleteUrl).toPromise();
       
-      this.snackBar.open(`Diseño eliminado: ${design.articleF}`, 'Cerrar', {
-        duration: 3000,
+      console.log(`✅ Diseño eliminado exitosamente: ${design.articleF}`);
+      
+      this.snackBar.open(`Diseño "${design.articleF}" eliminado exitosamente`, 'Cerrar', {
+        duration: 4000,
         panelClass: ['success-snackbar']
       });
 
@@ -1821,18 +2135,46 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       await this.loadDesigns();
     } catch (error: any) {
       console.error('❌ Error eliminando diseño:', error);
+      console.error('   Status:', error.status);
+      console.error('   Error completo:', error.error);
+      console.error('   Mensaje:', error.message);
       
       let errorMessage = 'Error al eliminar el diseño';
-      if (error.status === 404) {
-        errorMessage = 'Diseño no encontrado';
+      
+      if (error.status === 400) {
+        // Error 400 - El backend no acepta la petición
+        console.error('⚠️ Error 400: El backend no acepta la petición DELETE');
+        console.error('   Posibles causas:');
+        console.error('   1. El endpoint DELETE no está implementado');
+        console.error('   2. El backend espera un formato diferente');
+        console.error('   3. Problema con la validación del ArticleF');
+        
+        if (error.error?.message) {
+          errorMessage = `Error 400: ${error.error.message}`;
+        } else if (error.error?.errors) {
+          const validationErrors = Object.keys(error.error.errors).map(key => 
+            `${key}: ${error.error.errors[key].join(', ')}`
+          ).join('; ');
+          errorMessage = `Error de validación: ${validationErrors}`;
+        } else {
+          errorMessage = `Error 400: El servidor no acepta la petición de eliminación. El endpoint DELETE puede no estar implementado en el backend.`;
+        }
+      } else if (error.status === 404) {
+        errorMessage = `Diseño "${design.articleF}" no encontrado en la base de datos`;
       } else if (error.status === 403) {
         errorMessage = 'No tienes permisos para eliminar este diseño';
+      } else if (error.status === 405) {
+        errorMessage = 'Método no permitido: El endpoint DELETE no está disponible en el backend';
+      } else if (error.status === 500) {
+        errorMessage = 'Error interno del servidor';
       } else if (error.status === 0) {
         errorMessage = 'Error de conexión con el servidor';
+      } else if (error.error?.message) {
+        errorMessage = error.error.message;
       }
       
       this.snackBar.open(errorMessage, 'Cerrar', {
-        duration: 3000,
+        duration: 8000,
         panelClass: ['error-snackbar']
       });
     } finally {
