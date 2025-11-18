@@ -70,7 +70,7 @@ try
         options.Level = CompressionLevel.Optimal;
     });
 
-    // ===== CORS CONFIGURATION (LOCAL) =====
+    // ===== CORS CONFIGURATION =====
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>
@@ -81,7 +81,8 @@ try
                 "http://127.0.0.1:4200",
                 "http://127.0.0.1:7003",
                 "http://192.168.1.20:4200", // IP estática - Frontend
-                "http://192.168.1.20:7003"  // IP estática - Backend
+                "http://192.168.1.20:7003",  // IP estática - Backend
+                "https://flexoapp2-production.up.railway.app" // Railway backend
             )
             .SetIsOriginAllowedToAllowWildcardSubdomains()
             .AllowAnyMethod()
@@ -89,7 +90,7 @@ try
             .AllowCredentials();
         });
         
-        // Política adicional para permitir toda la red local
+        // Política adicional para permitir toda la red local y Railway
         options.AddPolicy("LocalNetwork", policy =>
         {
             policy.SetIsOriginAllowed(origin =>
@@ -104,6 +105,10 @@ try
                 
                 // Permitir redes privadas 10.x.x.x y 172.16-31.x.x
                 if (origin.Contains("10.") || origin.Contains("172."))
+                    return true;
+                
+                // Permitir Railway y dominios de producción
+                if (origin.Contains("railway.app") || origin.Contains("vercel.app") || origin.Contains("netlify.app"))
                     return true;
                 
                 return false;
