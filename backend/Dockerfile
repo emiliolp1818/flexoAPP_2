@@ -25,10 +25,10 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # COPY: copia el archivo de proyecto desde el host al contenedor
-# ["flexoAPP.csproj", "./"]: copia el .csproj al directorio actual del contenedor
+# ["backend/flexoAPP.csproj", "./"]: copia el .csproj desde la carpeta backend
 # Se copia primero solo el .csproj para aprovechar el caché de Docker (si no cambia, no restaura paquetes)
-# Nota: Railway ejecuta desde la raíz, pero el contexto es la carpeta backend
-COPY ["flexoAPP.csproj", "./"]
+# Railway ejecuta desde la raíz del proyecto, por eso usamos backend/
+COPY ["backend/flexoAPP.csproj", "./"]
 
 # RUN: ejecuta un comando dentro del contenedor durante la construcción
 # dotnet restore: descarga todas las dependencias NuGet especificadas en el .csproj
@@ -36,9 +36,9 @@ COPY ["flexoAPP.csproj", "./"]
 RUN dotnet restore "./flexoAPP.csproj"
 
 # COPY: copia todo el código fuente del backend al contenedor
-# .: copia todo desde el contexto actual (carpeta backend)
+# backend/: copia todo desde la carpeta backend en la raíz del proyecto
 # .: directorio destino en el contenedor (WORKDIR actual: /src)
-COPY . .
+COPY backend/ .
 
 # RUN: compila la aplicación en modo Release
 # dotnet build: comando de compilación de .NET
