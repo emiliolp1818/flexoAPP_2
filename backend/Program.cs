@@ -231,15 +231,35 @@ try
 
     builder.Services.AddAuthorization();
 
-    // ===== CONFIGURACIÓN DE BASE DE DATOS MYSQL LOCAL =====
-    // Obtener la cadena de conexión desde appsettings.json o appsettings.Development.json
-    // DefaultConnection: nombre de la cadena de conexión en el archivo de configuración
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    // ===== CONFIGURACIÓN DE BASE DE DATOS MYSQL =====
+    // Obtener la cadena de conexión desde variable de entorno o appsettings.json
+    // Railway proporciona DATABASE_URL como variable de entorno
+    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+                          ?? builder.Configuration.GetConnectionString("DefaultConnection") 
                           ?? throw new InvalidOperationException("MySQL connection string is required"); // Lanzar excepción si no existe
     
+    // ===== CONVERTIR URL DE MYSQL A FORMATO DE CADENA DE CONEXIÓN =====
+    // Railway proporciona la URL en formato: mysql://user:pass@host:port/database
+    // Entity Framework necesita: Server=host;Port=port;Database=db;User=user;Password=pass;
+    if (connectionString.StartsWith("mysql://"))
+    {
+        try
+        {
+            var uri = new Uri(connectionString);
+            var userInfo = uri.UserInfo.Split(':');
+            connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;";
+            Log.Information("🔄 Converted MySQL URL to connection string format");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("❌ Failed to parse MySQL URL: {Error}", ex.Message);
+            throw;
+        }
+    }
+    
     // ===== LOG DE TIPO DE CONEXIÓN =====
-    // Registrar que se está usando MySQL local (no PostgreSQL)
-    Log.Information("🔌 Using LOCAL MySQL connection to flexoapp_bd database");
+    // Registrar que se está usando MySQL
+    Log.Information("🔌 Using MySQL connection");
     
     // ===== ENMASCARAR CONTRASEÑA PARA EL LOG =====
     // Ocultar la contraseña en los logs por seguridad
