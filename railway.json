@@ -1,7 +1,8 @@
 {
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "backend/Dockerfile"
+    "dockerfilePath": "backend/Dockerfile",
+    "dockerContext": "backend"
   },
   "deploy": {
     "startCommand": "dotnet FlexoAPP.API.dll",

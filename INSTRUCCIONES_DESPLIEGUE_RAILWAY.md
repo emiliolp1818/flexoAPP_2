@@ -57,7 +57,7 @@ Valor: [pega la cadena de conexión de MySQL del Paso 3]
 
 ### Variable 2: JWT_SECRET_KEY
 ```
-Nombre: JWT_SECRET_KEY
+Nombre:  
 Valor: FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
 ```
 **Nota**: Puedes generar una clave más segura con este comando en PowerShell:
