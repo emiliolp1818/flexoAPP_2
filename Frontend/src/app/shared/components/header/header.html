@@ -1,0 +1,127 @@
+<div class="modern-header" *ngIf="currentUser() as user">
+    <!-- Header Background -->
+    <div class="header-background"></div>
+    <div class="header-pattern"></div>
+
+    <!-- Header Content -->
+    <div class="header-content">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo-container" (click)="navigateToHome()">
+                <div class="logo-text-container">
+                    <h1 class="logo-text">Flexo Spring</h1>
+                    <span class="logo-subtitle">Sistema Flexográfico</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="time-indicator">
+                <mat-icon class="time-icon">{{ getTimeIcon() }}</mat-icon>
+                <span class="time-text">{{ getCurrentTime() }}</span>
+            </div>
+            <div class="welcome-message">
+                <span class="greeting">{{ getTimeBasedGreeting() }}, {{ userFirstName() }}</span>
+                <span class="message">{{ getTimeBasedMessage() }}</span>
+            </div>
+        </div>
+
+        <!-- User Section -->
+        <div class="user-section">
+            <!-- Status and Role Section -->
+            <div class="status-section">
+                <div class="status-indicator" [class.loading]="isLoading()">
+                    <div class="led-indicator" [class.loading]="isLoading()"></div>
+                    <span class="status-text">En línea</span>
+                </div>
+                <div class="user-role-badge">
+                    <span class="role-text">{{ getRoleDisplayName(user.role) }}</span>
+                </div>
+            </div>
+
+            <!-- User Avatar - MISMO CÓDIGO QUE GESTOR DE USUARIOS (SETTINGS) -->
+            <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-button">
+                <!-- Contenedor del avatar con la misma clase que settings -->
+                <div class="user-avatar">
+                    <!-- Imagen de perfil - SOLO profileImage (base64 o URL) -->
+                    <img 
+                        *ngIf="hasProfileImage(user)" 
+                        [src]="getProfileImageUrl(user.profileImage || '')" 
+                        [attr.data-original-src]="user.profileImage"
+                        [attr.data-user-code]="user.userCode"
+                        [alt]="user.firstName + ' ' + user.lastName"
+                        class="profile-image"
+                        (load)="onImageLoad($event)"
+                        (loadstart)="onImageLoadStart($event)"
+                        (error)="onImageError($event)"
+                        loading="lazy"
+                        decoding="async">
+                    <!-- Avatar por defecto con iniciales - EXACTAMENTE IGUAL QUE SETTINGS -->
+                    <div 
+                        *ngIf="!hasProfileImage(user)" 
+                        class="default-avatar"
+                        [style.--avatar-color]="getAvatarColor(user.firstName)"
+                        [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
+                        [title]="user.firstName + ' ' + user.lastName + ' (Sin foto de perfil)'">
+                        {{ getInitials(user.firstName, user.lastName) }}
+                    </div>
+                </div>
+            </button>
+
+            <!-- User Menu - UPDATED: Only Profile and Logout -->
+            <mat-menu #userMenu="matMenu" class="user-menu">
+                <!-- User Info in Menu - MISMO CÓDIGO QUE GESTOR DE USUARIOS (SETTINGS) -->
+                <div class="menu-header">
+                    <div class="menu-user-info">
+                        <!-- Avatar en el menú - EXACTAMENTE IGUAL QUE SETTINGS -->
+                        <div class="user-avatar">
+                            <!-- Imagen de perfil en menú - SOLO profileImage (base64 o URL) -->
+                            <img 
+                                *ngIf="hasProfileImage(user)" 
+                                [src]="getProfileImageUrl(user.profileImage || '')" 
+                                [attr.data-original-src]="user.profileImage"
+                                [attr.data-user-code]="user.userCode"
+                                [alt]="user.firstName + ' ' + user.lastName"
+                                class="profile-image"
+                                (load)="onImageLoad($event)"
+                                (loadstart)="onImageLoadStart($event)"
+                                (error)="onImageError($event)"
+                                loading="lazy"
+                                decoding="async">
+                            <!-- Avatar por defecto con iniciales en menú -->
+                            <div 
+                                *ngIf="!hasProfileImage(user)" 
+                                class="default-avatar"
+                                [style.--avatar-color]="getAvatarColor(user.firstName)"
+                                [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
+                                [title]="user.firstName + ' ' + user.lastName + ' (Sin foto de perfil)'">
+                                {{ getInitials(user.firstName, user.lastName) }}
+                            </div>
+                        </div>
+                        <!-- Detalles del usuario -->
+                        <div class="menu-user-details">
+                            <span class="menu-user-name">{{ userDisplayName() }}</span>
+                            <span class="menu-user-role">{{ getRoleDisplayName(user.role) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <mat-divider></mat-divider>
+
+                <!-- UPDATED MENU - VERSION 2.0 -->
+                <button mat-menu-item (click)="onProfile()">
+                    <mat-icon>person</mat-icon>
+                    <span>MI PERFIL</span>
+                </button>
+
+                <mat-divider></mat-divider>
+
+                <!-- ONLY Logout Option -->
+                <button mat-menu-item (click)="onLogout()">
+                    <mat-icon>logout</mat-icon>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </mat-menu>
+        </div>
+    </div>

@@ -1,0 +1,664 @@
+<!-- ===== CONTENEDOR PRINCIPAL DE MÁQUINAS ===== -->
+<!-- Sistema completo de gestión de máquinas flexográficas con layout optimizado -->
+<!-- Contenedor raíz que ocupa toda la ventana (100vw x 100vh) con flexbox vertical -->
+<div class="machines-container">
+
+  <!-- ===== HEADER FIJO ===== -->
+  <!-- Header principal que permanece fijo en la parte superior con estilo del perfil -->
+  <!-- Contenedor del header con fondo blanco translúcido y blur effect -->
+  <div class="machines-header">
+    <!-- Contenedor interno del header con flexbox para distribuir contenido -->
+    <div class="header-content">
+      <!-- Sección izquierda: Información del header (título y subtítulo) -->
+      <div class="header-info">
+        <!-- Título principal con icono de máquinas y tipografía bold -->
+        <h1 class="page-title">
+          <!-- Icono Material Design para manufactura de precisión -->
+          <mat-icon>precision_manufacturing</mat-icon>
+          <!-- Texto del título principal -->
+          Gestión de Máquinas Flexográficas
+        </h1>
+        <!-- Subtítulo descriptivo con información sobre la funcionalidad -->
+        <p class="page-subtitle">
+          Control completo de programación y estados de máquinas flexográficas en tiempo real
+        </p>
+      </div>
+
+      <!-- Sección derecha: Acciones del header - Solo botones funcionales -->
+      <div class="header-actions">
+        <!-- Input oculto para selección de archivos Excel - No visible pero funcional -->
+        <input #fileInput type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" style="display: none;">
+        
+        <!-- ✅ Botón Agregar Programación - Cargar archivo Excel con programación -->
+        <button mat-raised-button color="primary" (click)="fileInput.click()" class="load-programming-btn"
+          [disabled]="loading()" 
+          matTooltip="Agregar programación desde archivo Excel">
+          <!-- Spinner mostrado durante el procesamiento del archivo -->
+          <mat-spinner *ngIf="loading()" diameter="16"></mat-spinner>
+          <!-- Icono de agregar cuando no está cargando -->
+          <mat-icon *ngIf="!loading()">add_circle</mat-icon>
+          <!-- Texto del botón cuando no está cargando -->
+          <span *ngIf="!loading()">Agregar Programación</span>
+          <!-- Texto del botón durante la carga -->
+          <span *ngIf="loading()">Procesando...</span>
+        </button>
+
+        <!-- ✅ Botón Exportar - Descargar programación a Excel -->
+        <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn"
+          [disabled]="loading()"
+          matTooltip="Exportar programación a archivo Excel">
+          <!-- Icono de descarga -->
+          <mat-icon>download</mat-icon>
+          <!-- Texto del botón -->
+          Exportar
+        </button>
+
+        <!-- Botón Actualizar - Para refrescar datos -->
+        <button mat-icon-button color="primary" (click)="refreshData()" class="refresh-btn"
+          matTooltip="Actualizar datos de máquinas">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+    <!-- Fin del contenedor interno del header -->
+
+  </div>
+  <!-- Fin del header fijo -->
+
+  <!-- ===== ÁREA DE CONTENIDO PRINCIPAL ===== -->
+  <!-- Contenedor principal que ocupa el resto del espacio disponible -->
+  <!-- Utiliza flexbox para ocupar todo el espacio restante después del header -->
+  <div class="scrollable-content-area">
+
+    <!-- ===== LAYOUT PRINCIPAL DE DOS COLUMNAS ===== -->
+    <!-- Distribución del contenido principal con máquinas a la izquierda y programación a la derecha -->
+    <div class="machines-layout">
+      
+      <!-- COLUMNA IZQUIERDA: Máquinas - Lista y selección de máquinas disponibles -->
+      <div class="machines-section">
+        <!-- ===== TARJETA DE MÁQUINAS ===== -->
+        <!-- Contenedor Material Card para la sección de máquinas con bordes redondeados y sombra -->
+        <mat-card class="machines-card">
+          <!-- Header de la tarjeta con información y estadísticas -->
+          <mat-card-header>
+            <!-- Título del header con icono y contador de máquinas -->
+            <mat-card-title>
+              <!-- Icono Material Design para máquinas -->
+              <mat-icon>precision_manufacturing</mat-icon>
+              <!-- Título descriptivo de la sección -->
+              Máquinas Disponibles
+              <!-- Contador dinámico de máquinas - Solo visible cuando no está cargando -->
+              <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+              </span>
+            </mat-card-title>
+          </mat-card-header>
+          <!-- Fin del header de la tarjeta -->
+
+          <!-- Contenido principal de la tarjeta -->
+          <mat-card-content>
+            <!-- Contenedor de la lista de máquinas con scroll independiente -->
+            <!-- Permite scroll vertical mientras mantiene el header fijo -->
+            <div class="machines-container-inner">
+              
+              <!-- ===== GRID DE MÁQUINAS COMPACTO ===== -->
+              <!-- Lista vertical de todas las máquinas disponibles con diseño minimalista -->
+              <!-- Solo muestra icono y número de máquina para maximizar espacio de la tabla -->
+              <div class="machines-grid">
+                <!-- Iteración sobre cada número de máquina disponible -->
+                <button *ngFor="let machineNum of machineNumbers; trackBy: trackByMachineNumber" 
+                        mat-raised-button
+                        class="machine-card excel-machine-card"
+                        [class.selected]="selectedMachineNumber() === machineNum"
+                        [ngClass]="getMachineStatusClass(machineNum)"
+                        (click)="selectMachine(machineNum)" 
+                        [attr.title]="getMachineStatusTooltip(machineNum)">
+                  
+                  <!-- Contenido compacto de cada tarjeta de máquina -->
+                  <div class="machine-card-content">
+                    <!-- Contenedor del icono de la máquina -->
+                    <div class="machine-icon-wrapper">
+                      <mat-icon class="machine-icon">precision_manufacturing</mat-icon> <!-- Icono de máquina -->
+                    </div>
+                    <!-- Número de la máquina (sin texto adicional) -->
+                    <span class="machine-number-compact">{{ machineNum }}</span>
+                    <!-- Indicador LED del estado de la máquina -->
+                    <div class="machine-status-indicator"></div>
+                  </div>
+                </button>
+              </div>
+
+              
+              <!-- ===== MENSAJE SIN DATOS ===== -->
+              <!-- Mostrado cuando no hay máquinas disponibles -->
+              <!-- Condicional: solo visible cuando no hay máquinas Y no está cargando -->
+              <div *ngIf="machineNumbers.length === 0 && !loading()" class="no-machines">
+                <!-- Icono grande para estado vacío -->
+                <mat-icon>precision_manufacturing</mat-icon>
+                <!-- Mensaje cuando no hay máquinas en el sistema -->
+                <p>No hay máquinas disponibles</p>
+                <!-- Botón de acción para cargar programación -->
+                <button mat-raised-button (click)="fileInput.click()">
+                  <!-- Icono de agregar -->
+                  <mat-icon>add</mat-icon>
+                  Cargar Programación
+                </button>
+              </div>
+
+              <!-- ===== MENSAJE DE CARGA ===== -->
+              <!-- Mostrado mientras se cargan los datos de máquinas -->
+              <!-- Solo visible cuando la señal loading() es true -->
+              <div *ngIf="loading()" class="loading-container">
+                <!-- Icono animado de carga con rotación CSS -->
+                <mat-icon class="loading-icon">refresh</mat-icon>
+                <!-- Mensaje informativo durante la carga -->
+                <p>Cargando máquinas...</p>
+              </div>
+
+            </div>
+            <!-- Fin del contenedor de la lista de máquinas -->
+          </mat-card-content>
+          <!-- Fin del contenido de la tarjeta -->
+        </mat-card>
+        <!-- Fin de la tarjeta de máquinas -->
+
+        <!-- ===== INFORMACIÓN DE LA MÁQUINA SELECCIONADA ===== -->
+        <!-- Solo visible cuando hay una máquina seleccionada -->
+        <div *ngIf="selectedMachineNumber()" class="selected-machine-info">
+          <!-- Tarjeta con detalles de la máquina seleccionada -->
+       
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: Programación - Tabla con los programas de la máquina seleccionada -->
+      <div class="programming-section">
+        <!-- ===== TARJETA DE PROGRAMACIÓN ESTILO EXCEL ===== -->
+        <!-- Tabla principal con diseño profesional estilo Excel y Material Design -->
+        <!-- Contenedor Material Card para la tabla con bordes redondeados y sombra -->
+        <mat-card class="programming-card">
+
+          <!-- Header de la tabla con información y estadísticas -->
+          <mat-card-header>
+            <!-- Título del header con icono y contador de programas -->
+            <mat-card-title>
+              <!-- Icono Material Design para vista de tabla -->
+              <mat-icon>table_view</mat-icon>
+              <!-- Título descriptivo de la tabla -->
+              Programación {{ selectedMachineNumber() ? 'Máquina ' + selectedMachineNumber() : '' }}
+              <!-- Contador dinámico de programas - Solo visible cuando hay máquina seleccionada -->
+              <span *ngIf="selectedMachineNumber() && !loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+                ({{ selectedMachinePrograms().length }} programas)
+              </span>
+            </mat-card-title>
+          </mat-card-header>
+          <!-- Fin del header de la tabla -->
+
+          <!-- Contenido principal de la tabla -->
+          <mat-card-content>
+            <!-- Contenedor de la tabla con scroll independiente -->
+            <!-- Permite scroll horizontal y vertical mientras mantiene el header fijo -->
+            <div class="programming-table-container">
+
+              <!-- ===== TABLA PRINCIPAL ESTILO EXCEL ===== -->
+              <!-- Tabla Angular Material con scroll horizontal y vertical, headers fijos -->
+              <!-- DataSource conectado a la señal reactiva selectedMachinePrograms() -->
+              <div *ngIf="showProgramTable() && selectedMachinePrograms().length > 0" class="programs-table">
+                <!-- Tabla Material con datos de programas de la máquina seleccionada -->
+                <table mat-table [dataSource]="selectedMachinePrograms()" class="excel-table programs-table-modern">
+
+                  <!-- ===== COLUMNA ARTÍCULO ===== -->
+                  <!-- Código único del programa (ej: F204567) -->
+                  <!-- Contenedor de columna Angular Material con definición de estructura -->
+                  <ng-container matColumnDef="articulo">
+                    <!-- Header de la columna con estilo Excel y clase personalizada -->
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <!-- Contenedor del contenido del header con flexbox -->
+                      <div class="header-content">
+                        <!-- Icono Material Design para etiquetas/tags -->
+                        <mat-icon>tag</mat-icon>
+                        <!-- Texto del header de la columna -->
+                        <span>Artículo</span>
+                      </div>
+                    </th>
+                    <!-- Celda de datos con binding al objeto program -->
+                    <td mat-cell *matCellDef="let program" class="excel-cell article-cell">
+                      <!-- Código del artículo con estilo monospace para mejor legibilidad -->
+                      <!-- Interpolación de datos desde el objeto program -->
+                      <span class="article-code">{{ program.articulo }}</span>
+                    </td>
+                  </ng-container>
+                  <!-- Fin de la columna Artículo -->
+
+                  <!-- ===== COLUMNA OT SAP ===== -->
+                  <!-- Orden de trabajo SAP (ej: OT123456) -->
+                  <ng-container matColumnDef="otSap">
+                    <!-- Header de la columna OT SAP -->
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para documentos/órdenes -->
+                        <mat-icon>assignment</mat-icon>
+                        <span>OT SAP</span>
+                      </div>
+                    </th>
+                    <!-- Celda de datos de la orden de trabajo SAP -->
+                    <td mat-cell *matCellDef="let program" class="excel-cell otsap-cell">
+                      <span class="otsap-code">{{ program.otSap }}</span>
+                    </td>
+                  </ng-container>
+                  <!-- Fin de la columna OT SAP -->
+
+                  <!-- ===== COLUMNA CLIENTE ===== -->
+                  <!-- Nombre de la empresa cliente (ej: ABSORBENTES DE COLOMBIA S.A) -->
+                  <!-- Contenedor de columna para información del cliente -->
+                  <ng-container matColumnDef="cliente">
+                    <!-- Header de la columna cliente con icono de negocio -->
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <!-- Contenedor del header con layout flexbox -->
+                      <div class="header-content">
+                        <!-- Icono Material Design para empresas/negocios -->
+                        <mat-icon>business</mat-icon>
+                        <!-- Título de la columna -->
+                        <span>Cliente</span>
+                      </div>
+                    </th>
+                    <!-- Celda de datos del cliente con estilo empresarial -->
+                    <td mat-cell *matCellDef="let program" class="excel-cell client-cell">
+                      <!-- Nombre del cliente con formato empresarial y clase CSS específica -->
+                      <span class="client-name">{{ program.cliente }}</span>
+                    </td>
+                  </ng-container>
+                  <!-- Fin de la columna Cliente -->
+
+                  <!-- ===== COLUMNA REFERENCIA ===== -->
+                  <!-- Referencia del producto -->
+                  <ng-container matColumnDef="referencia">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para referencias -->
+                        <mat-icon>bookmark</mat-icon>
+                        <span>Referencia</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let program" class="excel-cell referencia-cell">
+                      <span class="referencia-text">{{ program.referencia }}</span>
+                    </td>
+                  </ng-container>
+                  <!-- Fin de la columna Referencia -->
+
+                  <!-- ===== COLUMNA TD ===== -->
+                  <!-- Código TD (Tipo de Diseño) -->
+                  <ng-container matColumnDef="td">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para tipos/categorías -->
+                        <mat-icon>category</mat-icon>
+                        <span>TD</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let program" class="excel-cell td-cell">
+                      <span class="td-code">{{ program.td }}</span>
+                    </td>
+                  </ng-container>
+                  <!-- Fin de la columna TD -->
+
+                  <!-- ===== COLUMNA NÚMERO DE COLORES CON PALETA DESPLEGABLE ===== -->
+                  <!-- Botón desplegable que muestra el número de colores y al hacer clic muestra la paleta -->
+                  <ng-container matColumnDef="numeroColores">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para paleta de colores -->
+                        <mat-icon>palette</mat-icon>
+                        <span># Colores</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let program" class="excel-cell numero-colores-cell">
+                      <!-- Contenedor principal -->
+                      <div class="numero-colores-container-inline" [attr.data-program-id]="program.id">
+                        <!-- Botón con tooltip de colores -->
+                        <button mat-raised-button
+                          [class]="'numero-colores-btn' + (isColorsExpanded(program.id?.toString() || '') ? ' active' : '')"
+                          (click)="toggleColorsWithLoad(program, $event)"
+                          [matTooltip]="getColorsTooltip(program)"
+                          matTooltipClass="colors-tooltip"
+                          matTooltipPosition="right">
+                          <!-- Icono de paleta -->
+                          <mat-icon class="colors-icon-small">palette</mat-icon>
+                          <!-- Número de colores -->
+                          <span class="numero-colores-text">{{ program.numeroColores || program.colores?.length || 0 }}</span>
+                        </button>
+                        
+                        <!-- Chips de colores inline cuando está expandido -->
+                        <div class="colors-chips-inline" *ngIf="isColorsExpanded(program.id?.toString() || '')">
+                          <div *ngFor="let color of program.colores; let i = index" class="color-chip">
+                            <span class="chip-num">{{ i + 1 }}</span>
+                            <div class="chip-color-box" 
+                                 [style.background-color]="getPantoneInfo(color).hex">
+                            </div>
+                            <span class="chip-name">{{ color }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </ng-container>
+                  <!-- Fin de la columna Número de Colores -->
+
+                  <!-- ===== COLUMNA KILOS ===== -->
+                  <!-- Cantidad de material en kilogramos para el programa -->
+                  <ng-container matColumnDef="kilos">
+                    <!-- Header con icono de balanza -->
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para balanza/peso -->
+                        <mat-icon>scale</mat-icon>
+                        <span>Kilos</span>
+                      </div>
+                    </th>
+                    <!-- Celda con información de peso -->
+                    <td mat-cell *matCellDef="let program" class="excel-cell kilos-cell">
+                      <div class="kilos-info">
+                        <!-- Cantidad de kilos formateada sin decimales -->
+                        <span class="kilos-number">{{ program.kilos | number:'1.0-0' }}</span>
+                        <!-- Unidad de medida -->
+                        <span class="kilos-unit">kg</span>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- ===== COLUMNA FECHA TINTA EN MÁQUINA ===== -->
+                  <!-- Fecha y hora cuando se aplicó la tinta en la máquina (formato dd/mm/aaaa: hora) -->
+                  <ng-container matColumnDef="fechaTintaEnMaquina">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para fecha/calendario -->
+                        <mat-icon>schedule</mat-icon>
+                        <span>Fecha Tinta</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let program" class="excel-cell fecha-tinta-cell">
+                      <div class="fecha-tinta-info">
+                        <!-- Fecha formateada en formato dd/mm/aaaa -->
+                        <span class="fecha-tinta-date">{{ program.fechaTintaEnMaquina | date:'dd/MM/yyyy' }}</span>
+                        <!-- Hora formateada -->
+                        <span class="fecha-tinta-time">{{ program.fechaTintaEnMaquina | date:'HH:mm' }}</span>
+                      </div>
+                    </td>
+                  </ng-container>
+                  <!-- Fin de la columna Fecha Tinta en Máquina -->
+
+                  <!-- ===== COLUMNA SUSTRATO ===== -->
+                  <!-- Tipo de material base (ej: BOPP, PE, PET) -->
+                  <ng-container matColumnDef="sustrato">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para materiales -->
+                        <mat-icon>layers</mat-icon>
+                        <span>Sustrato</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let program" class="excel-cell sustrato-cell">
+                      <span class="sustrato-text">{{ program.sustrato }}</span>
+                    </td>
+                  </ng-container>
+                  <!-- Fin de la columna Sustrato -->
+
+                  <!-- ===== COLUMNA ESTADO ===== -->
+                  <!-- Estado actual del programa y operario que lo activó para control de producción -->
+                  <ng-container matColumnDef="estado">
+                    <!-- Header simple con icono para la columna de estado -->
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para toggle/estado -->
+                        <mat-icon>toggle_on</mat-icon>
+                        <span>Estado</span>
+                      </div>
+                    </th>
+                    <!-- Celda con indicador visual de estado y operario -->
+                    <td mat-cell *matCellDef="let program" class="excel-cell status-cell">
+                      <!-- Indicador de estado con clase CSS dinámica basada en el estado -->
+                      <div class="estado-container">
+                        <div class="status-main">
+                          <!-- Texto del estado con clase CSS dinámica basada en el estado -->
+                          <!-- Función getStatusClass() determina el color (amarillo para PREPARANDO, verde para LISTO, naranja para SUSPENDIDO, rojo para CORRIENDO) -->
+                          <span class="status-text-display" [class]="'status-' + program.estado.toLowerCase()">
+                            <span class="status-text">{{ program.estado }}</span>
+                          </span>
+                        </div>
+                        <!-- Información del operario que activó la acción - Siempre visible -->
+                        <div class="operario-info">
+                          <small>{{ program.lastActionBy || 'Sistema' }}</small> <!-- Nombre del operario que realizó la última acción -->
+                        </div>
+                        <!-- Motivo de suspensión - Solo visible si está suspendido y tiene observaciones -->
+                        <div *ngIf="program.estado === 'SUSPENDIDO' && program.observaciones" class="motivo-suspendido">
+                          <small>{{ program.observaciones }}</small> <!-- Observaciones del programa suspendido -->
+                        </div>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- ===== COLUMNA ACCIONES - NUEVOS BOTONES ===== -->
+                  <!-- Botones de acción para gestionar cada programa (cambiar estado, suspender, imprimir) -->
+                  <ng-container matColumnDef="acciones">
+                    <!-- Header con icono de configuración -->
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <!-- Icono Material Design para configuraciones/ajustes -->
+                        <mat-icon>settings</mat-icon>
+                        <span>Acciones</span>
+                      </div>
+                    </th>
+                    <!-- Celda con grupo de botones de acción -->
+                    <td mat-cell *matCellDef="let program" class="excel-cell actions-cell">
+                      <!-- Contenedor flexbox para los botones de acción -->
+                      <div class="action-buttons">
+                        <!-- Botón Preparando: Marca el programa como en preparación (AMARILLO) -->
+                        <button mat-icon-button 
+                          class="action-btn preparando-btn"
+                          (click)="changeStatus(program, 'PREPARANDO')" 
+                          [disabled]="program.estado === 'PREPARANDO'"
+                          matTooltip="Preparando">
+                          <!-- Icono Material Design para reloj/preparando -->
+                          <mat-icon>schedule</mat-icon>
+                        </button>
+
+                        <!-- Botón Listo: Marca el programa como listo para producción (VERDE) -->
+                        <button mat-icon-button 
+                          class="action-btn listo-btn"
+                          (click)="changeStatus(program, 'LISTO')" 
+                          [disabled]="program.estado === 'LISTO'"
+                          matTooltip="Listo">
+                          <!-- Icono Material Design para check/listo -->
+                          <mat-icon>check_circle</mat-icon>
+                        </button>
+
+                        <!-- Botón Suspendido: Suspende temporalmente el programa con motivo (NARANJA) -->
+                        <button mat-icon-button 
+                          class="action-btn suspendido-btn"
+                          (click)="suspendProgram(program)" 
+                          [disabled]="program.estado === 'SUSPENDIDO'"
+                          matTooltip="Suspender">
+                          <!-- Icono Material Design para pausa/suspender -->
+                          <mat-icon>pause_circle</mat-icon>
+                        </button>
+
+                        <!-- Botón Corriendo: Inicia o continúa la producción del programa (ROJO) -->
+                        <button mat-icon-button 
+                          class="action-btn corriendo-btn"
+                          (click)="changeStatus(program, 'CORRIENDO')" 
+                          [disabled]="program.estado === 'CORRIENDO'"
+                          matTooltip="Corriendo">
+                          <!-- Icono Material Design para play/iniciar -->
+                          <mat-icon>play_circle</mat-icon>
+                        </button>
+
+                        <!-- Botón Imprimir: Imprime el formato FF459 del programa -->
+                        <button mat-icon-button 
+                          class="action-btn imprimir-btn"
+                          (click)="printFF459(program)" 
+                          matTooltip="Imprimir FF459">
+                          <!-- Icono Material Design para impresora -->
+                          <mat-icon>print</mat-icon>
+                        </button>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <!-- ===== FILAS DE LA TABLA ===== -->
+                  <!-- Header fijo que permanece visible durante el scroll vertical -->
+                  <!-- Directiva sticky: true mantiene el header fijo en la parte superior -->
+                  <tr mat-header-row *matHeaderRowDef="programDisplayedColumns; sticky: true"></tr>
+                  <!-- Filas de datos con efectos hover y selección -->
+                  <!-- Cada fila se genera dinámicamente basada en programDisplayedColumns -->
+                  <tr mat-row *matRowDef="let row; columns: programDisplayedColumns;" 
+                    class="excel-row"
+                    [ngClass]="'status-row-' + row.estado.toLowerCase()" 
+                    [attr.data-program-id]="row.id"></tr>
+                </table>
+                <!-- Fin de la tabla principal -->
+              </div>
+
+              <!-- ===== MENSAJE SIN DATOS ===== -->
+              <!-- Mostrado cuando no hay máquina seleccionada o no hay programas -->
+              <!-- Condicional: solo visible cuando no hay datos Y no está cargando -->
+              <div *ngIf="!showProgramTable() || selectedMachinePrograms().length === 0" class="no-data">
+                <!-- Icono grande para estado vacío -->
+                <mat-icon>precision_manufacturing</mat-icon>
+                <!-- Mensaje condicional cuando no hay máquina seleccionada -->
+                <h3 *ngIf="!showProgramTable()">Selecciona una máquina</h3>
+                <p *ngIf="!showProgramTable()">Elige una máquina para ver su programación</p>
+                
+                <!-- Mensaje condicional cuando hay máquina seleccionada pero sin programas -->
+                <h3 *ngIf="showProgramTable() && selectedMachinePrograms().length === 0 && !loading()">Sin programas asignados</h3>
+                <p *ngIf="showProgramTable() && selectedMachinePrograms().length === 0 && !loading()">
+                  La máquina {{ selectedMachineNumber() }} no tiene programas asignados
+                </p>
+                
+                <!-- Indicador de carga - Mostrado durante la carga de datos -->
+                <div *ngIf="loading()" class="loading-indicator">
+                  <mat-icon class="spinning">refresh</mat-icon> <!-- Icono giratorio -->
+                  <p>Cargando programas...</p> <!-- Mensaje de carga -->
+                </div>
+              </div>
+
+            </div>
+            <!-- Fin del contenedor de la tabla -->
+          </mat-card-content>
+          <!-- Fin del contenido de la tarjeta -->
+        </mat-card>
+        <!-- Fin de la tarjeta de la tabla -->
+      </div>
+    </div>
+    <!-- Fin del layout principal de dos columnas -->
+  </div>
+  <!-- Fin del área de contenido scrollable -->
+
+</div>
+<!-- Fin del contenedor principal de máquinas -->
+
+<!-- Diálogo modal de suspensión - Solo visible cuando showSuspendDialog es true -->
+<div *ngIf="showSuspendDialog" class="suspend-dialog-overlay">
+  <!-- Contenedor principal del diálogo con fondo semi-transparente -->
+  <div class="suspend-dialog">
+    
+    <!-- Encabezado del diálogo con título y botón de cerrar -->
+    <div class="suspend-dialog-header">
+      <!-- Título del diálogo con icono -->
+      <h3 class="dialog-title">
+        <mat-icon>pause_circle</mat-icon> <!-- Icono de pausa -->
+        Suspender Programa <!-- Texto del título -->
+      </h3>
+      <!-- Botón para cerrar el diálogo -->
+      <button mat-icon-button 
+              (click)="closeSuspendDialog()" 
+              class="close-btn">
+        <mat-icon>close</mat-icon> <!-- Icono de cerrar (X) -->
+      </button>
+    </div>
+
+    <!-- Contenido principal del diálogo -->
+    <div class="suspend-dialog-content">
+      
+      <!-- Sección de información del programa a suspender -->
+      <div class="program-info">
+        <!-- Elemento de información: Programa -->
+        <div class="info-item">
+          <span class="info-label">Programa:</span> <!-- Etiqueta -->
+          <!-- Valor dinámico del artículo del programa seleccionado -->
+          <span class="info-value">{{ currentProgramToSuspend?.articulo }}</span>
+        </div>
+        <!-- Elemento de información: Cliente -->
+        <div class="info-item">
+          <span class="info-label">Cliente:</span> <!-- Etiqueta -->
+          <!-- Valor dinámico del cliente del programa seleccionado -->
+          <span class="info-value">{{ currentProgramToSuspend?.cliente }}</span>
+        </div>
+      </div>
+
+      <!-- Sección para seleccionar motivos de suspensión -->
+      <div class="reason-section">
+        <!-- Etiqueta principal de la sección -->
+        <label class="reason-label">Motivo de suspensión:</label>
+
+        <!-- Contenedor de motivos predefinidos como chips seleccionables -->
+        <div class="predefined-reasons">
+          <!-- Chip para "Falta de material" -->
+          <button type="button" 
+                  class="reason-chip" 
+                  [class.selected]="suspendReason.includes('Falta de material')"
+                  (click)="selectPredefinedReason('Falta de material')">
+            Falta de material <!-- Texto del motivo -->
+          </button>
+          <!-- Chip para "Mantenimiento" -->
+          <button type="button" 
+                  class="reason-chip" 
+                  [class.selected]="suspendReason.includes('Mantenimiento')"
+                  (click)="selectPredefinedReason('Mantenimiento')">
+            Mantenimiento <!-- Texto del motivo -->
+          </button>
+          <!-- Chip para "Cambio de prioridad" -->
+          <button type="button" 
+                  class="reason-chip" 
+                  [class.selected]="suspendReason.includes('Cambio de prioridad')"
+                  (click)="selectPredefinedReason('Cambio de prioridad')">
+            Cambio de prioridad <!-- Texto del motivo -->
+          </button>
+          <!-- Chip para "Problema técnico" -->
+          <button type="button" 
+                  class="reason-chip" 
+                  [class.selected]="suspendReason.includes('Problema técnico')"
+                  (click)="selectPredefinedReason('Problema técnico')">
+            Problema técnico <!-- Texto del motivo -->
+          </button>
+        </div>
+
+        <!-- Campo de texto para motivo personalizado o detallado -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Motivo detallado</mat-label> <!-- Etiqueta del campo -->
+          <!-- Textarea vinculado bidireccional con la variable suspendReason -->
+          <textarea matInput 
+                    [(ngModel)]="suspendReason" 
+                    placeholder="Describe el motivo de la suspensión..." 
+                    rows="3"
+                    required></textarea> <!-- Campo requerido -->
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Sección de botones de acción del diálogo -->
+    <div class="suspend-dialog-actions">
+      <!-- Botón para cancelar la suspensión -->
+      <button mat-stroked-button 
+              (click)="closeSuspendDialog()"
+              class="cancel-btn">
+        <mat-icon>close</mat-icon> <!-- Icono de cerrar -->
+        Cancelar <!-- Texto del botón -->
+      </button>
+      <!-- Botón para confirmar la suspensión -->
+      <button mat-raised-button 
+              (click)="confirmSuspend()" 
+              [disabled]="!suspendReason.trim()"
+              class="confirm-suspend-btn">
+        <mat-icon>pause_circle</mat-icon> <!-- Icono de pausa -->
+        Suspender <!-- Texto del botón -->
+      </button>
+    </div>
+  </div>
+</div>

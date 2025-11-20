@@ -1,0 +1,636 @@
+// Animaciones para el LED
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  }
+}
+
+@keyframes loadingBlink {
+  0% {
+    opacity: 1;
+    background: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+  }
+  25% {
+    opacity: 0.7;
+    background: #fbbf24;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.9);
+  }
+  50% {
+    opacity: 0.4;
+    background: #f59e0b;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+  }
+  75% {
+    opacity: 0.7;
+    background: #fbbf24;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.9);
+  }
+  100% {
+    opacity: 1;
+    background: #f59e0b;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+  }
+}
+
+// Modern Header Styles - ESTILOS DEL HEADER PRINCIPAL
+.modern-header {
+  position: fixed;                                   // Posición fija para que el header permanezca en la parte superior al hacer scroll
+  top: 0;                                            // Alineado al borde superior de la ventana
+  left: 0;                                           // Alineado al borde izquierdo de la ventana
+  right: 0;                                          // Alineado al borde derecho de la ventana
+  height: 64px;                                      // Altura fija del header (64px es estándar para headers modernos)
+  z-index: 1000;                                     // Índice Z alto para aparecer sobre otros elementos
+  overflow: hidden;                                  // Ocultar cualquier contenido que se desborde del header
+  
+  .header-background {
+    position: absolute;                              // Posición absoluta para cubrir todo el header
+    top: 0;                                          // Alineado al borde superior
+    left: 0;                                         // Alineado al borde izquierdo
+    right: 0;                                        // Alineado al borde derecho
+    bottom: 0;                                       // Alineado al borde inferior
+    background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%); // Gradiente gris oscuro corporativo
+    z-index: 1;                                      // Índice Z bajo para estar detrás del contenido
+  }
+
+  .header-pattern {
+    display: none;                                   // Ocultar cualquier patrón que pueda causar líneas o interferencias visuales
+  }
+
+  .header-content {
+    position: relative;                              // Posición relativa para que los elementos hijos se posicionen correctamente
+    z-index: 3;                                      // Índice Z alto para aparecer sobre el fondo
+    height: 100%;                                    // Ocupar toda la altura del header (64px)
+    display: flex;                                   // Usar flexbox para organizar elementos horizontalmente
+    align-items: center;                             // Centrar verticalmente todos los elementos (logo, mensaje, usuario)
+    padding: 0 24px;                                 // Espaciado horizontal de 24px a cada lado
+    backdrop-filter: blur(10px);                     // Efecto de desenfoque del fondo para glassmorphism
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);    // Sombra inferior para dar profundidad y separación del contenido
+  }
+}
+
+// Modern Logo Section
+.logo-section {
+  .logo-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    color: white;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .logo-text-container {
+      display: flex;
+      flex-direction: column;
+      
+      .logo-text {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: 0.3px;
+        line-height: 1.1;
+        background: linear-gradient(135deg, #ffffff, #e2e8f0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .logo-subtitle {
+        font-size: 0.7rem;
+        opacity: 0.8;
+        font-weight: 500;
+        margin: 0;
+        line-height: 1;
+        color: #cbd5e1;
+      }
+    }
+  }
+}
+
+// Welcome Section
+.welcome-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  
+  .time-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.9;
+    
+    .time-icon {
+      font-size: 16px;
+      color: #ffd700;
+    }
+    
+    .time-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 0.3px;
+    }
+  }
+  
+  .welcome-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    
+    .greeting {
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+    
+    .message {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 400;
+      line-height: 1.2;
+      max-width: 300px;
+    }
+  }
+}
+
+// Modern User Section - SECCIÓN DEL USUARIO EN EL HEADER
+.user-section {
+  display: flex;                                     // Usar flexbox para organizar elementos horizontalmente
+  align-items: center;                               // Centrar verticalmente todos los elementos dentro del header
+  gap: 16px;                                         // Espacio de 16px entre elementos (status y avatar)
+  height: 100%;                                      // Ocupar toda la altura del header para centrado vertical perfecto
+  
+  .status-section {
+    display: flex;                                   // Usar flexbox para organizar status y rol verticalmente
+    flex-direction: column;                          // Organizar elementos en columna (uno encima del otro)
+    align-items: flex-end;                           // Alinear elementos a la derecha
+    gap: 4px;                                        // Espacio de 4px entre el indicador de estado y el badge de rol
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      
+      .led-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+        animation: pulse 2.5s infinite;
+        transition: all 0.3s ease;
+        
+        &.loading {
+          background: #f59e0b;
+          box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+          animation: loadingBlink 0.6s infinite;
+        }
+      }
+      
+      .status-text {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        letter-spacing: 0.3px;
+      }
+      
+      &.loading .status-text {
+        color: rgba(255, 255, 255, 0.95);
+      }
+    }
+    
+    .user-role-badge {
+      .role-text {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #3b82f6;
+        background: rgba(59, 130, 246, 0.2);
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+      }
+    }
+  }
+}
+
+.user-avatar-button {
+  padding: 0;                                        // Sin padding para evitar desplazamiento del círculo
+  margin: 0;                                         // Sin margen para centrado perfecto
+  display: flex;                                     // Usar flexbox para centrar el avatar
+  align-items: center;                               // Centrar verticalmente el avatar dentro del botón
+  justify-content: center;                           // Centrar horizontalmente el avatar dentro del botón
+  transition: all 0.3s ease;                         // Transición suave para efectos hover
+  height: 100%;                                      // Ocupar toda la altura disponible para centrado vertical
+  
+  &:hover {
+    transform: translateY(-1px);                     // Elevar ligeramente el botón en hover
+    
+    .user-avatar {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);   // Sombra más pronunciada en hover
+      border-color: rgba(255, 255, 255, 0.3);       // Borde más visible en hover
+    }
+  }
+  
+  // MISMO CÓDIGO QUE SETTINGS - Avatar en el header
+  .user-avatar {
+    width: 48px;                                     // Ancho del avatar (48px para ajuste perfecto en header de 64px)
+    height: 48px;                                    // Altura del avatar (debe ser igual al ancho para círculo perfecto)
+    border-radius: 50%;                              // Bordes completamente redondeados para forma circular perfecta
+    overflow: hidden;                                // Ocultar cualquier contenido que se desborde del círculo
+    display: flex;                                   // Usar flexbox para centrar contenido interno
+    align-items: center;                             // Centrar verticalmente la imagen o iniciales
+    justify-content: center;                         // Centrar horizontalmente la imagen o iniciales
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08)); // Gradiente de fondo sutil
+    border: 2px solid rgba(255, 255, 255, 0.25);   // Borde blanco semi-transparente de 2px
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);     // Sombra para dar profundidad y separación visual
+    transition: all 0.3s ease;                       // Transición suave para todos los cambios de estado
+    flex-shrink: 0;                                  // No permitir que el avatar se encoja
+    position: relative;                              // Posición relativa para elementos hijos absolutos
+    
+    // Imagen de perfil - MISMO CÓDIGO QUE SETTINGS
+    .profile-image {
+      width: 100%;                                   // Ancho completo del contenedor (48px)
+      height: 100%;                                  // Altura completa del contenedor (48px)
+      object-fit: cover;                             // Recortar imagen para llenar el contenedor manteniendo proporción
+      border-radius: 50%;                            // Asegurar que la imagen también sea redonda
+      transition: transform 0.3s ease;               // Transición suave para efecto zoom
+      display: block;                                // Mostrar como bloque para evitar espacios extra
+      
+      &:hover {
+        transform: scale(1.05);                      // Zoom ligero del 5% en hover
+      }
+    }
+    
+    // Avatar por defecto con iniciales - MISMO CÓDIGO QUE SETTINGS
+    .default-avatar {
+      width: 100%;                                   // Ancho completo del contenedor
+      height: 100%;                                  // Altura completa del contenedor
+      display: flex;                                 // Usar flexbox para centrar iniciales
+      align-items: center;                           // Centrar verticalmente las iniciales
+      justify-content: center;                       // Centrar horizontalmente las iniciales
+      background: linear-gradient(135deg, var(--avatar-color, #2563eb), var(--avatar-color-dark, #1d4ed8)); // Gradiente con color dinámico
+      color: white;                                  // Color blanco para las iniciales
+      font-size: 18px;                               // Tamaño de fuente para las iniciales
+      font-weight: 700;                              // Peso bold para las iniciales
+      text-transform: uppercase;                     // Convertir a mayúsculas
+      border-radius: 50%;                            // Asegurar forma circular
+      user-select: none;                             // No permitir selección de texto
+    }
+  }
+}
+
+// Menu Styles
+::ng-deep {
+  .user-menu {
+    .mat-mdc-menu-panel {
+      min-width: 280px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .menu-header {
+      padding: 16px;  // tamaño del menu desplegable a lo largo
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-bottom: 1px solid #e2e8f0;
+
+      .menu-user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .menu-avatar-icon {
+          font-size: 40px;
+          width: 40px;
+          height: 40px;
+          color: #64748b;
+        }
+
+        .menu-user-details {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .menu-user-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.95rem;
+            line-height: 1.2;
+          }
+
+          .menu-user-code {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1;
+          }
+
+          .menu-user-role {
+            font-size: 0.75rem;
+            color: #3b82f6;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 2px 6px;
+            border-radius: 8px;
+            align-self: flex-start;
+            line-height: 1;
+          }
+        }
+      }
+    }
+
+    .mat-mdc-menu-item {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+
+      &:hover {
+        background: rgba(59, 130, 246, 0.08);
+      }
+
+      mat-icon {
+        color: #64748b;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+      }
+
+      span {
+        font-weight: 500;
+        color: #374151;
+      }
+
+      // Settings item styling
+      &:nth-child(4) { // El botón de configuraciones es el segundo elemento después del divider
+        &:hover {
+          background: rgba(59, 130, 246, 0.12);
+        }
+
+        mat-icon {
+          color: #3b82f6;
+        }
+
+        span {
+          color: #3b82f6;
+          font-weight: 600;
+        }
+      }
+
+      // Logout item styling
+      &:last-child {
+        &:hover {
+          background: rgba(239, 68, 68, 0.08);
+        }
+
+        mat-icon {
+          color: #ef4444;
+        }
+
+        span {
+          color: #ef4444;
+        }
+      }
+    }
+
+    .mat-mdc-menu-divider {
+      margin: 8px 0;
+      border-color: #e2e8f0;
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .modern-header {
+    height: 56px;
+    
+    .header-content {
+      padding: 0 16px;
+    }
+  }
+
+  .logo-section {
+    .logo-container {
+      padding: 6px 12px;
+
+      .logo-text-container {
+        .logo-text {
+          font-size: 1.4rem;
+        }
+
+        .logo-subtitle {
+          font-size: 0.65rem;
+        }
+      }
+    }
+  }
+  
+  .welcome-section {
+    .time-indicator {
+      .time-icon {
+        font-size: 14px;
+      }
+      
+      .time-text {
+        font-size: 11px;
+      }
+    }
+    
+    .welcome-message {
+      .greeting {
+        font-size: 14px;
+      }
+      
+      .message {
+        font-size: 10px;
+        max-width: 200px;
+      }
+    }
+  }
+
+  .user-section {
+    gap: 12px;
+    
+    .notification-button {
+      width: 36px;
+      height: 36px;
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+      
+      .notification-badge {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+      }
+    }
+    
+    .user-info {
+      display: none;
+    }
+
+    .user-avatar-button {
+      .user-avatar-container {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        
+        .user-avatar-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .modern-header {
+    .header-content {
+      padding: 0 12px;
+    }
+  }
+
+  .logo-section {
+    .logo-container {
+      .logo-text-container {
+        .logo-text {
+          font-size: 1.2rem;
+        }
+        
+        .logo-subtitle {
+          display: none;
+        }
+      }
+    }
+  }
+  
+  .welcome-section {
+    .time-indicator {
+      .time-icon {
+        font-size: 12px;
+      }
+      
+      .time-text {
+        font-size: 10px;
+      }
+    }
+    
+    .welcome-message {
+      .greeting {
+        font-size: 12px;
+      }
+      
+      .message {
+        font-size: 9px;
+        max-width: 150px;
+      }
+    }
+  }
+}
+
+// User Avatar Styles - ESTILOS ADICIONALES PARA ASEGURAR FORMA REDONDA
+.user-avatar-button {
+  .user-avatar-container {
+    width: 52px;                                     // Ancho del avatar (debe coincidir con el estilo principal arriba)
+    height: 52px;                                    // Altura del avatar (debe ser igual al ancho para círculo perfecto)
+    border-radius: 50%;                              // Bordes completamente redondeados (50% = círculo perfecto)
+    overflow: hidden;                                // Ocultar contenido que se desborde del círculo
+    display: flex;                                   // Usar flexbox para centrar contenido
+    align-items: center;                             // Centrar verticalmente
+    justify-content: center;                         // Centrar horizontalmente
+    background: rgba(255, 255, 255, 0.1);           // Fondo semi-transparente
+    
+    .user-profile-image {
+      width: 100%;                                   // Ancho completo del contenedor
+      height: 100%;                                  // Altura completa del contenedor
+      object-fit: cover;                             // Recortar imagen para llenar sin distorsión
+      border-radius: 50%;                            // Asegurar que la imagen también sea redonda
+    }
+    
+    .user-avatar-icon {
+      font-size: 32px;                               // Tamaño del icono por defecto
+      width: 32px;                                   // Ancho del icono
+      height: 32px;                                  // Altura del icono
+      color: rgba(255, 255, 255, 0.9);              // Color blanco semi-transparente
+    }
+  }
+}
+
+// Menu Avatar Styles - AVATAR EN EL MENÚ DESPLEGABLE - MISMO CÓDIGO QUE SETTINGS
+.menu-user-info {
+  // Avatar en el menú - EXACTAMENTE IGUAL QUE SETTINGS
+  .user-avatar {
+    width: 52px;                                     // Ancho del avatar en el menú
+    height: 52px;                                    // Altura del avatar en el menú (debe ser igual al ancho)
+    border-radius: 50%;                              // Bordes completamente redondeados para círculo perfecto
+    overflow: hidden;                                // Ocultar contenido que se desborde del círculo
+    display: flex;                                   // Usar flexbox para centrar contenido
+    align-items: center;                             // Centrar verticalmente
+    justify-content: center;                         // Centrar horizontalmente
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); // Gradiente de fondo claro
+    border: 2px solid #e2e8f0;                      // Borde gris claro
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);      // Sombra sutil
+    margin-right: 12px;                              // Margen derecho para separar del texto
+    flex-shrink: 0;                                  // No permitir que se encoja
+    position: relative;                              // Posición relativa para elementos hijos
+    
+    // Imagen de perfil en el menú - MISMO CÓDIGO QUE SETTINGS
+    .profile-image {
+      width: 100%;                                   // Ancho completo del contenedor
+      height: 100%;                                  // Altura completa del contenedor
+      object-fit: cover;                             // Recortar imagen para llenar sin distorsión
+      border-radius: 50%;                            // Asegurar que la imagen también sea redonda
+      display: block;                                // Mostrar como bloque
+    }
+    
+    // Avatar por defecto con iniciales en el menú - MISMO CÓDIGO QUE SETTINGS
+    .default-avatar {
+      width: 100%;                                   // Ancho completo del contenedor
+      height: 100%;                                  // Altura completa del contenedor
+      display: flex;                                 // Usar flexbox para centrar iniciales
+      align-items: center;                           // Centrar verticalmente las iniciales
+      justify-content: center;                       // Centrar horizontalmente las iniciales
+      background: linear-gradient(135deg, var(--avatar-color, #2563eb), var(--avatar-color-dark, #1d4ed8)); // Gradiente con color dinámico
+      color: white;                                  // Color blanco para las iniciales
+      font-size: 20px;                               // Tamaño de fuente para las iniciales (más grande en menú)
+      font-weight: 700;                              // Peso bold para las iniciales
+      text-transform: uppercase;                     // Convertir a mayúsculas
+      border-radius: 50%;                            // Asegurar forma circular
+      user-select: none;                             // No permitir selección de texto
+    }
+  }
+}
