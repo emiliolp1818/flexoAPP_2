@@ -327,8 +327,8 @@ try
     builder.Services.AddScoped<IMaquinaRepository, MaquinaRepository>();
     builder.Services.AddScoped<IMaquinaService, MaquinaService>();
 
-    // Reports & Backup Services (deshabilitados temporalmente hasta migrar a Maquina)
-    // builder.Services.AddScoped<IReportsService, ReportsService>(); // Deshabilitado temporalmente
+    // Reports & Backup Services - Deshabilitado temporalmente (requiere actualización del modelo Maquina)
+    // builder.Services.AddScoped<IReportsService, ReportsService>(); // TODO: Actualizar para usar nuevo modelo Maquina
     // builder.Services.AddScoped<IMachineBackupService, MachineBackupService>(); // Deshabilitado temporalmente
 
     // Automatic Backup Service deshabilitado para estabilidad
