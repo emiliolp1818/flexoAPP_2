@@ -7,7 +7,7 @@ namespace FlexoAPP.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [AllowAnonymous] // Permitir acceso sin autenticación para pruebas - cambiar a [Authorize] en producción
     public class ReportsController : ControllerBase
     {
         private readonly IReportsService _reportsService;
