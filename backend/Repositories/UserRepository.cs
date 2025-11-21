@@ -75,16 +75,28 @@ namespace FlexoAPP.API.Repositories
             return user;
         }
         
+        /// <summary>
+        /// Eliminar usuario físicamente de la base de datos
+        /// IMPORTANTE: Esta operación es permanente y no se puede deshacer
+        /// </summary>
+        /// <param name="id">ID del usuario a eliminar</param>
+        /// <returns>True si se eliminó exitosamente, False si no se encontró el usuario</returns>
         public async Task<bool> DeleteAsync(int id)
         {
+            // Buscar el usuario en la base de datos
             var user = await GetByIdAsync(id);
-            if (user == null) return false;
+            if (user == null) return false; // Usuario no encontrado
             
-            user.IsActive = false;
-            user.UpdatedAt = DateTime.UtcNow;
+            // Eliminar el usuario físicamente de la base de datos
+            _context.Users.Remove(user);
             
+            // Guardar cambios en la base de datos
             await _context.SaveChangesAsync();
-            return true;
+            
+            // Log para confirmar la eliminación
+            Console.WriteLine($"✅ Usuario eliminado de la BD: ID={id}, UserCode={user.UserCode}");
+            
+            return true; // Eliminación exitosa
         }
         
         public async Task<bool> UserCodeExistsAsync(string userCode)

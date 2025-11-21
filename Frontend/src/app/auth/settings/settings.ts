@@ -939,28 +939,37 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
       return;
     }
 
-    this.loading.set(true);
+    this.loading.set(true); // Activar indicador de carga
     try {
-      console.log(`🗑️ Eliminando usuario de MySQL: ${user.userCode}`);
+      console.log(`🗑️ Eliminando usuario de MySQL: ${user.userCode} (ID: ${user.id})`);
       
-      await this.http.delete(`${environment.apiUrl}/auth/users/${user.id}`).toPromise();
+      // Llamar al endpoint correcto: /api/users/{id} (NO /auth/users/)
+      await this.http.delete(`${environment.apiUrl}/users/${user.id}`).toPromise();
       
-      // Actualizar lista local
+      // Actualizar lista local - Remover el usuario eliminado
       const updatedUsers = this.users().filter(u => u.id !== user.id);
       this.users.set(updatedUsers);
 
-      console.log(`✅ Usuario eliminado de MySQL: ${user.userCode}`);
+      console.log(`✅ Usuario eliminado exitosamente de MySQL: ${user.userCode}`);
       
-      // Notificación eliminada - No mostrar mensajes técnicos molestos
-    } catch (error) {
+      // Mostrar notificación de éxito
+      this.snackBar.open(`Usuario ${user.userCode} eliminado exitosamente`, 'Cerrar', {
+        duration: 3000,
+        panelClass: ['success-snackbar']
+      });
+    } catch (error: any) {
       console.error('❌ Error eliminando usuario de MySQL:', error);
+      console.error('❌ Status:', error.status);
+      console.error('❌ Detalles:', error.error);
       
-      this.snackBar.open(`Error al eliminar usuario de la base de datos`, 'Cerrar', {
+      // Mostrar mensaje de error específico
+      const errorMessage = error.error?.message || error.message || 'Error al eliminar usuario';
+      this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', {
         duration: 4000,
         panelClass: ['error-snackbar']
       });
     } finally {
-      this.loading.set(false);
+      this.loading.set(false); // Desactivar indicador de carga
     }
   }
 
