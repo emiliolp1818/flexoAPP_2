@@ -16,6 +16,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // Services
 import { AuthService, LoginRequest } from '../../core/services/auth.service';
+import { TimeFormatService } from '../../core/services/time-format.service';
 
 import { environment } from '../../../environments/environment';
 
@@ -50,7 +51,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private timeFormatService: TimeFormatService
   ) {
     this.loginForm = this.fb.group({
       userCode: ['', [Validators.required]],
@@ -94,13 +96,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   private updateClock(): void {
     const now = new Date();
     
-    // Formatear hora (HH:MM:SS)
-    const timeString = now.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
+    // Formatear hora usando el servicio de formato de hora
+    const timeString = this.timeFormatService.formatTime(now);
     
     // Formatear fecha (Día, DD de Mes de YYYY)
     const dateString = now.toLocaleDateString('es-ES', {

@@ -7,6 +7,9 @@ import { HttpRequest, HttpHandlerFn } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { AuthService } from './core/services/auth.service';
+import { ThemeService } from './core/services/theme.service';
+import { LanguageService } from './core/services/language.service';
+import { TimeFormatService } from './core/services/time-format.service';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 
@@ -56,6 +59,9 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([authInterceptor]),
       withFetch()
     ),
-    provideAnimationsAsync()
+    provideAnimationsAsync(),
+    ThemeService,        // Inicializar servicio de temas al arrancar la aplicación
+    LanguageService,     // Inicializar servicio de idiomas al arrancar la aplicación
+    TimeFormatService    // Inicializar servicio de formato de hora al arrancar la aplicación
   ]
 };

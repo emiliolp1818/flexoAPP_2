@@ -14,12 +14,13 @@ import { MatFormFieldModule } from '@angular/material/form-field'; // Campos de 
 import { MatInputModule } from '@angular/material/input';         // Inputs de texto con validación
 import { MatSelectModule } from '@angular/material/select';       // Selectores dropdown
 import { MatDatepickerModule } from '@angular/material/datepicker'; // Selector de fechas con calendario
-import { MatNativeDateModule } from '@angular/material/core';     // Adaptador de fechas nativo
+import { MatNativeDateModule, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core'; // Adaptador de fechas nativo
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar'; // Notificaciones toast
 import { MatAutocompleteModule } from '@angular/material/autocomplete'; // Autocompletado de inputs
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Indicador de carga circular
 import { MatTabsModule } from '@angular/material/tabs';           // Pestañas de navegación
 import { MatChipsModule } from '@angular/material/chips';         // Chips/badges informativos
+import { MatDatepickerInputEvent } from '@angular/material/datepicker'; // Evento de cambio de fecha
 
 // Importaciones de Formularios Reactivos - Manejo de formularios con validación
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; // FormBuilder: Constructor de formularios | FormGroup: Grupo de controles | Validators: Validadores | ReactiveFormsModule: Módulo de formularios reactivos
@@ -67,6 +68,21 @@ interface UserReport {
 // Interfaces de máquinas eliminadas - Solo se mantiene reporte de actividades de usuario
 
 // ============================================================================
+// FORMATO DE FECHA PERSONALIZADO - dd/mm/aaaa
+// ============================================================================
+export const MY_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'DD/MM/YYYY',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'DD/MM/YYYY',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
+
+// ============================================================================
 // COMPONENTE PRINCIPAL - ReportsComponent
 // ============================================================================
 
@@ -101,6 +117,10 @@ interface UserReport {
     MatChipsModule,                           // Chips/badges
     MatAutocompleteModule,                    // Autocompletado
     ReactiveFormsModule                       // Formularios reactivos
+  ],
+  providers: [
+    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
   ],
   templateUrl: './reports.html',              // Ruta al archivo HTML del template
   styleUrls: ['./reports.scss']               // Ruta al archivo SCSS de estilos
@@ -179,35 +199,18 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
   // ============================================================================
   
   /**
-   * loadAvailableUsers - Cargar lista de usuarios disponibles para búsqueda
+   * loadAvailableUsers - Método eliminado
    * 
-   * Obtiene todos los usuarios del sistema para poblar el autocompletado
-   * del campo de búsqueda. Esto permite al usuario seleccionar fácilmente
-   * el código de usuario sin tener que recordarlo exactamente.
+   * Ya no se necesita cargar la lista de usuarios porque ahora el usuario
+   * ingresa directamente el código en un campo de texto.
    * 
-   * TODO: Implementar llamada real a la API del backend
-   * Actualmente solo carga el usuario actual como ejemplo
+   * Este método se mantiene vacío para evitar errores si se llama desde ngOnInit,
+   * pero no realiza ninguna acción.
    */
   loadAvailableUsers() {
-    this.loading.set(true);  // Activar indicador de carga
-    
-    // Simular delay de red con setTimeout (500ms)
-    setTimeout(() => {
-      const currentUser = this.authService.getCurrentUser();  // Obtener usuario autenticado actual
-      
-      // TODO: Implementar llamada real a la API para obtener todos los usuarios
-      // Ejemplo de implementación futura:
-      // this.http.get<User[]>(`${environment.apiUrl}/users`).subscribe({
-      //   next: (users) => this.availableUsers.set(users),
-      //   error: (error) => console.error('Error cargando usuarios:', error)
-      // });
-      
-      // Por ahora, solo incluir el usuario actual hasta implementar la API
-      const availableUsers = currentUser ? [currentUser] : [];  // Array con usuario actual o vacío
-
-      this.availableUsers.set(availableUsers);  // Actualizar señal con usuarios disponibles
-      this.loading.set(false);                  // Desactivar indicador de carga
-    }, 500);  // Delay de 500ms para simular latencia de red
+    // Método vacío - Ya no se carga lista de usuarios
+    // El usuario ingresa el código directamente en el input
+    console.log('ℹ️ Carga de usuarios deshabilitada - Se usa input de texto directo');
   }
 
   // ============================================================================
@@ -244,124 +247,50 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
     const formValue = this.searchForm.value;         // Obtener valores del formulario
     const searchUserCode = formValue.userCode.trim(); // Limpiar espacios en blanco del código de usuario
 
-    // Llamada HTTP GET al backend para buscar actividades de usuario
-    // Endpoint: GET /api/reports/user-activities/{userCode}
-    this.http.get<any>(`${environment.apiUrl}/reports/user-activities/${searchUserCode}`, {
-      params: {  // Parámetros de consulta (query params)
-        startDate: formValue.startDate ? formValue.startDate.toISOString() : '',  // Fecha inicio en formato ISO o vacío
-        endDate: formValue.endDate ? formValue.endDate.toISOString() : '',        // Fecha fin en formato ISO o vacío
-        module: formValue.module !== 'ALL' ? formValue.module : ''                // Módulo específico o vacío para todos
-      }
-    }).subscribe({  // Suscribirse al Observable para manejar respuesta y errores
-      next: (response) => {  // Callback ejecutado cuando la petición es exitosa
-        if (response.success) {  // Verificar que el backend indique éxito
-          // Construir objeto UserReport con los datos recibidos
-          const report: UserReport = {
-            user: {  // Información del usuario (actualmente simulada, debería venir del backend)
-              id: searchUserCode,                              // ID del usuario
-              userCode: searchUserCode,                        // Código de usuario buscado
-              firstName: 'Usuario',                            // Nombre (TODO: obtener del backend)
-              lastName: 'Sistema',                             // Apellido (TODO: obtener del backend)
-              email: `${searchUserCode}@flexoapp.com`,         // Email generado
-              role: 'user',                                    // Rol (TODO: obtener del backend)
-              isActive: true                                   // Estado activo
-            },
-            activities: response.data || [],                   // Array de actividades del backend o vacío
-            totalActivities: response.data?.length || 0,       // Contar total de actividades
-            moduleBreakdown: this.calculateModuleBreakdown(response.data || []),  // Calcular estadísticas por módulo
-            dateRange: {  // Rango de fechas del reporte
-              start: formValue.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),  // Fecha inicio o 30 días atrás
-              end: formValue.endDate || new Date()             // Fecha fin o hoy
-            }
-          };
-
-          this.searchResults.set(report);  // Actualizar señal con resultados
-          
-          // Mostrar notificación de éxito con cantidad de actividades encontradas
-          this.snackBar.open(`Se encontraron ${response.data?.length || 0} actividades para ${searchUserCode}`, 'Cerrar', {
-            duration: 3000,                    // Duración de 3 segundos
-            panelClass: ['success-snackbar']   // Clase CSS para estilo de éxito (verde)
-          });
-        } else {
-          // Si el backend responde pero indica fallo, lanzar error
-          throw new Error(response.message || 'Error en la respuesta del servidor');
-        }
-        this.loading.set(false);  // Desactivar indicador de carga
+    // ===== PRIMERO: BUSCAR INFORMACIÓN DEL USUARIO EN LA BD =====
+    // Hacer una llamada a la API para obtener la información completa del usuario
+    // Esto valida que el usuario existe y obtiene sus datos completos (nombre, foto, email, etc.)
+    console.log('🔍 Buscando información del usuario:', searchUserCode);
+    
+    // Llamada a la API para obtener el usuario por código
+    // GET /api/users/code/{userCode} - Endpoint que busca usuario por código
+    this.http.get<User>(`${environment.apiUrl}/users/code/${searchUserCode}`).subscribe({
+      // next: Se ejecuta cuando la petición es exitosa
+      next: (user) => {
+        // Usuario encontrado exitosamente en la base de datos
+        console.log('✅ Usuario encontrado en la BD:', user);
+        
+        // Continuar con la búsqueda de actividades usando los datos reales del usuario
+        this.fetchUserActivities(user, formValue);
       },
-      error: (error) => {  // Callback ejecutado cuando hay error en la petición HTTP
-        console.error('Error buscando actividades:', error);  // Registrar error en consola para debugging
-        this.loading.set(false);  // Desactivar indicador de carga
+      // error: Se ejecuta cuando hay un error (usuario no existe, error de red, etc.)
+      error: (error) => {
+        // Desactivar indicador de carga
+        this.loading.set(false);
         
-        // Mostrar notificación de advertencia informando que se usarán datos simulados
-        this.snackBar.open(`No se encontraron datos en el servidor para ${searchUserCode}. Usando datos simulados.`, 'Cerrar', {
-          duration: 4000,                    // Duración de 4 segundos (más tiempo para leer)
-          panelClass: ['warning-snackbar']   // Clase CSS para estilo de advertencia (amarillo/naranja)
-        });
+        // Determinar el mensaje de error según el código de estado HTTP
+        let errorMessage = `Usuario "${searchUserCode}" no encontrado`;
         
-        // Delay de 1.5 segundos antes de generar datos simulados (mejor UX)
-        setTimeout(() => {
-          // Intentar encontrar el usuario en la lista de usuarios disponibles
-          // Búsqueda exacta por código de usuario (case-insensitive)
-          let user = this.availableUsers().find(u => 
-            u.userCode.toLowerCase() === searchUserCode.toLowerCase()
-          );
-
-          // Si no se encuentra con búsqueda exacta, intentar búsqueda parcial
-          if (!user) {
-            user = this.availableUsers().find(u => 
-              u.userCode.toLowerCase().includes(searchUserCode.toLowerCase()) ||      // Buscar en código
-              u.firstName.toLowerCase().includes(searchUserCode.toLowerCase()) ||     // Buscar en nombre
-              u.lastName.toLowerCase().includes(searchUserCode.toLowerCase())         // Buscar en apellido
-            );
-          }
-
-          // Si aún no se encuentra, crear un usuario simulado
-          if (!user) {
-            user = {
-              id: Date.now().toString(),                      // ID único usando timestamp
-              userCode: searchUserCode,                       // Código ingresado por el usuario
-              firstName: 'Usuario',                           // Nombre genérico
-              lastName: 'Simulado',                           // Apellido indicando que es simulado
-              email: `${searchUserCode}@flexoapp.com`,        // Email generado
-              role: 'user',                                   // Rol genérico
-              isActive: true                                  // Usuario activo
-            };
-            
-            // Agregar el usuario simulado a la lista de usuarios disponibles
-            const currentUsers = this.availableUsers();       // Obtener lista actual
-            this.availableUsers.set([...currentUsers, user]); // Agregar nuevo usuario
-          }
-
-          // TODO: Implementar llamada real a la API de actividades
-          // Ejemplo de implementación futura:
-          // const activities = await this.activityService.getUserActivities(user.id, formValue);
-          
-          // Por ahora, crear array vacío de actividades (datos simulados)
-          const activities: UserAction[] = [];  // Array vacío hasta implementar API
-          
-          // Construir objeto UserReport con datos simulados
-          const report: UserReport = {
-            user,                                              // Usuario encontrado o creado
-            activities,                                        // Array de actividades (vacío por ahora)
-            totalActivities: activities.length,                // Total de actividades (0 por ahora)
-            moduleBreakdown: this.calculateModuleBreakdown(activities),  // Desglose por módulo (vacío)
-            dateRange: {  // Rango de fechas del reporte
-              start: formValue.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),  // Fecha inicio o 30 días atrás
-              end: formValue.endDate || new Date()            // Fecha fin o hoy
-            }
-          };
-
-          this.searchResults.set(report);  // Actualizar señal con reporte simulado
-          this.loading.set(false);         // Desactivar indicador de carga
-
-          // Mostrar notificación de éxito con datos simulados
-          this.snackBar.open(`Se encontraron ${activities.length} actividades para ${user.userCode}`, 'Cerrar', {
-            duration: 3000,                    // Duración de 3 segundos
-            panelClass: ['success-snackbar']   // Clase CSS para estilo de éxito (verde)
-          });
-        }, 1500);  // Delay de 1.5 segundos para simular procesamiento
-      }  // Fin del callback de error
-    });  // Fin del subscribe
+        // Si el error es 404, el usuario no existe
+        if (error.status === 404) {
+          errorMessage = `Usuario "${searchUserCode}" no existe en la base de datos`;
+        } 
+        // Si el error es 500, hay un problema en el servidor
+        else if (error.status === 500) {
+          errorMessage = 'Error del servidor al buscar el usuario';
+        }
+        // Otros errores (401, 403, etc.)
+        else if (error.status) {
+          errorMessage = `Error ${error.status}: ${error.statusText}`;
+        }
+        
+        // Mostrar notificación de error al usuario
+        this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
+        
+        // Registrar error en consola para debugging
+        console.error('❌ Error buscando usuario:', error);
+      }
+    });
   }  // Fin del método searchUserActivities
 
 
@@ -393,6 +322,98 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
     });
 
     return breakdown;  // Retornar objeto con el desglose completo
+  }
+
+  /**
+   * fetchUserActivities - Buscar actividades del usuario en la API
+   * 
+   * Método auxiliar que realiza la búsqueda de actividades una vez que
+   * se ha validado que el usuario existe en la base de datos.
+   * 
+   * @param user - Objeto User con la información completa del usuario
+   * @param formValue - Valores del formulario (fechas, módulo, etc.)
+   */
+  private fetchUserActivities(user: User, formValue: any) {
+    // Construir los parámetros de la petición HTTP
+    // startDate: Fecha de inicio del rango de búsqueda (formato ISO)
+    // endDate: Fecha de fin del rango de búsqueda (formato ISO)
+    // module: Módulo específico a filtrar (opcional)
+    const params: any = {};
+    
+    // Si hay fecha de inicio, agregarla a los parámetros
+    if (formValue.startDate) {
+      params.startDate = formValue.startDate.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
+    }
+    
+    // Si hay fecha de fin, agregarla a los parámetros
+    if (formValue.endDate) {
+      params.endDate = formValue.endDate.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
+    }
+    
+    // Si hay módulo seleccionado y no es 'ALL', agregarlo a los parámetros
+    if (formValue.module && formValue.module !== 'ALL') {
+      params.module = formValue.module;
+    }
+    
+    // Registrar en consola los parámetros de búsqueda
+    console.log('📊 Parámetros de búsqueda:', params);
+    
+    // Llamada a la API para obtener las actividades del usuario
+    // GET /api/reports/user-activities/{userCode}?startDate=...&endDate=...&module=...
+    this.http.get<any>(`${environment.apiUrl}/reports/user-activities/${user.userCode}`, { params }).subscribe({
+      // next: Se ejecuta cuando la petición es exitosa
+      next: (response) => {
+        // Registrar respuesta en consola
+        console.log('📦 Actividades recibidas:', response);
+        
+        // Extraer las actividades de la respuesta
+        // La respuesta puede ser un array directo o un objeto con propiedad 'data'
+        const activities = Array.isArray(response) ? response : (response.data || []);
+        
+        // Registrar cantidad de actividades encontradas
+        console.log('✅ Total de actividades:', activities.length);
+        
+        // Construir objeto UserReport con los datos reales
+        const report: UserReport = {
+          user,                                              // Usuario encontrado en la BD
+          activities,                                        // Array de actividades REALES
+          totalActivities: activities.length,                // Total de actividades encontradas
+          moduleBreakdown: this.calculateModuleBreakdown(activities),  // Desglose por módulo
+          dateRange: {  // Rango de fechas del reporte
+            start: formValue.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),  // Fecha inicio
+            end: formValue.endDate || new Date()            // Fecha fin
+          }
+        };
+        
+        // Actualizar señal con el reporte completo
+        this.searchResults.set(report);
+        
+        // Desactivar indicador de carga
+        this.loading.set(false);
+        
+        // Mostrar notificación de éxito
+        this.snackBar.open(
+          `Se encontraron ${activities.length} actividades para ${user.userCode}`,
+          'Cerrar',
+          { duration: 3000, panelClass: ['success-snackbar'] }
+        );
+      },
+      // error: Se ejecuta cuando hay un error al buscar actividades
+      error: (error) => {
+        // Desactivar indicador de carga
+        this.loading.set(false);
+        
+        // Mostrar notificación de error
+        this.snackBar.open(
+          'Error al buscar actividades del usuario',
+          'Cerrar',
+          { duration: 5000 }
+        );
+        
+        // Registrar error en consola
+        console.error('❌ Error buscando actividades:', error);
+      }
+    });
   }
 
   // ============================================================================
@@ -577,6 +598,7 @@ Sistema FlexoAPP - Gestión Flexográfica
    * @returns Nombre del icono de Material Design
    * 
    * Iconos por módulo:
+   * - ALL: apps (icono de todos los módulos)
    * - AUTH: login (icono de inicio de sesión)
    * - PROFILE: person (icono de persona)
    * - MACHINES: precision_manufacturing (icono de máquina industrial)
@@ -587,6 +609,7 @@ Sistema FlexoAPP - Gestión Flexográfica
    */
   getModuleIcon(module: string): string {
     const icons: { [key: string]: string } = {
+      'ALL': 'apps',                          // Icono para todos los módulos
       'AUTH': 'login',                        // Icono para autenticación
       'PROFILE': 'person',                    // Icono para perfil de usuario
       'MACHINES': 'precision_manufacturing',  // Icono para máquinas
@@ -597,21 +620,7 @@ Sistema FlexoAPP - Gestión Flexográfica
     return icons[module] || 'info';  // Retornar icono específico o 'info' por defecto
   }
 
-  /**
-   * displayUserCode - Función de visualización para el autocomplete
-   * 
-   * Angular Material Autocomplete requiere una función que determine
-   * cómo mostrar el valor seleccionado en el input.
-   * 
-   * @param userCode - Código de usuario seleccionado
-   * @returns El mismo código de usuario para mostrar en el input
-   * 
-   * Nota: Esta función es simple porque solo mostramos el código.
-   * En casos más complejos, podría formatear o transformar el valor.
-   */
-  displayUserCode(userCode: string): string {
-    return userCode;  // Retornar el código tal cual para mostrarlo en el input
-  }
+  // Método displayUserCode eliminado - Ya no se usa autocomplete, ahora es un select con usuarios REALES
 
   /**
    * selectUser - Seleccionar usuario desde chips de sugerencias
@@ -657,6 +666,22 @@ Sistema FlexoAPP - Gestión Flexográfica
   }
 
   /**
+   * onDateChange - Manejar cambio de fecha
+   * 
+   * Se ejecuta cuando el usuario selecciona una fecha del datepicker
+   * 
+   * @param type - Tipo de fecha ('start' o 'end')
+   * @param event - Evento del datepicker con la fecha seleccionada
+   */
+  onDateChange(type: 'start' | 'end', event: MatDatepickerInputEvent<Date>) {
+    // El valor ya se actualiza automáticamente en el formulario
+    // Este método está disponible para validaciones adicionales si se necesitan
+    if (event.value) {
+      console.log(`Fecha ${type} seleccionada:`, event.value);
+    }
+  }
+
+  /**
    * getRoleDisplayName - Obtener nombre legible del rol de usuario
    * 
    * Convierte el valor técnico del rol (ej: 'admin') en un nombre
@@ -687,28 +712,54 @@ Sistema FlexoAPP - Gestión Flexográfica
     return roleMap[role] || role || 'Sin rol';  // Retornar nombre legible o valor original
   }
 
-  // ============================================================================
-  // MÉTODOS DE NAVEGACIÓN - Manejo de pestañas y navegación
-  // ============================================================================
-  
   /**
-   * onTabChange - Manejar cambio de pestaña en el componente
-   * Copiado del módulo de configuración para mantener consistencia
+   * getUserProfileImage - Obtener URL completa de la imagen de perfil
    * 
-   * Se ejecuta cuando el usuario cambia entre las pestañas del componente.
-   * Actualiza el índice de la pestaña seleccionada y limpia los resultados
-   * de la pestaña anterior para evitar confusión y mejorar el rendimiento.
+   * Maneja tanto URLs completas (http/https) como rutas relativas del servidor.
+   * Si la imagen es una ruta relativa (ej: /uploads/profiles/...), 
+   * se le agrega la URL base del API.
    * 
-   * @param index - Índice de la pestaña seleccionada
-   *                0 = Actividades de Usuario
-   *                1 = Reportes de Máquinas
-   * 
-   * Comportamiento:
-   * - Actualiza selectedTabIndex con el nuevo índice
-   * - Al cambiar a pestaña 0 (Actividades): Limpia resultados de máquinas
-   * - Al cambiar a pestaña 1 (Máquinas): Limpia resultados de actividades
-   * 
-   * Esto asegura que cada pestaña tenga su propio estado independiente
+   * @param profileImage - URL o ruta de la imagen de perfil
+   * @returns URL completa de la imagen o null si no hay imagen
    */
-  // Método onTabChange eliminado - Ya no hay pestañas múltiples
+  getUserProfileImage(profileImage?: string): string | null {
+    if (!profileImage) {
+      return null;
+    }
+
+    // Si es el indicador de imagen grande, no mostrar
+    if (profileImage === 'large_image_available') {
+      return null;
+    }
+
+    // Si ya es una URL completa (http/https), retornarla tal cual
+    if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
+      return profileImage;
+    }
+
+    // Si es base64, retornarla tal cual
+    if (profileImage.startsWith('data:image/')) {
+      return profileImage;
+    }
+
+    // Si es una ruta relativa, agregar la URL base del API
+    // Nota: environment.apiUrl ya incluye '/api', así que quitamos '/api' si viene en la ruta
+    const cleanPath = profileImage.startsWith('/api/') ? profileImage.substring(4) : profileImage;
+    const separator = cleanPath.startsWith('/') ? '' : '/';
+    
+    return `${environment.apiUrl}${separator}${cleanPath}`;
+  }
+
+  /**
+   * handleImageError - Manejar error al cargar imagen de perfil
+   * 
+   * Oculta la imagen y muestra el icono por defecto cuando falla la carga
+   * 
+   * @param event - Evento de error de la imagen
+   */
+  handleImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.style.display = 'none';
+    console.warn('Error al cargar imagen de perfil, mostrando icono por defecto');
+  }
 }

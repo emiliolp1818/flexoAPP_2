@@ -21,6 +21,11 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';       // 
 
 // Importaciones de servicios y modelos de la aplicación
 import { AuthService, User } from '../../core/services/auth.service';       // Servicio de autenticación y modelo de usuario
+import { ThemeService } from '../../core/services/theme.service';           // Servicio de temas para cambiar apariencia
+import { LanguageService } from '../../core/services/language.service';     // Servicio de idiomas para internacionalización
+import { TimeFormatService } from '../../core/services/time-format.service'; // Servicio de formato de hora
+import { NotificationService } from '../../core/services/notification.service'; // Servicio de notificaciones
+import { SessionTimeoutService } from '../../core/services/session-timeout.service'; // Servicio de timeout de sesión
 import { HttpClient } from '@angular/common/http';                          // Cliente HTTP para peticiones al backend
 import { environment } from '../../../environments/environment';            // Configuración de entorno (URLs, flags, etc.)
 
@@ -72,6 +77,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   // Inyección de dependencias usando la nueva sintaxis inject() de Angular
   private http = inject(HttpClient);                   // Cliente HTTP para comunicación con el backend en 192.168.1.6:7003
   private authService = inject(AuthService);           // Servicio de autenticación para gestión de usuarios
+  private themeService = inject(ThemeService);         // Servicio de temas para cambiar apariencia
+  private languageService = inject(LanguageService);   // Servicio de idiomas para internacionalización
+  private timeFormatService = inject(TimeFormatService); // Servicio de formato de hora
+  private notificationService = inject(NotificationService); // Servicio de notificaciones
+  private sessionTimeoutService = inject(SessionTimeoutService); // Servicio de timeout de sesión
   private snackBar = inject(MatSnackBar);             // Servicio para mostrar notificaciones toast
   private dialog = inject(MatDialog);                 // Servicio para abrir diálogos modales
 
@@ -100,7 +110,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.loadCurrentUser();                            // Cargar información del usuario autenticado
     this.checkDatabaseConnection();                    // Verificar conectividad con la base de datos MySQL
     this.loadUsers();                                  // Cargar lista completa de usuarios desde la BD
-    // this.loadSystemConfigs();                       // TODO: Implementar endpoint en backend
+    this.loadSystemConfigs();                          // Cargar configuraciones del sistema desde el backend
     this.startRealTimeUpdates();                       // Iniciar actualizaciones automáticas cada 2 minutos
     this.setupVisibilityListener();                    // Configurar listener para pausar updates cuando la página no es visible
   }
@@ -457,33 +467,123 @@ export class SettingsComponent implements OnInit, OnDestroy {
       const response = await this.http.get<SystemConfig[]>(`${environment.apiUrl}/system/configs`).toPromise();
       if (response) {
         this.systemConfigs.set(response);
+        
+        // Aplicar el tema guardado
+        const themeConfig = response.find(c => c.id === 'theme');
+        if (themeConfig) {
+          this.themeService.syncWithSystemConfig(themeConfig.value);
+        }
+
+        // Aplicar el idioma guardado
+        const languageConfig = response.find(c => c.id === 'language');
+        if (languageConfig) {
+          this.languageService.syncWithSystemConfig(languageConfig.value);
+        }
+
+        // Aplicar el formato de hora guardado
+        const timeFormatConfig = response.find(c => c.id === 'time_format');
+        if (timeFormatConfig) {
+          this.timeFormatService.syncWithSystemConfig(timeFormatConfig.value);
+        }
+
+        // Aplicar configuración de notificaciones
+        const notificationsConfig = response.find(c => c.id === 'enable_notifications');
+        if (notificationsConfig) {
+          this.notificationService.syncWithSystemConfig(notificationsConfig.value);
+        }
+
+        // Aplicar configuración de sonido de notificaciones
+        const soundConfig = response.find(c => c.id === 'notification_sound');
+        if (soundConfig) {
+          this.notificationService.syncSoundWithSystemConfig(soundConfig.value);
+        }
+
+        // Aplicar configuración de duración de notificaciones
+        const durationConfig = response.find(c => c.id === 'notification_duration');
+        if (durationConfig) {
+          this.notificationService.syncDurationWithSystemConfig(durationConfig.value);
+        }
       }
     } catch (error) {
       console.error('Error cargando configuraciones:', error);
       // Configuraciones por defecto
       this.systemConfigs.set([
         {
-          id: 'app_name',
-          name: 'Nombre de la Aplicación',
-          description: 'Nombre que se muestra en la aplicación',
-          value: 'FlexoApp',
-          type: 'string',
-          category: 'General'
+          id: 'theme',
+          name: 'Tema',
+          description: 'Tema visual de la aplicación',
+          value: 'light',
+          type: 'select',
+          category: 'Apariencia',
+          options: ['light', 'dark', 'auto']
         },
         {
-          id: 'max_users',
-          name: 'Máximo de Usuarios',
-          description: 'Número máximo de usuarios concurrentes',
-          value: 50,
-          type: 'number',
-          category: 'General'
+          id: 'language',
+          name: 'Idioma',
+          description: 'Idioma de la interfaz',
+          value: 'es',
+          type: 'select',
+          category: 'Regional',
+          options: ['es', 'en', 'pt', 'fr', 'de']
+        },
+        {
+          id: 'timezone',
+          name: 'Zona Horaria',
+          description: 'Zona horaria del sistema',
+          value: 'America/Bogota',
+          type: 'select',
+          category: 'Regional',
+          options: ['America/Bogota', 'America/Mexico_City', 'America/Lima', 'America/Buenos_Aires', 'America/Santiago', 'America/Caracas', 'America/New_York', 'Europe/Madrid']
+        },
+        {
+          id: 'date_format',
+          name: 'Formato de Fecha',
+          description: 'Formato de visualización de fechas',
+          value: 'DD/MM/YYYY',
+          type: 'select',
+          category: 'Regional',
+          options: ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']
+        },
+        {
+          id: 'time_format',
+          name: 'Formato de Hora',
+          description: 'Formato de visualización de hora',
+          value: '24h',
+          type: 'select',
+          category: 'Regional',
+          options: ['24h', '12h']
+        },
+        {
+          id: 'currency',
+          name: 'Moneda',
+          description: 'Moneda del sistema',
+          value: 'COP',
+          type: 'select',
+          category: 'Regional',
+          options: ['COP', 'USD', 'EUR', 'MXN', 'PEN', 'ARS', 'CLP']
         },
         {
           id: 'enable_notifications',
-          name: 'Notificaciones',
-          description: 'Habilitar notificaciones del sistema',
+          name: 'Habilitar Notificaciones',
+          description: 'Activar o desactivar las notificaciones del sistema',
           value: true,
           type: 'boolean',
+          category: 'Notificaciones'
+        },
+        {
+          id: 'notification_sound',
+          name: 'Sonido de Notificaciones',
+          description: 'Reproducir sonido al recibir notificaciones',
+          value: true,
+          type: 'boolean',
+          category: 'Notificaciones'
+        },
+        {
+          id: 'notification_duration',
+          name: 'Duración de Notificaciones',
+          description: 'Tiempo que permanecen visibles las notificaciones (segundos)',
+          value: 5,
+          type: 'number',
           category: 'Notificaciones'
         },
         {
@@ -519,6 +619,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
    */
   async updateSystemConfig(config: SystemConfig, newValue: any) {
     try {
+      console.log(`🔧 Actualizando configuración: ${config.id} = ${newValue}`);
+      
       await this.http.put(`${environment.apiUrl}/system/configs/${config.id}`, {
         value: newValue
       }).toPromise();
@@ -530,14 +632,60 @@ export class SettingsComponent implements OnInit, OnDestroy {
       );
       this.systemConfigs.set(updatedConfigs);
 
-      this.snackBar.open('Configuración actualizada', 'Cerrar', {
-        duration: 2000,
+      // Si es el tema, aplicarlo inmediatamente
+      if (config.id === 'theme') {
+        this.themeService.setTheme(newValue);
+        console.log(`🎨 Tema aplicado: ${newValue}`);
+      }
+
+      // Si es el idioma, aplicarlo inmediatamente
+      if (config.id === 'language') {
+        this.languageService.setLanguage(newValue);
+        console.log(`🌍 Idioma aplicado: ${newValue}`);
+      }
+
+      // Si es el formato de hora, aplicarlo inmediatamente
+      if (config.id === 'time_format') {
+        this.timeFormatService.setFormat(newValue);
+        console.log(`🕐 Formato de hora aplicado: ${newValue}`);
+      }
+
+      // Si es la configuración de notificaciones, aplicarla inmediatamente
+      if (config.id === 'enable_notifications') {
+        this.notificationService.setNotificationsEnabled(newValue);
+        console.log(`🔔 Notificaciones ${newValue ? 'habilitadas' : 'deshabilitadas'}`);
+      }
+
+      // Si es la configuración de sonido, aplicarla inmediatamente
+      if (config.id === 'notification_sound') {
+        this.notificationService.syncSoundWithSystemConfig(newValue);
+        console.log(`🔊 Sonido de notificaciones ${newValue ? 'habilitado' : 'deshabilitado'}`);
+      }
+
+      // Si es la configuración de duración, aplicarla inmediatamente
+      if (config.id === 'notification_duration') {
+        this.notificationService.syncDurationWithSystemConfig(newValue);
+        console.log(`⏱️ Duración de notificaciones: ${newValue} segundos`);
+      }
+
+      // Si es la configuración de timeout de sesión, aplicarla inmediatamente
+      if (config.id === 'session_timeout') {
+        this.sessionTimeoutService.updateTimeout(newValue);
+        console.log(`⏰ Timeout de sesión actualizado: ${newValue} minutos`);
+      }
+
+      console.log(`✅ Configuración ${config.id} actualizada exitosamente`);
+
+      this.snackBar.open(`Configuración "${config.name}" actualizada correctamente`, 'Cerrar', {
+        duration: 3000,
         panelClass: ['success-snackbar']
       });
-    } catch (error) {
-      console.error('Error actualizando configuración:', error);
-      this.snackBar.open('Error al actualizar configuración', 'Cerrar', {
-        duration: 3000,
+    } catch (error: any) {
+      console.error('❌ Error actualizando configuración:', error);
+      
+      const errorMessage = error.error?.message || error.message || 'Error al actualizar configuración';
+      this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', {
+        duration: 4000,
         panelClass: ['error-snackbar']
       });
     }
@@ -569,7 +717,62 @@ export class SettingsComponent implements OnInit, OnDestroy {
    * Obtener nombre de visualización de opción
    */
   getOptionDisplayName(configId: string, option: string): string {
-    // Personalizar según sea necesario
+    // Mapeo de opciones a nombres amigables
+    const optionMaps: { [key: string]: { [key: string]: string } } = {
+      'theme': {
+        'light': '☀️ Claro',
+        'dark': '🌙 Oscuro',
+        'auto': '🔄 Automático (según sistema)'
+      },
+      'language': {
+        'es': '🇪🇸 Español',
+        'en': '🇺🇸 English',
+        'pt': '🇧🇷 Português',
+        'fr': '🇫🇷 Français',
+        'de': '🇩🇪 Deutsch'
+      },
+      'timezone': {
+        'America/Bogota': '🇨🇴 Bogotá (GMT-5)',
+        'America/Mexico_City': '🇲🇽 Ciudad de México (GMT-6)',
+        'America/Lima': '🇵🇪 Lima (GMT-5)',
+        'America/Buenos_Aires': '🇦🇷 Buenos Aires (GMT-3)',
+        'America/Santiago': '🇨🇱 Santiago (GMT-3)',
+        'America/Caracas': '🇻🇪 Caracas (GMT-4)',
+        'America/New_York': '🇺🇸 Nueva York (GMT-5)',
+        'Europe/Madrid': '🇪🇸 Madrid (GMT+1)'
+      },
+      'date_format': {
+        'DD/MM/YYYY': 'Día/Mes/Año (31/12/2024)',
+        'MM/DD/YYYY': 'Mes/Día/Año (12/31/2024)',
+        'YYYY-MM-DD': 'Año-Mes-Día (2024-12-31)'
+      },
+      'time_format': {
+        '24h': '24 horas (23:59)',
+        '12h': '12 horas (11:59 PM)'
+      },
+      'currency': {
+        'COP': '🇨🇴 Peso Colombiano (COP)',
+        'USD': '🇺🇸 Dólar Estadounidense (USD)',
+        'EUR': '🇪🇺 Euro (EUR)',
+        'MXN': '🇲🇽 Peso Mexicano (MXN)',
+        'PEN': '🇵🇪 Sol Peruano (PEN)',
+        'ARS': '🇦🇷 Peso Argentino (ARS)',
+        'CLP': '🇨🇱 Peso Chileno (CLP)'
+      },
+      'email_notification_types': {
+        'all': '📧 Todas las notificaciones',
+        'errors_only': '❌ Solo errores',
+        'important_only': '⚠️ Solo importantes (errores y advertencias)',
+        'none': '🚫 Ninguna'
+      }
+    };
+
+    // Buscar el mapeo para esta configuración
+    if (optionMaps[configId] && optionMaps[configId][option]) {
+      return optionMaps[configId][option];
+    }
+
+    // Si no hay mapeo, devolver la opción tal cual
     return option;
   }
 

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using FlexoAPP.API.Models.Entities;
+using flexoAPP.Models;
 
 namespace FlexoAPP.API.Data.Context
 {
@@ -21,6 +22,7 @@ namespace FlexoAPP.API.Data.Context
         public DbSet<Activity> Activities { get; set; }
         public DbSet<CondicionUnica> CondicionUnica { get; set; }
         public DbSet<Documento> Documentos { get; set; } // Tabla de documentos
+        public DbSet<SystemConfig> SystemConfigs { get; set; } // Tabla de configuraciones del sistema
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -254,12 +256,18 @@ namespace FlexoAPP.API.Data.Context
                     .HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
                 
                 // ===== RELACIONES CON TABLA USERS =====
-                // NOTA: Relaciones comentadas temporalmente - las foreign keys existen en la BD pero no se mapean en EF
-                // entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
-                // entity.HasOne(e => e.UpdatedByUser).WithMany().HasForeignKey(e => e.UpdatedBy).OnDelete(DeleteBehavior.SetNull);
-                
-                // Ignorar cualquier propiedad shadow que EF pueda intentar crear
-                entity.Ignore("UserId");
+                    // Configurar relaciones con la entidad User (creador / actualizador)
+                        entity.HasOne(e => e.CreatedByUser)
+                            .WithMany(u => u.CreatedMaquinas)
+                            .HasForeignKey(e => e.CreatedBy)
+                            .HasPrincipalKey(u => u.Id)
+                            .OnDelete(DeleteBehavior.SetNull);
+
+                        entity.HasOne(e => e.UpdatedByUser)
+                            .WithMany(u => u.UpdatedMaquinas)
+                            .HasForeignKey(e => e.UpdatedBy)
+                            .HasPrincipalKey(u => u.Id)
+                            .OnDelete(DeleteBehavior.SetNull);
                 
                 // ===== ÍNDICES PARA OPTIMIZACIÓN DE CONSULTAS =====
                 // Crear índices en columnas frecuentemente consultadas
@@ -315,6 +323,29 @@ namespace FlexoAPP.API.Data.Context
                 entity.HasIndex(e => e.FArticulo);
                 entity.HasIndex(e => e.Estante);
                 entity.HasIndex(e => e.LastModified);
+            });
+
+            // ===== CONFIGURACIÓN SYSTEM CONFIG =====
+            modelBuilder.Entity<SystemConfig>(entity =>
+            {
+                entity.ToTable("system_configs");
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.Id).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.Value).IsRequired().HasMaxLength(1000);
+                entity.Property(e => e.Type).IsRequired().HasMaxLength(50).HasDefaultValue("string");
+                entity.Property(e => e.Category).IsRequired().HasMaxLength(100).HasDefaultValue("General");
+                entity.Property(e => e.Options).HasMaxLength(1000);
+                
+                // MySQL timestamps
+                entity.Property(e => e.CreatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                
+                // Índices
+                entity.HasIndex(e => e.Category);
+                entity.HasIndex(e => e.Type);
             });
         }
     }

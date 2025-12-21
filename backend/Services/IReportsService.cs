@@ -20,5 +20,9 @@ namespace FlexoAPP.API.Services
         Task<MachineActivityReportDto> GetMachineActivitiesByUserAsync(MachineActivityFilterDto filter);
         Task<MachineActivityReportDto> GetMachineActivitiesFromBackupAsync(string backupId);
         Task<List<UserDto>> GetUsersListAsync();
+        
+        // Métodos de prueba
+        Task<List<object>> GetRecentActivitiesTestAsync();
+        Task<object> GetActivitiesStatsTestAsync();
     }
 }

@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Newtonsoft.Json;
 using flexoAPP.Services;
 using OfficeOpenXml;
+using FlexoAPP.API.Services;
 
 namespace backend.Controllers
 {
@@ -23,15 +24,18 @@ namespace backend.Controllers
         private readonly FlexoAPPDbContext _context;
         private readonly ILogger<MaquinasController> _logger;
         private readonly IMaquinaService _maquinaService;
+        private readonly IActivityLoggerService _activityLogger;
 
         public MaquinasController(
             FlexoAPPDbContext context, 
             ILogger<MaquinasController> logger,
-            IMaquinaService maquinaService)
+            IMaquinaService maquinaService,
+            IActivityLoggerService activityLogger)
         {
             _context = context;
             _logger = logger;
             _maquinaService = maquinaService;
+            _activityLogger = activityLogger;
         }
 
         /// <summary>
@@ -110,6 +114,21 @@ namespace backend.Controllers
 
                 // ===== LOG DE RESULTADOS OBTENIDOS =====
                 _logger.LogInformation($"✅ {maquinas.Count} registros de máquinas encontrados");
+
+                // ✅ Registrar actividad de consulta de máquinas
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "VIEW_MACHINES",
+                        "Consulta de lista de máquinas",
+                        "MACHINES",
+                        $"{{\"count\":{maquinas.Count},\"orderBy\":\"{orderBy ?? "fechaTintaEnMaquina"}\",\"order\":\"{order ?? "desc"}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de consulta de máquinas");
+                }
 
                 return Ok(new
                 {
@@ -285,6 +304,31 @@ namespace backend.Controllers
 
                 // ===== LOG DE OPERACIÓN EXITOSA =====
                 _logger.LogInformation($"✅ Estado de máquina {articulo} actualizado exitosamente de {estadoAnterior} a {request.Estado}");
+
+                // ✅ Registrar actividad de cambio de estado con fecha y hora exacta
+                try
+                {
+                    var timestamp = DateTime.Now;
+                    var detailsJson = $"{{" +
+                        $"\"articulo\":\"{articulo}\"," +
+                        $"\"estadoAnterior\":\"{estadoAnterior}\"," +
+                        $"\"estadoNuevo\":\"{request.Estado}\"," +
+                        $"\"fechaHora\":\"{timestamp:yyyy-MM-dd HH:mm:ss}\"," +
+                        $"\"observaciones\":\"{request.Observaciones?.Replace("\"", "\\\"")}\"," +
+                        $"\"usuario\":\"{userName}\"" +
+                        $"}}";
+                    
+                    await _activityLogger.LogActivityAsync(
+                        "UPDATE_MACHINE_STATUS",
+                        $"Cambio de estado de máquina {articulo}: {estadoAnterior} → {request.Estado} a las {timestamp:HH:mm:ss}",
+                        "MACHINES",
+                        detailsJson
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de cambio de estado");
+                }
 
                 // ===== RETORNAR RESPUESTA EXITOSA =====
                 return Ok(new
@@ -1082,6 +1126,249 @@ namespace backend.Controllers
                 });
             }
         } // Fin del método TestDesignLookup
+
+        /// <summary>
+        /// POST: api/maquinas/{articulo}/generate-ff459
+        /// Genera el formato FF459 para una máquina específica
+        /// Registra la fecha y hora de impresión en la tabla Activities
+        /// </summary>
+        /// <param name="articulo">Código del artículo de la máquina</param>
+        /// <returns>Datos del formato FF459 en formato JSON</returns>
+        [HttpPost("{articulo}/generate-ff459")]
+        public async Task<ActionResult<object>> GenerateFF459Format(string articulo)
+        {
+            try
+            {
+                _logger.LogInformation($"📄 Generando formato FF459 para artículo: {articulo}");
+
+                // Obtener información del usuario
+                int userId = 1;
+                string userName = "Sistema";
+                try
+                {
+                    userId = GetCurrentUserId();
+                    userName = GetCurrentUserName();
+                    if (userId == 0)
+                    {
+                        userId = 1;
+                        userName = string.IsNullOrEmpty(userName) ? "Sistema" : userName;
+                    }
+                }
+                catch (Exception userEx)
+                {
+                    _logger.LogWarning(userEx, "⚠️ Error obteniendo información del usuario");
+                }
+
+                // Buscar la máquina en la base de datos
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                using var command = connection.CreateCommand();
+                command.CommandText = @"
+                    SELECT 
+                        articulo, numero_maquina, ot_sap, cliente, referencia, td,
+                        numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
+                        estado, observaciones
+                    FROM maquinas
+                    WHERE articulo = @articulo";
+                command.Parameters.AddWithValue("@articulo", articulo);
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"Máquina con artículo {articulo} no encontrada",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Construir el objeto FF459
+                var ff459Data = new
+                {
+                    articulo = reader.GetString("articulo"),
+                    numeroMaquina = reader.GetInt32("numero_maquina"),
+                    otSap = reader.GetString("ot_sap"),
+                    cliente = reader.GetString("cliente"),
+                    referencia = reader.IsDBNull(reader.GetOrdinal("referencia")) ? null : reader.GetString("referencia"),
+                    td = reader.IsDBNull(reader.GetOrdinal("td")) ? null : reader.GetString("td"),
+                    numeroColores = reader.GetInt32("numero_colores"),
+                    colores = ParseColores(reader.GetString("colores")),
+                    kilos = reader.GetDecimal("kilos"),
+                    fechaTintaEnMaquina = reader.GetDateTime("fecha_tinta_en_maquina"),
+                    sustrato = reader.GetString("sustrato"),
+                    estado = reader.IsDBNull(reader.GetOrdinal("estado")) ? null : reader.GetString("estado"),
+                    observaciones = reader.IsDBNull(reader.GetOrdinal("observaciones")) ? null : reader.GetString("observaciones"),
+                    fechaImpresion = DateTime.Now,
+                    usuarioImpresion = userName,
+                    formatoVersion = "FF459-v1.0"
+                };
+
+                await reader.CloseAsync();
+
+                // ✅ Registrar actividad de impresión del formato FF459
+                try
+                {
+                    var timestamp = DateTime.Now;
+                    var detailsJson = $"{{" +
+                        $"\"articulo\":\"{articulo}\"," +
+                        $"\"numeroMaquina\":{ff459Data.numeroMaquina}," +
+                        $"\"cliente\":\"{ff459Data.cliente}\"," +
+                        $"\"otSap\":\"{ff459Data.otSap}\"," +
+                        $"\"fechaHoraImpresion\":\"{timestamp:yyyy-MM-dd HH:mm:ss}\"," +
+                        $"\"usuario\":\"{userName}\"," +
+                        $"\"formato\":\"FF459\"" +
+                        $"}}";
+
+                    await _activityLogger.LogActivityAsync(
+                        "PRINT_FF459_FORMAT",
+                        $"Impresión de formato FF459 para máquina {articulo} a las {timestamp:HH:mm:ss}",
+                        "MACHINES",
+                        detailsJson
+                    );
+
+                    _logger.LogInformation($"✅ Actividad de impresión FF459 registrada para artículo {articulo}");
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de impresión FF459");
+                }
+
+                _logger.LogInformation($"✅ Formato FF459 generado exitosamente para artículo {articulo}");
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Formato FF459 generado exitosamente",
+                    data = ff459Data,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error generando formato FF459 para artículo {articulo}");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error interno del servidor al generar formato FF459",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// GET: api/maquinas/ff459-history
+        /// Obtiene el historial de impresiones del formato FF459
+        /// </summary>
+        /// <param name="articulo">Filtrar por artículo específico (opcional)</param>
+        /// <param name="startDate">Fecha de inicio (opcional)</param>
+        /// <param name="endDate">Fecha de fin (opcional)</param>
+        /// <returns>Lista de impresiones del formato FF459</returns>
+        [HttpGet("ff459-history")]
+        public async Task<ActionResult<object>> GetFF459History(
+            [FromQuery] string? articulo = null,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null)
+        {
+            try
+            {
+                _logger.LogInformation("📊 Consultando historial de impresiones FF459");
+
+                // Construir consulta SQL con filtros opcionales
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                var query = @"
+                    SELECT 
+                        a.Id,
+                        a.UserId,
+                        a.UserCode,
+                        a.Action,
+                        a.Description,
+                        a.Module,
+                        a.Details,
+                        a.Timestamp,
+                        a.IpAddress
+                    FROM Activities a
+                    WHERE a.Action = 'PRINT_FF459_FORMAT'";
+
+                var parameters = new List<MySqlConnector.MySqlParameter>();
+
+                if (!string.IsNullOrEmpty(articulo))
+                {
+                    query += " AND a.Details LIKE @articulo";
+                    parameters.Add(new MySqlConnector.MySqlParameter("@articulo", $"%\"articulo\":\"{articulo}\"%"));
+                }
+
+                if (startDate.HasValue)
+                {
+                    query += " AND a.Timestamp >= @startDate";
+                    parameters.Add(new MySqlConnector.MySqlParameter("@startDate", startDate.Value));
+                }
+
+                if (endDate.HasValue)
+                {
+                    query += " AND a.Timestamp <= @endDate";
+                    parameters.Add(new MySqlConnector.MySqlParameter("@endDate", endDate.Value));
+                }
+
+                query += " ORDER BY a.Timestamp DESC LIMIT 100";
+
+                using var command = connection.CreateCommand();
+                command.CommandText = query;
+                command.Parameters.AddRange(parameters.ToArray());
+
+                var history = new List<object>();
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    history.Add(new
+                    {
+                        id = reader.GetInt32("Id"),
+                        userId = reader.GetInt32("UserId"),
+                        userCode = reader.IsDBNull(reader.GetOrdinal("UserCode")) ? null : reader.GetString("UserCode"),
+                        action = reader.GetString("Action"),
+                        description = reader.GetString("Description"),
+                        module = reader.GetString("Module"),
+                        details = reader.IsDBNull(reader.GetOrdinal("Details")) ? null : reader.GetString("Details"),
+                        timestamp = reader.GetDateTime("Timestamp"),
+                        ipAddress = reader.IsDBNull(reader.GetOrdinal("IpAddress")) ? null : reader.GetString("IpAddress")
+                    });
+                }
+
+                _logger.LogInformation($"✅ Se encontraron {history.Count} registros de impresión FF459");
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Se encontraron {history.Count} registros de impresión FF459",
+                    data = history,
+                    filters = new
+                    {
+                        articulo = articulo,
+                        startDate = startDate,
+                        endDate = endDate
+                    },
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error consultando historial de impresiones FF459");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error interno del servidor al consultar historial",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
     } // Fin de la clase MaquinasController
 
     /// <summary>

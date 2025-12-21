@@ -13,6 +13,7 @@ import { MatDividerModule } from '@angular/material/divider';        // Líneas 
 // Services - Servicios de la aplicación para lógica de negocio
 import { AuthService } from '../../../core/services/auth.service';   // Servicio de autenticación y gestión de usuarios
 import { LoadingService } from '../../../core/services/loading.service'; // Servicio para manejar estados de carga global
+import { TimeFormatService } from '../../../core/services/time-format.service'; // Servicio de formato de hora
 
 // Environment configuration - Configuración de entorno para URLs y flags de debug
 import { environment } from '../../../../environments/environment';     // Variables de entorno (URLs del API, flags de debug, etc.)
@@ -47,15 +48,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,                         // Servicio de autenticación para gestión de usuarios
     private router: Router,                                   // Router de Angular para navegación entre páginas
-    private loadingService: LoadingService                    // Servicio para manejar estados de carga global
+    private loadingService: LoadingService,                   // Servicio para manejar estados de carga global
+    private timeFormatService: TimeFormatService              // Servicio de formato de hora
   ) {
     // Inicializar el usuario actual después de la inyección de dependencias
     this.currentUser.set(this.authService.getCurrentUser());
   }
 
   ngOnInit(): void {
-    // Actualizar el tiempo cada minuto
-    this.timeSubscription = interval(60000).subscribe(() => {
+    // Actualizar el tiempo cada segundo para mostrar reloj en tiempo real
+    this.timeSubscription = interval(1000).subscribe(() => {
       this.currentTime.set(new Date());
     });
 
@@ -128,10 +130,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Time-based methods
   getCurrentTime(): string {
     const now = this.currentTime();
-    return now.toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    return this.timeFormatService.formatTime(now);
   }
 
   getTimeIcon(): string {

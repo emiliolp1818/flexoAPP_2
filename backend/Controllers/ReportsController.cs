@@ -12,11 +12,16 @@ namespace FlexoAPP.API.Controllers
     {
         private readonly IReportsService _reportsService;
         private readonly ILogger<ReportsController> _logger;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public ReportsController(IReportsService reportsService, ILogger<ReportsController> logger)
+        public ReportsController(
+            IReportsService reportsService, 
+            ILogger<ReportsController> logger,
+            IActivityLoggerService activityLogger)
         {
             _reportsService = reportsService;
             _logger = logger;
+            _activityLogger = activityLogger;
         }
 
         [HttpGet("summary")]
@@ -37,6 +42,22 @@ namespace FlexoAPP.API.Controllers
                 };
 
                 var summary = await _reportsService.GetReportSummaryAsync(filter);
+                
+                // ✅ Registrar actividad de consulta de resumen de reportes
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "VIEW_REPORT_SUMMARY",
+                        "Consulta de resumen de reportes",
+                        "REPORTS",
+                        $"{{\"startDate\":\"{filter.StartDate:yyyy-MM-dd}\",\"endDate\":\"{filter.EndDate:yyyy-MM-dd}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de consulta de resumen");
+                }
+                
                 return Ok(summary);
             }
             catch (Exception ex)
@@ -68,6 +89,22 @@ namespace FlexoAPP.API.Controllers
                 };
 
                 var reports = await _reportsService.GetProductionReportAsync(filter);
+                
+                // ✅ Registrar actividad de consulta de reporte de producción
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "VIEW_PRODUCTION_REPORT",
+                        "Consulta de reporte de producción",
+                        "REPORTS",
+                        $"{{\"startDate\":\"{filter.StartDate:yyyy-MM-dd}\",\"endDate\":\"{filter.EndDate:yyyy-MM-dd}\",\"count\":{reports.Count}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de consulta de reporte de producción");
+                }
+                
                 return Ok(reports);
             }
             catch (Exception ex)
@@ -205,6 +242,21 @@ namespace FlexoAPP.API.Controllers
                 var fileBytes = await _reportsService.ExportToExcelAsync(type, filter);
                 var fileName = $"reporte_{type}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                 
+                // ✅ Registrar actividad de exportación a Excel
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "EXPORT_REPORT_EXCEL",
+                        $"Exportación de reporte a Excel: {type}",
+                        "REPORTS",
+                        $"{{\"reportType\":\"{type}\",\"fileName\":\"{fileName}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de exportación a Excel");
+                }
+                
                 return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception ex)
@@ -238,6 +290,21 @@ namespace FlexoAPP.API.Controllers
 
                 var fileBytes = await _reportsService.ExportToPDFAsync(type, filter);
                 var fileName = $"reporte_{type}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                
+                // ✅ Registrar actividad de exportación a PDF
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "EXPORT_REPORT_PDF",
+                        $"Exportación de reporte a PDF: {type}",
+                        "REPORTS",
+                        $"{{\"reportType\":\"{type}\",\"fileName\":\"{fileName}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de exportación a PDF");
+                }
                 
                 return File(fileBytes, "application/pdf", fileName);
             }
@@ -279,6 +346,21 @@ namespace FlexoAPP.API.Controllers
                 };
 
                 var activities = await _reportsService.GetUserActivitiesAsync(filter);
+
+                // ✅ Registrar actividad de consulta de reporte de actividades
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "VIEW_USER_ACTIVITIES_REPORT",
+                        $"Consulta de actividades del usuario: {userCode}",
+                        "REPORTS",
+                        $"{{\"userCode\":\"{userCode}\",\"startDate\":\"{filter.StartDate:yyyy-MM-dd}\",\"endDate\":\"{filter.EndDate:yyyy-MM-dd}\",\"count\":{activities.Count}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de consulta de reporte");
+                }
 
                 return Ok(new
                 {
@@ -419,6 +501,74 @@ namespace FlexoAPP.API.Controllers
                     success = false,
                     error = "Error interno del servidor",
                     message = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// TEST: Obtener todas las actividades recientes (últimas 50)
+        /// Para verificar que se están registrando correctamente
+        /// </summary>
+        [HttpGet("test/recent-activities")]
+        public async Task<IActionResult> GetRecentActivitiesTest()
+        {
+            try
+            {
+                _logger.LogInformation("🧪 TEST: Consultando actividades recientes");
+
+                var activities = await _reportsService.GetRecentActivitiesTestAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    data = activities,
+                    count = activities.Count,
+                    message = $"Se encontraron {activities.Count} actividades recientes",
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error en test de actividades recientes");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = "Error interno del servidor",
+                    message = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        /// <summary>
+        /// TEST: Obtener estadísticas de la tabla Activities
+        /// </summary>
+        [HttpGet("test/activities-stats")]
+        public async Task<IActionResult> GetActivitiesStatsTest()
+        {
+            try
+            {
+                _logger.LogInformation("🧪 TEST: Consultando estadísticas de Activities");
+
+                var stats = await _reportsService.GetActivitiesStatsTestAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    data = stats,
+                    message = "Estadísticas de Activities obtenidas",
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error en test de estadísticas");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = "Error interno del servidor",
+                    message = ex.Message,
+                    stackTrace = ex.StackTrace
                 });
             }
         }
