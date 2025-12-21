@@ -11,10 +11,14 @@ namespace FlexoAPP.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public UsersController(IAuthService authService)
+        public UsersController(
+            IAuthService authService,
+            IActivityLoggerService activityLogger)
         {
             _authService = authService;
+            _activityLogger = activityLogger;
         }
 
         [HttpGet]
@@ -24,6 +28,22 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var users = await _authService.GetAllUsersAsync();
+                
+                // ✅ Registrar actividad de consulta de usuarios
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "VIEW_USERS",
+                        "Consulta de lista de usuarios",
+                        "SETTINGS",
+                        $"{{\"count\":{users.Count}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    Console.WriteLine($"Error registrando actividad: {logEx.Message}");
+                }
+                
                 return Ok(users);
             }
             catch (Exception ex)
@@ -229,6 +249,21 @@ namespace FlexoAPP.API.Controllers
                 var newUser = await _authService.CreateUserAsync(createUserDto);
                 if (newUser != null)
                 {
+                    // ✅ Registrar actividad de creación de usuario
+                    try
+                    {
+                        await _activityLogger.LogActivityAsync(
+                            "CREATE_USER",
+                            $"Creación de nuevo usuario: {createUserDto.UserCode}",
+                            "SETTINGS",
+                            $"{{\"userCode\":\"{createUserDto.UserCode}\",\"role\":\"{createUserDto.Role}\"}}"
+                        );
+                    }
+                    catch (Exception logEx)
+                    {
+                        Console.WriteLine($"Error registrando actividad: {logEx.Message}");
+                    }
+                    
                     return CreatedAtAction(nameof(GetUserById), new { id = newUser.Id }, newUser);
                 }
                 
@@ -249,6 +284,21 @@ namespace FlexoAPP.API.Controllers
                 var updatedUser = await _authService.UpdateUserProfileAsync(id, updateUserDto);
                 if (updatedUser != null)
                 {
+                    // ✅ Registrar actividad de actualización de usuario
+                    try
+                    {
+                        await _activityLogger.LogActivityAsync(
+                            "UPDATE_USER",
+                            $"Actualización de usuario ID: {id}",
+                            "SETTINGS",
+                            $"{{\"userId\":{id},\"userCode\":\"{updatedUser.UserCode}\"}}"
+                        );
+                    }
+                    catch (Exception logEx)
+                    {
+                        Console.WriteLine($"Error registrando actividad: {logEx.Message}");
+                    }
+                    
                     return Ok(updatedUser);
                 }
                 
@@ -266,9 +316,28 @@ namespace FlexoAPP.API.Controllers
         {
             try
             {
+                // Obtener información del usuario antes de eliminarlo
+                var user = await _authService.GetCurrentUserAsync(id);
+                var userCode = user?.UserCode ?? "unknown";
+                
                 var result = await _authService.DeleteUserAsync(id);
                 if (result)
                 {
+                    // ✅ Registrar actividad de eliminación de usuario
+                    try
+                    {
+                        await _activityLogger.LogActivityAsync(
+                            "DELETE_USER",
+                            $"Eliminación de usuario: {userCode}",
+                            "SETTINGS",
+                            $"{{\"userId\":{id},\"userCode\":\"{userCode}\"}}"
+                        );
+                    }
+                    catch (Exception logEx)
+                    {
+                        Console.WriteLine($"Error registrando actividad: {logEx.Message}");
+                    }
+                    
                     return NoContent();
                 }
                 
@@ -577,6 +646,21 @@ namespace FlexoAPP.API.Controllers
                 if (updatedUser != null)
                 {
                     Console.WriteLine($"✅ Contraseña actualizada exitosamente para el usuario: {user.UserCode}");
+                    
+                    // ✅ Registrar actividad de cambio de contraseña
+                    try
+                    {
+                        await _activityLogger.LogActivityAsync(
+                            "CHANGE_PASSWORD",
+                            "Cambio de contraseña",
+                            "PROFILE",
+                            $"{{\"userId\":{id},\"userCode\":\"{user.UserCode}\"}}"
+                        );
+                    }
+                    catch (Exception logEx)
+                    {
+                        Console.WriteLine($"Error registrando actividad: {logEx.Message}");
+                    }
                     
                     return Ok(new { 
                         success = true,

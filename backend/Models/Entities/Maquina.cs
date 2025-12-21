@@ -17,9 +17,8 @@ namespace FlexoAPP.API.Models.Entities
         /// Campo interno de la base de datos, no se usa en el frontend ni en Excel
         /// Columna: id INT AUTO_INCREMENT PRIMARY KEY
         /// </summary>
-        [Key] // Atributo que indica que este campo es la clave primaria
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Auto-incremental
-        public int Id { get; set; }
+        // Nota: La clave primaria real en la base de datos es `articulo`.
+        // Eliminamos la propiedad `Id` porque el esquema de la BD usa `articulo` como PRIMARY KEY.
 
         /// <summary>
         /// Código del artículo a producir (ej: F204567, F204568)
@@ -150,11 +149,14 @@ namespace FlexoAPP.API.Models.Entities
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // NOTA: Propiedades de navegación comentadas temporalmente para evitar problemas con Entity Framework
-        // [ForeignKey("CreatedBy")]
-        // public virtual User? CreatedByUser { get; set; }
-        // [ForeignKey("UpdatedBy")]
-        // public virtual User? UpdatedByUser { get; set; }
+        // Propiedades de navegación para las relaciones con `User` (creador / actualizador)
+        [ForeignKey("CreatedBy")]
+        [InverseProperty("CreatedMaquinas")]
+        public virtual User? CreatedByUser { get; set; }
+
+        [ForeignKey("UpdatedBy")]
+        [InverseProperty("UpdatedMaquinas")]
+        public virtual User? UpdatedByUser { get; set; }
 
         /// <summary>
         /// Método para obtener los colores como array de strings

@@ -10,11 +10,18 @@ namespace FlexoAPP.API.Controllers
     [Route("api/[controller]")] 
     public class AuthController : ControllerBase 
     { 
+        // Servicio de autenticación para login/logout
         private readonly IAuthService _authService;
+        // Servicio de logging para registrar actividades automáticamente
+        private readonly IActivityLoggerService _activityLogger;
 
-        public AuthController(IAuthService authService)
+        // Constructor con inyección de dependencias
+        public AuthController(
+            IAuthService authService,
+            IActivityLoggerService activityLogger)
         {
             _authService = authService;
+            _activityLogger = activityLogger;
         }
 
         [HttpPost("login")] 
@@ -30,10 +37,46 @@ namespace FlexoAPP.API.Controllers
                     return BadRequest(new { message = "Usuario y contraseña son requeridos" }); 
                 } 
 
+                // Intentar autenticar al usuario
                 var response = await _authService.LoginAsync(loginDto);
                 if (response != null)
                 {
                     Console.WriteLine($"Login successful for {loginDto.UserCode}");
+                    
+                    // ✅ Registrar login exitoso en la tabla Activities
+                    try
+                    {
+                        // Obtener User-Agent del navegador
+                        var userAgent = Request.Headers["User-Agent"].ToString();
+                        var browser = userAgent.Contains("Chrome") ? "Chrome" : 
+                                     userAgent.Contains("Firefox") ? "Firefox" : 
+                                     userAgent.Contains("Safari") ? "Safari" : 
+                                     userAgent.Contains("Edge") ? "Edge" : "Unknown";
+                        
+                        // Obtener IP del cliente
+                        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                        
+                        // Convertir ID de string a int
+                        if (int.TryParse(response.User.Id, out int userId))
+                        {
+                            // Registrar actividad de login
+                            await _activityLogger.LogActivityAsync(
+                                userId,                              // ID del usuario
+                                response.User.UserCode,              // Código del usuario
+                                "LOGIN",                             // Acción realizada
+                                "Inicio de sesión exitoso",          // Descripción
+                                "AUTH",                              // Módulo
+                                $"{{\"browser\":\"{browser}\"}}",    // Detalles en JSON
+                                ipAddress                            // IP del cliente
+                            );
+                        }
+                    }
+                    catch (Exception logEx)
+                    {
+                        // Si falla el logging, no afectar el login
+                        Console.WriteLine($"Error logging activity: {logEx.Message}");
+                    }
+                    
                     return Ok(response);
                 }
                 
@@ -133,9 +176,24 @@ namespace FlexoAPP.API.Controllers
             }
         } 
  
-        [HttpPost("logout")] 
-        public IActionResult Logout() 
-        { 
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout() 
+        {
+            // ✅ Registrar actividad de logout
+            try
+            {
+                await _activityLogger.LogActivityAsync(
+                    "LOGOUT",
+                    "Cierre de sesión",
+                    "AUTH"
+                );
+            }
+            catch (Exception logEx)
+            {
+                Console.WriteLine($"Error registrando actividad de logout: {logEx.Message}");
+            }
+            
             return Ok(new { message = "Sesión cerrada exitosamente" }); 
         }
 

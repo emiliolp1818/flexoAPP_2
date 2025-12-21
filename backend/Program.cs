@@ -327,14 +327,17 @@ try
     builder.Services.AddScoped<IMaquinaRepository, MaquinaRepository>();
     builder.Services.AddScoped<IMaquinaService, MaquinaService>();
 
-    // Reports & Backup Services - Deshabilitado temporalmente (requiere actualización del modelo Maquina)
-    // builder.Services.AddScoped<IReportsService, ReportsService>(); // TODO: Actualizar para usar nuevo modelo Maquina
+    // Reports & Backup Services
+    builder.Services.AddScoped<IReportsService, ReportsService>();
     // builder.Services.AddScoped<IMachineBackupService, MachineBackupService>(); // Deshabilitado temporalmente
 
     // Automatic Backup Service deshabilitado para estabilidad
 
     // Audit & Logging
     builder.Services.AddScoped<FlexoAPP.API.Services.IAuditService, FlexoAPP.API.Services.AuditService>();
+    
+    // Activity Logger - Registro automático de actividades para reportes
+    builder.Services.AddScoped<IActivityLoggerService, ActivityLoggerService>();
 
     // HTTP Context
     builder.Services.AddHttpContextAccessor();

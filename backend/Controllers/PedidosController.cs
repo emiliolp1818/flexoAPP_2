@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using flexoAPP.Services;
 using flexoAPP.Models.DTOs;
 using System.Security.Claims;
+using FlexoAPP.API.Services;
 
 namespace flexoAPP.Controllers
 {
@@ -13,13 +14,16 @@ namespace flexoAPP.Controllers
     {
         private readonly IPedidoService _pedidoService;
         private readonly ILogger<PedidosController> _logger;
+        private readonly IActivityLoggerService _activityLogger;
 
         public PedidosController(
             IPedidoService pedidoService,
-            ILogger<PedidosController> logger)
+            ILogger<PedidosController> logger,
+            IActivityLoggerService activityLogger)
         {
             _pedidoService = pedidoService;
             _logger = logger;
+            _activityLogger = activityLogger;
         }
 
         /// <summary>
@@ -31,6 +35,22 @@ namespace flexoAPP.Controllers
             try
             {
                 var pedidos = await _pedidoService.GetAllAsync();
+                
+                // ✅ Registrar actividad de consulta de pedidos
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "VIEW_ORDERS",
+                        "Consulta de lista de pedidos",
+                        "ORDERS",
+                        $"{{\"count\":{pedidos.Count()}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de consulta de pedidos");
+                }
+                
                 return Ok(new { success = true, data = pedidos });
             }
             catch (Exception ex)
@@ -150,6 +170,21 @@ namespace flexoAPP.Controllers
                 var userId = GetCurrentUserId();
                 var createdPedido = await _pedidoService.CreateAsync(createDto, userId);
 
+                // ✅ Registrar actividad de creación de pedido
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "CREATE_ORDER",
+                        $"Creación de nuevo pedido: {createdPedido.NumeroPedido}",
+                        "ORDERS",
+                        $"{{\"pedidoId\":{createdPedido.Id},\"numeroPedido\":\"{createdPedido.NumeroPedido}\",\"cliente\":\"{createdPedido.Cliente}\",\"machineNumber\":{createdPedido.MachineNumber}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de creación de pedido");
+                }
+
                 return CreatedAtAction(
                     nameof(GetById), 
                     new { id = createdPedido.Id }, 
@@ -221,6 +256,21 @@ namespace flexoAPP.Controllers
 
                 var userId = GetCurrentUserId();
                 var updatedPedido = await _pedidoService.ChangeEstadoAsync(id, changeEstadoDto, userId);
+
+                // ✅ Registrar actividad de cambio de estado de pedido
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "UPDATE_ORDER_STATUS",
+                        $"Cambio de estado de pedido {updatedPedido.NumeroPedido} a {changeEstadoDto.Estado}",
+                        "ORDERS",
+                        $"{{\"pedidoId\":{id},\"numeroPedido\":\"{updatedPedido.NumeroPedido}\",\"nuevoEstado\":\"{changeEstadoDto.Estado}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de cambio de estado de pedido");
+                }
 
                 return Ok(new { success = true, data = updatedPedido });
             }

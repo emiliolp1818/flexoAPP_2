@@ -295,8 +295,8 @@ export class AuthService {
       newPassword
     };
 
-    return this.http.put<{ success: boolean; message: string }>(
-      `${environment.apiUrl}/users/${userId}/change-password`, 
+    return this.http.post<{ success: boolean; message: string }>(
+      `${environment.apiUrl}/auth/change-password`, 
       passwordData
     ).pipe(
       tap(response => {
@@ -304,6 +304,22 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('Error cambiando contraseña:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Obtener actividades del usuario actual
+   * Consulta el historial de actividades desde el backend
+   */
+  getUserActivities(limit: number = 50): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/activities/me?limit=${limit}`).pipe(
+      tap(activities => {
+        console.log(`✅ ${activities.length} actividades obtenidas del servidor`);
+      }),
+      catchError(error => {
+        console.error('❌ Error obteniendo actividades del usuario:', error);
         return throwError(() => error);
       })
     );

@@ -124,12 +124,14 @@ namespace FlexoAPP.API.Models.Entities
         /// Máquinas creadas por este usuario
         /// Relación: User (1) -> Maquinas (N)
         /// </summary>
+        [InverseProperty("CreatedByUser")]
         public virtual ICollection<Maquina> CreatedMaquinas { get; set; } = new List<Maquina>();
         
         /// <summary>
         /// Máquinas actualizadas por este usuario
         /// Relación: User (1) -> Maquinas (N)
         /// </summary>
+        [InverseProperty("UpdatedByUser")]
         public virtual ICollection<Maquina> UpdatedMaquinas { get; set; } = new List<Maquina>();
     }
 }

@@ -11,11 +11,16 @@ namespace FlexoAPP.API.Controllers
     {
         private readonly IDesignService _designService;
         private readonly ILogger<DesignsController> _logger;
+        private readonly IActivityLoggerService _activityLogger;
 
-        public DesignsController(IDesignService designService, ILogger<DesignsController> logger)
+        public DesignsController(
+            IDesignService designService, 
+            ILogger<DesignsController> logger,
+            IActivityLoggerService activityLogger)
         {
             _designService = designService;
             _logger = logger;
+            _activityLogger = activityLogger;
         }
 
         /// <summary>
@@ -240,6 +245,22 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogInformation("🚀 Getting all designs with optimizations...");
                 var designs = await _designService.GetAllDesignsAsync();
                 _logger.LogInformation($"✅ Successfully retrieved {designs.Count()} designs");
+                
+                // ✅ Registrar actividad de consulta de diseños
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "VIEW_DESIGNS",
+                        "Consulta de catálogo de diseños",
+                        "DESIGN",
+                        $"{{\"count\":{designs.Count()}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de consulta de diseños");
+                }
+                
                 return Ok(designs);
             }
             catch (Exception ex)
@@ -546,6 +567,22 @@ namespace FlexoAPP.API.Controllers
                 
                 var userId = 1; // Temporary: use default user ID
                 var design = await _designService.CreateDesignAsync(createDto, userId);
+                
+                // ✅ Registrar actividad de creación de diseño
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "CREATE_DESIGN",
+                        $"Creación de nuevo diseño: {createDto.ArticleF}",
+                        "DESIGN",
+                        $"{{\"articleF\":\"{createDto.ArticleF}\",\"client\":\"{createDto.Client}\",\"designId\":{design.Id}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de creación de diseño");
+                }
+                
                 return CreatedAtAction(nameof(GetDesign), new { id = design.Id }, design);
             }
             catch (InvalidOperationException ex)
@@ -575,6 +612,22 @@ namespace FlexoAPP.API.Controllers
             {
                 var userId = 1; // Temporary: use default user ID
                 var design = await _designService.UpdateDesignAsync(id, updateDto, userId);
+                
+                // ✅ Registrar actividad de actualización de diseño
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "UPDATE_DESIGN",
+                        $"Modificación de diseño ID: {id}",
+                        "DESIGN",
+                        $"{{\"designId\":{id},\"articleF\":\"{design.ArticleF}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de actualización de diseño");
+                }
+                
                 return Ok(design);
             }
             catch (KeyNotFoundException ex)
@@ -609,6 +662,22 @@ namespace FlexoAPP.API.Controllers
                 {
                     return NotFound($"Design with ID {id} not found");
                 }
+                
+                // ✅ Registrar actividad de eliminación de diseño
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "DELETE_DESIGN",
+                        $"Eliminación de diseño ID: {id}",
+                        "DESIGN",
+                        $"{{\"designId\":{id}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de eliminación de diseño");
+                }
+                
                 return NoContent();
             }
             catch (Exception ex)

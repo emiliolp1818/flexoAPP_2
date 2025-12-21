@@ -18,7 +18,8 @@
         <!-- Welcome Section -->
         <div class="welcome-section">
             <div class="time-indicator">
-                <mat-icon class="time-icon">{{ getTimeIcon() }}</mat-icon>
+                <!-- Use explicit fontSet to prefer classic Material Icons for ligatures -->
+                <mat-icon class="time-icon" fontSet="material-icons">{{ getTimeIcon() }}</mat-icon>
                 <span class="time-text">{{ getCurrentTime() }}</span>
             </div>
             <div class="welcome-message">

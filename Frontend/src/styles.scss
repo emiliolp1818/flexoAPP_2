@@ -22,6 +22,11 @@ html {
 // ========================================
 
 // ========================================
+// IMPORTAR SISTEMA DE TEMAS
+// ========================================
+@import 'styles/themes.scss';
+
+// ========================================
 // VARIABLES DE COLOR
 // ========================================
 
@@ -123,6 +128,20 @@ mat-card {
   z-index: 2;
 }
 
+/* Ensure mat-icon uses the Material Icons font as a fallback when the
+   icon font doesn't load or when multiple icon font families are present. */
+mat-icon, .mat-icon {
+  font-family: 'Material Icons', 'Material Icons Outlined', 'Material Symbols Outlined', sans-serif !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
 .mat-mdc-card-title,
 .mat-mdc-card-subtitle,
 .mat-mdc-card-content {
@@ -208,3 +227,78 @@ app-login {
 }
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+// ========================================
+// ESTILOS DE NOTIFICACIONES (SNACKBAR)
+// ========================================
+
+// Notificación de éxito
+.success-snackbar {
+  background-color: #10b981 !important;
+  color: white !important;
+  
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+  
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+// Notificación de error
+.error-snackbar {
+  background-color: #ef4444 !important;
+  color: white !important;
+  
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+  
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+// Notificación de información
+.info-snackbar {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+  
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+// Notificación de advertencia
+.warning-snackbar {
+  background-color: #f59e0b !important;
+  color: white !important;
+  
+  .mat-mdc-snack-bar-label {
+    color: white !important;
+  }
+  
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+// Estilos generales para todas las notificaciones
+.mat-mdc-snack-bar-container {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  
+  .mat-mdc-snack-bar-label {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
+  
+  .mat-mdc-button {
+    font-weight: 600 !important;
+  }
+}

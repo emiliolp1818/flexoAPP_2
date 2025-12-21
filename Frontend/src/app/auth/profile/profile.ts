@@ -153,14 +153,8 @@ export class ProfileComponent implements OnInit {
       this.cleanExpiredActivities();                // Eliminar actividades que han expirado
     }, 60 * 60 * 1000);                            // Intervalo de 1 hora (60 minutos * 60 segundos * 1000 ms)
     
-    /* ===== REGISTRO DE ACTIVIDAD DE ACCESO ===== */
-    // Registrar que el usuario accedió a su perfil para auditoría
-    this.registerActivity(
-      'Acceso al perfil',                          // Nombre de la acción
-      'Usuario accedió a la página de perfil personal',
-      'PROFILE',
-      'ProfileComponent'
-    );
+    // Las actividades se registran automáticamente en el backend
+    // No es necesario registrarlas manualmente desde el frontend
   }
 
   /**
@@ -200,27 +194,49 @@ export class ProfileComponent implements OnInit {
 
   /**
    * Cargar actividad del usuario desde el servidor
-   * En producción, esto consultará la API real de actividades
+   * Consulta la API real de actividades del backend
    */
   loadUserActivity() {
     this.loading.set(true);
     
-    // TODO: Implementar llamada real a la API de actividades
-    // this.activityService.getUserActivities(currentUser.id).subscribe(...)
-    
-    // Por ahora, inicializar con array vacío hasta implementar la API
-    setTimeout(() => {
-      this.userActions.set([]);
-      this.loading.set(false);
-      
-      // Registrar que se accedió a la sección de actividades
-      this.registerActivity(
-        'Consulta de actividades',
-        'Usuario consultó su historial de actividades',
-        'PROFILE',
-        'ProfileComponent'
-      );
-    }, 500);
+    // Llamar al endpoint de actividades del usuario actual
+    this.authService.getUserActivities().subscribe({
+      next: (activities: any[]) => {
+        // Mapear las actividades del backend al formato del componente
+        const mappedActivities: UserAction[] = activities.map(activity => ({
+          id: activity.id.toString(),
+          userId: activity.userId.toString(),
+          userCode: activity.userCode || '',
+          action: activity.action,
+          description: activity.description,
+          module: activity.module,
+          component: 'Backend',
+          timestamp: new Date(activity.timestamp),
+          expiryDate: new Date(activity.expirationDate),
+          daysRemaining: activity.daysRemaining,
+          isExpiringSoon: activity.isExpiringSoon,
+          metadata: activity.details ? JSON.parse(activity.details) : null
+        }));
+        
+        this.userActions.set(mappedActivities);
+        this.loading.set(false);
+        
+        console.log(`✅ ${mappedActivities.length} actividades cargadas desde el servidor`);
+        
+        // NO registrar actividad de consulta aquí para evitar bucles infinitos
+      },
+      error: (error) => {
+        console.error('❌ Error cargando actividades:', error);
+        this.userActions.set([]);
+        this.loading.set(false);
+        
+        // Mostrar mensaje de error al usuario
+        this.snackBar.open('Error al cargar el historial de actividades', 'Cerrar', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    });
   }
 
   /**
@@ -231,47 +247,14 @@ export class ProfileComponent implements OnInit {
   }
 
   /**
-   * Registrar nueva actividad
+   * Registrar nueva actividad en el backend
+   * Las actividades se registran automáticamente en el backend mediante ActivityLoggerService
+   * Este método ya no es necesario porque el backend registra automáticamente
    */
-  registerActivity(action: string, description: string, module: string, component: string = 'ProfileComponent', metadata?: any) {
-    const currentUser = this.currentUser();
-    if (!currentUser) return;
-
-    const newActivity: UserAction = {
-      id: Date.now().toString(),
-      userId: currentUser.id,
-      userCode: currentUser.userCode,
-      action,
-      description,
-      module,
-      component,
-      timestamp: new Date(),
-      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
-      daysRemaining: 30,
-      isExpiringSoon: false,
-      metadata
-    };
-
-    // Agregar a la lista actual
-    const currentActions = this.userActions();
-    const updatedActions = [newActivity, ...currentActions];
-    this.userActions.set(updatedActions);
-    
-
-
-    // Simular guardado en base de datos
-    this.saveActivityToDatabase(newActivity);
-  }
-
-  /**
-   * Guardar actividad en base de datos (simulado)
-   */
-  private saveActivityToDatabase(activity: UserAction) {
-    // Simular llamada al backend para guardar en base de datos
-    console.log('💾 Guardando actividad en base de datos:', activity);
-    
-    // En implementación real, sería algo como:
-    // this.http.post('/api/activities', activity).subscribe();
+  private registerActivity(action: string, description: string, module: string, component: string = 'ProfileComponent', metadata?: any) {
+    // Las actividades ahora se registran automáticamente en el backend
+    // No es necesario registrarlas manualmente desde el frontend
+    // El backend usa ActivityLoggerService para registrar todas las acciones
   }
 
   /**
@@ -338,14 +321,8 @@ export class ProfileComponent implements OnInit {
         // Actualizar el usuario en el componente
         this.currentUser.set(updatedUser);
         
-        // Registrar actividad de actualización
-        this.registerActivity(
-          'Actualización de perfil',
-          `Información personal actualizada - Campos: ${changedFields.join(', ')}`,
-          'PROFILE',
-          'ProfileComponent',
-          { changedFields, timestamp: new Date() }
-        );
+        // La actividad se registra automáticamente en el backend
+        // No es necesario registrarla manualmente desde el frontend
         
         // Desactivar indicador de carga
         this.loading.set(false);
@@ -418,14 +395,8 @@ export class ProfileComponent implements OnInit {
       formValue.newPassword
     ).subscribe({
       next: (response) => {
-        // Registrar actividad de cambio de contraseña exitoso
-        this.registerActivity(
-          'Cambio de contraseña', 
-          'Contraseña actualizada exitosamente en la base de datos', 
-          'SECURITY',
-          'ProfileComponent',
-          { timestamp: new Date() }
-        );
+        // La actividad se registra automáticamente en el backend
+        // No es necesario registrarla manualmente desde el frontend
         
         // Limpiar el formulario
         this.passwordForm.reset();
@@ -733,14 +704,8 @@ export class ProfileComponent implements OnInit {
         // Actualizar el usuario en el componente
         this.currentUser.set(updatedUser);
         
-        // Registrar actividad de actualización de foto
-        this.registerActivity(
-          'Actualización de foto de perfil',
-          'Imagen de perfil actualizada exitosamente en la base de datos',
-          'PROFILE',
-          'ProfileComponent',
-          { action: 'upload', fileSize }
-        );
+        // La actividad se registra automáticamente en el backend
+        // No es necesario registrarla manualmente desde el frontend
         
         // Limpiar el archivo seleccionado y el preview
         this.selectedFile = null;
@@ -806,14 +771,8 @@ export class ProfileComponent implements OnInit {
         // Desactivar indicador de carga
         this.uploadingPhoto.set(false);
 
-        // Registrar actividad de eliminación de foto
-        this.registerActivity(
-          'Eliminación de foto de perfil',
-          'Imagen de perfil eliminada por el usuario de la base de datos',
-          'PROFILE',
-          'ProfileComponent',
-          { action: 'delete' }
-        );
+        // La actividad se registra automáticamente en el backend
+        // No es necesario registrarla manualmente desde el frontend
 
         // Mostrar mensaje de éxito
         this.snackBar.open('Foto de perfil eliminada correctamente', 'Cerrar', {
