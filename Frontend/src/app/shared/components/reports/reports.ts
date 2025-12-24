@@ -29,6 +29,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { AuthService, User } from '../../../core/services/auth.service'; // AuthService: Servicio de autenticación | User: Interfaz de usuario
 import { HttpClient } from '@angular/common/http';                // Cliente HTTP para llamadas a la API REST
 import { environment } from '../../../../environments/environment'; // Configuración de entorno (URLs, API keys, etc.)
+import { TimeFormatService } from '../../../core/services/time-format.service'; // Servicio de formato de hora y fecha
 
 // ============================================================================
 // INTERFACES - Definición de tipos de datos para el componente
@@ -155,7 +156,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
   // ============================================================================
   // CONSTRUCTOR - Inicialización de dependencias y formularios
   // ============================================================================
-  
+
   /**
    * Constructor del componente
    * Angular inyecta automáticamente las dependencias declaradas en los parámetros
@@ -169,7 +170,8 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
     private fb: FormBuilder,           // Inyección del constructor de formularios
     private authService: AuthService,  // Inyección del servicio de autenticación
     private snackBar: MatSnackBar,     // Inyección del servicio de notificaciones
-    private http: HttpClient           // Inyección del cliente HTTP
+    private http: HttpClient,          // Inyección del cliente HTTP
+    public timeFormatService: TimeFormatService // Inyección del servicio de formato
   ) {
     // Inicialización del formulario de búsqueda de actividades de usuario
     // fb.group() crea un FormGroup con los controles especificados
@@ -184,7 +186,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
   // ============================================================================
   // LIFECYCLE HOOKS - Métodos del ciclo de vida del componente
   // ============================================================================
-  
+
   /**
    * ngOnInit - Hook de inicialización del componente
    * Se ejecuta una vez después de que Angular inicializa las propiedades del componente
@@ -197,7 +199,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
   // ============================================================================
   // MÉTODOS DE CARGA DE DATOS - Obtención de información desde el backend
   // ============================================================================
-  
+
   /**
    * loadAvailableUsers - Método eliminado
    * 
@@ -216,7 +218,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
   // ============================================================================
   // MÉTODOS DE BÚSQUEDA - Consulta de actividades y reportes
   // ============================================================================
-  
+
   /**
    * searchUserActivities - Buscar actividades por código de usuario
    * 
@@ -251,7 +253,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
     // Hacer una llamada a la API para obtener la información completa del usuario
     // Esto valida que el usuario existe y obtiene sus datos completos (nombre, foto, email, etc.)
     console.log('🔍 Buscando información del usuario:', searchUserCode);
-    
+
     // Llamada a la API para obtener el usuario por código
     // GET /api/users/code/{userCode} - Endpoint que busca usuario por código
     this.http.get<User>(`${environment.apiUrl}/users/code/${searchUserCode}`).subscribe({
@@ -259,7 +261,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
       next: (user) => {
         // Usuario encontrado exitosamente en la base de datos
         console.log('✅ Usuario encontrado en la BD:', user);
-        
+
         // Continuar con la búsqueda de actividades usando los datos reales del usuario
         this.fetchUserActivities(user, formValue);
       },
@@ -267,14 +269,14 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
       error: (error) => {
         // Desactivar indicador de carga
         this.loading.set(false);
-        
+
         // Determinar el mensaje de error según el código de estado HTTP
         let errorMessage = `Usuario "${searchUserCode}" no encontrado`;
-        
+
         // Si el error es 404, el usuario no existe
         if (error.status === 404) {
           errorMessage = `Usuario "${searchUserCode}" no existe en la base de datos`;
-        } 
+        }
         // Si el error es 500, hay un problema en el servidor
         else if (error.status === 500) {
           errorMessage = 'Error del servidor al buscar el usuario';
@@ -283,10 +285,10 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
         else if (error.status) {
           errorMessage = `Error ${error.status}: ${error.statusText}`;
         }
-        
+
         // Mostrar notificación de error al usuario
         this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
-        
+
         // Registrar error en consola para debugging
         console.error('❌ Error buscando usuario:', error);
       }
@@ -298,7 +300,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
   // ============================================================================
   // MÉTODOS DE PROCESAMIENTO DE DATOS - Cálculos y transformaciones
   // ============================================================================
-  
+
   /**
    * calculateModuleBreakdown - Calcular desglose de actividades por módulo
    * 
@@ -313,7 +315,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
    */
   private calculateModuleBreakdown(activities: UserAction[]): { [key: string]: number } {
     const breakdown: { [key: string]: number } = {};  // Objeto para almacenar el conteo por módulo
-    
+
     // Iterar sobre cada actividad y contar por módulo
     activities.forEach(activity => {
       // Si el módulo ya existe en breakdown, incrementar su contador
@@ -339,25 +341,25 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
     // endDate: Fecha de fin del rango de búsqueda (formato ISO)
     // module: Módulo específico a filtrar (opcional)
     const params: any = {};
-    
+
     // Si hay fecha de inicio, agregarla a los parámetros
     if (formValue.startDate) {
       params.startDate = formValue.startDate.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
     }
-    
+
     // Si hay fecha de fin, agregarla a los parámetros
     if (formValue.endDate) {
       params.endDate = formValue.endDate.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
     }
-    
+
     // Si hay módulo seleccionado y no es 'ALL', agregarlo a los parámetros
     if (formValue.module && formValue.module !== 'ALL') {
       params.module = formValue.module;
     }
-    
+
     // Registrar en consola los parámetros de búsqueda
     console.log('📊 Parámetros de búsqueda:', params);
-    
+
     // Llamada a la API para obtener las actividades del usuario
     // GET /api/reports/user-activities/{userCode}?startDate=...&endDate=...&module=...
     this.http.get<any>(`${environment.apiUrl}/reports/user-activities/${user.userCode}`, { params }).subscribe({
@@ -365,14 +367,14 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
       next: (response) => {
         // Registrar respuesta en consola
         console.log('📦 Actividades recibidas:', response);
-        
+
         // Extraer las actividades de la respuesta
         // La respuesta puede ser un array directo o un objeto con propiedad 'data'
         const activities = Array.isArray(response) ? response : (response.data || []);
-        
+
         // Registrar cantidad de actividades encontradas
         console.log('✅ Total de actividades:', activities.length);
-        
+
         // Construir objeto UserReport con los datos reales
         const report: UserReport = {
           user,                                              // Usuario encontrado en la BD
@@ -384,13 +386,13 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
             end: formValue.endDate || new Date()            // Fecha fin
           }
         };
-        
+
         // Actualizar señal con el reporte completo
         this.searchResults.set(report);
-        
+
         // Desactivar indicador de carga
         this.loading.set(false);
-        
+
         // Mostrar notificación de éxito
         this.snackBar.open(
           `Se encontraron ${activities.length} actividades para ${user.userCode}`,
@@ -402,14 +404,14 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
       error: (error) => {
         // Desactivar indicador de carga
         this.loading.set(false);
-        
+
         // Mostrar notificación de error
         this.snackBar.open(
           'Error al buscar actividades del usuario',
           'Cerrar',
           { duration: 5000 }
         );
-        
+
         // Registrar error en consola
         console.error('❌ Error buscando actividades:', error);
       }
@@ -419,7 +421,7 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
   // ============================================================================
   // MÉTODOS DE EXPORTACIÓN - Generación de archivos descargables
   // ============================================================================
-  
+
   /**
    * exportToPDF - Exportar reporte de actividades a archivo PDF
    * 
@@ -449,15 +451,15 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
       try {
         // Generar contenido del PDF en formato texto
         const pdfContent = this.generatePDFContent(report);
-        
+
         // Crear Blob (Binary Large Object) con el contenido del PDF
-        const blob = new Blob([pdfContent], { 
+        const blob = new Blob([pdfContent], {
           type: 'application/pdf;charset=utf-8'  // Tipo MIME para PDF con codificación UTF-8
         });
-        
+
         // Generar nombre de archivo único: reporte_actividades_admin_2024-11-10.pdf
         const fileName = `reporte_actividades_${report.user.userCode}_${new Date().toISOString().split('T')[0]}.pdf`;
-        
+
         // Compatibilidad con Internet Explorer y Edge legacy
         if (window.navigator && (window.navigator as any).msSaveOrOpenBlob) {
           (window.navigator as any).msSaveOrOpenBlob(blob, fileName);  // Método específico de IE/Edge
@@ -465,14 +467,14 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
           // Método estándar para navegadores modernos (Chrome, Firefox, Safari, Edge Chromium)
           const link = document.createElement('a');  // Crear elemento <a> temporal
           const url = URL.createObjectURL(blob);     // Crear URL temporal del blob
-          
+
           link.href = url;                    // Asignar URL al href del link
           link.download = fileName;           // Asignar nombre de archivo para descarga
           link.style.display = 'none';        // Ocultar el link (no visible en la página)
-          
+
           document.body.appendChild(link);    // Agregar link al DOM
           link.click();                       // Simular click para iniciar descarga
-          
+
           // Limpiar recursos después de 100ms
           setTimeout(() => {
             document.body.removeChild(link);  // Remover link del DOM
@@ -528,7 +530,7 @@ Código: ${report.user.userCode}
 Email: ${report.user.email}
 Rol: ${report.user.role}
 
-Período: ${report.dateRange.start.toLocaleDateString()} - ${report.dateRange.end.toLocaleDateString()}
+Período: ${this.timeFormatService.formatDate(report.dateRange.start)} - ${this.timeFormatService.formatDate(report.dateRange.end)}
 Total de actividades: ${report.totalActivities}
 
 DESGLOSE POR MÓDULO:
@@ -537,13 +539,13 @@ ${Object.entries(report.moduleBreakdown).map(([module, count]) => `${module}: ${
 DETALLE DE ACTIVIDADES:
 ${report.activities.map((activity, index) => `
 ${index + 1}. ${activity.action}
-   Fecha: ${activity.timestamp.toLocaleString()}
+   Fecha: ${this.timeFormatService.formatDate(new Date(activity.timestamp))} ${this.timeFormatService.formatTime(new Date(activity.timestamp))}
    Módulo: ${activity.module}
    Descripción: ${activity.description}
    Componente: ${activity.component}
 `).join('\n')}
 
-Reporte generado el: ${new Date().toLocaleString()}
+Reporte generado el: ${this.timeFormatService.formatDate(new Date())} ${this.timeFormatService.formatTime(new Date())}
 Sistema FlexoAPP - Gestión Flexográfica
     `;
   }
@@ -551,7 +553,7 @@ Sistema FlexoAPP - Gestión Flexográfica
   // ============================================================================
   // MÉTODOS DE UTILIDAD - Funciones auxiliares y helpers
   // ============================================================================
-  
+
   /**
    * clearResults - Limpiar resultados de búsqueda y resetear formulario
    * 
@@ -746,7 +748,7 @@ Sistema FlexoAPP - Gestión Flexográfica
     // Nota: environment.apiUrl ya incluye '/api', así que quitamos '/api' si viene en la ruta
     const cleanPath = profileImage.startsWith('/api/') ? profileImage.substring(4) : profileImage;
     const separator = cleanPath.startsWith('/') ? '' : '/';
-    
+
     return `${environment.apiUrl}${separator}${cleanPath}`;
   }
 

@@ -10,7 +10,7 @@
             <div class="logo-container" (click)="navigateToHome()">
                 <div class="logo-text-container">
                     <h1 class="logo-text">Flexo Spring</h1>
-                    <span class="logo-subtitle">Sistema Flexográfico</span>
+                    <span class="logo-subtitle">Flexo System</span>
                 </div>
             </div>
         </div>
@@ -34,7 +34,7 @@
             <div class="status-section">
                 <div class="status-indicator" [class.loading]="isLoading()">
                     <div class="led-indicator" [class.loading]="isLoading()"></div>
-                    <span class="status-text">En línea</span>
+                    <span class="status-text">{{ languageService.translate('common.online') || 'En línea' }}</span>
                 </div>
                 <div class="user-role-badge">
                     <span class="role-text">{{ getRoleDisplayName(user.role) }}</span>
@@ -46,22 +46,13 @@
                 <!-- Contenedor del avatar con la misma clase que settings -->
                 <div class="user-avatar">
                     <!-- Imagen de perfil - SOLO profileImage (base64 o URL) -->
-                    <img 
-                        *ngIf="hasProfileImage(user)" 
-                        [src]="getProfileImageUrl(user.profileImage || '')" 
-                        [attr.data-original-src]="user.profileImage"
-                        [attr.data-user-code]="user.userCode"
-                        [alt]="user.firstName + ' ' + user.lastName"
-                        class="profile-image"
-                        (load)="onImageLoad($event)"
-                        (loadstart)="onImageLoadStart($event)"
-                        (error)="onImageError($event)"
-                        loading="lazy"
+                    <img *ngIf="hasProfileImage(user)" [src]="getProfileImageUrl(user.profileImage || '')"
+                        [attr.data-original-src]="user.profileImage" [attr.data-user-code]="user.userCode"
+                        [alt]="user.firstName + ' ' + user.lastName" class="profile-image" (load)="onImageLoad($event)"
+                        (loadstart)="onImageLoadStart($event)" (error)="onImageError($event)" loading="lazy"
                         decoding="async">
                     <!-- Avatar por defecto con iniciales - EXACTAMENTE IGUAL QUE SETTINGS -->
-                    <div 
-                        *ngIf="!hasProfileImage(user)" 
-                        class="default-avatar"
+                    <div *ngIf="!hasProfileImage(user)" class="default-avatar"
                         [style.--avatar-color]="getAvatarColor(user.firstName)"
                         [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
                         [title]="user.firstName + ' ' + user.lastName + ' (Sin foto de perfil)'">
@@ -78,22 +69,13 @@
                         <!-- Avatar en el menú - EXACTAMENTE IGUAL QUE SETTINGS -->
                         <div class="user-avatar">
                             <!-- Imagen de perfil en menú - SOLO profileImage (base64 o URL) -->
-                            <img 
-                                *ngIf="hasProfileImage(user)" 
-                                [src]="getProfileImageUrl(user.profileImage || '')" 
-                                [attr.data-original-src]="user.profileImage"
-                                [attr.data-user-code]="user.userCode"
-                                [alt]="user.firstName + ' ' + user.lastName"
-                                class="profile-image"
-                                (load)="onImageLoad($event)"
-                                (loadstart)="onImageLoadStart($event)"
-                                (error)="onImageError($event)"
-                                loading="lazy"
-                                decoding="async">
+                            <img *ngIf="hasProfileImage(user)" [src]="getProfileImageUrl(user.profileImage || '')"
+                                [attr.data-original-src]="user.profileImage" [attr.data-user-code]="user.userCode"
+                                [alt]="user.firstName + ' ' + user.lastName" class="profile-image"
+                                (load)="onImageLoad($event)" (loadstart)="onImageLoadStart($event)"
+                                (error)="onImageError($event)" loading="lazy" decoding="async">
                             <!-- Avatar por defecto con iniciales en menú -->
-                            <div 
-                                *ngIf="!hasProfileImage(user)" 
-                                class="default-avatar"
+                            <div *ngIf="!hasProfileImage(user)" class="default-avatar"
                                 [style.--avatar-color]="getAvatarColor(user.firstName)"
                                 [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
                                 [title]="user.firstName + ' ' + user.lastName + ' (Sin foto de perfil)'">
@@ -113,7 +95,7 @@
                 <!-- UPDATED MENU - VERSION 2.0 -->
                 <button mat-menu-item (click)="onProfile()">
                     <mat-icon>person</mat-icon>
-                    <span>MI PERFIL</span>
+                    <span>{{ languageService.translate('nav.profile') || 'MI PERFIL' }}</span>
                 </button>
 
                 <mat-divider></mat-divider>
@@ -121,7 +103,7 @@
                 <!-- ONLY Logout Option -->
                 <button mat-menu-item (click)="onLogout()">
                     <mat-icon>logout</mat-icon>
-                    <span>Cerrar Sesión</span>
+                    <span>{{ languageService.translate('nav.logout') || 'Cerrar Sesión' }}</span>
                 </button>
             </mat-menu>
         </div>

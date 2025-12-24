@@ -58,6 +58,10 @@ namespace FlexoAPP.API.Services
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
             
+            // ✅ Actualizar fecha de último acceso
+            user.LastLogin = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
+            
             return new LoginResponseDto
             {
                 Token = token,
@@ -286,7 +290,8 @@ namespace FlexoAPP.API.Services
                 ProfileImage = user.ProfileImage,  // Puede contener base64 o URL de archivo
                 Phone = user.Phone,
                 IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                LastLogin = user.LastLogin
             };
         }
 

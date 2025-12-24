@@ -9,9 +9,15 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [2.2.0] - 2025-12-21
 
-### 🧹 Limpieza y Reorganización Completa del Backend
+### 🧹 Limpieza y Reorganización Completa del Backend y Frontend
 
 #### Added (Agregado)
+- **Ajustes y Configuraciones Aplicables**
+  - Implementación funcional de todos los ajustes en la pestaña "Ajustes" (Tema, Idioma, Moneda, Zona Horaria, Formatos).
+  - Aplicación inmediata de cambios sin necesidad de recargar la página.
+  - Sincronización global de formatos de fecha y hora en el sistema y reportes.
+  - Nuevo soporte para moneda personalizada y zona horaria en el backend y frontend.
+
 - **Documentación completa del proyecto**
   - `ANALISIS_PROYECTO_FLEXOAPP.txt` - Análisis técnico completo del sistema
   - `Database/README.md` - Documentación principal de scripts de base de datos

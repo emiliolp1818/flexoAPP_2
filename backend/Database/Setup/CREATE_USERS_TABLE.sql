@@ -35,6 +35,7 @@ CREATE TABLE users (
     IsActive TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Usuario activo (1) o inactivo (0)',
     CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Fecha de creación',
     UpdatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Fecha de última actualización',
+    LastLogin DATETIME(6) NULL COMMENT 'Fecha de último acceso',
     
     -- Índices para mejorar rendimiento
     INDEX idx_usercode (UserCode),

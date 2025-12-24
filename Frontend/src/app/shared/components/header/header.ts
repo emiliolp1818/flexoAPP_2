@@ -14,6 +14,7 @@ import { MatDividerModule } from '@angular/material/divider';        // Líneas 
 import { AuthService } from '../../../core/services/auth.service';   // Servicio de autenticación y gestión de usuarios
 import { LoadingService } from '../../../core/services/loading.service'; // Servicio para manejar estados de carga global
 import { TimeFormatService } from '../../../core/services/time-format.service'; // Servicio de formato de hora
+import { LanguageService } from '../../../core/services/language.service'; // Servicio de idiomas
 
 // Environment configuration - Configuración de entorno para URLs y flags de debug
 import { environment } from '../../../../environments/environment';     // Variables de entorno (URLs del API, flags de debug, etc.)
@@ -39,7 +40,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   currentUser = signal<any>(null);                            // Usuario actualmente autenticado
   currentTime = signal(new Date());                           // Tiempo actual para mostrar en el header
   isLoading = signal(false);                                  // Estado de carga para activar LED parpadeante
-  
+
   // Suscripciones para limpieza de memoria
   private timeSubscription?: Subscription;                    // Suscripción para actualización de tiempo cada minuto
   private loadingSubscription?: Subscription;                 // Suscripción para estado de carga global
@@ -49,7 +50,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private authService: AuthService,                         // Servicio de autenticación para gestión de usuarios
     private router: Router,                                   // Router de Angular para navegación entre páginas
     private loadingService: LoadingService,                   // Servicio para manejar estados de carga global
-    private timeFormatService: TimeFormatService              // Servicio de formato de hora
+    private timeFormatService: TimeFormatService,             // Servicio de formato de hora
+    public languageService: LanguageService                   // Servicio de idiomas
   ) {
     // Inicializar el usuario actual después de la inyección de dependencias
     this.currentUser.set(this.authService.getCurrentUser());
@@ -64,12 +66,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Actualizar usuario actual
     this.authService.currentUser$.subscribe(user => {
       this.currentUser.set(user);
-      
+
       // Log de diagnóstico para verificar datos del usuario en el header
       if (environment.enableDebugMode && user) {
         console.group('🔍 HEADER - Usuario actualizado');
         console.log('👤 Usuario:', user.userCode);
-        console.log('📸 profileImage:', (user as any).profileImage ? 
+        console.log('📸 profileImage:', (user as any).profileImage ?
           ((user as any).profileImage.substring(0, 50) + '...') : 'No definido');
         console.log('✅ hasProfileImage:', this.hasProfileImage(user));
         if (this.hasProfileImage(user)) {
@@ -118,11 +120,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   getRoleDisplayName(role: string): string {
+    const isSpanish = this.languageService.getLanguage() === 'es';
     const roleMap: { [key: string]: string } = {
-      'Admin': 'Administrador',
-      'Supervisor': 'Supervisor',
-      'Operator': 'Operador',
-      'User': 'Usuario'
+      'Admin': isSpanish ? 'Administrador' : 'Administrator',
+      'Supervisor': isSpanish ? 'Supervisor' : 'Supervisor',
+      'Operator': isSpanish ? 'Operador' : 'Operator',
+      'User': isSpanish ? 'Usuario' : 'User'
     };
     return roleMap[role] || role;
   }
@@ -143,19 +146,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   getTimeBasedGreeting(): string {
     const hour = this.currentTime().getHours();
-    if (hour >= 6 && hour < 12) return 'Buenos días';
-    if (hour >= 12 && hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
+    const isSpanish = this.languageService.getLanguage() === 'es';
+
+    if (hour >= 6 && hour < 12) return isSpanish ? 'Buenos días' : 'Good morning';
+    if (hour >= 12 && hour < 18) return isSpanish ? 'Buenas tardes' : 'Good afternoon';
+    return isSpanish ? 'Buenas noches' : 'Good evening';
   }
 
   getTimeBasedMessage(): string {
     const hour = this.currentTime().getHours();
-    if (hour >= 6 && hour < 9) return 'Que tengas un excelente inicio de día';
-    if (hour >= 9 && hour < 12) return 'Esperamos que tengas una mañana productiva';
-    if (hour >= 12 && hour < 14) return 'Es hora de almorzar, ¡disfruta tu descanso!';
-    if (hour >= 14 && hour < 18) return 'Que tengas una tarde exitosa';
-    if (hour >= 18 && hour < 22) return 'Que disfrutes tu tarde';
-    return 'Que tengas una buena noche';
+    const isSpanish = this.languageService.getLanguage() === 'es';
+
+    if (hour >= 6 && hour < 9) return isSpanish ? 'Que tengas un excelente inicio de día' : 'Have a great start to your day';
+    if (hour >= 9 && hour < 12) return isSpanish ? 'Esperamos que tengas una mañana productiva' : 'We hope you have a productive morning';
+    if (hour >= 12 && hour < 14) return isSpanish ? 'Es hora de almorzar, ¡disfruta tu descanso!' : 'It\'s lunchtime, enjoy your break!';
+    if (hour >= 14 && hour < 18) return isSpanish ? 'Que tengas una tarde exitosa' : 'Have a successful afternoon';
+    if (hour >= 18 && hour < 22) return isSpanish ? 'Que disfrutes tu tarde' : 'Enjoy your evening';
+    return isSpanish ? 'Que tengas una buena noche' : 'Have a good night';
   }
 
   /**
@@ -169,31 +176,31 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (!profileImageUrl || profileImageUrl.trim() === '' || profileImageUrl === 'null' || profileImageUrl === 'undefined') {
       return '';
     }
-    
+
     // Si es una imagen base64, devolverla directamente (PRIORIDAD MÁXIMA - IGUAL QUE SETTINGS)
     if (profileImageUrl.startsWith('data:image/')) {
       return profileImageUrl;
     }
-    
+
     // Si ya es una URL completa (http/https), devolverla tal como está
     if (profileImageUrl.startsWith('http')) {
       return profileImageUrl;
     }
-    
+
     // Si es una ruta relativa, construir la URL completa
     // Usar imageBaseUrl del environment si está disponible, sino usar apiUrl sin /api
     const baseUrl = (environment as any).imageBaseUrl || environment.apiUrl.replace('/api', '');
-    
+
     // Asegurar que la ruta comience con /
     const imagePath = profileImageUrl.startsWith('/') ? profileImageUrl : `/${profileImageUrl}`;
-    
+
     const fullUrl = `${baseUrl}${imagePath}`;
-    
+
     // Log solo en modo debug para diagnosticar problemas
     if (environment.enableDebugMode) {
       console.log(`🖼️ Header - Imagen procesada: "${profileImageUrl}" → "${fullUrl}"`);
     }
-    
+
     return fullUrl;
   }
 
@@ -203,10 +210,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
    * profileImage puede contener: base64 (data:image/...) o URL (/uploads/profiles/...)
    */
   hasProfileImage(user: any): boolean {
-    return !!(user?.profileImage && 
-             user.profileImage.trim() !== '' && 
-             user.profileImage !== 'null' && 
-             user.profileImage !== 'undefined');
+    return !!(user?.profileImage &&
+      user.profileImage.trim() !== '' &&
+      user.profileImage !== 'null' &&
+      user.profileImage !== 'undefined');
   }
 
   /**
@@ -217,16 +224,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const imgElement = event.target;                    // Elemento img que falló
     const avatarContainer = imgElement.closest('.user-avatar'); // Contenedor del avatar (CORREGIDO: .user-avatar en lugar de .user-avatar-container)
     const userCode = imgElement.getAttribute('data-user-code'); // Código del usuario
-    
+
     // Marcar el avatar como error para aplicar estilos CSS apropiados
     if (avatarContainer) {
       avatarContainer.classList.add('error');           // Agregar clase de error
       avatarContainer.classList.remove('loading', 'loaded'); // Remover estados de carga
     }
-    
+
     // Ocultar la imagen que falló para mostrar el ícono por defecto
     imgElement.style.display = 'none';
-    
+
     // Diagnóstico detallado del error solo en modo debug
     if (environment.enableDebugMode) {
       console.group('❌ ERROR DE IMAGEN DE PERFIL EN HEADER');
@@ -236,10 +243,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       console.log('📊 Dimensiones esperadas:', `${imgElement.width}x${imgElement.height}`);
       console.log('🌐 Estado de red:', navigator.onLine ? 'Online' : 'Offline');
       console.log('💡 Solución: Mostrando avatar por defecto');
-      
+
       // Intentar diagnosticar el tipo de error
       this.diagnoseImageError(imgElement.src);
-      
+
       console.groupEnd();
     }
   }
@@ -251,21 +258,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private async diagnoseImageError(imageUrl: string) {
     try {
       // Test de conectividad a la URL de la imagen usando HEAD request
-      const response = await fetch(imageUrl, { 
+      const response = await fetch(imageUrl, {
         method: 'HEAD',                               // Solo obtener headers, no el contenido
         mode: 'no-cors'                              // Evitar problemas de CORS en el diagnóstico
       });
-      
+
       console.log('🔍 Diagnóstico de imagen:');
       console.log('   - Status:', response.status);
       console.log('   - Type:', response.type);
       console.log('   - Headers disponibles:', response.headers ? 'Sí' : 'No');
-      
+
     } catch (error: any) {
       console.log('🔍 Diagnóstico de imagen:');
       console.log('   - Error de red:', error.message);
       console.log('   - Tipo de error:', error.name);
-      
+
       // Sugerencias de solución basadas en el tipo de error
       if (error.message.includes('CORS')) {
         console.log('💡 Sugerencia: Problema de CORS - verificar configuración del servidor');
@@ -284,13 +291,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   onImageLoad(event: any): void {
     const imgElement = event.target;                    // Elemento img que se cargó exitosamente
     const avatarContainer = imgElement.closest('.user-avatar'); // Contenedor del avatar (CORREGIDO: .user-avatar)
-    
+
     // Marcar el avatar como cargado exitosamente
     if (avatarContainer) {
       avatarContainer.classList.add('loaded');          // Agregar clase de éxito
       avatarContainer.classList.remove('loading', 'error'); // Remover estados de carga y error
     }
-    
+
     // Log de éxito en modo debug
     if (environment.enableDebugMode) {
       console.log('✅ Header - Imagen cargada exitosamente:', imgElement.src);
@@ -304,13 +311,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   onImageLoadStart(event: any): void {
     const imgElement = event.target;                    // Elemento img que está cargando
     const avatarContainer = imgElement.closest('.user-avatar'); // Contenedor del avatar (CORREGIDO: .user-avatar)
-    
+
     // Marcar el avatar como en proceso de carga
     if (avatarContainer) {
       avatarContainer.classList.add('loading');         // Agregar clase de carga
       avatarContainer.classList.remove('loaded', 'error'); // Remover estados previos
     }
-    
+
     // Log de inicio de carga en modo debug
     if (environment.enableDebugMode) {
       console.log('⏳ Header - Iniciando carga de imagen:', imgElement.getAttribute('data-original-src'));
@@ -356,13 +363,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
       '#16a34a', // Verde claro
       '#ea580c'  // Naranja oscuro
     ];
-    
+
     // Generar hash del nombre para seleccionar color consistente
     let hash = 0;                                                             // Inicializar hash en 0
     for (let i = 0; i < name.length; i++) {                                  // Iterar sobre cada carácter del nombre
       hash = name.charCodeAt(i) + ((hash << 5) - hash);                     // Algoritmo de hash simple pero efectivo
     }
-    
+
     // Seleccionar color basado en el hash (siempre el mismo para el mismo nombre)
     return colors[Math.abs(hash) % colors.length];                           // Retornar color de la paleta
   }

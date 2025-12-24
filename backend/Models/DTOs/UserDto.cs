@@ -16,6 +16,7 @@ namespace FlexoAPP.API.Models.DTOs
         public string? Phone { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? LastLogin { get; set; }
         
         // Computed property for full name
         public string FullName => $"{FirstName} {LastName}".Trim();
