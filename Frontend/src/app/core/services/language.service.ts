@@ -16,7 +16,7 @@ export interface LanguageInfo {
 export class LanguageService {
   // Señal reactiva para el idioma actual
   private currentLanguage = signal<Language>('es');
-  
+
   // Key para localStorage
   private readonly LANGUAGE_KEY = 'flexoapp_language';
 
@@ -42,7 +42,7 @@ export class LanguageService {
       'nav.settings': 'Configuraciones',
       'nav.profile': 'Perfil',
       'nav.logout': 'Cerrar Sesión',
-      
+
       // Común
       'common.save': 'Guardar',
       'common.cancel': 'Cancelar',
@@ -62,32 +62,33 @@ export class LanguageService {
       'common.success': 'Éxito',
       'common.warning': 'Advertencia',
       'common.info': 'Información',
-      
+      'common.online': 'En línea',
+
       // Configuraciones
       'settings.title': 'Configuraciones del Sistema',
       'settings.users': 'Usuarios',
       'settings.adjustments': 'Ajustes',
       'settings.permissions': 'Permisos',
       'settings.system': 'Sistema',
-      
+
       // Perfil
       'profile.title': 'Mi Perfil',
       'profile.personalInfo': 'Información Personal',
       'profile.changePassword': 'Cambiar Contraseña',
       'profile.activityHistory': 'Historial de Actividad',
-      
+
       // Temas
       'theme.light': 'Claro',
       'theme.dark': 'Oscuro',
       'theme.auto': 'Automático',
-      
+
       // Mensajes
       'message.saved': 'Guardado correctamente',
       'message.deleted': 'Eliminado correctamente',
       'message.error': 'Ha ocurrido un error',
       'message.confirm': '¿Estás seguro?'
     },
-    
+
     // English
     'en': {
       // Navigation
@@ -99,7 +100,7 @@ export class LanguageService {
       'nav.settings': 'Settings',
       'nav.profile': 'Profile',
       'nav.logout': 'Logout',
-      
+
       // Common
       'common.save': 'Save',
       'common.cancel': 'Cancel',
@@ -119,32 +120,33 @@ export class LanguageService {
       'common.success': 'Success',
       'common.warning': 'Warning',
       'common.info': 'Information',
-      
+      'common.online': 'Online',
+
       // Settings
       'settings.title': 'System Settings',
       'settings.users': 'Users',
       'settings.adjustments': 'Adjustments',
       'settings.permissions': 'Permissions',
       'settings.system': 'System',
-      
+
       // Profile
       'profile.title': 'My Profile',
       'profile.personalInfo': 'Personal Information',
       'profile.changePassword': 'Change Password',
       'profile.activityHistory': 'Activity History',
-      
+
       // Themes
       'theme.light': 'Light',
       'theme.dark': 'Dark',
       'theme.auto': 'Automatic',
-      
+
       // Messages
       'message.saved': 'Saved successfully',
       'message.deleted': 'Deleted successfully',
       'message.error': 'An error occurred',
       'message.confirm': 'Are you sure?'
     },
-    
+
     // Português
     'pt': {
       // Navegação
@@ -156,7 +158,7 @@ export class LanguageService {
       'nav.settings': 'Configurações',
       'nav.profile': 'Perfil',
       'nav.logout': 'Sair',
-      
+
       // Comum
       'common.save': 'Salvar',
       'common.cancel': 'Cancelar',
@@ -176,32 +178,32 @@ export class LanguageService {
       'common.success': 'Sucesso',
       'common.warning': 'Aviso',
       'common.info': 'Informação',
-      
+
       // Configurações
       'settings.title': 'Configurações do Sistema',
       'settings.users': 'Usuários',
       'settings.adjustments': 'Ajustes',
       'settings.permissions': 'Permissões',
       'settings.system': 'Sistema',
-      
+
       // Perfil
       'profile.title': 'Meu Perfil',
       'profile.personalInfo': 'Informações Pessoais',
       'profile.changePassword': 'Alterar Senha',
       'profile.activityHistory': 'Histórico de Atividades',
-      
+
       // Temas
       'theme.light': 'Claro',
       'theme.dark': 'Escuro',
       'theme.auto': 'Automático',
-      
+
       // Mensagens
       'message.saved': 'Salvo com sucesso',
       'message.deleted': 'Excluído com sucesso',
       'message.error': 'Ocorreu um erro',
       'message.confirm': 'Tem certeza?'
     },
-    
+
     // Français
     'fr': {
       // Navigation
@@ -213,7 +215,7 @@ export class LanguageService {
       'nav.settings': 'Paramètres',
       'nav.profile': 'Profil',
       'nav.logout': 'Déconnexion',
-      
+
       // Commun
       'common.save': 'Enregistrer',
       'common.cancel': 'Annuler',
@@ -233,32 +235,32 @@ export class LanguageService {
       'common.success': 'Succès',
       'common.warning': 'Avertissement',
       'common.info': 'Information',
-      
+
       // Paramètres
       'settings.title': 'Paramètres du Système',
       'settings.users': 'Utilisateurs',
       'settings.adjustments': 'Ajustements',
       'settings.permissions': 'Permissions',
       'settings.system': 'Système',
-      
+
       // Profil
       'profile.title': 'Mon Profil',
       'profile.personalInfo': 'Informations Personnelles',
       'profile.changePassword': 'Changer le Mot de Passe',
       'profile.activityHistory': 'Historique des Activités',
-      
+
       // Thèmes
       'theme.light': 'Clair',
       'theme.dark': 'Sombre',
       'theme.auto': 'Automatique',
-      
+
       // Messages
       'message.saved': 'Enregistré avec succès',
       'message.deleted': 'Supprimé avec succès',
       'message.error': 'Une erreur s\'est produite',
       'message.confirm': 'Êtes-vous sûr?'
     },
-    
+
     // Deutsch
     'de': {
       // Navigation
@@ -270,7 +272,7 @@ export class LanguageService {
       'nav.settings': 'Einstellungen',
       'nav.profile': 'Profil',
       'nav.logout': 'Abmelden',
-      
+
       // Allgemein
       'common.save': 'Speichern',
       'common.cancel': 'Abbrechen',
@@ -290,25 +292,25 @@ export class LanguageService {
       'common.success': 'Erfolg',
       'common.warning': 'Warnung',
       'common.info': 'Information',
-      
+
       // Einstellungen
       'settings.title': 'Systemeinstellungen',
       'settings.users': 'Benutzer',
       'settings.adjustments': 'Anpassungen',
       'settings.permissions': 'Berechtigungen',
       'settings.system': 'System',
-      
+
       // Profil
       'profile.title': 'Mein Profil',
       'profile.personalInfo': 'Persönliche Informationen',
       'profile.changePassword': 'Passwort Ändern',
       'profile.activityHistory': 'Aktivitätsverlauf',
-      
+
       // Themen
       'theme.light': 'Hell',
       'theme.dark': 'Dunkel',
       'theme.auto': 'Automatisch',
-      
+
       // Nachrichten
       'message.saved': 'Erfolgreich gespeichert',
       'message.deleted': 'Erfolgreich gelöscht',
@@ -335,13 +337,13 @@ export class LanguageService {
   setLanguage(language: Language): void {
     console.log(`🌍 Cambiando idioma a: ${language}`);
     this.currentLanguage.set(language);
-    
+
     // Guardar en localStorage
     localStorage.setItem(this.LANGUAGE_KEY, language);
-    
+
     // Actualizar atributo lang del documento
     document.documentElement.lang = language;
-    
+
     console.log(`✅ Idioma aplicado: ${language}`);
   }
 
@@ -368,12 +370,12 @@ export class LanguageService {
   translate(key: string): string {
     const language = this.currentLanguage();
     const translation = this.translations[language]?.[key];
-    
+
     if (!translation) {
       console.warn(`⚠️ Traducción no encontrada: ${key} (${language})`);
       return key;
     }
-    
+
     return translation;
   }
 
@@ -382,12 +384,12 @@ export class LanguageService {
    */
   translateWithParams(key: string, params: { [key: string]: string }): string {
     let translation = this.translate(key);
-    
+
     // Reemplazar parámetros en la traducción
     Object.keys(params).forEach(param => {
       translation = translation.replace(`{${param}}`, params[param]);
     });
-    
+
     return translation;
   }
 

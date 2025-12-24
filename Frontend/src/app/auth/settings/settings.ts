@@ -78,7 +78,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);                   // Cliente HTTP para comunicación con el backend en 192.168.1.6:7003
   private authService = inject(AuthService);           // Servicio de autenticación para gestión de usuarios
   private themeService = inject(ThemeService);         // Servicio de temas para cambiar apariencia
-  private languageService = inject(LanguageService);   // Servicio de idiomas para internacionalización
+  public languageService = inject(LanguageService);   // Servicio de idiomas para internacionalización
   private timeFormatService = inject(TimeFormatService); // Servicio de formato de hora
   private notificationService = inject(NotificationService); // Servicio de notificaciones
   private sessionTimeoutService = inject(SessionTimeoutService); // Servicio de timeout de sesión
@@ -103,7 +103,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private readonly REFRESH_INTERVAL = 120000;        // Intervalo de actualización: 2 minutos (120,000 ms)
 
   // Constructor vacío - La inyección de dependencias se maneja con inject()
-  constructor() {}
+  constructor() { }
 
   // Hook de inicialización - Se ejecuta después de que Angular inicializa el componente
   ngOnInit() {
@@ -165,7 +165,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     console.log('� VeLrificando conexión a la base de datos y red...');
     console.log(`� URLL principal: ${environment.apiUrl}`);          // Mostrar URL principal configurada
     console.log(`🔄 URLs de fallback:`, environment.fallbackUrls);   // Mostrar URLs de respaldo
-    
+
     // Información detallada de red para diagnóstico - Solo en modo debug
     if (environment.enableDebugMode) {
       console.group('�o DIAGNÓSTICO DE RED COMPLETO');
@@ -177,7 +177,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       console.log('   - Intentos de reintento:', environment.retryAttempts);     // Número de reintentos automáticos
       console.log('   - Modo red:', environment.networkMode);                    // Si está habilitado el modo red
       console.log('   - Estabilidad de red:', !(environment as any).disableNetworkStability); // Servicio de estabilidad
-      
+
       console.log('🌐 Información del navegador:');
       console.log('   - User Agent:', navigator.userAgent);                      // Información del navegador
       console.log('   - Idioma:', navigator.language);                           // Idioma del navegador
@@ -185,10 +185,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
       console.log('   - URL actual:', window.location.href);                     // URL actual de la página
       console.log('   - Host actual:', window.location.host);                    // Host actual (debería ser 192.168.1.6:4200)
       console.log('   - Protocolo:', window.location.protocol);                  // Protocolo usado (http/https)
-      
+
       // Test de conectividad básico a todas las URLs configuradas
       await this.performNetworkDiagnostic();
-      
+
       console.groupEnd();
     }
   }
@@ -199,7 +199,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
    */
   private async performNetworkDiagnostic() {
     console.log('🧪 Iniciando diagnóstico de red...');
-    
+
     // Compilar lista de todas las URLs a probar
     const urlsToTest = [
       environment.apiUrl,                              // URL principal del API
@@ -211,11 +211,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
     for (const url of urlsToTest) {
       try {
         const startTime = Date.now();                  // Marcar tiempo de inicio para medir latencia
-        
+
         // Configurar timeout de 5 segundos para evitar esperas largas
         const controller = new AbortController();      // Controlador para cancelar petición
         const timeoutId = setTimeout(() => controller.abort(), 5000); // Timeout de 5 segundos
-        
+
         // Realizar petición HTTP de prueba al endpoint de salud
         const response = await fetch(`${url.replace('/api', '')}/health`, {
           method: 'GET',                               // Método GET para endpoint de salud
@@ -226,10 +226,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
             'Content-Type': 'application/json'        // Enviar contenido JSON
           }
         });
-        
+
         clearTimeout(timeoutId);                      // Limpiar timeout si la petición completó
         const endTime = Date.now();                   // Marcar tiempo de finalización
-        
+
         // Evaluar respuesta y mostrar resultado
         if (response.ok) {                            // Si la respuesta es exitosa (200-299)
           console.log(`✅ ${url} - Conectado (${endTime - startTime}ms)`);
@@ -288,15 +288,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
    */
   async loadUsers() {
     this.loading.set(true);                           // Activar indicador de carga
-    
+
     try {
       console.log('🔍 Cargando usuarios reales desde flexoapp_bd...');
       console.log('🌐 URL del API:', environment.apiUrl); // Mostrar URL que se está usando
-      
+
       // Realizar petición HTTP GET al endpoint de usuarios
       const response = await this.http.get<User[]>(`${environment.apiUrl}/auth/users`).toPromise();
       console.log('✅ Respuesta de usuarios recibida:', response);
-      
+
       // Verificar que la respuesta sea válida y sea un array
       if (response && Array.isArray(response)) {
         // Mapear los usuarios para asegurar compatibilidad - DIAGNÓSTICO MEJORADO PARA FOTOS
@@ -310,7 +310,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
             profileImageUrlLength: user.profileImage ? user.profileImage.length : 0, // Longitud URL
             profileImageLength: (user as any).profileImage ? (user as any).profileImage.length : 0 // Longitud base64
           };
-          
+
           // Mostrar diagnóstico solo en modo debug
           if (environment.enableDebugMode) {
             console.log(`👤 Mapeando usuario: ${user.userCode}`, {
@@ -320,19 +320,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
               ...imageData                           // Datos de imagen para diagnóstico
             });
           }
-          
+
           // Determinar qué imagen usar - UNIFICADO para usar la misma lógica que getProfileImageUrl
           let finalImageUrl = '';
-          
+
           // Prioridad 1: ProfileImage (base64) - más rápido, no requiere petición HTTP
           if ((user as any).profileImage && (user as any).profileImage.trim() !== '') {
             finalImageUrl = (user as any).profileImage;
-          } 
+          }
           // Prioridad 2: ProfileImage - puede ser URL completa o ruta relativa
           else if (user.profileImage && user.profileImage.trim() !== '') {
             finalImageUrl = user.profileImage;
           }
-          
+
           // Retornar objeto usuario mapeado con todos los campos necesarios
           return {
             id: user.id,
@@ -344,15 +344,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
             role: user.role,
             isActive: user.isActive,
             profileImage: finalImageUrl,  // URL unificada de imagen de perfil
-            lastLogin: (user as any).lastLogin || new Date(),
+            lastLogin: (user as any).lastLogin,
             createdDate: user.createdAt ? new Date(user.createdAt) : new Date(),
             permissions: user.permissions || []
           };
         });
-        
+
         console.log(`📊 ${mappedUsers.length} usuarios cargados desde MySQL flexoapp_bd`);
         this.users.set(mappedUsers);                  // Actualizar señal reactiva con usuarios cargados
-        
+
         // Notificación de éxito eliminada - No mostrar mensajes técnicos molestos
       } else {
         console.warn('⚠️ Respuesta no es un array:', response);
@@ -363,10 +363,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
       console.error('❌ Error cargando usuarios desde MySQL:', error);
       console.error('❌ Status:', error.status);      // Código de estado HTTP
       console.error('❌ Detalles:', error.error);     // Detalles del error
-      
+
       // Intentar con URLs de fallback si la URL principal falla
       const success = await this.tryLoadUsersFromDatabase();
-      
+
       if (!success) {                                 // Si todos los intentos fallan
         this.users.set([]);                           // Limpiar lista de usuarios
         // Notificaciones de error eliminadas - No mostrar mensajes técnicos molestos
@@ -388,37 +388,37 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     for (let i = 0; i < urlsToTry.length; i++) {
       const apiUrl = urlsToTry[i];
-      
+
       try {
         console.log(`🔄 Intentando cargar usuarios desde: ${apiUrl} (${i + 1}/${urlsToTry.length})`);
-        
+
         // Agregar timeout personalizado para evitar esperas largas
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Timeout')), 5000)
         );
-        
+
         const requestPromise = this.http.get<User[]>(`${apiUrl}/users`).toPromise();
-        
+
         const response = await Promise.race([requestPromise, timeoutPromise]) as User[];
-        
+
         if (response && response.length > 0) {
           console.log(`✅ ${response.length} usuarios cargados desde: ${apiUrl}`);
           this.users.set(response);
-          
+
           // Notificación eliminada - No mostrar mensajes técnicos molestos
-          
+
           return true; // Éxito
         } else if (response && response.length === 0) {
           console.log(`⚠️ Base de datos vacía en: ${apiUrl}`);
           this.users.set([]);
-          
+
           // Notificación eliminada - No mostrar mensajes técnicos molestos
-          
+
           return true; // Conexión exitosa aunque sin datos
         }
       } catch (error: any) {
         console.error(`❌ Error conectando a ${apiUrl}:`, error);
-        
+
         // Mostrar información detallada del error
         let errorType = 'Error desconocido';
         if (error.name === 'TimeoutError' || error.message === 'Timeout') {
@@ -430,13 +430,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
         } else if (error.status >= 500) {
           errorType = 'Error del servidor';
         }
-        
+
         console.error(`   Tipo de error: ${errorType}`);
         console.error(`   Status: ${error.status || 'N/A'}`);
         console.error(`   Mensaje: ${error.message || 'Sin mensaje'}`);
       }
     }
-    
+
     console.log('❌ No se pudo conectar a ningún servidor de base de datos');
     console.log('📋 URLs intentadas:', urlsToTry);
     return false; // Falló en todas las URLs
@@ -450,7 +450,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     // Ya no cargamos datos de prueba por defecto
     this.users.set([]);
     console.log('⚠️ No hay datos de prueba - Base de datos vacía');
-    
+
     this.snackBar.open('Base de datos vacía - Agrega usuarios reales usando el botón "Agregar Usuario"', 'Cerrar', {
       duration: 6000,
       panelClass: ['info-snackbar']
@@ -467,7 +467,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       const response = await this.http.get<SystemConfig[]>(`${environment.apiUrl}/system/configs`).toPromise();
       if (response) {
         this.systemConfigs.set(response);
-        
+
         // Aplicar el tema guardado
         const themeConfig = response.find(c => c.id === 'theme');
         if (themeConfig) {
@@ -480,11 +480,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
           this.languageService.syncWithSystemConfig(languageConfig.value);
         }
 
-        // Aplicar el formato de hora guardado
-        const timeFormatConfig = response.find(c => c.id === 'time_format');
-        if (timeFormatConfig) {
-          this.timeFormatService.syncWithSystemConfig(timeFormatConfig.value);
-        }
+        // Sincronizar configuraciones de formato (hora, fecha, zona horaria, moneda)
+        this.timeFormatService.syncAll(response);
 
         // Aplicar configuración de notificaciones
         const notificationsConfig = response.find(c => c.id === 'enable_notifications');
@@ -620,14 +617,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
   async updateSystemConfig(config: SystemConfig, newValue: any) {
     try {
       console.log(`🔧 Actualizando configuración: ${config.id} = ${newValue}`);
-      
+
       await this.http.put(`${environment.apiUrl}/system/configs/${config.id}`, {
         value: newValue
       }).toPromise();
 
       // Actualizar localmente
       const configs = this.systemConfigs();
-      const updatedConfigs = configs.map(c => 
+      const updatedConfigs = configs.map(c =>
         c.id === config.id ? { ...c, value: newValue } : c
       );
       this.systemConfigs.set(updatedConfigs);
@@ -648,6 +645,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
       if (config.id === 'time_format') {
         this.timeFormatService.setFormat(newValue);
         console.log(`🕐 Formato de hora aplicado: ${newValue}`);
+      }
+
+      // Si es el formato de fecha, aplicarlo inmediatamente
+      if (config.id === 'date_format') {
+        this.timeFormatService.setDateFormat(newValue);
+        console.log(`📅 Formato de fecha aplicado: ${newValue}`);
+      }
+
+      // Si es la zona horaria, aplicarla inmediatamente
+      if (config.id === 'timezone') {
+        this.timeFormatService.setTimezone(newValue);
+        console.log(`🌐 Zona horaria aplicada: ${newValue}`);
       }
 
       // Si es la configuración de notificaciones, aplicarla inmediatamente
@@ -682,7 +691,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       });
     } catch (error: any) {
       console.error('❌ Error actualizando configuración:', error);
-      
+
       const errorMessage = error.error?.message || error.message || 'Error al actualizar configuración';
       this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', {
         duration: 4000,
@@ -697,7 +706,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   getRoleDisplayName(role: string): string {
     const roleNames: { [key: string]: string } = {
       'Admin': 'Administrador',
-      'Supervisor': 'Supervisor', 
+      'Supervisor': 'Supervisor',
       'Prealistador': 'Pre-alistador',
       'Matizadores': 'Matizador',
       'Operario': 'Operario',
@@ -749,15 +758,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
       'time_format': {
         '24h': '24 horas (23:59)',
         '12h': '12 horas (11:59 PM)'
-      },
-      'currency': {
-        'COP': '🇨🇴 Peso Colombiano (COP)',
-        'USD': '🇺🇸 Dólar Estadounidense (USD)',
-        'EUR': '🇪🇺 Euro (EUR)',
-        'MXN': '🇲🇽 Peso Mexicano (MXN)',
-        'PEN': '🇵🇪 Sol Peruano (PEN)',
-        'ARS': '🇦🇷 Peso Argentino (ARS)',
-        'CLP': '🇨🇱 Peso Chileno (CLP)'
       },
       'email_notification_types': {
         'all': '📧 Todas las notificaciones',
@@ -843,12 +843,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
       '#2563eb', '#7c3aed', '#dc2626', '#059669', '#d97706',
       '#0891b2', '#be185d', '#4338ca', '#16a34a', '#ea580c'
     ];
-    
+
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
+
     return colors[Math.abs(hash) % colors.length];
   }
 
@@ -859,31 +859,31 @@ export class SettingsComponent implements OnInit, OnDestroy {
     if (!profileImageUrl || profileImageUrl.trim() === '' || profileImageUrl === 'null' || profileImageUrl === 'undefined') {
       return '';
     }
-    
+
     // Si es una imagen base64, devolverla directamente (PRIORIDAD MÁXIMA)
     if (profileImageUrl.startsWith('data:image/')) {
       return profileImageUrl;
     }
-    
+
     // Si ya es una URL completa (http/https), devolverla tal como está
     if (profileImageUrl.startsWith('http')) {
       return profileImageUrl;
     }
-    
+
     // Si es una ruta relativa, construir la URL completa
     // Usar imageBaseUrl del environment si está disponible, sino usar apiUrl sin /api
     const baseUrl = (environment as any).imageBaseUrl || environment.apiUrl.replace('/api', '');
-    
+
     // Asegurar que la ruta comience con /
     const imagePath = profileImageUrl.startsWith('/') ? profileImageUrl : `/${profileImageUrl}`;
-    
+
     const fullUrl = `${baseUrl}${imagePath}`;
-    
+
     // Log solo en modo debug para diagnosticar problemas
     if (environment.enableDebugMode) {
       console.log(`🖼️ Imagen procesada: "${profileImageUrl}" → "${fullUrl}"`);
     }
-    
+
     return fullUrl;
   }
 
@@ -894,16 +894,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const imgElement = event.target;
     const avatarContainer = imgElement.closest('.user-avatar');
     const userCode = imgElement.getAttribute('data-user-code');
-    
+
     // Marcar el avatar como error
     if (avatarContainer) {
       avatarContainer.classList.add('error');
       avatarContainer.classList.remove('loading', 'loaded');
     }
-    
+
     // Ocultar la imagen que falló
     imgElement.style.display = 'none';
-    
+
     // Buscar el usuario y marcar que no tiene imagen válida
     if (userCode) {
       const users = this.users();
@@ -916,7 +916,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       });
       this.users.set(updatedUsers);
     }
-    
+
     // Diagnóstico detallado del error solo en modo debug
     if (environment.enableDebugMode) {
       console.group('❌ ERROR DE IMAGEN DE PERFIL');
@@ -926,10 +926,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
       console.log('📊 Dimensiones esperadas:', `${imgElement.width}x${imgElement.height}`);
       console.log('🌐 Estado de red:', navigator.onLine ? 'Online' : 'Offline');
       console.log('💡 Solución: Mostrando avatar por defecto');
-      
+
       // Intentar diagnosticar el tipo de error
       this.diagnoseImageError(imgElement.src);
-      
+
       console.groupEnd();
     }
   }
@@ -940,21 +940,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private async diagnoseImageError(imageUrl: string) {
     try {
       // Test de conectividad a la URL de la imagen
-      const response = await fetch(imageUrl, { 
+      const response = await fetch(imageUrl, {
         method: 'HEAD',
-        mode: 'no-cors' 
+        mode: 'no-cors'
       });
-      
+
       console.log('🔍 Diagnóstico de imagen:');
       console.log('   - Status:', response.status);
       console.log('   - Type:', response.type);
       console.log('   - Headers disponibles:', response.headers ? 'Sí' : 'No');
-      
+
     } catch (error: any) {
       console.log('🔍 Diagnóstico de imagen:');
       console.log('   - Error de red:', error.message);
       console.log('   - Tipo de error:', error.name);
-      
+
       // Sugerencias de solución
       if (error.message.includes('CORS')) {
         console.log('💡 Sugerencia: Problema de CORS - verificar configuración del servidor');
@@ -971,10 +971,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
    * profileImage puede contener: base64 (data:image/...) o URL (/uploads/profiles/...)
    */
   hasProfileImage(user: User): boolean {
-    return !!((user as any).profileImage && 
-             (user as any).profileImage.trim() !== '' && 
-             (user as any).profileImage !== 'null' && 
-             (user as any).profileImage !== 'undefined');
+    return !!((user as any).profileImage &&
+      (user as any).profileImage.trim() !== '' &&
+      (user as any).profileImage !== 'null' &&
+      (user as any).profileImage !== 'undefined');
   }
 
   /**
@@ -983,7 +983,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   onImageLoad(event: any) {
     const imgElement = event.target;
     const avatarContainer = imgElement.closest('.user-avatar');
-    
+
     if (avatarContainer) {
       avatarContainer.classList.add('loaded');
       avatarContainer.classList.remove('loading', 'error');
@@ -996,7 +996,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   onImageLoadStart(event: any) {
     const imgElement = event.target;
     const avatarContainer = imgElement.closest('.user-avatar');
-    
+
     if (avatarContainer) {
       avatarContainer.classList.add('loading');
       avatarContainer.classList.remove('loaded', 'error');
@@ -1009,48 +1009,44 @@ export class SettingsComponent implements OnInit, OnDestroy {
    * Formatear fecha relativa (ej: "hace 2 horas")
    */
   formatRelativeDate(date: any): string {
-    if (!date) return 'Nunca';
-    
+    const isSpanish = this.languageService.getLanguage() === 'es';
+    if (!date) return isSpanish ? 'Nunca' : 'Never';
+
     const now = new Date();
     const loginDate = new Date(date);
-    
+
     // Verificar si la fecha es válida
-    if (isNaN(loginDate.getTime())) return 'Nunca';
-    
+    if (isNaN(loginDate.getTime())) return isSpanish ? 'Nunca' : 'Never';
+
     const diffMs = now.getTime() - loginDate.getTime();
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMinutes < 1) return 'Ahora';
+    if (diffMinutes < 1) return isSpanish ? 'Ahora' : 'Just now';
     if (diffMinutes < 60) return `${diffMinutes}m`;
     if (diffHours < 24) return `${diffHours}h`;
     if (diffDays < 7) return `${diffDays}d`;
-    
-    return loginDate.toLocaleDateString('es-ES', { 
-      day: '2-digit', 
-      month: '2-digit' 
-    });
+
+    return this.timeFormatService.formatDate(loginDate);
   }
 
   /**
    * Formatear fecha completa para tooltip
    */
   formatFullDate(date: any): string {
-    if (!date) return 'Nunca ha iniciado sesión';
-    
+    const isSpanish = this.languageService.getLanguage() === 'es';
+    if (!date) return isSpanish ? 'Nunca ha iniciado sesión' : 'Never logged in';
+
     const loginDate = new Date(date);
-    
+
     // Verificar si la fecha es válida
-    if (isNaN(loginDate.getTime())) return 'Nunca ha iniciado sesión';
-    
-    return loginDate.toLocaleString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (isNaN(loginDate.getTime())) return isSpanish ? 'Nunca ha iniciado sesión' : 'Never logged in';
+
+    const dateStr = this.timeFormatService.formatDate(loginDate);
+    const timeStr = this.timeFormatService.formatTime(loginDate);
+
+    return `${dateStr} ${timeStr}`;
   }
 
   // ===== NUEVAS ACCIONES FUNCIONALES =====
@@ -1067,13 +1063,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     try {
       console.log(`🔐 Restableciendo contraseña para usuario MySQL: ${user.userCode}`);
-      
+
       // Usar endpoint de auth para restablecer contraseña
       const response = await this.http.post(`${environment.apiUrl}/auth/users/${user.id}/reset-password`, {}).toPromise();
-      
+
       if (response) {
         console.log(`✅ Contraseña restablecida en MySQL para: ${user.userCode}`);
-        
+
         this.snackBar.open(`Contraseña restablecida. Nueva contraseña enviada a ${email}`, 'Cerrar', {
           duration: 5000,
           panelClass: ['success-snackbar']
@@ -1081,7 +1077,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.error('❌ Error restableciendo contraseña en MySQL:', error);
-      
+
       // Para desarrollo, mostrar que la funcionalidad está disponible
       this.snackBar.open(`Contraseña restablecida para ${user.firstName} ${user.lastName}`, 'Cerrar', {
         duration: 4000,
@@ -1112,9 +1108,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         console.log('✅ Usuario actualizado desde diálogo:', result);
-        
+
         // Actualizar la lista local de usuarios
-        const updatedUsers = this.users().map(u => 
+        const updatedUsers = this.users().map(u =>
           u.id === result.id ? result : u
         );
         this.users.set(updatedUsers);
@@ -1145,16 +1141,16 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
     this.loading.set(true); // Activar indicador de carga
     try {
       console.log(`🗑️ Eliminando usuario de MySQL: ${user.userCode} (ID: ${user.id})`);
-      
+
       // Llamar al endpoint correcto: /api/users/{id} (NO /auth/users/)
       await this.http.delete(`${environment.apiUrl}/users/${user.id}`).toPromise();
-      
+
       // Actualizar lista local - Remover el usuario eliminado
       const updatedUsers = this.users().filter(u => u.id !== user.id);
       this.users.set(updatedUsers);
 
       console.log(`✅ Usuario eliminado exitosamente de MySQL: ${user.userCode}`);
-      
+
       // Mostrar notificación de éxito
       this.snackBar.open(`Usuario ${user.userCode} eliminado exitosamente`, 'Cerrar', {
         duration: 3000,
@@ -1164,7 +1160,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
       console.error('❌ Error eliminando usuario de MySQL:', error);
       console.error('❌ Status:', error.status);
       console.error('❌ Detalles:', error.error);
-      
+
       // Mostrar mensaje de error específico
       const errorMessage = error.error?.message || error.message || 'Error al eliminar usuario';
       this.snackBar.open(`Error: ${errorMessage}`, 'Cerrar', {
@@ -1182,7 +1178,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
   async toggleUserStatus(user: User) {
     const newStatus = !user.isActive;
     const action = newStatus ? 'activar' : 'desactivar';
-    
+
     if (!confirm(`¿${action.charAt(0).toUpperCase() + action.slice(1)} al usuario ${user.firstName} ${user.lastName} en la base de datos?`)) {
       return;
     }
@@ -1190,13 +1186,13 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
     this.loading.set(true);
     try {
       console.log(`🔄 ${action}ndo usuario en MySQL: ${user.userCode}`);
-      
+
       await this.http.patch(`${environment.apiUrl}/auth/users/${user.id}/status`, {
         isActive: newStatus
       }).toPromise();
 
       // Actualizar localmente
-      const updatedUsers = this.users().map(u => 
+      const updatedUsers = this.users().map(u =>
         u.id === user.id ? { ...u, isActive: newStatus } : u
       );
       this.users.set(updatedUsers);
@@ -1206,7 +1202,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
       // Notificación eliminada - No mostrar mensajes técnicos molestos
     } catch (error) {
       console.error(`❌ Error ${action}ndo usuario en MySQL:`, error);
-      
+
       this.snackBar.open(`Error al ${action} usuario en la base de datos`, 'Cerrar', {
         duration: 4000,
         panelClass: ['error-snackbar']
@@ -1223,7 +1219,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
    */
   private startRealTimeUpdates() {
     console.log('🔄 Iniciando actualizaciones en tiempo real cada 2 minutos (optimizado)');
-    
+
     this.realTimeSubscription = interval(this.REFRESH_INTERVAL).subscribe(() => {
       // Solo actualizar si estamos en la pestaña de usuarios Y la ventana está visible
       if (this.selectedTabIndex() === 0 && !document.hidden && !this.loading()) {
@@ -1253,10 +1249,10 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
 
     try {
       const response = await this.http.get<User[]>(`${environment.apiUrl}/auth/users`).toPromise();
-      
+
       if (response && Array.isArray(response)) {
         const currentUsers = this.users();
-        
+
         // Mapear usuarios para compatibilidad - UNIFICADO con loadUsers
         const newUsers = response.map(user => {
           // Determinar qué imagen usar - misma lógica que loadUsers
@@ -1266,7 +1262,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
           } else if (user.profileImage && user.profileImage.trim() !== '') {
             finalImageUrl = user.profileImage;
           }
-          
+
           return {
             id: user.id,
             userCode: user.userCode,
@@ -1282,11 +1278,11 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
             permissions: user.permissions || []
           };
         });
-        
+
         // Verificar si hay cambios importantes (solo campos críticos)
         if (this.hasUsersChanged(currentUsers, newUsers)) {
           this.users.set(newUsers);
-          
+
           // Mostrar notificación muy discreta solo si hay cambios significativos
           if (currentUsers.length !== newUsers.length) {
             this.snackBar.open('Usuarios actualizados', '', {
@@ -1310,25 +1306,25 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
    */
   private hasUsersChanged(currentUsers: User[], newUsers: User[]): boolean {
     if (currentUsers.length !== newUsers.length) return true;
-    
+
     // Verificar cambios en usuarios existentes
     for (let i = 0; i < currentUsers.length; i++) {
       const current = currentUsers[i];
       const newUser = newUsers.find(u => u.id === current.id);
-      
+
       if (!newUser) return true; // Usuario eliminado
-      
+
       // Verificar campos importantes
       if (current.firstName !== newUser.firstName ||
-          current.lastName !== newUser.lastName ||
-          current.email !== newUser.email ||
-          current.role !== newUser.role ||
-          current.isActive !== newUser.isActive ||
-          current.profileImage !== newUser.profileImage) {
+        current.lastName !== newUser.lastName ||
+        current.email !== newUser.email ||
+        current.role !== newUser.role ||
+        current.isActive !== newUser.isActive ||
+        current.profileImage !== newUser.profileImage) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -1346,18 +1342,18 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
   async testImageLoading() {
     const users = this.users();
     const usersWithImages = users.filter(u => this.hasProfileImage(u));
-    
+
     console.group('🖼️ TEST DE CARGA DE IMÁGENES');
     console.log(`📊 Usuarios con imagen: ${usersWithImages.length}/${users.length}`);
-    
+
     for (const user of usersWithImages) {
       const originalUrl = user.profileImage;
       const processedUrl = this.getProfileImageUrl(originalUrl || '');
-      
+
       console.log(`👤 ${user.userCode}:`);
       console.log(`   - URL Original: ${originalUrl}`);
       console.log(`   - URL Procesada: ${processedUrl}`);
-      
+
       try {
         const response = await fetch(processedUrl, { method: 'HEAD' });
         console.log(`   - Estado: ${response.ok ? '✅ OK' : '❌ Error'} (${response.status})`);
@@ -1365,9 +1361,9 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
         console.log(`   - Estado: ❌ Error de red`);
       }
     }
-    
+
     console.groupEnd();
-    
+
     this.snackBar.open(`Test de imágenes completado: ${usersWithImages.length} imágenes probadas`, 'Cerrar', {
       duration: 4000,
       panelClass: ['info-snackbar']

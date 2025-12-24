@@ -115,6 +115,13 @@ namespace FlexoAPP.API.Models.Entities
         /// </summary>
         [Column("UpdatedAt")] // Mapeo explícito a la columna "UpdatedAt"
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        
+        /// <summary>
+        /// Fecha y hora de último acceso del usuario
+        /// Columna MySQL: LastLogin DATETIME(6) NULL
+        /// </summary>
+        [Column("LastLogin")] // Mapeo explícito a la columna "LastLogin"
+        public DateTime? LastLogin { get; set; }
 
         // ===== PROPIEDADES DE NAVEGACIÓN =====
         // Estas propiedades NO se mapean a columnas en la base de datos
