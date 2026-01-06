@@ -1279,7 +1279,127 @@ $gray-900: #0f172a;
 
 // ===== COLUMNA NÚMERO DE COLORES =====
 .numero-colores-cell {
-  width: 60px;
+  width: 80px; // Ancho reducido para ajustarse al botón de la paleta
+  min-width: 80px;
+
+  .numero-colores-container-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .numero-colores-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: white;
+    color: #1f2937;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-color: #9ca3af;
+    }
+
+    &.active {
+      background: #f3f4f6;
+      border-color: #6b7280;
+      color: #111827;
+    }
+
+    .colors-icon-small {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #6b7280;
+    }
+
+    .numero-colores-text {
+      font-weight: 700;
+      font-size: 12px;
+      color: #1f2937;
+    }
+  }
+
+  // ===== CHIPS DE COLORES INLINE =====
+  .colors-chips-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 8px;
+    background: rgba(248, 250, 252, 0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    backdrop-filter: blur(4px);
+    max-width: 200px;
+
+    .color-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid rgba(226, 232, 240, 0.4);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(59, 130, 246, 0.05);
+        border-color: rgba(59, 130, 246, 0.2);
+        transform: translateX(2px);
+      }
+
+      .chip-num {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        background: $primary-blue;
+        color: white;
+        border-radius: 50%;
+        font-size: 10px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .chip-color-box {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+
+        &:hover {
+          transform: scale(1.2);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+        }
+      }
+
+      .chip-name {
+        font-size: 10px;
+        font-weight: 600;
+        color: $gray-700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
 
   .numero-colores-badge {
     width: 24px;
@@ -1838,6 +1958,10 @@ $gray-900: #0f172a;
 
 
 
+        &.status-sin_asignar {
+          color: #64748b !important;
+        }
+
         &.status-preparando {
           color: #ca8a04 !important;
         }
@@ -2025,6 +2149,16 @@ $gray-900: #0f172a;
 // Colores más visibles con mayor opacidad para mejor identificación
 
 
+
+// Fila SIN_ASIGNAR - Color gris neutro
+.status-row-sin_asignar {
+  border-left: 4px solid #94a3b8 !important; // Borde izquierdo gris
+  background: white !important; // Fondo blanco limpio
+
+  .excel-cell {
+    background: white !important; // Fondo blanco para celdas
+  }
+}
 
 // Fila PREPARANDO - Color amarillo
 

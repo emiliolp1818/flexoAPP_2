@@ -20,6 +20,26 @@ namespace flexoAPP.Services
             _repository = repository;
             _logger = logger;
             _context = context;
+            EnsureUniqueOtSapIndex();
+        }
+
+        private static bool _otSapIndexEnsured = false;
+        private void EnsureUniqueOtSapIndex()
+        {
+            if (_otSapIndexEnsured) return;
+            var cs = _context.Database.GetConnectionString();
+            using var conn = new MySqlConnector.MySqlConnection(cs);
+            conn.Open();
+            using var checkCmd = conn.CreateCommand();
+            checkCmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'maquinas' AND INDEX_NAME = 'uniq_ot_sap'";
+            var exists = Convert.ToInt32(checkCmd.ExecuteScalar());
+            if (exists == 0)
+            {
+                using var alterCmd = conn.CreateCommand();
+                alterCmd.CommandText = "ALTER TABLE maquinas ADD UNIQUE INDEX uniq_ot_sap (ot_sap)";
+                alterCmd.ExecuteNonQuery();
+            }
+            _otSapIndexEnsured = true;
         }
 
         public async Task<IEnumerable<MaquinaDto>> GetAllAsync()
@@ -49,72 +69,136 @@ namespace flexoAPP.Services
                 using var connection = new MySqlConnector.MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
-                // ===== SIEMPRE INSERTAR NUEVO REGISTRO =====
-                // NO verificar duplicados - El mismo artículo puede estar varias veces en la misma máquina
-                // Cada registro es único gracias al campo id AUTO_INCREMENT
+                // ===== UPSERT POR OT SAP (ARTÍCULOS PUEDEN REPETIRSE, OT SAP NO) =====
+                // Si existe ot_sap, actualizar el registro; si no existe, insertar nuevo
                 
                 var coloresJson = System.Text.Json.JsonSerializer.Serialize(createDto.Colores);
                 var fechaTinta = createDto.FechaTintaEnMaquina ?? DateTime.Now;
 
-                // Insertar nuevo registro
-                using var insertCommand = connection.CreateCommand();
-                insertCommand.CommandText = @"
-                    INSERT INTO maquinas (
-                        articulo, numero_maquina, ot_sap, cliente, referencia, td,
-                        numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
-                        estado, observaciones, created_by, updated_by, created_at, updated_at
-                    ) VALUES (
-                        @articulo, @numeroMaquina, @otSap, @cliente, @referencia, @td,
-                        @numeroColores, @colores, @kilos, @fechaTinta, @sustrato,
-                        @estado, @observaciones, @createdBy, @updatedBy, @createdAt, @updatedAt
-                    )";
+                // Verificar existencia por OT SAP
+                using var existsCmd = connection.CreateCommand();
+                existsCmd.CommandText = "SELECT estado FROM maquinas WHERE ot_sap=@ot LIMIT 1";
+                existsCmd.Parameters.AddWithValue("@ot", createDto.OtSap);
+                var existingEstadoObj = await existsCmd.ExecuteScalarAsync();
 
-                insertCommand.Parameters.AddWithValue("@articulo", createDto.Articulo);
-                insertCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
-                insertCommand.Parameters.AddWithValue("@otSap", createDto.OtSap);
-                insertCommand.Parameters.AddWithValue("@cliente", createDto.Cliente);
-                insertCommand.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
-                insertCommand.Parameters.AddWithValue("@td", createDto.Td ?? (object)DBNull.Value);
-                insertCommand.Parameters.AddWithValue("@numeroColores", createDto.Colores.Count);
-                insertCommand.Parameters.AddWithValue("@colores", coloresJson);
-                insertCommand.Parameters.AddWithValue("@kilos", createDto.Kilos);
-                insertCommand.Parameters.AddWithValue("@fechaTinta", fechaTinta);
-                insertCommand.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
-                insertCommand.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(createDto.Estado) ? (object)DBNull.Value : createDto.Estado);
-                insertCommand.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
-                insertCommand.Parameters.AddWithValue("@createdBy", userId ?? (object)DBNull.Value);
-                insertCommand.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
-                insertCommand.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
-                insertCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+                string? estadoFinal = createDto.Estado;
+                var statesToKeep = new[] { "PREPARANDO", "LISTO", "SUSPENDIDO" };
 
-                // Ejecutar el comando INSERT
-                await insertCommand.ExecuteNonQueryAsync();
-                
-                // Log de confirmación
-                _logger.LogInformation("✅ Registro creado: Artículo={Articulo}, Máquina={Maquina}", 
-                    createDto.Articulo, createDto.NumeroMaquina);
-
-                // Retornar DTO
-                return new MaquinaDto
+                if (existingEstadoObj != null && existingEstadoObj != DBNull.Value)
                 {
-                    Articulo = createDto.Articulo,
-                    NumeroMaquina = createDto.NumeroMaquina,
-                    OtSap = createDto.OtSap,
-                    Cliente = createDto.Cliente,
-                    Referencia = createDto.Referencia,
-                    Td = createDto.Td,
-                    NumeroColores = createDto.Colores.Count,
-                    Colores = createDto.Colores,
-                    Kilos = createDto.Kilos,
-                    FechaTintaEnMaquina = fechaTinta,
-                    Sustrato = createDto.Sustrato,
-                    Estado = createDto.Estado,
-                    Observaciones = createDto.Observaciones,
-                    CreatedBy = userId,
-                    UpdatedBy = userId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                    var existingEstado = existingEstadoObj.ToString() ?? "";
+                    estadoFinal = statesToKeep.Contains(existingEstado) ? existingEstado : createDto.Estado;
+
+                    // Actualizar registro existente por OT SAP
+                    using var updateCmd = connection.CreateCommand();
+                    updateCmd.CommandText = @"
+                        UPDATE maquinas SET 
+                            articulo=@articulo, numero_maquina=@numeroMaquina, cliente=@cliente,
+                            referencia=@referencia, td=@td, numero_colores=@numeroColores, colores=@colores,
+                            kilos=@kilos, fecha_tinta_en_maquina=@fechaTinta, sustrato=@sustrato,
+                            estado=@estado, observaciones=@observaciones, updated_by=@updatedBy, updated_at=@updatedAt
+                        WHERE ot_sap=@otSap";
+
+                    updateCmd.Parameters.AddWithValue("@articulo", createDto.Articulo);
+                    updateCmd.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
+                    updateCmd.Parameters.AddWithValue("@cliente", createDto.Cliente);
+                    updateCmd.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@td", createDto.Td ?? (object)DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@numeroColores", createDto.Colores.Count);
+                    updateCmd.Parameters.AddWithValue("@colores", coloresJson);
+                    updateCmd.Parameters.AddWithValue("@kilos", createDto.Kilos);
+                    updateCmd.Parameters.AddWithValue("@fechaTinta", fechaTinta);
+                    updateCmd.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
+                    updateCmd.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(estadoFinal) ? (object)DBNull.Value : estadoFinal);
+                    updateCmd.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+                    updateCmd.Parameters.AddWithValue("@otSap", createDto.OtSap);
+
+                    await updateCmd.ExecuteNonQueryAsync();
+                    _logger.LogInformation("♻️ Registro actualizado por OT SAP: {OtSap} (Artículo puede repetirse)", createDto.OtSap);
+
+                    return new MaquinaDto
+                    {
+                        Articulo = createDto.Articulo,
+                        NumeroMaquina = createDto.NumeroMaquina,
+                        OtSap = createDto.OtSap,
+                        Cliente = createDto.Cliente,
+                        Referencia = createDto.Referencia ?? string.Empty,
+                        Td = createDto.Td ?? string.Empty,
+                        NumeroColores = createDto.Colores.Count,
+                        Colores = createDto.Colores,
+                        Kilos = createDto.Kilos,
+                        FechaTintaEnMaquina = fechaTinta,
+                        Sustrato = createDto.Sustrato,
+                        Estado = estadoFinal ?? "SIN_ASIGNAR",
+                        Observaciones = createDto.Observaciones,
+                        CreatedBy = userId,
+                        UpdatedBy = userId,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                }
+                else
+                {
+                    // Insertar nuevo registro (OT SAP no existe)
+                    using var insertCommand = connection.CreateCommand();
+                    insertCommand.CommandText = @"
+                        INSERT INTO maquinas (
+                            articulo, numero_maquina, ot_sap, cliente, referencia, td,
+                            numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
+                            estado, observaciones, created_by, updated_by, created_at, updated_at
+                        ) VALUES (
+                            @articulo, @numeroMaquina, @otSap, @cliente, @referencia, @td,
+                            @numeroColores, @colores, @kilos, @fechaTinta, @sustrato,
+                            @estado, @observaciones, @createdBy, @updatedBy, @createdAt, @updatedAt
+                        )";
+
+                    insertCommand.Parameters.AddWithValue("@articulo", createDto.Articulo);
+                    insertCommand.Parameters.AddWithValue("@numeroMaquina", createDto.NumeroMaquina);
+                    insertCommand.Parameters.AddWithValue("@otSap", createDto.OtSap);
+                    insertCommand.Parameters.AddWithValue("@cliente", createDto.Cliente);
+                    insertCommand.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
+                    insertCommand.Parameters.AddWithValue("@td", createDto.Td ?? (object)DBNull.Value);
+                    insertCommand.Parameters.AddWithValue("@numeroColores", createDto.Colores.Count);
+                    insertCommand.Parameters.AddWithValue("@colores", coloresJson);
+                    insertCommand.Parameters.AddWithValue("@kilos", createDto.Kilos);
+                    insertCommand.Parameters.AddWithValue("@fechaTinta", fechaTinta);
+                    insertCommand.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
+                    insertCommand.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(createDto.Estado) ? (object)DBNull.Value : createDto.Estado);
+                    insertCommand.Parameters.AddWithValue("@observaciones", createDto.Observaciones ?? (object)DBNull.Value);
+                    insertCommand.Parameters.AddWithValue("@createdBy", userId ?? (object)DBNull.Value);
+                    insertCommand.Parameters.AddWithValue("@updatedBy", userId ?? (object)DBNull.Value);
+                    insertCommand.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
+                    insertCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+
+                    await insertCommand.ExecuteNonQueryAsync();
+
+                    _logger.LogInformation("✅ Registro creado: OT={OtSap}, Artículo={Articulo}, Máquina={Maquina}", 
+                        createDto.OtSap, createDto.Articulo, createDto.NumeroMaquina);
+
+                    return new MaquinaDto
+                    {
+                        Articulo = createDto.Articulo,
+                        NumeroMaquina = createDto.NumeroMaquina,
+                        OtSap = createDto.OtSap,
+                        Cliente = createDto.Cliente,
+                        Referencia = createDto.Referencia ?? string.Empty,
+                        Td = createDto.Td ?? string.Empty,
+                        NumeroColores = createDto.Colores.Count,
+                        Colores = createDto.Colores,
+                        Kilos = createDto.Kilos,
+                        FechaTintaEnMaquina = fechaTinta,
+                        Sustrato = createDto.Sustrato,
+                        Estado = createDto.Estado ?? "SIN_ASIGNAR",
+                        Observaciones = createDto.Observaciones,
+                        CreatedBy = userId,
+                        UpdatedBy = userId,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                }
+
             }
             catch (Exception ex)
             {
@@ -123,12 +207,21 @@ namespace flexoAPP.Services
             }
         }
 
-        public async Task<MaquinaDto> UpdateAsync(string articulo, UpdateMaquinaDto updateDto, int? userId)
+        public async Task<MaquinaDto> UpdateAsync(string otSap, UpdateMaquinaDto updateDto, int? userId)
         {
-            var existing = await _repository.GetByArticuloAsync(articulo);
+            var existing = await _repository.GetByOtSapAsync(otSap);
             if (existing == null)
             {
-                throw new KeyNotFoundException($"Máquina con artículo {articulo} no encontrada");
+                // Fallback: try by articulo if provided in DTO
+                if (!string.IsNullOrEmpty(updateDto.Articulo))
+                {
+                    existing = await _repository.GetByArticuloAsync(updateDto.Articulo);
+                }
+                
+                if (existing == null)
+                {
+                    throw new KeyNotFoundException($"Máquina con OT SAP {otSap} no encontrada");
+                }
             }
 
             if (updateDto.NumeroMaquina.HasValue)
@@ -172,6 +265,47 @@ namespace flexoAPP.Services
             return MapToDto(updated);
         }
 
+        public async Task<MaquinaDto> UpdateMachineStatusAsync(string otSap, string estado, string? observaciones, int? userId, string? userName)
+        {
+            var existing = await _repository.GetByOtSapAsync(otSap);
+            if (existing == null)
+            {
+                throw new KeyNotFoundException($"Máquina con OT SAP {otSap} no encontrada");
+            }
+
+            // Validar estado
+            var estadosValidos = new[] { "SIN_ASIGNAR", "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO", "EN_PROCESO" };
+            var estadoUpper = estado?.ToUpper();
+            
+            if (!estadosValidos.Contains(estadoUpper))
+            {
+                throw new ArgumentException($"Estado inválido: {estado}. Estados válidos: {string.Join(", ", estadosValidos)}");
+            }
+
+            // Normalizar estado
+            if (estadoUpper == "EN_PROCESO")
+            {
+                estadoUpper = "CORRIENDO";
+            }
+
+            existing.Estado = estadoUpper;
+            
+            if (observaciones != null)
+            {
+                existing.Observaciones = observaciones;
+            }
+
+            existing.UpdatedBy = userId;
+            existing.UpdatedAt = DateTime.UtcNow;
+            existing.LastActionBy = userName ?? "Sistema";
+            existing.LastActionAt = DateTime.UtcNow;
+
+            var updated = await _repository.UpdateAsync(existing);
+            _logger.LogInformation("✅ Estado actualizado: OT={OtSap}, Estado={Estado}, Usuario={User}", otSap, estadoUpper, userName);
+            
+            return MapToDto(updated);
+        }
+
         public async Task<bool> DeleteAsync(string articulo)
         {
             return await _repository.DeleteAsync(articulo);
@@ -186,98 +320,187 @@ namespace flexoAPP.Services
                 var programs = new List<MaquinaDto>();
                 var validationErrors = new List<string>();
 
-                // Configurar EPPlus para uso no comercial
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-           
-                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
-                _logger.LogInformation("📄 Tipo de archivo: {Extension}", fileExtension);
-                _logger.LogInformation("📊 Procesando archivo Excel con EPPlus...");
-                
                 using var stream = file.OpenReadStream();
                 using var package = new ExcelPackage(stream);
                 
                 var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                if (worksheet == null)
+                if (worksheet == null || worksheet.Dimension == null || worksheet.Dimension.Rows < 2)
                 {
-                    return new ExcelProcessResultDto
-                    {
-                        Success = false,
-                        ErrorMessage = "El archivo Excel no contiene hojas de trabajo"
-                    };
+                    return new ExcelProcessResultDto { Success = false, ErrorMessage = "Archivo inválido o sin datos." };
                 }
 
-                _logger.LogInformation("📄 Hoja: {SheetName}, Filas: {RowCount}, Columnas: {ColCount}", 
-                    worksheet.Name, worksheet.Dimension?.Rows ?? 0, worksheet.Dimension?.Columns ?? 0);
-
-                // Verificar si hay datos
-                if (worksheet.Dimension == null || worksheet.Dimension.Rows < 2)
-                {
-                    _logger.LogWarning("⚠️ El archivo Excel no tiene datos (solo tiene {Rows} filas)", worksheet.Dimension?.Rows ?? 0);
-                    return new ExcelProcessResultDto
-                    {
-                        Success = false,
-                        ErrorMessage = "El archivo Excel no contiene datos. Debe tener al menos una fila de encabezados y una fila de datos."
-                    };
-                }
-
-                // Mostrar encabezados para debugging
-                _logger.LogInformation("📋 Encabezados (Fila 1):");
-                for (int col = 1; col <= worksheet.Dimension.Columns; col++)
-                {
-                    var headerValue = worksheet.Cells[1, col].Text ?? "";
-                    _logger.LogInformation("  Columna {Col}: '{Header}'", col, headerValue);
-                }
-
+                // Leer líneas de datos
                 var dataLines = new List<string>();
-                
-                // Leer desde la fila 2 (saltando encabezados)
                 for (int row = 2; row <= worksheet.Dimension.Rows; row++)
                 {
                     var rowData = new List<string>();
-                    for (int col = 1; col <= worksheet.Dimension.Columns; col++)
+                    for (int col = 2; col <= worksheet.Dimension.Columns; col++)
                     {
-                        var cellValue = worksheet.Cells[row, col].Text ?? "";
-                        rowData.Add(cellValue);
+                        rowData.Add(worksheet.Cells[row, col].Text ?? "");
                     }
+                    if (rowData.All(string.IsNullOrWhiteSpace)) continue;
                     
-                    // Verificar si la fila tiene datos
-                    if (rowData.All(string.IsNullOrWhiteSpace))
-                    {
-                        _logger.LogInformation("⏭️ Fila {Row} vacía, saltando...", row);
-                        continue;
-                    }
-                    
-                    // Convertir a formato CSV para usar el mismo procesador
                     var csvLine = string.Join(",", rowData.Select(v => $"\"{v}\""));
                     dataLines.Add(csvLine);
-                    _logger.LogInformation("📝 Fila {Row} ({Cols} columnas): {Data}", row, rowData.Count, csvLine.Substring(0, Math.Min(150, csvLine.Length)));
                 }
 
-                _logger.LogInformation("📋 Total de líneas de datos encontradas: {Count}", dataLines.Count);
-
-                // Procesar cada línea
-                _logger.LogInformation("🔄 Procesando {Count} líneas de datos...", dataLines.Count);
-                
+                // 1. Parsear y Validar DTOs
+                var dtos = new List<CreateMaquinaDto>();
                 foreach (var dataLine in dataLines)
                 {
                     try
                     {
-                        var program = await ProcessExcelLine(dataLine, userId);
-                        if (program != null)
-                        {
-                            programs.Add(program);
-                            _logger.LogInformation("✅ Programa procesado: {Articulo}", program.Articulo);
-                        }
+                        var dto = await ParseExcelLine(dataLine, userId);
+                        if (dto != null) dtos.Add(dto);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "⚠️ Error procesando línea: {Line}", dataLine.Substring(0, Math.Min(50, dataLine.Length)));
-                        validationErrors.Add($"Error en línea '{dataLine.Substring(0, Math.Min(50, dataLine.Length))}...': {ex.Message}");
+                        validationErrors.Add($"Error en línea: {ex.Message}");
                     }
                 }
 
-                _logger.LogInformation("✅ Procesamiento completado: {Count} programas procesados", programs.Count);
+                // 2. Deduplicar por OT SAP (mantener último)
+                var uniqueDtos = dtos.GroupBy(d => d.OtSap).Select(g => g.Last()).ToList();
+
+                // 3. Operaciones en Base de Datos
+                
+                // 3.0 Limpiar duplicados previos (para evitar errores de unicidad)
+                await CleanExistingOtSapDuplicatesAsync();
+
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                // 3.1 Obtener programas existentes
+                var existingPrograms = new List<(string Articulo, string OtSap, string Estado)>();
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT articulo, ot_sap, estado FROM maquinas";
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        existingPrograms.Add((
+                            reader.IsDBNull(0) ? "" : reader.GetString(0),
+                            reader.IsDBNull(1) ? "" : reader.GetString(1),
+                            reader.IsDBNull(2) ? "" : reader.GetString(2)
+                        ));
+                    }
+                }
+                
+                _logger.LogInformation("📊 Total registros existentes en DB: {Count}", existingPrograms.Count);
+
+                // 3.2 Identificar Eliminaciones (CORRIENDO y SIN_ASIGNAR)
+                // Mantener: PREPARANDO, LISTO, SUSPENDIDO
+                // CORRIENDO se elimina para ser reemplazado por la nueva programación
+                var statesToKeep = new[] { "PREPARANDO", "LISTO", "SUSPENDIDO" };
+                
+                // Normalizar estados para comparación segura
+                bool IsProtectedState(string estado)
+                {
+                    if (string.IsNullOrWhiteSpace(estado)) return false;
+                    return statesToKeep.Contains(estado.Trim().ToUpper());
+                }
+                
+                // Usar OT_SAP para la eliminación
+                var otSapsToDelete = existingPrograms
+                    .Where(p => !IsProtectedState(p.Estado)) // Esto incluye "CORRIENDO", "SIN_ASIGNAR", "", null
+                    .Select(p => p.OtSap)
+                    .Where(ot => !string.IsNullOrEmpty(ot)) // Asegurar que no borremos cosas sin OT
+                    .ToList();
+                
+                // Log de diagnóstico
+                var estadosEncontrados = existingPrograms.Select(p => p.Estado).Distinct().ToList();
+                _logger.LogInformation("🔍 Estados encontrados en DB: {Estados}", string.Join(", ", estadosEncontrados));
+                _logger.LogInformation("🗑️ Registros identificados para eliminar: {Count}", otSapsToDelete.Count);
+
+                if (otSapsToDelete.Any())
+                {
+                    using var delCmd = connection.CreateCommand();
+                    // Usar parámetros para evitar inyección SQL y manejar listas grandes
+                    const int BatchSize = 1000;
+                    for (int i = 0; i < otSapsToDelete.Count; i += BatchSize)
+                    {
+                        var batch = otSapsToDelete.Skip(i).Take(BatchSize).ToList();
+                        var paramNames = batch.Select((id, idx) => $"@ot{idx}").ToList();
+                        
+                        delCmd.CommandText = $"DELETE FROM maquinas WHERE ot_sap IN ({string.Join(",", paramNames)})";
+                        delCmd.Parameters.Clear();
+                        
+                        for (int j = 0; j < batch.Count; j++)
+                        {
+                            delCmd.Parameters.AddWithValue(paramNames[j], batch[j]);
+                        }
+                        
+                        var deletedCount = await delCmd.ExecuteNonQueryAsync();
+                        _logger.LogInformation("⚡ Batch eliminado: {Count} registros", deletedCount);
+                    }
+                    
+                    _logger.LogInformation("✅ Eliminación completada. Total: {Count}", otSapsToDelete.Count);
+                }
+
+                // 3.3 Upsert (Insertar o Actualizar)
+                foreach (var dto in uniqueDtos)
+                {
+                    // Buscar coincidencia en registros que SE MANTUVIERON
+                    // Nota: existingPrograms todavía tiene los registros que acabamos de borrar, 
+                    // así que debemos filtrar también aquí para no intentar actualizar algo que ya no existe.
+                    var existingMatch = existingPrograms
+                        .FirstOrDefault(p => p.OtSap == dto.OtSap && IsProtectedState(p.Estado));
+
+                    if (!string.IsNullOrEmpty(existingMatch.OtSap)) // Si encontró coincidencia válida y protegida
+                    {
+                        // ACTUALIZAR (Mantener estado)
+                        _logger.LogInformation("♻️ Actualizando registro protegido: {OtSap} (Estado: {Estado})", existingMatch.OtSap, existingMatch.Estado);
+                        
+                        using var updateCmd = connection.CreateCommand();
+                        updateCmd.CommandText = @"
+                            UPDATE maquinas SET 
+                                articulo=@articulo, numero_maquina=@num, cliente=@cliente, 
+                                referencia=@ref, td=@td, numero_colores=@nc, colores=@col, 
+                                kilos=@kilos, fecha_tinta_en_maquina=@fecha, sustrato=@sust, 
+                                observaciones=@obs, updated_by=@upd, updated_at=@now
+                            WHERE ot_sap=@otSap"; // Usar OT_SAP para update seguro
+
+                        updateCmd.Parameters.AddWithValue("@articulo", dto.Articulo);
+                        updateCmd.Parameters.AddWithValue("@num", dto.NumeroMaquina);
+                        updateCmd.Parameters.AddWithValue("@cliente", dto.Cliente);
+                        updateCmd.Parameters.AddWithValue("@ref", dto.Referencia ?? (object)DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@td", dto.Td ?? (object)DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@nc", dto.Colores.Count);
+                        updateCmd.Parameters.AddWithValue("@col", JsonSerializer.Serialize(dto.Colores));
+                        updateCmd.Parameters.AddWithValue("@kilos", dto.Kilos);
+                        updateCmd.Parameters.AddWithValue("@fecha", dto.FechaTintaEnMaquina ?? DateTime.Now);
+                        updateCmd.Parameters.AddWithValue("@sust", dto.Sustrato);
+                        updateCmd.Parameters.AddWithValue("@obs", dto.Observaciones ?? (object)DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@upd", userId ?? (object)DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@now", DateTime.UtcNow);
+                        updateCmd.Parameters.AddWithValue("@otSap", existingMatch.OtSap);
+
+                        await updateCmd.ExecuteNonQueryAsync();
+                        programs.Add(new MaquinaDto { 
+                            Articulo = dto.Articulo, 
+                            OtSap = dto.OtSap, 
+                            NumeroMaquina = dto.NumeroMaquina, 
+                            Cliente = dto.Cliente, 
+                            Referencia = dto.Referencia ?? string.Empty, 
+                            Td = dto.Td ?? string.Empty, 
+                            Colores = dto.Colores, 
+                            Kilos = dto.Kilos, 
+                            FechaTintaEnMaquina = dto.FechaTintaEnMaquina ?? DateTime.Now, 
+                            Sustrato = dto.Sustrato, 
+                            Estado = existingMatch.Estado ?? "SIN_ASIGNAR" 
+                        });
+                    }
+                    else
+                    {
+                        // INSERTAR (Estado SIN_ASIGNAR)
+                        // _logger.LogInformation("➕ Insertando nuevo registro: {OtSap}", dto.OtSap);
+                        dto.Estado = "SIN_ASIGNAR";
+                        var created = await CreateAsync(dto, userId);
+                        programs.Add(created);
+                    }
+                }
 
                 return new ExcelProcessResultDto
                 {
@@ -290,24 +513,90 @@ namespace flexoAPP.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error procesando archivo");
-                return new ExcelProcessResultDto
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                };
+                return new ExcelProcessResultDto { Success = false, ErrorMessage = ex.Message };
             }
         }
 
-        // ===== MÉTODO PRIVADO PARA PROCESAR UNA LÍNEA DEL ARCHIVO EXCEL =====
-        // Este método toma una línea del archivo Excel (en formato CSV) y la convierte en un objeto MaquinaDto
-        // NUEVA FUNCIONALIDAD: Consulta la tabla de diseño para obtener información del artículo
-        // Si el artículo existe en la tabla de diseño, usa esa información (colores, sustrato, etc.)
-        // Si el artículo NO existe en la tabla de diseño, usa la información del Excel
-        // Parámetros:
-        //   - line: Línea del archivo en formato CSV (valores separados por comas)
-        //   - userId: ID del usuario que está cargando el archivo (para auditoría)
-        // Retorna: MaquinaDto con los datos procesados o null si hay error
-        private async Task<MaquinaDto?> ProcessExcelLine(string line, int? userId)
+        private async Task CleanExistingOtSapDuplicatesAsync()
+        {
+            try
+            {
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                // Identificar duplicados: OT SAPs que aparecen más de una vez
+                using var duplicateCommand = connection.CreateCommand();
+                duplicateCommand.CommandText = @"
+                    SELECT ot_sap, COUNT(*) as count, MAX(updated_at) as latest_update
+                    FROM maquinas
+                    GROUP BY ot_sap
+                    HAVING COUNT(*) > 1";
+                
+                var duplicates = new List<(string OtSap, DateTime LatestUpdate)>();
+                using (var reader = await duplicateCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        duplicates.Add((
+                            reader.GetString("ot_sap"),
+                            reader.GetDateTime("latest_update")
+                        ));
+                    }
+                }
+
+                if (!duplicates.Any()) return;
+
+                _logger.LogInformation("🧹 Encontrados {Count} OT SAPs duplicados. Limpiando...", duplicates.Count);
+
+                foreach (var (otSap, latestUpdate) in duplicates)
+                {
+                    // Eliminar todos los registros con este OT SAP excepto el más reciente
+                    // Nota: Si hay varios con el mismo updated_at más reciente, esto podría dejar duplicados.
+                    // Para ser más seguros, podríamos usar ID si existiera de forma confiable, pero ot_sap + updated_at es lo mejor que tenemos ahora.
+                    // Una estrategia mejor: obtener todos los IDs (si existen) o usar LIMIT en delete.
+                    
+                    // Estrategia: Borrar los que NO coinciden con la fecha más reciente
+                    using var deleteCommand = connection.CreateCommand();
+                    deleteCommand.CommandText = @"
+                        DELETE FROM maquinas 
+                        WHERE ot_sap = @otSap 
+                        AND (updated_at < @latestUpdate OR updated_at IS NULL)";
+                    
+                    deleteCommand.Parameters.AddWithValue("@otSap", otSap);
+                    deleteCommand.Parameters.AddWithValue("@latestUpdate", latestUpdate);
+                    
+                    var deleted = await deleteCommand.ExecuteNonQueryAsync();
+                    
+                    // Si aún quedan duplicados (misma fecha), borrar arbitrariamente dejando 1
+                    using var checkCmd = connection.CreateCommand();
+                    checkCmd.CommandText = "SELECT COUNT(*) FROM maquinas WHERE ot_sap = @otSap";
+                    checkCmd.Parameters.AddWithValue("@otSap", otSap);
+                    var count = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+                    
+                    if (count > 1)
+                    {
+                        // Borrar excedentes dejando solo 1 (usando LIMIT)
+                        using var cleanupCmd = connection.CreateCommand();
+                        cleanupCmd.CommandText = $"DELETE FROM maquinas WHERE ot_sap = @otSap LIMIT {count - 1}";
+                        cleanupCmd.Parameters.AddWithValue("@otSap", otSap);
+                        await cleanupCmd.ExecuteNonQueryAsync();
+                    }
+                }
+                
+                _logger.LogInformation("✅ Limpieza de duplicados completada.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error limpiando duplicados de OT SAP");
+                // No lanzamos excepción para no interrumpir el flujo principal, solo logueamos
+            }
+        }
+
+        // ===== MÉTODO PRIVADO PARA PARSEAR UNA LÍNEA DEL ARCHIVO EXCEL =====
+        // Este método toma una línea del archivo Excel (en formato CSV) y la convierte en un objeto CreateMaquinaDto
+        // Retorna: CreateMaquinaDto con los datos procesados o null si hay error
+        private async Task<CreateMaquinaDto?> ParseExcelLine(string line, int? userId)
         {
             // ===== PASO 1: PARSEAR LA LÍNEA CSV EN COLUMNAS =====
             // Llamar al método ParseCsvLine que convierte la línea CSV en un array de strings
@@ -329,18 +618,18 @@ namespace flexoAPP.Services
             {
                 // Construir un mensaje de error detallado que explique el formato esperado
                 // Este mensaje ayuda al usuario a corregir el archivo Excel
-                var errorMsg = $"Formato inválido: Se esperan al menos 10 columnas, se encontraron {columns.Count}.\n" +
+                var errorMsg = $"Formato inválido: Se esperan al menos 10 columnas (B-K), se encontraron {columns.Count}.\n" +
                               $"Columnas esperadas:\n" +
-                              $"1. MQ IMP (Número de máquina impresora)\n" +
-                              $"2. ARTICULO F (Código del artículo)\n" +
-                              $"3. OT SAP (Orden de trabajo)\n" +
-                              $"4. CLIENTE (Nombre del cliente)\n" +
-                              $"5. REFERENCIA (Referencia del producto)\n" +
-                              $"6. TD (Tipo de diseño)\n" +
-                              $"7. NUMERO DE COLORES (Cantidad de colores)\n" +
-                              $"8. KILOS (Cantidad en kilogramos)\n" +
-                              $"9. COLORES EN MAQUINA (Fecha de preparación - ej: '10-nov-25 05 PM')\n" +
-                              $"10. SUSTRATOS (Tipo de material)";
+                              $"B: MQ IMP (Número de máquina impresora)\n" +
+                              $"C: ARTICULO F (Código del artículo)\n" +
+                              $"D: OT SAP (Orden de trabajo)\n" +
+                              $"E: CLIENTE (Nombre del cliente)\n" +
+                              $"F: REFERENCIA (Referencia del producto)\n" +
+                              $"G: TD (Tipo de diseño)\n" +
+                              $"H: NUMERO DE COLORES (Cantidad de colores)\n" +
+                              $"I: KILOS (Cantidad en kilogramos)\n" +
+                              $"J: COLORES EN MAQUINA (Fecha de preparación - ej: '10-nov-25 05 PM')\n" +
+                              $"K: SUSTRATOS (Tipo de material)";
                 
                 // Lanzar excepción con el mensaje de error para detener el procesamiento
                 throw new ArgumentException(errorMsg);
@@ -352,7 +641,7 @@ namespace flexoAPP.Services
             if (string.IsNullOrWhiteSpace(columns[1]))
             {
                 // Lanzar excepción si el artículo está vacío
-                throw new ArgumentException("El campo ARTICULO F (columna 2) es obligatorio y no puede estar vacío");
+                throw new ArgumentException("El campo ARTICULO F (columna C) es obligatorio y no puede estar vacío");
             }
             
             // Verificar que el campo OT SAP (columna 2) no esté vacío
@@ -360,7 +649,7 @@ namespace flexoAPP.Services
             if (string.IsNullOrWhiteSpace(columns[2]))
             {
                 // Lanzar excepción si la OT SAP está vacía
-                throw new ArgumentException("El campo OT SAP (columna 3) es obligatorio y no puede estar vacío");
+                throw new ArgumentException("El campo OT SAP (columna D) es obligatorio y no puede estar vacío");
             }
             
             // Verificar que el campo CLIENTE (columna 3) no esté vacío
@@ -368,7 +657,7 @@ namespace flexoAPP.Services
             if (string.IsNullOrWhiteSpace(columns[3]))
             {
                 // Lanzar excepción si el cliente está vacío
-                throw new ArgumentException("El campo CLIENTE (columna 4) es obligatorio y no puede estar vacío");
+                throw new ArgumentException("El campo CLIENTE (columna E) es obligatorio y no puede estar vacío");
             }
 
             // ===== PASO 4B: CONSULTAR TABLA DE DISEÑO PARA OBTENER INFORMACIÓN DEL ARTÍCULO =====
@@ -484,7 +773,7 @@ namespace flexoAPP.Services
             DateTime? fechaTintaEnMaquina = null;
             
             // Registrar en el log el valor original de la fecha antes de procesarlo
-            _logger.LogInformation("📅 Parseando fecha límite para colores - Valor original: '{Fecha}' (columna 8)", columns[8]);
+            _logger.LogInformation("📅 Parseando fecha límite para colores - Valor original: '{Fecha}' (columna J)", columns[8]);
             
             // Verificar si la columna 8 tiene contenido (no está vacía ni es solo espacios)
             if (!string.IsNullOrWhiteSpace(columns[8]))
@@ -496,14 +785,14 @@ namespace flexoAPP.Services
                     // Si la conversión es exitosa, usar la fecha parseada
                     fechaTintaEnMaquina = fecha;
                     // Registrar en el log la fecha límite parseada exitosamente
-                    _logger.LogInformation("✅ Fecha límite para colores parseada exitosamente: {Fecha}", fechaTintaEnMaquina);
+                    _logger.LogInformation("✅ Fecha límite para colores parseada exitosamente (columna J): {Fecha}", fechaTintaEnMaquina);
                 }
                 else
                 {
                     // Si la conversión falla, usar la fecha actual como fallback
                     fechaTintaEnMaquina = DateTime.Now;
                     // Registrar advertencia indicando que no se pudo parsear la fecha
-                    _logger.LogWarning("⚠️ No se pudo parsear la fecha límite '{Fecha}', usando fecha actual", columns[8]);
+                    _logger.LogWarning("⚠️ No se pudo parsear la fecha límite (columna J) '{Fecha}', usando fecha actual", columns[8]);
                 }
             }
             else
@@ -511,7 +800,7 @@ namespace flexoAPP.Services
                 // Si la columna 8 está vacía, usar la fecha actual
                 fechaTintaEnMaquina = DateTime.Now;
                 // Registrar advertencia indicando que la fecha está vacía
-                _logger.LogWarning("⚠️ Fecha límite para colores vacía (columna 8), usando fecha actual");
+                _logger.LogWarning("⚠️ Fecha límite para colores vacía (columna J), usando fecha actual");
             }
             
             // ===== PASO 7B: OBTENER COLORES (DESDE TABLA DE DISEÑO O GENÉRICOS) =====
@@ -564,7 +853,7 @@ namespace flexoAPP.Services
             decimal kilos = 0;
             
             // Registrar en el log el valor original de kilos antes de procesarlo
-            _logger.LogInformation("🔍 Parseando kilos - Valor original: '{Kilos}' (columna 8)", columns[7]);
+            _logger.LogInformation("🔍 Parseando KILOS - Valor original: '{Kilos}' (columna I)", columns[7]);
             
             // Verificar si la columna 7 tiene contenido (no está vacía ni es solo espacios)
             if (!string.IsNullOrWhiteSpace(columns[7]))
@@ -579,7 +868,7 @@ namespace flexoAPP.Services
                     .Trim();
                 
                 // Registrar en el log el valor de kilos después de la limpieza
-                _logger.LogInformation("🔍 Kilos después de limpieza: '{KilosLimpio}'", kilosStr);
+                _logger.LogInformation("🔍 KILOS después de limpieza (columna I): '{KilosLimpio}'", kilosStr);
                 
                 // Intentar convertir el valor limpio a decimal usando cultura invariante
                 // NumberStyles.Any: Acepta cualquier formato numérico válido
@@ -587,19 +876,19 @@ namespace flexoAPP.Services
                 if (decimal.TryParse(kilosStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out kilos))
                 {
                     // Si la conversión es exitosa, registrar el valor parseado
-                    _logger.LogInformation("✅ Kilos parseados exitosamente: {Kilos}", kilos);
+                    _logger.LogInformation("✅ KILOS parseados exitosamente (columna I): {Kilos}", kilos);
                 }
                 else
                 {
                     // Si la conversión falla, registrar advertencia y usar 0 por defecto
-                    _logger.LogWarning("⚠️ No se pudo parsear kilos '{Kilos}', usando 0", columns[7]);
+                    _logger.LogWarning("⚠️ No se pudo parsear KILOS (columna I) '{Kilos}', usando 0", columns[7]);
                     kilos = 0;
                 }
             }
             else
             {
                 // Si la columna de kilos está vacía, registrar advertencia y usar 0
-                _logger.LogWarning("⚠️ Columna de kilos vacía (columna 8), usando 0");
+                _logger.LogWarning("⚠️ Columna de KILOS vacía (columna I), usando 0");
                 kilos = 0;
             }
 
@@ -642,10 +931,9 @@ namespace flexoAPP.Services
                 ? designFromTable.Description  // Usar descripción de la tabla de diseño como referencia
                 : columns[4];                  // Usar referencia del Excel (columna 4)
             
-            // ===== TD: Usar tabla de diseño si existe, sino Excel =====
-            string tdFinal = designFromTable != null && !string.IsNullOrWhiteSpace(designFromTable.Type)
-                ? designFromTable.Type  // Usar tipo de la tabla de diseño
-                : columns[5];           // Usar TD del Excel (columna 5)
+            // ===== TD: SIEMPRE usar del Excel (solicitud de usuario) =====
+            // Se ignora la tabla de diseño para este campo específico
+            string tdFinal = columns[5];
             
             // Registrar en el log qué información se está usando
             if (designFromTable != null)
@@ -708,10 +996,9 @@ namespace flexoAPP.Services
             _logger.LogInformation("✅ DTO creado desde {Origen}: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Sustrato={Sustrato}, Kilos={Kilos}, Colores={Colores}", 
                 origenDatos, createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Sustrato, createDto.Kilos, string.Join(",", createDto.Colores));
 
-            // ===== PASO 12: CREAR O ACTUALIZAR REGISTRO EN LA BASE DE DATOS =====
-            // Llamar al método CreateAsync que inserta o actualiza el registro en la base de datos
-            // Este método retorna un MaquinaDto con los datos guardados
-            return await CreateAsync(createDto, userId);
+            // ===== PASO 12: RETORNAR DTO =====
+            // Retornar el DTO para ser procesado por el método principal
+            return createDto;
         }
 
         // ===== MÉTODO PRIVADO PARA PARSEAR LÍNEA CSV =====

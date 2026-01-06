@@ -307,15 +307,15 @@
                       <div class="header-content">
                         <!-- Icono Material Design para paleta de colores -->
                         <mat-icon>palette</mat-icon>
-                        <span># Colores</span>
+                        <span>Colores</span>
                       </div>
                     </th>
                     <td mat-cell *matCellDef="let program" class="excel-cell numero-colores-cell">
                       <!-- Contenedor principal -->
-                      <div class="numero-colores-container-inline" [attr.data-program-id]="program.id">
+                      <div class="numero-colores-container-inline" [attr.data-program-id]="program.otSap">
                         <!-- Botón con tooltip de colores -->
                         <button mat-raised-button
-                          [class]="'numero-colores-btn' + (isColorsExpanded(program.id?.toString() || '') ? ' active' : '')"
+                          [class]="'numero-colores-btn' + (isColorsExpanded(program.otSap?.toString() || '') ? ' active' : '')"
                           (click)="toggleColorsWithLoad(program, $event)"
                           [matTooltip]="getColorsTooltip(program)"
                           matTooltipClass="colors-tooltip"
@@ -327,7 +327,7 @@
                         </button>
                         
                         <!-- Chips de colores inline cuando está expandido -->
-                        <div class="colors-chips-inline" *ngIf="isColorsExpanded(program.id?.toString() || '')">
+                        <div class="colors-chips-inline" *ngIf="isColorsExpanded(program.otSap?.toString() || '')">
                           <div *ngFor="let color of program.colores; let i = index" class="color-chip">
                             <span class="chip-num">{{ i + 1 }}</span>
                             <div class="chip-color-box" 
@@ -419,7 +419,7 @@
                           <!-- Texto del estado con clase CSS dinámica basada en el estado -->
                           <!-- Función getStatusClass() determina el color (amarillo para PREPARANDO, verde para LISTO, naranja para SUSPENDIDO, rojo para CORRIENDO) -->
                           <span class="status-text-display" [class]="'status-' + program.estado.toLowerCase()">
-                            <span class="status-text">{{ program.estado }}</span>
+                            <span class="status-text">{{ program.estado === 'LISTO' ? 'PREPARADO' : program.estado.replace('_', ' ') }}</span>
                           </span>
                         </div>
                         <!-- Información del operario que activó la acción - Siempre visible -->
@@ -464,7 +464,7 @@
                           class="action-btn listo-btn"
                           (click)="changeStatus(program, 'LISTO')" 
                           [disabled]="program.estado === 'LISTO'"
-                          matTooltip="Listo">
+                          matTooltip="Preparado">
                           <!-- Icono Material Design para check/listo -->
                           <mat-icon>check_circle</mat-icon>
                         </button>
@@ -510,7 +510,7 @@
                   <tr mat-row *matRowDef="let row; columns: programDisplayedColumns;" 
                     class="excel-row"
                     [ngClass]="'status-row-' + row.estado.toLowerCase()" 
-                    [attr.data-program-id]="row.id"></tr>
+                    [attr.data-program-id]="row.otSap"></tr>
                 </table>
                 <!-- Fin de la tabla principal -->
               </div>

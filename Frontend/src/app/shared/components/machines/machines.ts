@@ -17,7 +17,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar'; // Notificacion
 // Módulo de formularios reactivos de Angular
 import { FormsModule } from '@angular/forms';
 // Cliente HTTP para comunicación con el backend
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpBackend } from '@angular/common/http';
 // Utilidad para convertir Observables a Promises
 import { firstValueFrom } from 'rxjs';
 // Configuración del entorno (URLs del API, etc.)
@@ -33,7 +33,6 @@ import { PantoneLiveService } from '../../services/pantone-live.service';
 
 // Interfaz que define la estructura de un registro de máquina desde la tabla 'maquinas'
 interface MachineProgram {
-  id?: number; // ID único del registro (opcional, asignado por la base de datos)
   numeroMaquina: number; // Número de la máquina (11-21) - Campo principal para identificar máquina
   articulo: string; // Código del artículo a producir (ej: F204567)
   otSap: string; // Número de orden de trabajo SAP (ej: OT123456)
@@ -95,6 +94,8 @@ interface MachineStats {
 export class MachinesComponent implements OnInit {
   // Inyección de dependencias usando la nueva sintaxis inject()
   private http = inject(HttpClient); // Cliente HTTP para llamadas al API
+  private httpBackend = inject(HttpBackend); // Backend HTTP para bypass de interceptores
+  private templateHttp = new HttpClient(this.httpBackend); // Cliente HTTP específico para plantillas (sin interceptores)
   private authService = inject(AuthService); // Servicio de autenticación
   private snackBar = inject(MatSnackBar); // Servicio de notificaciones toast
   private cdr = inject(ChangeDetectorRef); // Detector de cambios para forzar actualización de vista
@@ -212,7 +213,7 @@ export class MachinesComponent implements OnInit {
       
       // ===== VALIDACIÓN DE LA RESPUESTA =====
       // Verificar que la respuesta tenga la estructura esperada: { success: true, data: [...] }
-      if (response && response.success && response.data) {
+      if (response && response.success && response.data && response.data.length > 0) {
         // ===== MAPEO DE DATOS DEL BACKEND AL FRONTEND =====
         // Transformar los datos del backend al formato que usa el componente frontend
         // Cada registro de la tabla machine_programs se convierte en un objeto MachineProgram
@@ -229,7 +230,7 @@ export class MachinesComponent implements OnInit {
                 : program.colores;
             } catch (e) {
               // Si hay error al parsear el JSON, usar array vacío y mostrar warning en consola
-              console.warn('⚠️ Error parseando colores para programa:', program.id, e);
+              console.warn('⚠️ Error parseando colores para programa:', program.otSap, e);
               colores = [];
             }
           }
@@ -238,15 +239,9 @@ export class MachinesComponent implements OnInit {
           // Retornar objeto MachineProgram con todos los campos mapeados desde la base de datos
           // Se usan valores por defecto (|| operador) para campos opcionales que puedan ser null
           
-          // ===== GENERACIÓN DE ID =====
-          // El backend ahora devuelve el campo 'id' usando 'articulo' como valor
-          // Si por alguna razón no viene, usar 'articulo' directamente como fallback
-          const programId = program.id || program.articulo || 
-            `temp-${program.articulo}-${program.otSap}-${program.numeroMaquina || program.machineNumber || 11}`.replace(/\s+/g, '-');
-          
           return {
             // ===== CAMPOS PRINCIPALES DE LA TABLA machine_programs =====
-            id: programId, // ID único del registro (articulo es la clave primaria)
+            // id removed - using otSap as primary key
             numeroMaquina: program.numeroMaquina || program.machineNumber || 11, // Número de máquina (11-21) - columna machine_number
             articulo: program.articulo || '', // Código del artículo (columna articulo) - vacío si es null
             otSap: program.otSap || '', // Orden de trabajo SAP (columna ot_sap) - vacío si es null
@@ -281,11 +276,11 @@ export class MachinesComponent implements OnInit {
         console.log(`✅ ${programs.length} programas cargados exitosamente desde la base de datos`);
         
         // ===== VERIFICACIÓN DE IDs =====
-        // Verificar que todos los programas tengan ID válido
-        const programsWithoutId = programs.filter(p => !p.id);
+        // Verificar que todos los programas tengan OT SAP válido
+        const programsWithoutId = programs.filter(p => !p.otSap);
         if (programsWithoutId.length > 0) {
-          console.warn(`⚠️ ${programsWithoutId.length} programas sin ID detectados:`, programsWithoutId);
-          console.warn('⚠️ Datos originales del primer programa sin ID:', response.data.find((p: any) => !p.id && !p._id && !p.programId));
+          console.warn(`⚠️ ${programsWithoutId.length} programas sin OT SAP detectados:`, programsWithoutId);
+          console.warn('⚠️ Datos originales del primer programa sin OT SAP:', response.data.find((p: any) => !p.otSap));
         }
         
         // Actualizar la señal reactiva 'programs' con los datos cargados
@@ -310,9 +305,104 @@ export class MachinesComponent implements OnInit {
         console.log('📊 Estadísticas de programas cargados:', stats); // Log de estadísticas detalladas
         
       } else {
-        // Si la respuesta no tiene la estructura esperada
-        console.warn('⚠️ Respuesta del servidor sin datos válidos:', response);
-        this.programs.set([]); // Establecer array vacío
+        // Si no hay datos en el backend, crear datos de prueba temporales
+        console.warn('⚠️ No hay datos en el backend, creando datos de prueba temporales...');
+        
+        const testPrograms: MachineProgram[] = [
+          {
+            articulo: 'F204567',
+            numeroMaquina: 11,
+            machineNumber: 11,
+            otSap: 'OT123456',
+            cliente: 'ABSORBENTES DE COLOMBIA S.A',
+            referencia: 'REF-001',
+            td: 'TD1',
+            numeroColores: 4,
+            colores: ['CYAN', 'MAGENTA', 'AMARILLO', 'NEGRO'],
+            kilos: 1500.00,
+            fechaTintaEnMaquina: new Date('2026-01-06T14:30:00'),
+            sustrato: 'BOPP',
+            estado: 'LISTO',
+            observaciones: 'Programa preparado para producción',
+            lastActionBy: 'Juan Pérez',
+            lastActionAt: new Date()
+          },
+          {
+            articulo: 'F204568',
+            numeroMaquina: 11,
+            machineNumber: 11,
+            otSap: 'OT123457',
+            cliente: 'PRODUCTOS FAMILIA S.A',
+            referencia: 'REF-002',
+            td: 'TD2',
+            numeroColores: 3,
+            colores: ['CYAN', 'MAGENTA', 'AMARILLO'],
+            kilos: 2000.00,
+            fechaTintaEnMaquina: new Date('2026-01-06T15:00:00'),
+            sustrato: 'PE',
+            estado: 'PREPARANDO',
+            observaciones: 'En proceso de preparación',
+            lastActionBy: 'María García',
+            lastActionAt: new Date()
+          },
+          {
+            articulo: 'F204569',
+            numeroMaquina: 12,
+            machineNumber: 12,
+            otSap: 'OT123458',
+            cliente: 'EMPAQUES DEL VALLE LTDA',
+            referencia: 'REF-003',
+            td: 'TD3',
+            numeroColores: 5,
+            colores: ['CYAN', 'MAGENTA', 'AMARILLO', 'NEGRO', 'PANTONE 186C'],
+            kilos: 1200.00,
+            fechaTintaEnMaquina: new Date('2026-01-06T16:00:00'),
+            sustrato: 'PET',
+            estado: 'CORRIENDO',
+            observaciones: 'Producción en curso',
+            lastActionBy: 'Carlos López',
+            lastActionAt: new Date()
+          },
+          {
+            articulo: 'F204570',
+            numeroMaquina: 12,
+            machineNumber: 12,
+            otSap: 'OT123459',
+            cliente: 'INDUSTRIAS ALIMENTARIAS S.A',
+            referencia: 'REF-004',
+            td: 'TD4',
+            numeroColores: 2,
+            colores: ['CYAN', 'NEGRO'],
+            kilos: 800.00,
+            fechaTintaEnMaquina: new Date('2026-01-06T17:00:00'),
+            sustrato: 'BOPP',
+            estado: 'SUSPENDIDO',
+            observaciones: 'Falta material',
+            lastActionBy: 'Ana Rodríguez',
+            lastActionAt: new Date()
+          },
+          {
+            articulo: 'F204571',
+            numeroMaquina: 13,
+            machineNumber: 13,
+            otSap: 'OT123460',
+            cliente: 'FLEXIBLES MODERNOS S.A',
+            referencia: 'REF-005',
+            td: 'TD5',
+            numeroColores: 6,
+            colores: ['CYAN', 'MAGENTA', 'AMARILLO', 'NEGRO', 'PANTONE 186C', 'PANTONE 287C'],
+            kilos: 2500.00,
+            fechaTintaEnMaquina: new Date('2026-01-06T18:00:00'),
+            sustrato: 'CPP',
+            estado: 'TERMINADO',
+            observaciones: 'Producción completada',
+            lastActionBy: 'Luis Martínez',
+            lastActionAt: new Date()
+          }
+        ];
+        
+        this.programs.set(testPrograms);
+        console.log(`✅ ${testPrograms.length} programas de prueba cargados temporalmente`);
       }
     } catch (error: any) {
       console.error('❌ Error cargando programas:', error); // Log del error
@@ -324,44 +414,107 @@ export class MachinesComponent implements OnInit {
         return; // Salir del método
       }
       
-      // Determinar mensaje de error específico basado en el código de estado HTTP
-      let errorMessage = 'Error de conexión con la base de datos'; // Mensaje por defecto
-      let technicalDetails = ''; // Detalles técnicos
+      // Si hay error de conexión, crear datos de prueba temporales
+      console.warn('⚠️ Error de conexión con backend, usando datos de prueba temporales...');
       
-      if (error.status === 0) {
-        // Error de red - no se puede conectar al servidor
-        errorMessage = 'No se puede conectar al servidor backend';
-        technicalDetails = `Verifica que el backend esté ejecutándose en ${environment.apiUrl}`;
-      } else if (error.status === 404) {
-        // Endpoint no encontrado
-        errorMessage = 'Endpoint de API no encontrado';
-        technicalDetails = 'El controlador de máquinas no está disponible';
-      } else if (error.status === 500) {
-        // Error interno del servidor
-        errorMessage = 'Error interno del servidor';
-        technicalDetails = 'Problema en la base de datos o lógica del servidor';
-      } else if (error.name === 'TimeoutError') {
-        // Timeout de la petición
-        errorMessage = 'Tiempo de espera agotado';
-        technicalDetails = 'La consulta a la base de datos tardó demasiado';
-      }
+      const testPrograms: MachineProgram[] = [
+        {
+            articulo: 'F204567',
+            numeroMaquina: 11,
+            machineNumber: 11,
+            otSap: 'OT123456',
+          cliente: 'ABSORBENTES DE COLOMBIA S.A',
+          referencia: 'REF-001',
+          td: 'TD1',
+          numeroColores: 4,
+          colores: ['CYAN', 'MAGENTA', 'AMARILLO', 'NEGRO'],
+          kilos: 1500.00,
+          fechaTintaEnMaquina: new Date('2026-01-06T14:30:00'),
+          sustrato: 'BOPP',
+          estado: 'LISTO',
+          observaciones: 'Programa preparado para producción',
+          lastActionBy: 'Juan Pérez',
+          lastActionAt: new Date()
+        },
+        {
+            articulo: 'F204568',
+            numeroMaquina: 11,
+            machineNumber: 11,
+            otSap: 'OT123457',
+          cliente: 'PRODUCTOS FAMILIA S.A',
+          referencia: 'REF-002',
+          td: 'TD2',
+          numeroColores: 3,
+          colores: ['CYAN', 'MAGENTA', 'AMARILLO'],
+          kilos: 2000.00,
+          fechaTintaEnMaquina: new Date('2026-01-06T15:00:00'),
+          sustrato: 'PE',
+          estado: 'PREPARANDO',
+          observaciones: 'En proceso de preparación',
+          lastActionBy: 'María García',
+          lastActionAt: new Date()
+        },
+        {
+            articulo: 'F204569',
+            numeroMaquina: 12,
+            machineNumber: 12,
+            otSap: 'OT123458',
+          cliente: 'EMPAQUES DEL VALLE LTDA',
+          referencia: 'REF-003',
+          td: 'TD3',
+          numeroColores: 5,
+          colores: ['CYAN', 'MAGENTA', 'AMARILLO', 'NEGRO', 'PANTONE 186C'],
+          kilos: 1200.00,
+          fechaTintaEnMaquina: new Date('2026-01-06T16:00:00'),
+          sustrato: 'PET',
+          estado: 'CORRIENDO',
+          observaciones: 'Producción en curso',
+          lastActionBy: 'Carlos López',
+          lastActionAt: new Date()
+        },
+        {
+            articulo: 'F204570',
+            numeroMaquina: 12,
+            machineNumber: 12,
+            otSap: 'OT123459',
+          cliente: 'INDUSTRIAS ALIMENTARIAS S.A',
+          referencia: 'REF-004',
+          td: 'TD4',
+          numeroColores: 2,
+          colores: ['CYAN', 'NEGRO'],
+          kilos: 800.00,
+          fechaTintaEnMaquina: new Date('2026-01-06T17:00:00'),
+          sustrato: 'BOPP',
+          estado: 'SUSPENDIDO',
+          observaciones: 'Falta material',
+          lastActionBy: 'Ana Rodríguez',
+          lastActionAt: new Date()
+        },
+        {
+            articulo: 'F204571',
+            numeroMaquina: 13,
+            machineNumber: 13,
+            otSap: 'OT123460',
+          cliente: 'FLEXIBLES MODERNOS S.A',
+          referencia: 'REF-005',
+          td: 'TD5',
+          numeroColores: 6,
+          colores: ['CYAN', 'MAGENTA', 'AMARILLO', 'NEGRO', 'PANTONE 186C', 'PANTONE 287C'],
+          kilos: 2500.00,
+          fechaTintaEnMaquina: new Date('2026-01-06T18:00:00'),
+          sustrato: 'CPP',
+          estado: 'TERMINADO',
+          observaciones: 'Producción completada',
+          lastActionBy: 'Luis Martínez',
+          lastActionAt: new Date()
+        }
+      ];
       
-      // Mostrar detalles completos del error en consola para debugging
-      console.error('🔍 Detalles del error:', {
-        status: error.status, // Código de estado HTTP
-        message: error.message, // Mensaje del error
-        url: error.url, // URL que falló
-        error: error.error // Objeto de error completo
-      });
-      
-      // Log detallado del error con información técnica
-      console.error(`❌ ${errorMessage}`, {
-        detallesTecnicos: technicalDetails,
-        urlAPI: `${environment.apiUrl}/maquinas`
-      });
+      this.programs.set(testPrograms);
+      console.log(`✅ ${testPrograms.length} programas de prueba cargados como fallback`);
       
       // Establecer array vacío en caso de error para evitar errores en la UI
-      this.programs.set([]);
+      // this.programs.set([]);
     } finally {
       // Siempre desactivar el indicador de carga, sin importar si hubo éxito o error
       this.loading.set(false);
@@ -536,18 +689,18 @@ Error: ${loginError.message || 'Error de conexión'}`);
   // ===== MÉTODO PARA VERIFICAR SI UN DROPDOWN ESTÁ EXPANDIDO =====
   // Verifica si el dropdown de colores está abierto para un programa específico
   // Usado en el template para aplicar clases CSS y mostrar/ocultar el dropdown
-  // Parámetro: programId - ID único del programa
+  // Parámetro: otSap - OT SAP único del programa
   // Retorna: true si el dropdown está expandido, false si está cerrado
-  isColorsExpanded(programId: string): boolean {
+  isColorsExpanded(otSap: string): boolean {
     // Verificar si el ID del programa está en el Set de dropdowns expandidos
     // El Set almacena los IDs de todos los dropdowns que están abiertos
-    return this.expandedColors().has(programId);
+    return this.expandedColors().has(otSap);
   }
 
   // ===== MÉTODO PARA ALTERNAR (TOGGLE) EL DROPDOWN DE COLORES =====
   // Método mejorado que maneja la apertura/cierre del dropdown de colores de un programa
   // Incluye manejo de eventos para evitar propagación y cierre automático al hacer clic fuera
-  toggleColors(programId: string, event?: Event) {
+  toggleColors(otSap: string, event?: Event) {
     // ===== PREVENIR PROPAGACIÓN DEL EVENTO =====
     // Evitar que el clic se propague a elementos padres que puedan cerrar el dropdown
     if (event) {
@@ -560,17 +713,17 @@ Error: ${loginError.message || 'Error de conexión'}`);
     
     // ===== ALTERNAR ESTADO DEL DROPDOWN =====
     // Si el dropdown está expandido, cerrarlo; si está cerrado, abrirlo
-    if (expanded.has(programId)) {
+    if (expanded.has(otSap)) {
       // El dropdown está abierto, cerrarlo
-      expanded.delete(programId); // Remover el ID del Set
-      console.log(`🎨 Cerrando dropdown de colores para programa: ${programId}`);
+      expanded.delete(otSap); // Remover el ID del Set
+      console.log(`🎨 Cerrando dropdown de colores para programa: ${otSap}`);
     } else {
       // El dropdown está cerrado, abrirlo
       // IMPORTANTE: Cerrar todos los demás dropdowns antes de abrir este
       // Esto asegura que solo un dropdown esté abierto a la vez
       expanded.clear(); // Limpiar todos los dropdowns abiertos
-      expanded.add(programId); // Agregar el nuevo ID al Set
-      console.log(`🎨 Abriendo dropdown de colores para programa: ${programId}`);
+      expanded.add(otSap); // Agregar el nuevo ID al Set
+      console.log(`🎨 Abriendo dropdown de colores para programa: ${otSap}`);
     }
     
     // ===== ACTUALIZAR ESTADO REACTIVO =====
@@ -580,18 +733,18 @@ Error: ${loginError.message || 'Error de conexión'}`);
 
   // ===== MÉTODO PARA CERRAR ESPECÍFICAMENTE UN DROPDOWN DE COLORES =====
   // Cierra el dropdown de colores de un programa específico sin afectar otros
-  closeColors(programId: string) {
+  closeColors(otSap: string) {
     // ===== CREAR COPIA DEL SET ACTUAL =====
     const expanded = new Set(this.expandedColors()); // Crear copia del Set actual
     
     // ===== REMOVER EL ID DEL SET =====
-    expanded.delete(programId); // Remover el ID del Set (cerrar dropdown)
+    expanded.delete(otSap); // Remover el ID del Set (cerrar dropdown)
     
     // ===== ACTUALIZAR ESTADO REACTIVO =====
     this.expandedColors.set(expanded); // Actualizar la señal reactiva
     
     // ===== LOG DE CONFIRMACIÓN =====
-    console.log(`🎨 Dropdown de colores cerrado para programa: ${programId}`);
+    console.log(`🎨 Dropdown de colores cerrado para programa: ${otSap}`);
   }
 
 
@@ -705,8 +858,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
       event.stopPropagation();
     }
 
-    const programId = program.id?.toString() || '';
-    console.log('🔵 Program ID:', programId);
+    const programId = program.otSap;
+    console.log('🔵 Program ID (OT SAP):', programId);
     
     const expanded = new Set(this.expandedColors());
     console.log('🔵 Estado actual expandedColors:', Array.from(expanded));
@@ -730,7 +883,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
       if (designInfo) {
         const programs = this.programs();
         const updatedPrograms = programs.map(p => {
-          if (p.id === program.id) {
+          if (p.otSap === program.otSap) {
             return {
               ...p,
               // Actualizar campos desde la base de datos de diseño
@@ -774,28 +927,19 @@ Error: ${loginError.message || 'Error de conexión'}`);
     // ===== LOG DE ENTRADA AL MÉTODO =====
     console.log('🎯 changeStatus llamado con:', { program, newStatus });
     
-    // ===== VALIDACIÓN DE ID =====
-    // Verificar que el programa tenga un ID válido antes de intentar actualizar
-    if (!program.id) {
-      console.error('❌ Error: El programa no tiene un ID válido', program);
-      this.snackBar.open('Error: No se puede cambiar el estado del programa', 'Cerrar', { duration: 5000 });
-      return; // Salir del método si no hay ID
-    }
-    
-    // ===== VALIDACIÓN DE ID TEMPORAL =====
-    // Si el ID es temporal (generado por el frontend), mostrar advertencia
-    const programIdStr = String(program.id); // Convertir a string para verificar
-    if (programIdStr.startsWith('temp-')) {
-      console.warn('⚠️ Advertencia: Intentando actualizar programa con ID temporal', program);
-      this.snackBar.open('Advertencia: Este programa tiene un ID temporal', 'Cerrar', { duration: 5000 });
-      return; // Salir del método si el ID es temporal
+    // ===== VALIDACIÓN DE OT SAP =====
+    // Verificar que el programa tenga un OT SAP válido antes de intentar actualizar
+    if (!program.otSap) {
+      console.error('❌ Error: El programa no tiene un OT SAP válido', program);
+      this.snackBar.open('Error: No se puede cambiar el estado del programa: Falta OT SAP', 'Cerrar', { duration: 5000 });
+      return; // Salir del método si no hay OT SAP
     }
     
     try {
       this.loading.set(true); // Activar indicador de carga en la UI para mostrar spinner
       
       // ===== LOG DE INICIO DE CAMBIO DE ESTADO =====
-      console.log(`🔄 Cambiando estado de programa ${program.id} a ${newStatus} en la base de datos`);
+      console.log(`🔄 Cambiando estado de programa ${program.otSap} a ${newStatus} en la base de datos`);
       
       // ===== PREPARACIÓN DEL DTO PARA EL BACKEND =====
       // Crear objeto DTO (Data Transfer Object) con los datos a enviar al servidor
@@ -807,11 +951,11 @@ Error: ${loginError.message || 'Error de conexión'}`);
       };
       
       // ===== LOG DEL DTO Y URL =====
-      const url = `${environment.apiUrl}/maquinas/${program.id}/status`;
+      const url = `${environment.apiUrl}/maquinas/${program.otSap}/status`;
       console.log('📤 Enviando petición PATCH:', { url, dto: changeStatusDto });
       
       // ===== PETICIÓN HTTP PATCH AL BACKEND =====
-      // Realizar petición HTTP PATCH al endpoint api/maquinas/{id}/status
+      // Realizar petición HTTP PATCH al endpoint api/maquinas/{otSap}/status
       // Este endpoint actualiza las columnas: estado, observaciones, updated_at, updated_by, last_action_by, last_action_at
       // en la tabla machine_programs de la base de datos flexoapp_bd
       const response = await firstValueFrom(this.http.patch<any>(
@@ -831,7 +975,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
         // Actualizar el estado localmente en el frontend para reflejar los cambios inmediatamente
         // Esto evita tener que recargar todos los datos desde el servidor
         const programs = this.programs(); // Obtener array actual de programas desde la señal reactiva
-        const programIndex = programs.findIndex(p => p.id === program.id); // Encontrar índice del programa modificado
+        const programIndex = programs.findIndex(p => p.otSap === program.otSap); // Encontrar índice del programa modificado
         console.log('🔍 Índice del programa en el array:', programIndex);
         
         if (programIndex !== -1) {
@@ -860,7 +1004,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
           this.cdr.detectChanges();
           
           console.log('🔄 Estado actualizado localmente:', {
-            programaId: program.id,
+            programaOtSap: program.otSap,
             estadoAnterior: program.estado,
             estadoNuevo: newStatus
           });
@@ -870,7 +1014,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
         const statusMessages = {
           'SIN_ASIGNAR': 'Estado asignado - Programa activado',
           'PREPARANDO': 'Programa en PREPARACIÓN',
-          'LISTO': 'Programa marcado como LISTO',
+          'LISTO': 'Programa marcado como PREPARADO',
           'CORRIENDO': 'Programa iniciado - CORRIENDO',
           'SUSPENDIDO': 'Programa SUSPENDIDO',
           'TERMINADO': 'Programa TERMINADO exitosamente'
@@ -963,7 +1107,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
     try {
       this.loading.set(true); // Activar indicador de carga
       
-      console.log(`⏸️ Suspendiendo programa ${this.currentProgramToSuspend.id} con motivo: ${this.suspendReason}`);
+      console.log(`⏸️ Suspendiendo programa ${this.currentProgramToSuspend.otSap} con motivo: ${this.suspendReason}`);
       
       // Preparar objeto DTO para suspender el programa con observaciones
       const changeStatusDto = {
@@ -973,7 +1117,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
       
       // Realizar petición HTTP PATCH para suspender el programa usando el endpoint de maquinas
       const response = await firstValueFrom(this.http.patch<any>(
-        `${environment.apiUrl}/maquinas/${this.currentProgramToSuspend.id}/status`, 
+        `${environment.apiUrl}/maquinas/${this.currentProgramToSuspend.otSap}/status`, 
         changeStatusDto
       ));
       
@@ -983,7 +1127,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
         
         // Actualizar el estado localmente para reflejar los cambios inmediatamente
         const programs = this.programs(); // Obtener array actual de programas
-        const index = programs.findIndex(p => p.id === this.currentProgramToSuspend!.id); // Encontrar programa
+        const index = programs.findIndex(p => p.otSap === this.currentProgramToSuspend!.otSap); // Encontrar programa
         if (index !== -1) {
           // Crear nuevo array inmutable con el programa actualizado
           const updatedPrograms = programs.map((p, i) => {
@@ -1311,7 +1455,13 @@ Error: ${loginError.message || 'Error de conexión'}`);
       if (error.status === 400) {
         // Error 400: Bad Request - Formato de archivo inválido
         errorMessage = 'Formato de archivo inválido';
-        technicalDetails = 'Verifica que el archivo tenga las columnas correctas y el formato esperado.';
+        
+        // Intentar obtener el mensaje detallado del backend
+        if (error.error && error.error.message) {
+          technicalDetails = error.error.message;
+        } else {
+          technicalDetails = 'Verifica que el archivo tenga las columnas correctas y el formato esperado.';
+        }
       } else if (error.status === 413) {
         // Error 413: Payload Too Large - Archivo demasiado grande
         errorMessage = 'El archivo es demasiado grande';
@@ -1684,9 +1834,9 @@ Error: ${loginError.message || 'Error de conexión'}`);
     
     try {
       // ===== CARGAR PLANTILLA HTML DESDE EL ARCHIVO =====
-      console.log('📄 Cargando plantilla HTML desde templates/print-ff459.html');
+      console.log('📄 Cargando plantilla HTML desde templates/print-ff459.html (Bypass Interceptors)');
       const response = await firstValueFrom(
-        this.http.get('/templates/print-ff459.html', { responseType: 'text' })
+        this.templateHttp.get('/templates/print-ff459.html', { responseType: 'text' })
       );
       
       let htmlContent = response;

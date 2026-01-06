@@ -25,7 +25,6 @@ namespace FlexoAPP.API.Models.DTOs
 
     public class ProductionReportDto
     {
-        public int Id { get; set; }
         public int MachineNumber { get; set; }
         public string ProgramName { get; set; } = string.Empty;
         public string Articulo { get; set; } = string.Empty;

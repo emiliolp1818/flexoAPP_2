@@ -14,11 +14,12 @@ namespace FlexoAPP.API.Models.Entities
     {
         /// <summary>
         /// ID único auto-incremental (PRIMARY KEY)
-        /// Campo interno de la base de datos, no se usa en el frontend ni en Excel
         /// Columna: id INT AUTO_INCREMENT PRIMARY KEY
         /// </summary>
-        // Nota: La clave primaria real en la base de datos es `articulo`.
-        // Eliminamos la propiedad `Id` porque el esquema de la BD usa `articulo` como PRIMARY KEY.
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("id")]
+        public int Id { get; set; }
 
         /// <summary>
         /// Código del artículo a producir (ej: F204567, F204568)

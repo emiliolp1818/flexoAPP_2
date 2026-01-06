@@ -6,6 +6,7 @@ namespace flexoAPP.Repositories
     {
         Task<IEnumerable<Maquina>> GetAllAsync();
         Task<Maquina?> GetByArticuloAsync(string articulo);
+        Task<Maquina?> GetByOtSapAsync(string otSap);
         Task<IEnumerable<Maquina>> GetByNumeroMaquinaAsync(int numeroMaquina);
         Task<IEnumerable<Maquina>> GetByEstadoAsync(string estado);
         Task<Maquina> CreateAsync(Maquina maquina);
