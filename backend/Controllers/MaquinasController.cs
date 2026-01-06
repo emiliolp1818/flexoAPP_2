@@ -88,7 +88,6 @@ namespace backend.Controllers
                 {
                     maquinas.Add(new
                     {
-                        id = reader.GetString("articulo"),
                         articulo = reader.GetString("articulo"),
                         numeroMaquina = reader.GetInt32("numero_maquina"),
                         machineNumber = reader.GetInt32("numero_maquina"),
@@ -156,230 +155,81 @@ namespace backend.Controllers
         }
 
         /// <summary>
-        /// PATCH: api/maquinas/{articulo}/status
+        /// PATCH: api/maquinas/{otSap}/status
         /// Actualiza el estado de un programa de máquina y cambia el color de toda la línea en el frontend
         /// Guarda la acción en la base de datos con información del usuario que realizó el cambio
         /// Estados válidos: PREPARANDO, LISTO (verde), CORRIENDO (amarillo), SUSPENDIDO (rojo), TERMINADO (gris)
         /// </summary>
-        /// <param name="articulo">Código del artículo (clave primaria) de la máquina a actualizar</param>
+        /// <param name="otSap">OT SAP (identificador único) de la máquina a actualizar</param>
         /// <param name="request">Objeto con el nuevo estado y observaciones opcionales</param>
         /// <returns>Respuesta JSON con el resultado de la operación</returns>
-        [HttpPatch("{articulo}/status")] // Ruta: PATCH /api/maquinas/F204567/status
-        public async Task<ActionResult<object>> UpdateMachineStatus(string articulo, [FromBody] UpdateStatusRequest request)
+        [HttpPatch("{otSap}/status")] // Ruta: PATCH /api/maquinas/12345/status
+        public async Task<ActionResult<object>> UpdateMachineStatus(string otSap, [FromBody] UpdateStatusRequest request)
         {
-            MySqlConnector.MySqlConnection? connection = null;
             try
             {
                 // ===== LOG DE ENTRADA =====
-                _logger.LogInformation($"🎯 PATCH /api/maquinas/{articulo}/status - Estado: {request?.Estado}, Observaciones: {request?.Observaciones}");
+                _logger.LogInformation($"🎯 PATCH /api/maquinas/{otSap}/status - Estado: {request?.Estado}, Observaciones: {request?.Observaciones}");
                 _logger.LogInformation($"🔐 Usuario autenticado: {User?.Identity?.IsAuthenticated ?? false}");
-                _logger.LogInformation($"🔐 Claims count: {User?.Claims?.Count() ?? 0}");
                 
                 // ===== VALIDAR REQUEST =====
                 if (request == null)
                 {
-                    _logger.LogError("❌ Request es null");
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = "Request body es requerido",
-                        timestamp = DateTime.UtcNow
-                    });
+                    return BadRequest(new { success = false, message = "Request body es requerido" });
                 }
                 
                 if (string.IsNullOrWhiteSpace(request.Estado))
                 {
-                    _logger.LogError("❌ Estado es null o vacío");
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = "El campo 'estado' es requerido",
-                        timestamp = DateTime.UtcNow
-                    });
+                    return BadRequest(new { success = false, message = "El campo 'estado' es requerido" });
                 }
                 
-                // ===== OBTENER INFORMACIÓN DEL USUARIO AUTENTICADO (CON MANEJO DE ERRORES) =====
-                int userId = 1; // Usuario por defecto
-                string userName = "Sistema"; // Nombre por defecto
-                
+                // ===== OBTENER INFORMACIÓN DEL USUARIO AUTENTICADO =====
+                int userId = 1; 
+                string userName = "Sistema";
                 try
                 {
                     userId = GetCurrentUserId();
                     userName = GetCurrentUserName();
-                    
-                    if (userId == 0)
-                    {
-                        userId = 1;
-                        userName = string.IsNullOrEmpty(userName) ? "Sistema" : userName;
-                        _logger.LogWarning("⚠️ No se encontró usuario autenticado, usando usuario por defecto");
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"✅ Usuario autenticado: {userId} ({userName})");
-                    }
+                    if (userId == 0) { userId = 1; userName = !string.IsNullOrEmpty(userName) ? userName : "Sistema"; }
                 }
-                catch (Exception userEx)
-                {
-                    _logger.LogWarning(userEx, "⚠️ Error obteniendo información del usuario, usando valores por defecto");
-                    userId = 1;
-                    userName = "Sistema";
-                }
+                catch (Exception) { userId = 1; userName = "Sistema"; }
                 
-                // ===== LOG DE INICIO DE OPERACIÓN =====
-                _logger.LogInformation($"🔄 Actualizando estado de máquina {articulo} a {request.Estado} por usuario {userId} ({userName})");
-
-                // ===== VALIDAR ESTADO =====
-                var estadosValidos = new[] { "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO" };
-                if (!estadosValidos.Contains(request.Estado?.ToUpper()))
-                {
-                    _logger.LogError($"❌ Estado inválido: {request.Estado}");
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = $"Estado inválido: {request.Estado}. Estados válidos: {string.Join(", ", estadosValidos)}",
-                        timestamp = DateTime.UtcNow
-                    });
-                }
-
-                // ===== BUSCAR LA MÁQUINA EN LA BASE DE DATOS USANDO RAW SQL =====
-                _logger.LogInformation($"🔍 Buscando máquina con artículo: {articulo}");
-                
-                var connectionString = _context.Database.GetConnectionString();
-                _logger.LogInformation($"🔗 Connection string obtenido");
-                
-                connection = new MySqlConnector.MySqlConnection(connectionString);
-                await connection.OpenAsync();
-                _logger.LogInformation($"✅ Conexión a base de datos abierta");
-                
-                // Primero verificar si existe
-                using var checkCommand = connection.CreateCommand();
-                checkCommand.CommandText = "SELECT COUNT(*) FROM maquinas WHERE articulo = @articulo";
-                checkCommand.Parameters.AddWithValue("@articulo", articulo);
-                var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
-                _logger.LogInformation($"📊 Registros encontrados: {count}");
-                
-                if (count == 0)
-                {
-                    _logger.LogWarning($"⚠️ Máquina con artículo {articulo} no encontrada");
-                    return NotFound(new
-                    {
-                        success = false,
-                        message = $"Registro de máquina con artículo {articulo} no encontrado",
-                        timestamp = DateTime.UtcNow
-                    });
-                }
-                
-                // Obtener el estado anterior
-                using var getCommand = connection.CreateCommand();
-                getCommand.CommandText = "SELECT estado FROM maquinas WHERE articulo = @articulo";
-                getCommand.Parameters.AddWithValue("@articulo", articulo);
-                var estadoAnterior = (await getCommand.ExecuteScalarAsync())?.ToString() ?? "DESCONOCIDO";
-                
-                _logger.LogInformation($"📊 Estado anterior: {estadoAnterior}, Estado nuevo: {request.Estado}");
-                
-                // Actualizar usando RAW SQL
-                using var updateCommand = connection.CreateCommand();
-                updateCommand.CommandText = @"
-                    UPDATE maquinas 
-                    SET estado = @estado,
-                        observaciones = @observaciones,
-                        updated_by = @updatedBy,
-                        updated_at = @updatedAt,
-                        last_action_by = @lastActionBy,
-                        last_action_at = @lastActionAt
-                    WHERE articulo = @articulo";
-                
-                updateCommand.Parameters.AddWithValue("@estado", request.Estado.ToUpper());
-                updateCommand.Parameters.AddWithValue("@observaciones", request.Observaciones ?? (object)DBNull.Value);
-                updateCommand.Parameters.AddWithValue("@updatedBy", userId);
-                updateCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
-                updateCommand.Parameters.AddWithValue("@lastActionBy", userName);
-                updateCommand.Parameters.AddWithValue("@lastActionAt", DateTime.UtcNow);
-                updateCommand.Parameters.AddWithValue("@articulo", articulo);
-                
-                _logger.LogInformation($"🔄 Ejecutando UPDATE...");
-                var rowsAffected = await updateCommand.ExecuteNonQueryAsync();
-                
-                _logger.LogInformation($"✅ Filas afectadas: {rowsAffected}");
-
-                // ===== LOG DE OPERACIÓN EXITOSA =====
-                _logger.LogInformation($"✅ Estado de máquina {articulo} actualizado exitosamente de {estadoAnterior} a {request.Estado}");
-
-                // ✅ Registrar actividad de cambio de estado con fecha y hora exacta
-                try
-                {
-                    var timestamp = DateTime.Now;
-                    var detailsJson = $"{{" +
-                        $"\"articulo\":\"{articulo}\"," +
-                        $"\"estadoAnterior\":\"{estadoAnterior}\"," +
-                        $"\"estadoNuevo\":\"{request.Estado}\"," +
-                        $"\"fechaHora\":\"{timestamp:yyyy-MM-dd HH:mm:ss}\"," +
-                        $"\"observaciones\":\"{request.Observaciones?.Replace("\"", "\\\"")}\"," +
-                        $"\"usuario\":\"{userName}\"" +
-                        $"}}";
-                    
-                    await _activityLogger.LogActivityAsync(
-                        "UPDATE_MACHINE_STATUS",
-                        $"Cambio de estado de máquina {articulo}: {estadoAnterior} → {request.Estado} a las {timestamp:HH:mm:ss}",
-                        "MACHINES",
-                        detailsJson
-                    );
-                }
-                catch (Exception logEx)
-                {
-                    _logger.LogWarning(logEx, "Error registrando actividad de cambio de estado");
-                }
+                var result = await _maquinaService.UpdateMachineStatusAsync(otSap, request.Estado, request.Observaciones, userId, userName);
 
                 // ===== RETORNAR RESPUESTA EXITOSA =====
                 return Ok(new
                 {
                     success = true,
-                    message = $"Estado actualizado exitosamente a {request.Estado}",
+                    message = $"Estado actualizado exitosamente a {result.Estado}",
                     data = new
                     {
-                        id = articulo,
-                        articulo = articulo,
-                        estadoAnterior = estadoAnterior,
-                        estadoNuevo = request.Estado.ToUpper(),
-                        lastActionBy = userName,
-                        lastActionAt = DateTime.UtcNow,
-                        observaciones = request.Observaciones
+                        otSap = result.OtSap,
+                        articulo = result.Articulo,
+                        estadoNuevo = result.Estado,
+                        lastActionBy = result.LastActionBy,
+                        lastActionAt = result.LastActionAt,
+                        observaciones = result.Observaciones
                     },
                     timestamp = DateTime.UtcNow
                 });
             }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
             catch (Exception ex)
             {
-                // ===== LOG DE ERROR DETALLADO =====
-                _logger.LogError(ex, $"❌ Error actualizando estado de máquina {articulo}");
-                _logger.LogError($"❌ Tipo de excepción: {ex.GetType().Name}");
-                _logger.LogError($"❌ Mensaje: {ex.Message}");
-                _logger.LogError($"❌ Stack Trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    _logger.LogError($"❌ Inner Exception: {ex.InnerException.Message}");
-                    _logger.LogError($"❌ Inner Stack Trace: {ex.InnerException.StackTrace}");
-                }
-                
-                // ===== RETORNAR RESPUESTA DE ERROR DETALLADA =====
-                return StatusCode(500, new
-                {
-                    success = false,
-                    message = "Error interno del servidor al actualizar estado",
-                    error = ex.Message,
-                    innerError = ex.InnerException?.Message,
-                    stackTrace = ex.StackTrace,
-                    timestamp = DateTime.UtcNow
+                _logger.LogError(ex, $"❌ Error actualizando estado de máquina {otSap}");
+                return StatusCode(500, new 
+                { 
+                    success = false, 
+                    message = "Error interno del servidor al actualizar estado", 
+                    error = ex.Message 
                 });
-            }
-            finally
-            {
-                // ===== CERRAR CONEXIÓN =====
-                if (connection != null)
-                {
-                    await connection.DisposeAsync();
-                    _logger.LogInformation("🔌 Conexión a base de datos cerrada");
-                }
             }
         }
 
@@ -506,100 +356,164 @@ namespace backend.Controllers
         }
 
         /// <summary>
-        /// POST: api/maquinas/test
-        /// ENDPOINT TEMPORAL DE PRUEBA - Crea un registro de prueba en la tabla maquinas
-        /// Útil para verificar que la tabla existe y funciona correctamente
+        /// POST: api/maquinas/seed-data
+        /// ENDPOINT TEMPORAL - Crear múltiples registros de prueba
         /// </summary>
-        /// <returns>Resultado de la operación de inserción</returns>
-        [HttpPost("test")] // Ruta: POST /api/maquinas/test
-        public async Task<ActionResult<object>> CreateTestRecord()
+        [HttpPost("seed-data")]
+        public async Task<ActionResult<object>> SeedTestData()
         {
             try
             {
-                // ===== LOG DE INICIO =====
-                _logger.LogInformation("🧪 Creando registro de prueba en tabla maquinas");
+                _logger.LogInformation("🌱 Creando datos de prueba múltiples...");
 
-                // ===== CREAR OBJETO DE PRUEBA =====
-                // Generar un código de artículo único usando timestamp
-                var timestamp = DateTime.Now.ToString("HHmmss"); // Ejemplo: 235959
-                var articulo = $"TEST{timestamp}"; // Ejemplo: TEST235959
-
-                // Crear nueva instancia de Maquina con datos de prueba
-                var maquinaPrueba = new Maquina
+                var testPrograms = new List<Maquina>
                 {
-                    // ===== CLAVE PRIMARIA =====
-                    Articulo = articulo, // Código único del artículo (PRIMARY KEY)
-                    
-                    // ===== DATOS PRINCIPALES =====
-                    NumeroMaquina = 11, // Máquina 11 (rango válido: 11-21)
-                    OtSap = $"OT{timestamp}", // Orden SAP única: OT235959
-                    Cliente = "CLIENTE DE PRUEBA S.A", // Nombre del cliente
-                    Referencia = "REF-TEST-001", // Referencia del producto
-                    Td = "TD1", // Código TD (Tipo de Diseño)
-                    NumeroColores = 4, // Cantidad de colores
-                    Kilos = 1000.00m, // Cantidad en kilogramos (decimal)
-                    FechaTintaEnMaquina = DateTime.Now, // Fecha y hora actual
-                    Sustrato = "BOPP", // Tipo de material base
-                    Estado = "LISTO", // Estado inicial
-                    Observaciones = "Registro de prueba creado desde API", // Notas
-                    
-                    // ===== AUDITORÍA =====
-                    LastActionBy = "Sistema Test", // Usuario que realizó la acción
-                    LastActionAt = DateTime.Now, // Timestamp de la acción
-                    CreatedBy = 1, // ID del usuario creador (admin)
-                    UpdatedBy = 1, // ID del usuario actualizador (admin)
-                    CreatedAt = DateTime.UtcNow, // Timestamp UTC de creación
-                    UpdatedAt = DateTime.UtcNow // Timestamp UTC de actualización
+                    new Maquina
+                    {
+                        Articulo = "F204567",
+                        NumeroMaquina = 11,
+                        OtSap = "OT123456",
+                        Cliente = "ABSORBENTES DE COLOMBIA S.A",
+                        Referencia = "REF-001",
+                        Td = "TD1",
+                        NumeroColores = 4,
+                        Kilos = 1500.00m,
+                        FechaTintaEnMaquina = DateTime.Now.AddHours(-2),
+                        Sustrato = "BOPP",
+                        Estado = "LISTO",
+                        Observaciones = "Programa preparado para producción",
+                        LastActionBy = "Juan Pérez",
+                        LastActionAt = DateTime.Now,
+                        CreatedBy = 1,
+                        UpdatedBy = 1,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Maquina
+                    {
+                        Articulo = "F204568",
+                        NumeroMaquina = 11,
+                        OtSap = "OT123457",
+                        Cliente = "PRODUCTOS FAMILIA S.A",
+                        Referencia = "REF-002",
+                        Td = "TD2",
+                        NumeroColores = 3,
+                        Kilos = 2000.00m,
+                        FechaTintaEnMaquina = DateTime.Now.AddHours(-1),
+                        Sustrato = "PE",
+                        Estado = "PREPARANDO",
+                        Observaciones = "En proceso de preparación",
+                        LastActionBy = "María García",
+                        LastActionAt = DateTime.Now,
+                        CreatedBy = 1,
+                        UpdatedBy = 1,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Maquina
+                    {
+                        Articulo = "F204569",
+                        NumeroMaquina = 12,
+                        OtSap = "OT123458",
+                        Cliente = "EMPAQUES DEL VALLE LTDA",
+                        Referencia = "REF-003",
+                        Td = "TD3",
+                        NumeroColores = 5,
+                        Kilos = 1200.00m,
+                        FechaTintaEnMaquina = DateTime.Now,
+                        Sustrato = "PET",
+                        Estado = "CORRIENDO",
+                        Observaciones = "Producción en curso",
+                        LastActionBy = "Carlos López",
+                        LastActionAt = DateTime.Now,
+                        CreatedBy = 1,
+                        UpdatedBy = 1,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Maquina
+                    {
+                        Articulo = "F204570",
+                        NumeroMaquina = 12,
+                        OtSap = "OT123459",
+                        Cliente = "INDUSTRIAS ALIMENTARIAS S.A",
+                        Referencia = "REF-004",
+                        Td = "TD4",
+                        NumeroColores = 2,
+                        Kilos = 800.00m,
+                        FechaTintaEnMaquina = DateTime.Now.AddHours(1),
+                        Sustrato = "BOPP",
+                        Estado = "SUSPENDIDO",
+                        Observaciones = "Falta material",
+                        LastActionBy = "Ana Rodríguez",
+                        LastActionAt = DateTime.Now,
+                        CreatedBy = 1,
+                        UpdatedBy = 1,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Maquina
+                    {
+                        Articulo = "F204571",
+                        NumeroMaquina = 13,
+                        OtSap = "OT123460",
+                        Cliente = "FLEXIBLES MODERNOS S.A",
+                        Referencia = "REF-005",
+                        Td = "TD5",
+                        NumeroColores = 6,
+                        Kilos = 2500.00m,
+                        FechaTintaEnMaquina = DateTime.Now.AddHours(2),
+                        Sustrato = "CPP",
+                        Estado = "TERMINADO",
+                        Observaciones = "Producción completada",
+                        LastActionBy = "Luis Martínez",
+                        LastActionAt = DateTime.Now,
+                        CreatedBy = 1,
+                        UpdatedBy = 1,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    }
                 };
 
-                // ===== CONFIGURAR COLORES EN FORMATO JSON =====
-                // Usar el método SetColoresArray para convertir array a JSON
-                maquinaPrueba.SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO", "NEGRO" });
+                // Configurar colores para cada programa
+                testPrograms[0].SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO", "NEGRO" });
+                testPrograms[1].SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO" });
+                testPrograms[2].SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO", "NEGRO", "PANTONE 186C" });
+                testPrograms[3].SetColoresArray(new[] { "CYAN", "NEGRO" });
+                testPrograms[4].SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO", "NEGRO", "PANTONE 186C", "PANTONE 287C" });
 
-                // ===== AGREGAR A LA BASE DE DATOS =====
-                // Add: marca la entidad para inserción
-                _context.Maquinas.Add(maquinaPrueba);
-                
-                // SaveChangesAsync: ejecuta el INSERT en MySQL
-                await _context.SaveChangesAsync(); // Ejecuta: INSERT INTO maquinas (...) VALUES (...)
+                // Agregar todos los programas
+                _context.Maquinas.AddRange(testPrograms);
+                await _context.SaveChangesAsync();
 
-                // ===== LOG DE ÉXITO =====
-                _logger.LogInformation($"✅ Registro de prueba creado exitosamente: {articulo}");
+                _logger.LogInformation($"✅ {testPrograms.Count} programas de prueba creados exitosamente");
 
-                // ===== RETORNAR RESPUESTA EXITOSA =====
                 return Ok(new
                 {
-                    success = true, // Indicador de operación exitosa
-                    message = "Registro de prueba creado exitosamente", // Mensaje de confirmación
-                    data = new // Datos del registro creado
+                    success = true,
+                    message = $"{testPrograms.Count} programas de prueba creados exitosamente",
+                    data = testPrograms.Select(p => new
                     {
-                        id = maquinaPrueba.Articulo, // ID para compatibilidad con frontend (usa articulo como ID)
-                        articulo = maquinaPrueba.Articulo, // Código del artículo (PRIMARY KEY)
-                        numeroMaquina = maquinaPrueba.NumeroMaquina, // Número de máquina
-                        otSap = maquinaPrueba.OtSap, // Orden SAP
-                        cliente = maquinaPrueba.Cliente, // Cliente
-                        colores = maquinaPrueba.GetColoresArray(), // Array de colores
-                        kilos = maquinaPrueba.Kilos, // Cantidad en kg
-                        estado = maquinaPrueba.Estado, // Estado
-                        fechaTintaEnMaquina = maquinaPrueba.FechaTintaEnMaquina // Fecha de tinta
-                    },
-                    timestamp = DateTime.UtcNow // Timestamp UTC de la respuesta
+                        id = p.Id,
+                        articulo = p.Articulo,
+                        numeroMaquina = p.NumeroMaquina,
+                        cliente = p.Cliente,
+                        estado = p.Estado,
+                        colores = p.GetColoresArray()
+                    }),
+                    timestamp = DateTime.UtcNow
                 });
             }
-            catch (Exception ex) // Capturar cualquier excepción
+            catch (Exception ex)
             {
-                // ===== LOG DE ERROR =====
-                _logger.LogError(ex, "❌ Error creando registro de prueba en tabla maquinas");
-                
-                // ===== RETORNAR RESPUESTA DE ERROR =====
+                _logger.LogError(ex, "❌ Error creando datos de prueba múltiples");
                 return StatusCode(500, new
                 {
-                    success = false, // Indicador de operación fallida
-                    message = "Error creando registro de prueba", // Mensaje genérico
-                    error = ex.Message, // Mensaje específico de la excepción
-                    details = ex.InnerException?.Message, // Detalles adicionales si existen
-                    stackTrace = ex.StackTrace, // Stack trace completo para debugging
-                    timestamp = DateTime.UtcNow // Timestamp UTC de la respuesta
+                    success = false,
+                    message = "Error creando datos de prueba",
+                    error = ex.Message,
+                    details = ex.InnerException?.Message,
+                    timestamp = DateTime.UtcNow
                 });
             }
         }

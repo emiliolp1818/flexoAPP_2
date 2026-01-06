@@ -18,67 +18,19 @@ namespace FlexoAPP.API.Services
             _logger = logger;
         }
 
-        // MÉTODOS ANTIGUOS - REQUIEREN ACTUALIZACIÓN DEL MODELO MAQUINA
-        // Por ahora lanzan NotImplementedException
-        public async Task<ReportSummaryDto> GetReportSummaryAsync(ReportFilterDto filter)
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        public async Task<List<ProductionReportDto>> GetProductionReportAsync(ReportFilterDto filter)
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        public async Task<List<MachineEfficiencyReportDto>> GetMachineEfficiencyReportAsync(ReportFilterDto filter)
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        public async Task<List<ClientReportDto>> GetClientReportAsync(ReportFilterDto filter)
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        public async Task<List<DailyProductionReportDto>> GetDailyProductionReportAsync(ReportFilterDto filter)
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        public async Task<List<string>> GetClientsListAsync()
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        public async Task<List<string>> GetArticulosListAsync()
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        public async Task<byte[]> ExportToExcelAsync(string reportType, ReportFilterDto filter)
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        public async Task<byte[]> ExportToPDFAsync(string reportType, ReportFilterDto filter)
-        {
-            throw new NotImplementedException("Este método requiere actualización del modelo Maquina");
-        }
-
-        /* CÓDIGO ANTIGUO COMENTADO
         public async Task<ReportSummaryDto> GetReportSummaryAsync(ReportFilterDto filter)
         {
             var query = _context.Maquinas.AsQueryable();
 
             // Aplicar filtros
             if (filter.StartDate.HasValue)
-                query = query.Where(p => p.FechaInicio >= filter.StartDate.Value);
+                query = query.Where(p => p.FechaTintaEnMaquina >= filter.StartDate.Value);
 
             if (filter.EndDate.HasValue)
-                query = query.Where(p => p.FechaInicio <= filter.EndDate.Value);
+                query = query.Where(p => p.FechaTintaEnMaquina <= filter.EndDate.Value);
 
             if (filter.MachineNumbers?.Any() == true)
-                query = query.Where(p => filter.MachineNumbers.Contains(p.MachineNumber));
+                query = query.Where(p => filter.MachineNumbers.Contains(p.NumeroMaquina));
 
             if (filter.Status?.Any() == true)
                 query = query.Where(p => filter.Status.Contains(p.Estado));
@@ -93,9 +45,9 @@ namespace FlexoAPP.API.Services
                 SuspendedPrograms = programs.Count(p => p.Estado == "SUSPENDIDO"),
                 ReadyPrograms = programs.Count(p => p.Estado == "LISTO"),
                 TotalKilos = programs.Sum(p => p.Kilos),
-                AverageEfficiency = programs.Where(p => p.Progreso > 0).Average(p => (double?)p.Progreso) ?? 0,
-                ActiveMachines = programs.Where(p => p.Estado == "CORRIENDO").Select(p => p.MachineNumber).Distinct().Count(),
-                TotalMachines = programs.Select(p => p.MachineNumber).Distinct().Count()
+                AverageEfficiency = 0, // No disponible
+                ActiveMachines = programs.Where(p => p.Estado == "CORRIENDO").Select(p => p.NumeroMaquina).Distinct().Count(),
+                TotalMachines = programs.Select(p => p.NumeroMaquina).Distinct().Count()
             };
 
             return summary;
@@ -107,13 +59,13 @@ namespace FlexoAPP.API.Services
 
             // Aplicar filtros
             if (filter.StartDate.HasValue)
-                query = query.Where(p => p.FechaInicio >= filter.StartDate.Value);
+                query = query.Where(p => p.FechaTintaEnMaquina >= filter.StartDate.Value);
 
             if (filter.EndDate.HasValue)
-                query = query.Where(p => p.FechaInicio <= filter.EndDate.Value);
+                query = query.Where(p => p.FechaTintaEnMaquina <= filter.EndDate.Value);
 
             if (filter.MachineNumbers?.Any() == true)
-                query = query.Where(p => filter.MachineNumbers.Contains(p.MachineNumber));
+                query = query.Where(p => filter.MachineNumbers.Contains(p.NumeroMaquina));
 
             if (filter.Status?.Any() == true)
                 query = query.Where(p => filter.Status.Contains(p.Estado));
@@ -124,25 +76,24 @@ namespace FlexoAPP.API.Services
             if (!string.IsNullOrEmpty(filter.Articulo))
                 query = query.Where(p => p.Articulo.Contains(filter.Articulo));
 
-            var programs = await query.OrderByDescending(p => p.FechaInicio).ToListAsync();
+            var programs = await query.OrderByDescending(p => p.FechaTintaEnMaquina).ToListAsync();
 
             return programs.Select(p => new ProductionReportDto
             {
-                Id = p.Id,
-                MachineNumber = p.MachineNumber,
-                ProgramName = p.Name,
+                MachineNumber = p.NumeroMaquina,
+                ProgramName = p.Articulo,
                 Articulo = p.Articulo,
                 Cliente = p.Cliente,
                 Referencia = p.Referencia ?? "",
                 Kilos = p.Kilos,
-                Estado = p.Estado,
-                FechaInicio = p.FechaInicio,
-                FechaFin = p.FechaFin,
-                Progreso = p.Progreso,
-                TiempoTotal = p.FechaFin.HasValue ? 
-                    (p.FechaFin.Value - p.FechaInicio).TotalHours : null,
-                Eficiencia = CalculateEfficiency(p),
-                OperatorName = p.OperatorName
+                Estado = p.Estado ?? "SIN ASIGNAR",
+                FechaInicio = p.FechaTintaEnMaquina,
+                FechaFin = (p.Estado == "TERMINADO") ? p.LastActionAt : null,
+                Progreso = 0,
+                TiempoTotal = (p.Estado == "TERMINADO" && p.LastActionAt.HasValue) ? 
+                    (p.LastActionAt.Value - p.FechaTintaEnMaquina).TotalHours : null,
+                Eficiencia = 0,
+                OperatorName = p.LastActionBy
             }).ToList();
         }
 
@@ -152,17 +103,17 @@ namespace FlexoAPP.API.Services
 
             // Aplicar filtros
             if (filter.StartDate.HasValue)
-                query = query.Where(p => p.FechaInicio >= filter.StartDate.Value);
+                query = query.Where(p => p.FechaTintaEnMaquina >= filter.StartDate.Value);
 
             if (filter.EndDate.HasValue)
-                query = query.Where(p => p.FechaInicio <= filter.EndDate.Value);
+                query = query.Where(p => p.FechaTintaEnMaquina <= filter.EndDate.Value);
 
             if (filter.MachineNumbers?.Any() == true)
-                query = query.Where(p => filter.MachineNumbers.Contains(p.MachineNumber));
+                query = query.Where(p => filter.MachineNumbers.Contains(p.NumeroMaquina));
 
             var programs = await query.ToListAsync();
 
-            var machineGroups = programs.GroupBy(p => p.MachineNumber);
+            var machineGroups = programs.GroupBy(p => p.NumeroMaquina);
 
             var reports = new List<MachineEfficiencyReportDto>();
 
@@ -177,9 +128,9 @@ namespace FlexoAPP.API.Services
                     TotalPrograms = machinePrograms.Count,
                     CompletedPrograms = completedPrograms.Count,
                     TotalKilos = machinePrograms.Sum(p => p.Kilos),
-                    AverageEfficiency = machinePrograms.Where(p => p.Progreso > 0).Average(p => (double?)p.Progreso) ?? 0,
-                    TotalHours = completedPrograms.Where(p => p.FechaFin.HasValue)
-                        .Sum(p => (p.FechaFin!.Value - p.FechaInicio).TotalHours),
+                    AverageEfficiency = 0,
+                    TotalHours = completedPrograms.Where(p => p.LastActionAt.HasValue)
+                        .Sum(p => (p.LastActionAt!.Value - p.FechaTintaEnMaquina).TotalHours),
                     Downtime = CalculateDowntime(machinePrograms),
                     UtilizationRate = CalculateUtilizationRate(machinePrograms)
                 };
@@ -196,10 +147,10 @@ namespace FlexoAPP.API.Services
 
             // Aplicar filtros
             if (filter.StartDate.HasValue)
-                query = query.Where(p => p.FechaInicio >= filter.StartDate.Value);
+                query = query.Where(p => p.FechaTintaEnMaquina >= filter.StartDate.Value);
 
             if (filter.EndDate.HasValue)
-                query = query.Where(p => p.FechaInicio <= filter.EndDate.Value);
+                query = query.Where(p => p.FechaTintaEnMaquina <= filter.EndDate.Value);
 
             if (!string.IsNullOrEmpty(filter.Cliente))
                 query = query.Where(p => p.Cliente.Contains(filter.Cliente));
@@ -222,8 +173,8 @@ namespace FlexoAPP.API.Services
                     TotalKilos = clientPrograms.Sum(p => p.Kilos),
                     CompletedPrograms = completedPrograms.Count,
                     PendingPrograms = clientPrograms.Count(p => p.Estado != "TERMINADO"),
-                    AverageCompletionTime = completedPrograms.Where(p => p.FechaFin.HasValue)
-                        .Average(p => (double?)(p.FechaFin!.Value - p.FechaInicio).TotalHours) ?? 0
+                    AverageCompletionTime = completedPrograms.Where(p => p.LastActionAt.HasValue)
+                        .Average(p => (double?)(p.LastActionAt!.Value - p.FechaTintaEnMaquina).TotalHours) ?? 0
                 };
 
                 reports.Add(report);
@@ -241,13 +192,13 @@ namespace FlexoAPP.API.Services
                 .Where(p => p.FechaTintaEnMaquina >= startDate && p.FechaTintaEnMaquina <= endDate)
                 .ToListAsync();
 
-            var dailyGroups = programs.GroupBy(p => p.FechaInicio.Date);
+            var dailyGroups = programs.GroupBy(p => p.FechaTintaEnMaquina.Date);
 
             var reports = new List<DailyProductionReportDto>();
 
             for (var date = startDate.Date; date <= endDate.Date; date = date.AddDays(1))
             {
-                var dayPrograms = programs.Where(p => p.FechaInicio.Date == date).ToList();
+                var dayPrograms = programs.Where(p => p.FechaTintaEnMaquina.Date == date).ToList();
                 var completedPrograms = dayPrograms.Where(p => p.Estado == "TERMINADO").ToList();
 
                 var report = new DailyProductionReportDto
@@ -257,9 +208,8 @@ namespace FlexoAPP.API.Services
                     CompletedPrograms = completedPrograms.Count,
                     TotalKilos = dayPrograms.Sum(p => p.Kilos),
                     ActiveMachines = dayPrograms.Where(p => p.Estado == "CORRIENDO")
-                        .Select(p => p.MachineNumber).Distinct().Count(),
-                    Efficiency = dayPrograms.Where(p => p.Progreso > 0)
-                        .Average(p => (double?)p.Progreso) ?? 0
+                        .Select(p => p.NumeroMaquina).Distinct().Count(),
+                    Efficiency = 0
                 };
 
                 reports.Add(report);
@@ -331,13 +281,14 @@ namespace FlexoAPP.API.Services
 
         private double CalculateEfficiency(Maquina program)
         {
-            if (program.Estado == "TERMINADO" && program.FechaFin.HasValue)
+            if (program.Estado == "TERMINADO" && program.LastActionAt.HasValue)
             {
                 var expectedHours = (double)program.Kilos / 100; // Ejemplo: 100 kg/hora
-                var actualHours = (program.FechaFin.Value - program.FechaInicio).TotalHours;
-                return Math.Min(100, (expectedHours / actualHours) * 100);
+                var actualHours = (program.LastActionAt.Value - program.FechaTintaEnMaquina).TotalHours;
+                if (actualHours > 0)
+                     return Math.Min(100, (expectedHours / actualHours) * 100);
             }
-            return program.Progreso;
+            return 0;
         }
 
         private double CalculateDowntime(List<Maquina> programs)
@@ -531,7 +482,6 @@ namespace FlexoAPP.API.Services
 
             worksheet.Cells.AutoFitColumns();
         }
-        FIN DE MÉTODOS ANTIGUOS COMENTADOS */
 
         // Nuevos métodos para actividades de usuario
         public async Task<List<UserActivityDto>> GetUserActivitiesAsync(UserActivityFilterDto filter)

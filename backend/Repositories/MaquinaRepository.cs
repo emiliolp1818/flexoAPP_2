@@ -51,6 +51,20 @@ namespace flexoAPP.Repositories
             }
         }
 
+        public async Task<Maquina?> GetByOtSapAsync(string otSap)
+        {
+            try
+            {
+                return await _context.Maquinas
+                    .FirstOrDefaultAsync(m => m.OtSap == otSap);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error obteniendo máquina con OT SAP {otSap}");
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<Maquina>> GetByNumeroMaquinaAsync(int numeroMaquina)
         {
             try

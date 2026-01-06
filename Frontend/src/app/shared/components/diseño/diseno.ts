@@ -178,8 +178,8 @@ export class DesignComponent implements OnInit {
     this.loadCurrentUser();
     this.loadPantoneColors();
     this.initializeOptimizations();
-    // Usar método directo para cargar datos
-    this.loadDataDirectly();
+    // Usar método optimizado para cargar datos
+    this.loadDesigns();
   }
 
   /**
@@ -286,17 +286,17 @@ export class DesignComponent implements OnInit {
   async loadDesigns() {
     this.loading.set(true);
     try {
-      console.log('🚀 Cargando TODOS los diseños (sin límite de 100)...');
+      console.log('🚀 Cargando diseños con paginación por defecto...');
       
-      // Usar directamente el endpoint /all para cargar todos los diseños
-      await this.loadAllDesignsAfterImport();
+      // Usar endpoint paginado por defecto para carga rápida
+      await this.loadDesignsWithVirtualScroll();
       
     } catch (error: any) {
-      console.error('❌ Error cargando todos los diseños:', error);
+      console.error('❌ Error cargando diseños con paginación:', error);
       
-      // Fallback a carga paginada solo si falla completamente
-      console.log('🔄 Fallback a carga paginada...');
-      await this.loadDesignsPaginatedOptimized();
+      // Fallback a carga normal solo si falla
+      console.log('🔄 Fallback a carga normal...');
+      await this.loadDesignsNormal();
     } finally {
       this.loading.set(false);
     }
@@ -468,14 +468,20 @@ export class DesignComponent implements OnInit {
     this.loadingMore.set(true);
     try {
       const nextPage = this.currentPage() + 1;
-      console.log(`📄 Cargando página ${nextPage}...`);
+      const term = this.searchTerm().toLowerCase().trim();
       
-      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
-        params: {
-          page: nextPage.toString(),
-          pageSize: this.pageSize().toString()
-        }
-      }).toPromise();
+      console.log(`📄 Cargando página ${nextPage} (Búsqueda: "${term}")...`);
+      
+      let params: any = {
+        page: nextPage.toString(),
+        pageSize: this.pageSize().toString()
+      };
+      
+      if (term) {
+        params.search = term;
+      }
+      
+      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, { params }).toPromise();
       
       if (response) {
         const adaptedResponse = {
@@ -1405,9 +1411,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           }, 2000);
         }
 
-        // Recargar TODOS los diseños después de importación masiva
-        console.log('🔄 Iniciando recarga completa después de importación...');
-        await this.loadAllDesignsAfterImport();
+        // Recargar diseños paginados después de importación masiva
+        console.log('🔄 Iniciando recarga paginada después de importación...');
+        await this.loadDesignsWithVirtualScroll();
       }
     } catch (error: any) {
       console.error('❌ Error procesando archivo GRANDE:', error);
@@ -1448,18 +1454,17 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   onSearch() {
     const term = this.searchTerm().toLowerCase().trim();
     
+    // Siempre usar búsqueda en servidor para garantizar consistencia y velocidad
+    // Reiniciar paginación al buscar
+    this.currentPage.set(1);
+    
     if (!term) {
-      this.filteredDesigns.set(this.allDesigns());
+      // Si no hay término, recargar la primera página de datos normales
+      this.loadDesignsWithVirtualScroll();
       return;
     }
 
-    // Para bases de datos grandes, usar búsqueda en servidor
-    if (this.totalRecords() > 1000) {
-      this.searchOnServer(term);
-    } else {
-      // Búsqueda local para datasets pequeños
-      this.searchLocally(term);
-    }
+    this.searchOnServer(term);
   }
 
   /**
@@ -1489,8 +1494,8 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       console.log(`🔍 Búsqueda optimizada para: "${term}"`);
       
-      // Usar endpoint existente con parámetros de búsqueda
-      const response = await this.http.get<any>(`${environment.apiUrl}/designs`, {
+      // Usar endpoint PAGINADO correcto
+      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
           search: term,
           page: '1',
@@ -1499,13 +1504,19 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }).toPromise();
       
       if (response) {
-        const results = Array.isArray(response) ? response : (response.items || []);
-        console.log(`✅ Búsqueda completada: ${results.length} resultados`);
+        // Adaptar respuesta paginada
+        const items = response.items || [];
+        const total = response.total || items.length;
         
-        this.filteredDesigns.set(results);
+        console.log(`✅ Búsqueda completada: ${items.length} resultados (Total: ${total})`);
+        
+        this.allDesigns.set(items); // Actualizar lista principal también para que el scroll funcione sobre estos resultados
+        this.filteredDesigns.set(items);
+        this.totalRecords.set(total);
+        this.hasMoreData.set(response.hasMore || false);
         
         this.snackBar.open(
-          `${results.length} resultados encontrados`,
+          `${total} resultados encontrados`,
           'Cerrar',
           {
             duration: 3000,
@@ -1515,8 +1526,11 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     } catch (error: any) {
       console.error('❌ Error en búsqueda del servidor:', error);
-      // Fallback a búsqueda local
-      this.searchLocally(term);
+      // No fallback local porque no tenemos todos los datos
+      this.snackBar.open('Error al buscar en el servidor', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
     } finally {
       this.loading.set(false);
     }

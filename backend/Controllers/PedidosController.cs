@@ -114,13 +114,22 @@ namespace flexoAPP.Controllers
         {
             try
             {
-                var validEstados = new[] { "PENDIENTE", "EN_PROCESO", "COMPLETADO", "CANCELADO" };
+                var validEstados = new[] { 
+                    "PENDIENTE", "EN_PROCESO", "COMPLETADO", "CANCELADO",
+                    "SIN_ASIGNAR", "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO" // Estados de máquina
+                };
+                
                 if (!validEstados.Contains(estado.ToUpper()))
                 {
                     return BadRequest(new { success = false, error = "Estado inválido" });
                 }
 
-                var pedidos = await _pedidoService.GetByEstadoAsync(estado.ToUpper());
+                // Mapeo de estados de máquina a estados de pedido si es necesario
+                string estadoBusqueda = estado.ToUpper();
+                if (estadoBusqueda == "CORRIENDO") estadoBusqueda = "EN_PROCESO";
+                // Otros mapeos según lógica de negocio...
+
+                var pedidos = await _pedidoService.GetByEstadoAsync(estadoBusqueda);
                 return Ok(new { success = true, data = pedidos });
             }
             catch (Exception ex)

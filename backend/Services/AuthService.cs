@@ -58,9 +58,9 @@ namespace FlexoAPP.API.Services
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
             
-            // ✅ Actualizar fecha de último acceso
-            user.LastLogin = DateTime.UtcNow;
-            await _userRepository.UpdateAsync(user);
+            // ✅ Actualizar fecha de último acceso (COMENTADO TEMPORALMENTE: Columna LastLogin no existe en BD)
+            // user.LastLogin = DateTime.UtcNow;
+            // await _userRepository.UpdateAsync(user);
             
             return new LoginResponseDto
             {

@@ -120,7 +120,7 @@ namespace FlexoAPP.API.Models.Entities
         /// Fecha y hora de último acceso del usuario
         /// Columna MySQL: LastLogin DATETIME(6) NULL
         /// </summary>
-        [Column("LastLogin")] // Mapeo explícito a la columna "LastLogin"
+        [NotMapped] // Ignorar esta propiedad ya que no existe en la BD actual
         public DateTime? LastLogin { get; set; }
 
         // ===== PROPIEDADES DE NAVEGACIÓN =====

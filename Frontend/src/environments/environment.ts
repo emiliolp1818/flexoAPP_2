@@ -2,13 +2,13 @@
 // IP ESTÁTICA: 192.168.1.20 - Accesible desde cualquier dispositivo en la red
 export const environment = {
   production: false,
-  // Usar IP estática para acceso desde la red
-  apiUrl: 'http://192.168.1.20:7003/api',
-  socketUrl: 'http://192.168.1.20:7003',
+  // Usar localhost para desarrollo local estable
+  apiUrl: 'http://localhost:7003/api',
+  socketUrl: 'http://localhost:7003',
   fallbackUrls: [
-    'http://192.168.1.20:7003/api',
     'http://localhost:7003/api',
-    'http://127.0.0.1:7003/api'
+    'http://127.0.0.1:7003/api',
+    'http://192.168.1.19:7003/api'
   ],
   enableLogging: true,
   enableDebugMode: true,
