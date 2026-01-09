@@ -295,8 +295,6 @@ try
         Log.Fatal("❌ Error configurando Entity Framework: {Error}", ex.Message);
         throw;
     }
-        options.EnableDetailedErrors(builder.Environment.IsDevelopment()); // Solo en Development
-    });
 
     // ===== LOG DE CONFIRMACIÓN =====
     Log.Information("✅ MySQL Railway Database configured successfully for railway database");
