@@ -297,7 +297,7 @@ try
     }
 
     // ===== LOG DE CONFIRMACIÓN =====
-    Log.Information("✅ MySQL Railway Database configured successfully for railway database");
+    Log.Information("✅ MySQL Railway Database configured successfully");
 
     // ===== HEALTH CHECKS =====
     builder.Services.AddHealthChecks()

@@ -51,17 +51,17 @@
 
 2.2 OBTENER DATOS DE CONEXIÓN
    Render te dará:
-   - Host: [algo].render.com
+   - Host: dpg-d5glmnili9vc738931ug-a
    - Port: 5432
-   - Database: flexoapp_db
+   - Database: flexoapp_db_qjrc
    - Username: flexoapp_user
-   - Password: [generado automáticamente]
+   - Password: if6eK5Y7mOWEIbScvlmkKiIMdfaGXasX
    
    IMPORTANTE: Guarda estos datos, los necesitarás para el backend.
 
 2.3 STRING DE CONEXIÓN
    Formato para .NET Core:
-   Host=[host];Port=5432;Database=flexoapp_db;Username=flexoapp_user;Password=[password];SSL Mode=Require;
+   Host=dpg-d5glmnili9vc738931ug-a;Port=5432;Database=flexoapp_db;Username=flexoapp_user;Password=if6eK5Y7mOWEIbScvlmkKiIMdfaGXasX;SSL Mode=Require;
 
 ===============================================================================
 3. CONFIGURACIÓN DEL BACKEND (API .NET CORE)
