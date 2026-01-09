@@ -13,14 +13,14 @@ RUN npm ci --only=production
 # Copiar código fuente
 COPY . .
 
-# Construir la aplicación para producción
-RUN npm run build --prod
+# Construir la aplicación para producción con configuración render
+RUN npm run build -- --configuration=render
 
 # Etapa de producción con Nginx
 FROM nginx:alpine
 
 # Copiar archivos construidos
-COPY --from=build /app/dist/flexo-app /usr/share/nginx/html
+COPY --from=build /app/dist/flexoapp /usr/share/nginx/html
 
 # Copiar configuración personalizada de Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
