@@ -11,8 +11,18 @@ services:
         value: Server=hopper.proxy.rlwy.net;Port=43791;Database=railway;User=root;Password=CqkLOlVTDfHuOmYSPfJlXUCfiNXlibtm;AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;CommandTimeout=60;
       - key: JWT_SECRET_KEY
         value: FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
+      - key: JwtSettings__SecretKey
+        value: FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
+      - key: JwtSettings__Issuer
+        value: FlexoAPP
+      - key: JwtSettings__Audience
+        value: FlexoAPP-Users
+      - key: JwtSettings__ExpirationMinutes
+        value: 1440
       - key: PORT
         value: 8080
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
     healthCheckPath: /health
     
   # Frontend Service - Angular App
@@ -23,3 +33,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: ANGULAR_ENV
+        value: render
+      - key: API_URL
+        value: https://flexoapp-backend.onrender.com/api
