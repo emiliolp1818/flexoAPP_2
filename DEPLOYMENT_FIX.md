@@ -76,7 +76,7 @@ Dado que hay problemas con los servicios actuales, es mejor recrearlos:
 - Usar nombre: `flexoapp-backend`
 
 #### Frontend:
-- Eliminar servicio actual: `frontend-f54v`  
+- Eliminar servicio actual: `flexoapp-frontend` (si existe)  
 - Crear nuevo servicio con configuración corregida
 - Usar nombre: `flexoapp-frontend`
 

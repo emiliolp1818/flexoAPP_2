@@ -72,7 +72,7 @@ ASPNETCORE_ENVIRONMENT=Production
 ConnectionStrings__DefaultConnection="Server=hopper.proxy.rlwy.net;Port=43791;Database=railway;User=root;Password=***;SslMode=Required;"
 DATABASE_URL="mysql://root:***@hopper.proxy.rlwy.net:43791/railway"
 JWT_SECRET_KEY="FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable"
-FRONTEND_URL="https://frontend-f54v.onrender.com"
+FRONTEND_URL="https://flexoapp-frontend.onrender.com"
 PORT=8080
 ```
 
@@ -179,7 +179,7 @@ ENTRYPOINT ["dotnet", "flexoAPP.dll"]
 // Configurado para dominios específicos
 .WithOrigins(
     "https://flexoapp-backend.onrender.com",
-    "https://frontend-f54v.onrender.com"
+    "https://flexoapp-frontend.onrender.com"
 )
 ```
 

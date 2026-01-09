@@ -75,7 +75,7 @@ try
         {
             policy.WithOrigins(
                 "https://flexoapp-backend.onrender.com",
-                "https://frontend-f54v.onrender.com",
+                "https://flexoapp-frontend.onrender.com",
                 "http://localhost:4200",
                 "http://localhost:8080",
                 "http://127.0.0.1:4200",
@@ -600,7 +600,7 @@ try
     Log.Information("🔌 MySQL Server: Railway (hopper.proxy.rlwy.net:43791)");
     Log.Information("📁 Database: railway");
     Log.Information("🌐 Backend URL: https://flexoapp-backend.onrender.com");
-    Log.Information("🌐 Frontend URL: https://frontend-f54v.onrender.com");
+    Log.Information("🌐 Frontend URL: https://flexoapp-frontend.onrender.com");
     Log.Information("========================================="); 
 
     app.Run();

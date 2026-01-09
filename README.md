@@ -105,7 +105,7 @@ FlexoAPP/
    - Variables de entorno configuradas
 
 4. **URLs de producción**
-   - Frontend: https://frontend-f54v.onrender.com
+   - Frontend: https://flexoapp-frontend.onrender.com
    - Backend: https://flexoapp-backend.onrender.com
 
 ### Variables de Entorno (Producción)
@@ -115,7 +115,7 @@ FlexoAPP/
 ASPNETCORE_ENVIRONMENT=Production
 ConnectionStrings__DefaultConnection=Server=hopper.proxy.rlwy.net;Port=43791;Database=railway;User=root;Password=***;SslMode=Required;
 JWT_SECRET_KEY=FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
-FRONTEND_URL=https://frontend-f54v.onrender.com
+FRONTEND_URL=https://flexoapp-frontend.onrender.com
 PORT=8080
 ```
 
