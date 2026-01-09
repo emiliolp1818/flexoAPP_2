@@ -8,7 +8,7 @@ services:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ConnectionStrings__DefaultConnection
-        value: Server=shinkansen.proxy.rlwy.net;Port=59714;Database=railway;User=root;Password=vjZgxcTKGpmYhHcOafaDycmKMNAreKpk;AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;CommandTimeout=60;
+        value: Server=yamanote.proxy.rlwy.net;Port=38215;Database=railway;User=root;Password=YCNwMkKGvOuIqrUChmdgmnxSwrUpwYPf;AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;CommandTimeout=60;
       - key: JWT_SECRET_KEY
         value: FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
       - key: JwtSettings__SecretKey
