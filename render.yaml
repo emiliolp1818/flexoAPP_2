@@ -2,19 +2,13 @@ services:
   # Backend Service - FlexoAPP API
   - type: web
     name: flexoapp-backend
-    env: dotnet
-    buildCommand: |
-      cd backend
-      dotnet restore
-      dotnet publish -c Release -o out
-    startCommand: |
-      cd backend/out
-      dotnet flexoAPP.dll
+    env: docker
+    dockerfilePath: Dockerfile
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ConnectionStrings__DefaultConnection
-        value: Server=hopper.proxy.rlwy.net;Port=43791;Database=railway;User=root;Password=CqkLOlVTDfHuOmYSPfJlXUCfiNXlibtm;AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;
+        value: Server=hopper.proxy.rlwy.net;Port=43791;Database=railway;User=root;Password=CqkLOlVTDfHuOmYSPfJlXUCfiNXlibtm;AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;CommandTimeout=60;
       - key: DATABASE_URL
         value: mysql://root:CqkLOlVTDfHuOmYSPfJlXUCfiNXlibtm@hopper.proxy.rlwy.net:43791/railway
       - key: FRONTEND_URL
