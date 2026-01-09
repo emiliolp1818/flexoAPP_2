@@ -1,0 +1,17 @@
+# Archivos de build y cache (relativos al directorio backend)
+bin/
+obj/
+logs/
+uploads/
+
+# Archivos temporales
+*.tmp
+*.log
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de desarrollo
+.vs/
+.vscode/

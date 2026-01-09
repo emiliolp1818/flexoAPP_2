@@ -5,7 +5,7 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY backend/flexoAPP.csproj ./backend/
+COPY ["backend/flexoAPP.csproj", "backend/"]
 RUN dotnet restore "backend/flexoAPP.csproj"
 
 COPY backend/ ./backend/
@@ -24,4 +24,4 @@ RUN mkdir -p /app/logs /app/uploads
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
 
-ENTRYPOINT ["dotnet", "flexoAPP.dll"]
+ENTRYPOINT ["dotnet", "FlexoAPP.API.dll"]
