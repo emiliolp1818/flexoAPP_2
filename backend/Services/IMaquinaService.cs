@@ -11,8 +11,9 @@ namespace flexoAPP.Services
         Task<MaquinaDto> CreateAsync(CreateMaquinaDto createDto, int? userId);
         Task<MaquinaDto> UpdateAsync(string otSap, UpdateMaquinaDto updateDto, int? userId);
         Task<MaquinaDto> UpdateMachineStatusAsync(string otSap, string estado, string? observaciones, int? userId, string? userName);
-        Task<bool> DeleteAsync(string articulo);
+        Task<bool> DeleteAsync(string otSap);
         Task<ExcelProcessResultDto> ProcessExcelFileAsync(IFormFile file, int? userId);
         Task<int> ClearAllProgrammingAsync(int? userId);
+        Task<object> FixDatabaseSchemaAsync();
     }
 }

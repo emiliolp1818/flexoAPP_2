@@ -1,0 +1,43 @@
+services:
+  # Backend Service - FlexoAPP API
+  - type: web
+    name: flexoapp-backend
+    env: dotnet
+    buildCommand: |
+      cd backend
+      dotnet restore
+      dotnet publish -c Release -o out
+    startCommand: |
+      cd backend/out
+      dotnet flexoAPP.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        value: Server=hopper.proxy.rlwy.net;Port=43791;Database=railway;User=root;Password=CqkLOlVTDfHuOmYSPfJlXUCfiNXlibtm;AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;
+      - key: DATABASE_URL
+        value: mysql://root:CqkLOlVTDfHuOmYSPfJlXUCfiNXlibtm@hopper.proxy.rlwy.net:43791/railway
+      - key: FRONTEND_URL
+        value: https://frontend-f54v.onrender.com
+      - key: JWT_SECRET_KEY
+        value: FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
+      - key: PORT
+        value: 8080
+    healthCheckPath: /health
+    
+  # Frontend Service - Angular App
+  - type: web
+    name: frontend-f54v
+    env: node
+    buildCommand: |
+      cd Frontend
+      npm ci
+      npm run build --prod
+    startCommand: |
+      cd Frontend
+      npx serve -s dist/flexo-app -l 10000
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_URL
+        value: https://flexoapp-backend.onrender.com/api

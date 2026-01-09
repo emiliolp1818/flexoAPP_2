@@ -3,10 +3,10 @@
 export const environment = {
   production: false,
   // IP ESTÁTICA DE TU PC - Cambiar si la IP cambia
-  apiUrl: 'http://192.168.1.20:7003/api',
-  socketUrl: 'http://192.168.1.20:7003',
+  apiUrl: 'http://192.168.1.14:7003/api',
+  socketUrl: 'http://192.168.1.14:7003',
   fallbackUrls: [
-    'http://192.168.1.20:7003/api',
+    'http://192.168.1.14:7003/api',
     'http://localhost:7003/api',
     'http://127.0.0.1:7003/api'
   ],
@@ -17,10 +17,10 @@ export const environment = {
   networkMode: true, // Modo red activado
   disableNetworkStability: false,
   allowCrossOrigin: true,
-  networkInterface: '192.168.1.20', // IP estática
-  imageBaseUrl: 'http://192.168.1.20:7003',
+  networkInterface: '192.168.1.14', // IP estática
+  imageBaseUrl: 'http://192.168.1.14:7003',
   alternativeUrls: [
-    'http://192.168.1.20:7003/api',
+    'http://192.168.1.14:7003/api',
     'http://localhost:7003/api'
   ]
 };

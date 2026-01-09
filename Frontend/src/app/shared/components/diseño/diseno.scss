@@ -1225,7 +1225,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Cliente
 .client-cell {
-  width: 12%;
+  width: 19%;
 
   .client-name {
     color: $gray-700;
@@ -1251,8 +1251,8 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Descripción
 .description-cell {
-  width: 18%;
-
+  width: 27%;
+  
   .description-text {
     color: #4b5563;
     font-family: Arial, sans-serif;
@@ -1297,7 +1297,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Tipo
 .type-cell {
-  width: 8%;
+  width: 7%;
   text-align: center;
 
   .type-chip {
@@ -1333,7 +1333,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Tipo de Impresión
 .print-type-cell {
-  width: 9%;
+  width: 7%;
   text-align: center;
 
   .print-chip {
@@ -1369,7 +1369,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 
 // Columna Número de Colores
 .color-count-cell {
-  width: 6%;
+  width: 3%;
   text-align: center;
 
   .color-count-badge {
@@ -1392,7 +1392,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
 // ===== COMPONENTE DROPDOWN DE COLORES =====
 // Dropdown que muestra los colores de cada diseño de manera interactiva (copiado de máquinas)
 .colors-cell {
-  width: 7%;
+  width: 5%;
   position: relative;
   overflow: visible !important;
   z-index: 1; // Z-index base para la celda
@@ -1691,7 +1691,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 
     // ACTIVO - Verde brillante FORZADO
-    &.status-activo {
+    &.status-activo, &.status-active, &.status-active {
       background-color: #10b981 !important;
       background: #10b981 !important;
       color: white !important;
@@ -1711,7 +1711,7 @@ $header-blue-900: #1e3a8a;     // Tono 900
     }
 
     // INACTIVO - Rojo brillante FORZADO
-    &.status-inactivo {
+    &.status-inactivo, &.status-inactive, &.status-inactive {
       background-color: #ef4444 !important;
       background: #ef4444 !important;
       color: white !important;
@@ -1727,6 +1727,18 @@ $header-blue-900: #1e3a8a;     // Tono 900
         background: #dc2626 !important;
         transform: translateY(-2px) scale(1.05) !important;
         box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+      }
+    }
+
+    // DESCONOCIDO - Gris
+    &.status-unknown {
+      background-color: #9ca3af !important;
+      background: #9ca3af !important;
+      color: white !important;
+      border: 2px solid #6b7280 !important;
+
+      .status-text {
+        color: white !important;
       }
     }
 
@@ -1750,14 +1762,19 @@ $header-blue-900: #1e3a8a;     // Tono 900
   .action-buttons {
     // Flexbox horizontal para alinear botones
     display: flex;
-    // Espaciado de 10px entre botones
-    gap: 10px;
-    // Centrar botones horizontalmente
-    justify-content: center;
+    // Ocupar todo el ancho disponible para distribución uniforme
+    width: 100%;
+    // Distribuir espacio uniformemente entre y alrededor de los botones
+    justify-content: space-evenly;
     // Centrar botones verticalmente
     align-items: center;
-    // Margen derecho adicional para separación
-    margin-right: 8px;
+    // Gap mínimo por si la pantalla es muy pequeña
+    gap: 4px;
+    // Padding lateral para evitar que toquen los bordes
+    padding: 0 2px;
+    
+    // Eliminar margen derecho que desbalanceaba la alineación
+    margin-right: 0;
 
     // Estilos base para todos los botones de acción
     .action-btn {

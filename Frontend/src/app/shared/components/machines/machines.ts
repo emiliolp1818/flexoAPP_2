@@ -244,7 +244,7 @@ export class MachinesComponent implements OnInit {
             // id removed - using otSap as primary key
             numeroMaquina: program.numeroMaquina || program.machineNumber || 11, // Número de máquina (11-21) - columna machine_number
             articulo: program.articulo || '', // Código del artículo (columna articulo) - vacío si es null
-            otSap: program.otSap || '', // Orden de trabajo SAP (columna ot_sap) - vacío si es null
+            otSap: String(program.otSap || ''), // Orden de trabajo SAP (columna ot_sap) - vacío si es null
             cliente: program.cliente || '', // Nombre del cliente (columna cliente) - vacío si es null
             referencia: program.referencia || '', // Referencia del producto (columna referencia) - vacío si es null
             td: program.td || '', // Código TD - Tipo de Diseño (columna td) - vacío si es null
@@ -601,8 +601,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
     // Filtrar programas de la máquina específica por número de máquina
     const machinePrograms = this.programs().filter(p => p.machineNumber === machineNumber);
     
-    // Contar programas en estado LISTO, PREPARANDO y SIN_ASIGNAR (todos cuentan como "listos")
-    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO' || p.estado === 'SIN_ASIGNAR').length;
+    // Contar programas en estado LISTO y PREPARANDO
+    const readyCount = machinePrograms.filter(p => p.estado === 'LISTO' || p.estado === 'PREPARANDO').length;
     
     // ===== DETERMINAR CLASE CSS BASADA EN LA CANTIDAD DE PROGRAMAS LISTOS =====
     // Según especificaciones del usuario:
@@ -641,11 +641,10 @@ Error: ${loginError.message || 'Error de conexión'}`);
     const machinePrograms = this.programs().filter(p => p.machineNumber === machineNumber);
     
     // Contar programas en estados que se consideran "listos" para producción
-    // Incluye: LISTO, PREPARANDO y SIN_ASIGNAR
+    // Incluye: LISTO y PREPARANDO
     const readyCount = machinePrograms.filter(p => 
       p.estado === 'LISTO' || 
-      p.estado === 'PREPARANDO' || 
-      p.estado === 'SIN_ASIGNAR'
+      p.estado === 'PREPARANDO'
     ).length;
     
     // Retornar texto descriptivo para el tooltip con formato legible
@@ -883,7 +882,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
       if (designInfo) {
         const programs = this.programs();
         const updatedPrograms = programs.map(p => {
-          if (p.otSap === program.otSap) {
+          // Usar comparación robusta de strings
+          if (String(p.otSap).trim() === String(program.otSap).trim()) {
             return {
               ...p,
               // Actualizar campos desde la base de datos de diseño
@@ -975,8 +975,9 @@ Error: ${loginError.message || 'Error de conexión'}`);
         // Actualizar el estado localmente en el frontend para reflejar los cambios inmediatamente
         // Esto evita tener que recargar todos los datos desde el servidor
         const programs = this.programs(); // Obtener array actual de programas desde la señal reactiva
-        const programIndex = programs.findIndex(p => p.otSap === program.otSap); // Encontrar índice del programa modificado
-        console.log('🔍 Índice del programa en el array:', programIndex);
+        // Usar comparación robusta de strings para encontrar el índice
+        const programIndex = programs.findIndex(p => String(p.otSap).trim() === String(program.otSap).trim()); 
+        console.log('🔍 Índice del programa en el array:', programIndex, 'OT SAP:', program.otSap);
         
         if (programIndex !== -1) {
           // ===== CREAR NUEVO ARRAY CON EL PROGRAMA ACTUALIZADO =====
@@ -1127,7 +1128,8 @@ Error: ${loginError.message || 'Error de conexión'}`);
         
         // Actualizar el estado localmente para reflejar los cambios inmediatamente
         const programs = this.programs(); // Obtener array actual de programas
-        const index = programs.findIndex(p => p.otSap === this.currentProgramToSuspend!.otSap); // Encontrar programa
+        // Usar comparación robusta de strings
+        const index = programs.findIndex(p => String(p.otSap).trim() === String(this.currentProgramToSuspend!.otSap).trim()); 
         if (index !== -1) {
           // Crear nuevo array inmutable con el programa actualizado
           const updatedPrograms = programs.map((p, i) => {

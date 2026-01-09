@@ -27,7 +27,7 @@ try
 {
     // ===== LOG DE INICIO DE LA APLICACIÓN =====
     // Registrar en el log que la aplicación FlexoAPP está iniciando con MySQL local
-    Log.Information("🚀 Iniciando FlexoAPP Backend - MySQL Local (flexoapp_bd)");
+    Log.Information("🚀 Iniciando FlexoAPP Backend - MySQL Railway (railway)");
 
     // ===== CREAR BUILDER DE LA APLICACIÓN WEB =====
     // WebApplicationBuilder: configura servicios y middleware de ASP.NET Core
@@ -70,18 +70,18 @@ try
         options.Level = CompressionLevel.Optimal;
     });
 
-    // ===== CORS CONFIGURATION (LOCAL) =====
+    // ===== CORS CONFIGURATION (RENDER/RAILWAY) =====
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>
         {
             policy.WithOrigins(
+                "https://flexoapp-backend.onrender.com",
+                "https://frontend-f54v.onrender.com",
                 "http://localhost:4200",
-                "http://localhost:7003",
+                "http://localhost:8080",
                 "http://127.0.0.1:4200",
-                "http://127.0.0.1:7003",
-                "http://192.168.1.20:4200", // IP estática - Frontend
-                "http://192.168.1.20:7003"  // IP estática - Backend
+                "http://127.0.0.1:8080"
             )
             .SetIsOriginAllowedToAllowWildcardSubdomains()
             .AllowAnyMethod()
@@ -89,21 +89,17 @@ try
             .AllowCredentials();
         });
         
-        // Política adicional para permitir toda la red local
-        options.AddPolicy("LocalNetwork", policy =>
+        // Política para producción en Render
+        options.AddPolicy("RenderProduction", policy =>
         {
             policy.SetIsOriginAllowed(origin =>
             {
-                // Permitir localhost y 127.0.0.1
+                // Permitir dominios de Render
+                if (origin.Contains("onrender.com"))
+                    return true;
+                
+                // Permitir localhost para desarrollo
                 if (origin.Contains("localhost") || origin.Contains("127.0.0.1"))
-                    return true;
-                
-                // Permitir cualquier IP de la red local 192.168.x.x
-                if (origin.Contains("192.168."))
-                    return true;
-                
-                // Permitir redes privadas 10.x.x.x y 172.16-31.x.x
-                if (origin.Contains("10.") || origin.Contains("172."))
                     return true;
                 
                 return false;
@@ -123,9 +119,9 @@ try
     {
         c.SwaggerDoc("v1", new OpenApiInfo
         {
-            Title = "FlexoAPP API - Local",
+            Title = "FlexoAPP API - Render/Railway",
             Version = "v2.0.0",
-            Description = "Sistema de Gestión Flexográfica - PostgreSQL Local",
+            Description = "Sistema de Gestión Flexográfica - MySQL Railway",
             Contact = new OpenApiContact
             {
                 Name = "FlexoAPP Team",
@@ -231,22 +227,28 @@ try
 
     builder.Services.AddAuthorization();
 
-    // ===== CONFIGURACIÓN DE BASE DE DATOS MYSQL LOCAL =====
-    // Obtener la cadena de conexión desde appsettings.json o appsettings.Development.json
-    // DefaultConnection: nombre de la cadena de conexión en el archivo de configuración
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                          ?? throw new InvalidOperationException("MySQL connection string is required"); // Lanzar excepción si no existe
+    // ===== CONFIGURACIÓN DE BASE DE DATOS MYSQL RAILWAY =====
+    // Obtener la cadena de conexión desde variables de entorno (Railway) o appsettings
+    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                          ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                          ?? builder.Configuration.GetConnectionString("DefaultConnection") 
+                          ?? throw new InvalidOperationException("MySQL connection string is required");
+    
+    // Si viene de DATABASE_URL (Railway), convertir formato
+    if (connectionString.StartsWith("mysql://"))
+    {
+        // Convertir de mysql://user:password@host:port/database a formato .NET
+        var uri = new Uri(connectionString);
+        connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;";
+    }
     
     // ===== LOG DE TIPO DE CONEXIÓN =====
-    // Registrar que se está usando MySQL local (no PostgreSQL)
-    Log.Information("🔌 Using LOCAL MySQL connection to flexoapp_bd database");
+    Log.Information("🔌 Using Railway MySQL connection to railway database");
     
     // ===== ENMASCARAR CONTRASEÑA PARA EL LOG =====
-    // Ocultar la contraseña en los logs por seguridad
-    // Regex: reemplaza "Password=valor" con "Password=***"
     var maskedConnectionString = System.Text.RegularExpressions.Regex.Replace(
-        connectionString, @"Password=[^;]+", "Password=***"); // Buscar Password= y reemplazar el valor
-    Log.Information("🔌 Connection: {ConnectionString}", maskedConnectionString); // Mostrar conexión sin contraseña
+        connectionString, @"Password=[^;]+", "Password=***");
+    Log.Information("🔌 Connection: {ConnectionString}", maskedConnectionString);
 
     // ===== CONFIGURAR ENTITY FRAMEWORK CON MYSQL =====
     // AddDbContext: registrar el contexto de base de datos en el contenedor de dependencias
@@ -289,8 +291,7 @@ try
     });
 
     // ===== LOG DE CONFIRMACIÓN =====
-    // Registrar que MySQL se configuró correctamente
-    Log.Information("✅ MySQL Local Database configured successfully for flexoapp_bd");
+    Log.Information("✅ MySQL Railway Database configured successfully for railway database");
 
     // ===== HEALTH CHECKS =====
     builder.Services.AddHealthChecks()
@@ -362,8 +363,8 @@ try
         app.UseMiniProfiler();
     }
 
-    // CORS - Usar política LocalNetwork para permitir toda la red local
-    app.UseCors("LocalNetwork");
+    // CORS - Usar política RenderProduction para producción
+    app.UseCors(app.Environment.IsProduction() ? "RenderProduction" : "RenderProduction");
 
     // Static Files - Para servir imágenes de perfil y otros archivos
     app.UseStaticFiles();
@@ -443,10 +444,10 @@ try
             {
                 status = report.Status.ToString().ToLower(),
                 timestamp = DateTime.UtcNow,
-                message = "FlexoAPP Enhanced API Health Check - PostgreSQL Edition",
+                message = "FlexoAPP Enhanced API Health Check - Railway Edition",
                 version = "v2.2.0",
                 database = report.Entries.ContainsKey("database") ? 
-                          (report.Entries["database"].Status == Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy ? "PostgreSQL Connected (Supabase)" : "PostgreSQL Disconnected") : 
+                          (report.Entries["database"].Status == Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy ? "MySQL Connected (Railway)" : "MySQL Disconnected") : 
                           "Unknown",
                 authentication = "JWT Enabled",
                 caching = "Memory Cache",
@@ -480,20 +481,20 @@ try
     // Útil para verificar que el servidor está funcionando correctamente
     app.MapGet("/", () => new { 
         // ===== INFORMACIÓN GENERAL =====
-        message = "FlexoAPP Enhanced API - MySQL Local Edition", // Mensaje de bienvenida
-        status = "running", // Estado del servidor
-        timestamp = DateTime.UtcNow, // Fecha y hora actual en UTC
-        version = "v2.2.0", // Versión de la API
-        framework = ".NET 8.0", // Versión del framework
+        message = "FlexoAPP Enhanced API - Render/Railway Edition",
+        status = "running",
+        timestamp = DateTime.UtcNow,
+        version = "v2.2.0",
+        framework = ".NET 8.0",
         
         // ===== CARACTERÍSTICAS TÉCNICAS =====
         features = new {
-            database = "MySQL Local (flexoapp_bd) with Connection Pooling", // Base de datos MySQL local
-            caching = "Memory Cache", // Sistema de caché
-            logging = "Serilog Structured Logging", // Sistema de logging
-            profiling = "MiniProfiler Enabled", // Profiling habilitado
-            compression = "Brotli + Gzip Enabled", // Compresión HTTP
-            authentication = "JWT Bearer Token" // Autenticación JWT
+            database = "MySQL Railway with Connection Pooling",
+            caching = "Memory Cache",
+            logging = "Serilog Structured Logging",
+            profiling = "MiniProfiler Enabled",
+            compression = "Brotli + Gzip Enabled",
+            authentication = "JWT Bearer Token"
         },
         
         // ===== CREDENCIALES POR DEFECTO =====
@@ -527,22 +528,23 @@ try
     }
 
     // ===== BANNER DE INICIO DE LA APLICACIÓN =====
-    // Mostrar información detallada de la configuración de la aplicación en los logs
     Log.Information("========================================="); 
-    Log.Information("🚀 FLEXOAPP ENHANCED API - MYSQL LOCAL READY"); // Título principal
+    Log.Information("🚀 FLEXOAPP ENHANCED API - RENDER/RAILWAY READY");
     Log.Information("========================================="); 
-    Log.Information("🌐 Framework: ASP.NET Core 8.0"); // Versión del framework
-    Log.Information("🗄️ Database: MySQL Local (flexoapp_bd) with connection pooling"); // Base de datos MySQL local
-    Log.Information("💾 Caching: Memory Cache with 100MB limit"); // Sistema de caché en memoria
-    Log.Information("📝 Logging: Serilog with structured logging"); // Sistema de logging estructurado
-    Log.Information("⚡ Profiling: MiniProfiler enabled (/profiler)"); // Herramienta de profiling
-    Log.Information("🔐 Authentication: JWT Bearer Token"); // Sistema de autenticación JWT
-    Log.Information("🌍 CORS: Enabled for local network"); // CORS habilitado para desarrollo local
-    Log.Information("📊 Health Checks: /health, /health/ready, /health/live"); // Endpoints de salud
-    Log.Information("🗜️ Compression: Brotli + Gzip enabled"); // Compresión de respuestas HTTP
-    Log.Information("👤 Default Login: admin / admin123"); // Credenciales por defecto
-    Log.Information("🔌 MySQL Server: localhost:3306"); // Servidor MySQL
-    Log.Information("📁 Database: flexoapp_bd"); // Nombre de la base de datos
+    Log.Information("🌐 Framework: ASP.NET Core 8.0");
+    Log.Information("🗄️ Database: MySQL Railway with connection pooling");
+    Log.Information("💾 Caching: Memory Cache with 100MB limit");
+    Log.Information("📝 Logging: Serilog with structured logging");
+    Log.Information("⚡ Profiling: MiniProfiler enabled (/profiler)");
+    Log.Information("🔐 Authentication: JWT Bearer Token");
+    Log.Information("🌍 CORS: Enabled for Render domains");
+    Log.Information("📊 Health Checks: /health, /health/ready, /health/live");
+    Log.Information("🗜️ Compression: Brotli + Gzip enabled");
+    Log.Information("👤 Default Login: admin / admin123");
+    Log.Information("🔌 MySQL Server: Railway (hopper.proxy.rlwy.net:43791)");
+    Log.Information("📁 Database: railway");
+    Log.Information("🌐 Backend URL: https://flexoapp-backend.onrender.com");
+    Log.Information("🌐 Frontend URL: https://frontend-f54v.onrender.com");
     Log.Information("========================================="); 
 
     app.Run();

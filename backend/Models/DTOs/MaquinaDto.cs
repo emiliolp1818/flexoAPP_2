@@ -41,6 +41,7 @@ namespace flexoAPP.Models.DTOs
 
     public class UpdateMaquinaDto
     {
+        public string? Articulo { get; set; }
         public int? NumeroMaquina { get; set; }
         public string? OtSap { get; set; }
         public string? Cliente { get; set; }

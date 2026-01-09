@@ -11,7 +11,7 @@ namespace flexoAPP.Repositories
         Task<IEnumerable<Maquina>> GetByEstadoAsync(string estado);
         Task<Maquina> CreateAsync(Maquina maquina);
         Task<Maquina> UpdateAsync(Maquina maquina);
-        Task<bool> DeleteAsync(string articulo);
+        Task<bool> DeleteAsync(string otSap);
         Task<bool> ExistsByArticuloAsync(string articulo);
     }
 }

@@ -118,8 +118,8 @@ namespace FlexoAPP.API.Data.Context
 
             // ===== CONFIGURACIÓN MÁQUINA =====
             // Tabla: maquinas (base de datos: flexoapp_bd)
-            // CLAVE PRIMARIA: Articulo (código único del artículo)
-            // SIN campo Id - articulo es suficiente como identificador único
+            // CLAVE PRIMARIA: OtSap (Orden de Trabajo SAP)
+            // Articulo puede repetirse
             modelBuilder.Entity<Maquina>(entity =>
             {
                 // ===== CONFIGURACIÓN DE TABLA =====
@@ -128,13 +128,19 @@ namespace FlexoAPP.API.Data.Context
                 
                 // ===== CLAVE PRIMARIA =====
                 // HasKey: define qué campo es la clave primaria (PRIMARY KEY)
-                // Articulo es la clave primaria - se usará para cargar información de otra base de datos
-                entity.HasKey(e => e.Articulo); // PRIMARY KEY: articulo VARCHAR(50)
+                entity.HasKey(e => e.OtSap); // PRIMARY KEY: ot_sap VARCHAR(50)
                 
                 // ===== MAPEO DE COLUMNAS (C# PascalCase -> MySQL snake_case) =====
                 // HasColumnName: mapea el nombre de la propiedad C# al nombre de la columna MySQL
                 
-                // Articulo: clave primaria, obligatorio, máximo 50 caracteres
+                // OtSap: orden de trabajo SAP
+                // Propiedad C#: OtSap -> Columna MySQL: ot_sap
+                entity.Property(e => e.OtSap)
+                    .HasColumnName("ot_sap") // Mapeo explícito a snake_case
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                // Articulo: código del producto
                 // Propiedad C#: Articulo -> Columna MySQL: articulo
                 entity.Property(e => e.Articulo)
                     .HasColumnName("articulo") // Mapeo explícito a minúsculas
@@ -146,13 +152,6 @@ namespace FlexoAPP.API.Data.Context
                 entity.Property(e => e.NumeroMaquina)
                     .HasColumnName("numero_maquina") // Mapeo explícito a snake_case
                     .IsRequired(); // NOT NULL
-                
-                // OtSap: orden de trabajo SAP
-                // Propiedad C#: OtSap -> Columna MySQL: ot_sap
-                entity.Property(e => e.OtSap)
-                    .HasColumnName("ot_sap") // Mapeo explícito a snake_case
-                    .IsRequired()
-                    .HasMaxLength(50);
                 
                 // Cliente: nombre del cliente
                 // Propiedad C#: Cliente -> Columna MySQL: cliente
@@ -275,7 +274,6 @@ namespace FlexoAPP.API.Data.Context
                 entity.HasIndex(e => e.Estado); // Índice en estado
                 entity.HasIndex(e => e.FechaTintaEnMaquina); // Índice en fecha_tinta_en_maquina
                 entity.HasIndex(e => new { e.NumeroMaquina, e.Estado }); // Índice compuesto
-                entity.HasIndex(e => e.OtSap); // Índice en ot_sap
                 entity.HasIndex(e => e.Cliente); // Índice en cliente
             });
 

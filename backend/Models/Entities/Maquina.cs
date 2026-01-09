@@ -6,25 +6,28 @@ namespace FlexoAPP.API.Models.Entities
     /// <summary>
     /// Entidad que representa una máquina flexográfica en el sistema
     /// Tabla: maquinas (base de datos: flexoapp_bd)
-    /// CLAVE PRIMARIA: Id (auto-incremental, interno)
+    /// CLAVE PRIMARIA: OtSap (Orden de Trabajo SAP - único por programación)
     /// PERMITE DUPLICADOS: El mismo artículo puede estar varias veces en la misma máquina
     /// </summary>
     [Table("maquinas")] // Nombre de la tabla en MySQL
     public class Maquina
     {
+        // ID eliminado - OtSap es la clave primaria
+
         /// <summary>
-        /// ID único auto-incremental (PRIMARY KEY)
-        /// Columna: id INT AUTO_INCREMENT PRIMARY KEY
+        /// Orden de Trabajo SAP (Identificador único de la programación)
+        /// Clave Primaria
+        /// Columna: ot_sap VARCHAR(50) NOT NULL PRIMARY KEY
         /// </summary>
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Column("id")]
-        public int Id { get; set; }
+        [Required]
+        [MaxLength(50)]
+        [Column("ot_sap")]
+        public string OtSap { get; set; } = string.Empty;
 
         /// <summary>
         /// Código del artículo a producir (ej: F204567, F204568)
-        /// Parte de UNIQUE KEY (articulo + numero_maquina)
-        /// Se usará para cargar información de otra base de datos
+        /// Puede repetirse (mismo artículo en diferentes OTs)
         /// Columna: articulo VARCHAR(50) NOT NULL
         /// </summary>
         [Required] // Campo obligatorio, no puede ser nulo
@@ -40,12 +43,6 @@ namespace FlexoAPP.API.Models.Entities
         [Range(11, 21, ErrorMessage = "El número de máquina debe estar entre 11 y 21")] // Validación: solo valores 11-21
         public int NumeroMaquina { get; set; } // Número de máquina
 
-        /// <summary>
-        /// Número de orden de trabajo SAP (ej: OT123456)
-        /// </summary>
-        [Required]
-        [MaxLength(50)]
-        public string OtSap { get; set; } = string.Empty;
 
         /// <summary>
         /// Nombre del cliente (ej: ABSORBENTES DE COLOMBIA S.A)
