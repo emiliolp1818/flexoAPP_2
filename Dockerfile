@@ -1,31 +1,26 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+# Multi-stage build para FlexoAPP Backend
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
-EXPOSE 8080
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+# Copiar archivos del proyecto
+COPY backend/*.csproj ./
+RUN dotnet restore
 
-# Copiar y restaurar dependencias
-COPY backend/flexoAPP.csproj backend/
-RUN dotnet restore backend/flexoAPP.csproj
+# Copiar todo el código fuente
+COPY backend/ ./
+RUN dotnet publish -c Release -o out
 
-# Copiar código fuente y compilar
-COPY backend/ backend/
-WORKDIR /src/backend
-RUN dotnet build flexoAPP.csproj -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish flexoAPP.csproj -c Release -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build-env /app/out .
 
-# Crear directorios necesarios
-RUN mkdir -p /app/logs /app/uploads
+# Crear directorios
+RUN mkdir -p logs uploads
 
-# Variables de entorno
+# Configuración
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "FlexoAPP.API.dll"]
