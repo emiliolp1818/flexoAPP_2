@@ -115,7 +115,7 @@ namespace flexoAPP.Repositories
                 await _context.SaveChangesAsync();
 
                 // Recargar con las relaciones
-                return await GetByArticuloAsync(maquina.Articulo) ?? maquina;
+                return await GetByOtSapAsync(maquina.OtSap) ?? maquina;
             }
             catch (Exception ex)
             {
@@ -134,7 +134,7 @@ namespace flexoAPP.Repositories
                 await _context.SaveChangesAsync();
 
                 // Recargar con las relaciones
-                return await GetByArticuloAsync(maquina.Articulo) ?? maquina;
+                return await GetByOtSapAsync(maquina.OtSap) ?? maquina;
             }
             catch (Exception ex)
             {
@@ -143,11 +143,11 @@ namespace flexoAPP.Repositories
             }
         }
 
-        public async Task<bool> DeleteAsync(string articulo)
+        public async Task<bool> DeleteAsync(string otSap)
         {
             try
             {
-                var maquina = await _context.Maquinas.FindAsync(articulo);
+                var maquina = await _context.Maquinas.FindAsync(otSap);
                 if (maquina == null)
                     return false;
 
@@ -157,7 +157,7 @@ namespace flexoAPP.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error eliminando máquina con artículo {articulo}");
+                _logger.LogError(ex, $"Error eliminando máquina con OT SAP {otSap}");
                 throw;
             }
         }

@@ -281,77 +281,22 @@ namespace backend.Controllers
         }
 
         /// <summary>
-        /// GET: api/maquinas/test-update/{articulo}
-        /// ENDPOINT DE PRUEBA - Verificar que se puede actualizar un registro
+        /// POST: api/maquinas/maintenance/fix-schema
+        /// Repara el esquema de la base de datos (elimina duplicados, establece PK correcta)
         /// </summary>
-        [HttpGet("test-update/{articulo}")]
-        public async Task<ActionResult<object>> TestUpdate(string articulo)
+        [HttpPost("maintenance/fix-schema")]
+        public async Task<ActionResult<object>> FixDatabaseSchema()
         {
             try
             {
-                _logger.LogInformation($"🧪 TEST: Intentando actualizar artículo {articulo}");
-                
-                var connectionString = _context.Database.GetConnectionString();
-                _logger.LogInformation($"🔗 Connection String: {connectionString}");
-                
-                using var connection = new MySqlConnector.MySqlConnection(connectionString);
-                await connection.OpenAsync();
-                _logger.LogInformation("✅ Conexión abierta exitosamente");
-                
-                // Verificar si existe
-                using var checkCommand = connection.CreateCommand();
-                checkCommand.CommandText = "SELECT COUNT(*) FROM maquinas WHERE articulo = @articulo";
-                checkCommand.Parameters.AddWithValue("@articulo", articulo);
-                var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
-                _logger.LogInformation($"📊 Registros encontrados: {count}");
-                
-                if (count == 0)
-                {
-                    return NotFound(new
-                    {
-                        success = false,
-                        message = $"Artículo {articulo} no encontrado",
-                        timestamp = DateTime.UtcNow
-                    });
-                }
-                
-                // Intentar actualizar
-                using var updateCommand = connection.CreateCommand();
-                updateCommand.CommandText = @"
-                    UPDATE maquinas 
-                    SET estado = 'LISTO',
-                        updated_at = @updatedAt,
-                        last_action_by = 'TEST',
-                        last_action_at = @lastActionAt
-                    WHERE articulo = @articulo";
-                
-                updateCommand.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
-                updateCommand.Parameters.AddWithValue("@lastActionAt", DateTime.UtcNow);
-                updateCommand.Parameters.AddWithValue("@articulo", articulo);
-                
-                var rowsAffected = await updateCommand.ExecuteNonQueryAsync();
-                _logger.LogInformation($"✅ Filas afectadas: {rowsAffected}");
-                
-                return Ok(new
-                {
-                    success = true,
-                    message = $"Test exitoso. {rowsAffected} filas actualizadas",
-                    articulo = articulo,
-                    rowsAffected = rowsAffected,
-                    timestamp = DateTime.UtcNow
-                });
+                _logger.LogInformation("🛠️ Iniciando reparación de esquema de base de datos...");
+                var result = await _maquinaService.FixDatabaseSchemaAsync();
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Error en test de actualización");
-                return StatusCode(500, new
-                {
-                    success = false,
-                    error = ex.Message,
-                    innerError = ex.InnerException?.Message,
-                    stackTrace = ex.StackTrace,
-                    timestamp = DateTime.UtcNow
-                });
+                _logger.LogError(ex, "❌ Error en reparación de esquema");
+                return StatusCode(500, new { success = false, error = ex.Message });
             }
         }
 
@@ -494,7 +439,7 @@ namespace backend.Controllers
                     message = $"{testPrograms.Count} programas de prueba creados exitosamente",
                     data = testPrograms.Select(p => new
                     {
-                        id = p.Id,
+                        otSap = p.OtSap,
                         articulo = p.Articulo,
                         numeroMaquina = p.NumeroMaquina,
                         cliente = p.Cliente,

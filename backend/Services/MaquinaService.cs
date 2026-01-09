@@ -20,26 +20,119 @@ namespace flexoAPP.Services
             _repository = repository;
             _logger = logger;
             _context = context;
-            EnsureUniqueOtSapIndex();
+            EnsureDatabaseSchema();
         }
 
         private static bool _otSapIndexEnsured = false;
-        private void EnsureUniqueOtSapIndex()
+        private void EnsureDatabaseSchema()
         {
             if (_otSapIndexEnsured) return;
-            var cs = _context.Database.GetConnectionString();
-            using var conn = new MySqlConnector.MySqlConnection(cs);
-            conn.Open();
-            using var checkCmd = conn.CreateCommand();
-            checkCmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'maquinas' AND INDEX_NAME = 'uniq_ot_sap'";
-            var exists = Convert.ToInt32(checkCmd.ExecuteScalar());
-            if (exists == 0)
+            try
             {
-                using var alterCmd = conn.CreateCommand();
-                alterCmd.CommandText = "ALTER TABLE maquinas ADD UNIQUE INDEX uniq_ot_sap (ot_sap)";
-                alterCmd.ExecuteNonQuery();
+                var cs = _context.Database.GetConnectionString();
+                using var conn = new MySqlConnector.MySqlConnection(cs);
+                conn.Open();
+
+                // 1. Verificar si existe la columna 'id'
+                using var checkIdCmd = conn.CreateCommand();
+                checkIdCmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'maquinas' AND COLUMN_NAME = 'id'";
+                var idExists = Convert.ToInt32(checkIdCmd.ExecuteScalar()) > 0;
+
+                // 2. Verificar si 'ot_sap' es la PRIMARY KEY
+                using var checkPkCmd = conn.CreateCommand();
+                checkPkCmd.CommandText = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+                    JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+                    WHERE tc.TABLE_SCHEMA = DATABASE() 
+                    AND tc.TABLE_NAME = 'maquinas' 
+                    AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+                    AND kcu.COLUMN_NAME = 'ot_sap'";
+                var otSapIsPk = Convert.ToInt32(checkPkCmd.ExecuteScalar()) > 0;
+
+                if (idExists || !otSapIsPk)
+                {
+                    _logger.LogInformation("⚠️ Iniciando migración de esquema de BD: Estableciendo OT SAP como Primary Key...");
+                    
+                    // Nota: No usamos transacción explícita porque algunos comandos DDL en MySQL causan commit implícito
+                    
+                    using var cmd = conn.CreateCommand();
+
+                    // Paso 1: Eliminar PRIMARY KEY existente (ya sea 'id' o 'articulo')
+                    try {
+                        cmd.CommandText = "ALTER TABLE maquinas DROP PRIMARY KEY";
+                        cmd.ExecuteNonQuery();
+                        _logger.LogInformation("PK anterior eliminada.");
+                    } catch (Exception ex) {
+                         _logger.LogWarning($"Nota: No se pudo eliminar PK (quizás no existía): {ex.Message}");
+                    }
+
+                    // Paso 1.5: Eliminar duplicados de OT SAP antes de proceder
+                    // Esto es CRÍTICO para poder establecer ot_sap como PK
+                    try {
+                        _logger.LogInformation("🧹 Eliminando registros duplicados de OT SAP...");
+                        if (idExists)
+                        {
+                            // Si existe ID, conservamos el ID más alto (el más reciente insertado)
+                            cmd.CommandText = @"
+                                DELETE t1 FROM maquinas t1
+                                INNER JOIN maquinas t2 
+                                WHERE t1.ot_sap = t2.ot_sap 
+                                AND t1.id < t2.id";
+                            cmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            // Si no existe ID, conservamos el de fecha más reciente
+                            // Nota: Si las fechas son idénticas, esto podría no eliminar todos los duplicados, 
+                            // pero es un buen intento sin ID único.
+                            cmd.CommandText = @"
+                                DELETE t1 FROM maquinas t1
+                                INNER JOIN maquinas t2 
+                                WHERE t1.ot_sap = t2.ot_sap 
+                                AND t1.fecha_tinta_en_maquina < t2.fecha_tinta_en_maquina";
+                            cmd.ExecuteNonQuery();
+                        }
+                        _logger.LogInformation("✅ Duplicados eliminados.");
+                    } catch (Exception ex) {
+                        _logger.LogWarning($"⚠️ Advertencia al eliminar duplicados: {ex.Message}");
+                    }
+
+                    // Paso 2: Eliminar columna 'id' si existe
+                    if (idExists)
+                    {
+                        cmd.CommandText = "ALTER TABLE maquinas DROP COLUMN id";
+                        cmd.ExecuteNonQuery();
+                        _logger.LogInformation("Columna 'id' eliminada.");
+                    }
+
+                    // Paso 3: Asegurar que 'ot_sap' sea NOT NULL
+                    cmd.CommandText = "ALTER TABLE maquinas MODIFY COLUMN ot_sap VARCHAR(50) NOT NULL";
+                    cmd.ExecuteNonQuery();
+
+                    // Paso 4: Establecer 'ot_sap' como PRIMARY KEY
+                    cmd.CommandText = "ALTER TABLE maquinas ADD PRIMARY KEY (ot_sap)";
+                    cmd.ExecuteNonQuery();
+                    _logger.LogInformation("Nueva PRIMARY KEY establecida en 'ot_sap'.");
+
+                    // Paso 5: Eliminar índice único redundante si existe
+                    try {
+                        cmd.CommandText = "DROP INDEX uniq_ot_sap ON maquinas";
+                        cmd.ExecuteNonQuery();
+                    } catch {}
+                    
+                    _logger.LogInformation("✅ Migración de esquema completada exitosamente.");
+                }
             }
-            _otSapIndexEnsured = true;
+            catch (Exception ex)
+            {
+                _logger.LogError($"❌ Error crítico migrando esquema de BD: {ex.Message}");
+                // No relanzamos para no bloquear el arranque, pero quedará logueado
+            }
+            finally
+            {
+                _otSapIndexEnsured = true;
+            }
         }
 
         public async Task<IEnumerable<MaquinaDto>> GetAllAsync()
@@ -306,9 +399,9 @@ namespace flexoAPP.Services
             return MapToDto(updated);
         }
 
-        public async Task<bool> DeleteAsync(string articulo)
+        public async Task<bool> DeleteAsync(string otSap)
         {
-            return await _repository.DeleteAsync(articulo);
+            return await _repository.DeleteAsync(otSap);
         }
 
         public async Task<ExcelProcessResultDto> ProcessExcelFileAsync(IFormFile file, int? userId)
@@ -1037,25 +1130,101 @@ namespace flexoAPP.Services
         {
             try
             {
-                _logger.LogWarning("🗑️ Limpiando toda la programación de máquinas - Usuario: {UserId}", userId);
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
 
-                // NOTA: Usar SQL RAW temporalmente debido a problemas con Entity Framework
-                // var allPrograms = await _repository.GetAllAsync();
-                // int deletedCount = 0;
-                // foreach (var program in allPrograms)
-                // {
-                //     await _repository.DeleteAsync(program.Articulo);
-                //     deletedCount++;
-                // }
+                using var command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM maquinas";
                 
-                // Por ahora retornar 0 hasta que se arregle el problema de EF
-                _logger.LogWarning("⚠️ Método ClearAllProgrammingAsync temporalmente deshabilitado");
-                return 0;
+                var rowsAffected = await command.ExecuteNonQueryAsync();
+                
+                _logger.LogInformation("🗑️ Programación eliminada por usuario {UserId}. Registros borrados: {Count}", userId, rowsAffected);
+                
+                return rowsAffected;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error limpiando programación");
+                _logger.LogError(ex, "❌ Error eliminando programación");
                 throw;
+            }
+        }
+
+        public async Task<object> FixDatabaseSchemaAsync()
+        {
+            var result = new Dictionary<string, object>();
+            var logs = new List<string>();
+            result["success"] = false;
+            result["logs"] = logs;
+
+            try
+            {
+                logs.Add("Iniciando reparación de esquema...");
+                
+                var cs = _context.Database.GetConnectionString();
+                using var conn = new MySqlConnector.MySqlConnection(cs);
+                await conn.OpenAsync();
+
+                // 1. Limpiar duplicados
+                logs.Add("Ejecutando limpieza de duplicados...");
+                await CleanExistingOtSapDuplicatesAsync();
+                logs.Add("Limpieza de duplicados finalizada.");
+
+                // 2. Verificar/Corregir PK
+                using var checkPkCmd = conn.CreateCommand();
+                checkPkCmd.CommandText = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+                    JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+                    WHERE tc.TABLE_SCHEMA = DATABASE() 
+                    AND tc.TABLE_NAME = 'maquinas' 
+                    AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+                    AND kcu.COLUMN_NAME = 'ot_sap'";
+                var otSapIsPk = Convert.ToInt32(await checkPkCmd.ExecuteScalarAsync()) > 0;
+
+                if (!otSapIsPk)
+                {
+                    logs.Add("OT SAP no es PK. Corrigiendo...");
+                    
+                    using var cmd = conn.CreateCommand();
+                    
+                    // Eliminar PK existente
+                    try {
+                        cmd.CommandText = "ALTER TABLE maquinas DROP PRIMARY KEY";
+                        await cmd.ExecuteNonQueryAsync();
+                        logs.Add("PK anterior eliminada.");
+                    } catch (Exception ex) {
+                        logs.Add($"Nota: No se pudo eliminar PK: {ex.Message}");
+                    }
+
+                    // Eliminar columna id si existe
+                    try {
+                        cmd.CommandText = "ALTER TABLE maquinas DROP COLUMN id";
+                        await cmd.ExecuteNonQueryAsync();
+                        logs.Add("Columna id eliminada.");
+                    } catch {}
+
+                    // Establecer ot_sap como PK
+                    cmd.CommandText = "ALTER TABLE maquinas MODIFY COLUMN ot_sap VARCHAR(50) NOT NULL";
+                    await cmd.ExecuteNonQueryAsync();
+                    
+                    cmd.CommandText = "ALTER TABLE maquinas ADD PRIMARY KEY (ot_sap)";
+                    await cmd.ExecuteNonQueryAsync();
+                    logs.Add("PK establecida en ot_sap.");
+                }
+                else
+                {
+                    logs.Add("OT SAP ya es PK.");
+                }
+
+                result["success"] = true;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logs.Add($"Error: {ex.Message}");
+                _logger.LogError(ex, "Error en FixDatabaseSchemaAsync");
+                return result;
             }
         }
 

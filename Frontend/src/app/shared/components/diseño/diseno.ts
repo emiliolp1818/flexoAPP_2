@@ -1,4 +1,5 @@
-import { Component, signal, OnInit, inject } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy, inject } from '@angular/core';
+import { interval, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -87,13 +88,16 @@ interface UserPermissions {
   styleUrls: ['./diseno.scss']
 
 })
-export class DesignComponent implements OnInit {
+export class DesignComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
   private pantoneService = inject(PantoneLiveService);
+  
+  // Suscripción para actualización automática
+  private updateSubscription: Subscription = new Subscription();
   
   // Señales reactivas
   currentUser = signal<User | null>(null);
@@ -130,7 +134,7 @@ export class DesignComponent implements OnInit {
 
   // Configuración de tabla
   displayedColumns: string[] = [
-    'id', 'articleF', 'client', 'description', 'substrate', 'type', 
+    'articleF', 'client', 'description', 'substrate', 'type', 
     'printType', 'colorCount', 'colors', 'status', 'actions'
   ];
 
@@ -180,6 +184,13 @@ export class DesignComponent implements OnInit {
     this.initializeOptimizations();
     // Usar método optimizado para cargar datos
     this.loadDesigns();
+    
+    // Iniciar actualización automática
+    this.startAutoUpdate();
+  }
+
+  ngOnDestroy() {
+    this.stopAutoUpdate();
   }
 
   /**
@@ -278,6 +289,62 @@ export class DesignComponent implements OnInit {
     const isAdmin = userRole === 'admin';
     console.log('👑 ¿Es administrador?:', isAdmin, '- Rol original:', user?.role, '- Rol normalizado:', userRole);
     return isAdmin;
+  }
+
+  /**
+   * Iniciar actualización automática cada segundo
+   */
+  startAutoUpdate() {
+    this.stopAutoUpdate(); // Asegurar que no haya suscripciones duplicadas
+    
+    // Actualizar cada 1000ms (1 segundo)
+    this.updateSubscription = interval(1000).subscribe(() => {
+      this.refreshDesignsSilent();
+    });
+    console.log('⏱️ Actualización automática iniciada (1s)');
+  }
+
+  /**
+   * Detener actualización automática
+   */
+  stopAutoUpdate() {
+    if (this.updateSubscription) {
+      this.updateSubscription.unsubscribe();
+      this.updateSubscription = new Subscription();
+    }
+  }
+
+  /**
+   * Refrescar diseños silenciosamente (sin spinner de carga)
+   * Esto actualiza la tabla para mostrar cambios de estado/acciones recientes
+   */
+  async refreshDesignsSilent() {
+    // No actualizar si hay una carga activa, búsqueda o si no estamos en la primera página
+    // Esto evita conflictos con la interacción del usuario
+    if (this.loading() || this.loadingMore() || this.searchTerm() || this.currentPage() !== 1) {
+      return;
+    }
+
+    try {
+      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
+        params: {
+          page: '1',
+          pageSize: this.pageSize().toString()
+        }
+      }).toPromise();
+      
+      if (response) {
+        const items = response.items || response;
+        // Actualizar señales solo si hay datos
+        if (items && items.length > 0) {
+          this.allDesigns.set(items);
+          this.filteredDesigns.set(items);
+        }
+      }
+    } catch (error) {
+      // Silenciar errores en actualizaciones automáticas para no molestar al usuario
+      console.error('Error en actualización silenciosa:', error);
+    }
   }
 
   /**
@@ -1787,14 +1854,20 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    * Obtener clase CSS para el estado
    */
   getStatusClass(design: FlexographicDesign): string {
-    return `status-text-display status-${design.status.toLowerCase()}`;
+    if (!design || !design.status) {
+      return 'status-text-display status-unknown';
+    }
+    const status = design.status.toLowerCase().trim();
+    return `status-text-display status-${status}`;
   }
 
   /**
    * Obtener texto del estado
    */
   getDesignStatus(design: FlexographicDesign): string {
-    return design.status === 'ACTIVO' ? 'Activo' : 'Inactivo';
+    if (!design || !design.status) return 'Desconocido';
+    const status = design.status.toUpperCase();
+    return (status === 'ACTIVO' || status === 'ACTIVE') ? 'Activo' : 'Inactivo';
   }
 
   /**

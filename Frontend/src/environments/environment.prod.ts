@@ -1,11 +1,10 @@
-// Configuración de entorno PRODUCCIÓN - FlexoApp Frontend
-// Para desarrollo local, usar environment.ts o environment.local.ts
+// Configuración de entorno PRODUCCIÓN - FlexoApp Frontend para Render
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:7003/api',
-  socketUrl: 'http://localhost:7003',
+  apiUrl: 'https://flexoapp-backend.onrender.com/api',
+  socketUrl: 'https://flexoapp-backend.onrender.com',
   fallbackUrls: [
-    'http://localhost:7003/api'
+    'https://flexoapp-backend.onrender.com/api'
   ],
   enableLogging: false,
   enableDebugMode: false,
@@ -14,7 +13,7 @@ export const environment = {
   networkMode: false,
   disableNetworkStability: true,
   allowCrossOrigin: true,
-  networkInterface: 'localhost',
-  imageBaseUrl: 'http://localhost:7003',
+  networkInterface: 'flexoapp-backend.onrender.com',
+  imageBaseUrl: 'https://flexoapp-backend.onrender.com',
   alternativeUrls: []
 };
