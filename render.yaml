@@ -3,10 +3,7 @@ services:
   - type: web
     name: flexoapp-backend
     env: docker
-    repo: https://github.com/emiliolp1818/flexoAPP_2.git
-    branch: render
-    dockerfilePath: ./Dockerfile
-    dockerContext: ./
+    dockerfilePath: Dockerfile
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
