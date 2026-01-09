@@ -6,10 +6,10 @@ COPY Frontend/package*.json ./
 RUN npm ci --only=production
 
 COPY Frontend/ .
-RUN npm run build --prod
+RUN npm run build -- --configuration=render
 
 FROM nginx:alpine
-COPY --from=build /app/dist/flexo-app /usr/share/nginx/html
+COPY --from=build /app/dist/flexoapp /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80

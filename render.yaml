@@ -32,10 +32,10 @@ services:
     buildCommand: |
       cd Frontend
       npm ci
-      npm run build --prod
+      npm run build -- --configuration=render
     startCommand: |
       cd Frontend
-      npx serve -s dist/flexo-app -l 10000
+      npx serve -s dist/flexoapp -l 10000
     envVars:
       - key: NODE_ENV
         value: production
