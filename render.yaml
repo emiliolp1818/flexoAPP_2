@@ -3,8 +3,7 @@ services:
   - type: web
     name: flexoapp-backend
     env: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    dockerfilePath: Dockerfile
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
