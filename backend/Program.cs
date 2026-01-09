@@ -14,34 +14,32 @@ using Microsoft.AspNetCore.ResponseCompression;
 using System.IO.Compression;
 
 // ===== CONFIGURACIÓN DE SERILOG =====
-// Configurar sistema de logging estructurado para toda la aplicación FlexoAPP
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")  // Salida a consola para desarrollo
-    .WriteTo.File("logs/flexoapp-.log",                                                                        // Archivos de log para producción
-        rollingInterval: RollingInterval.Day,                                                                  // Rotar archivos diariamente
-        retainedFileCountLimit: 30,                                                                            // Mantener 30 días de logs
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("logs/flexoapp-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 7, // Reducir a 7 días para Render
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
 try
 {
-    // ===== LOG DE INICIO DE LA APLICACIÓN =====
-    // Registrar en el log que la aplicación FlexoAPP está iniciando con MySQL local
-    Log.Information("🚀 Iniciando FlexoAPP Backend - MySQL Railway (railway)");
+    Log.Information("🚀 Iniciando FlexoAPP Backend - Render/Railway Production");
 
-    // ===== CREAR BUILDER DE LA APLICACIÓN WEB =====
-    // WebApplicationBuilder: configura servicios y middleware de ASP.NET Core
-    var builder = WebApplication.CreateBuilder(args); // args: argumentos de línea de comandos
+    var builder = WebApplication.CreateBuilder(args);
 
     // ===== INTEGRACIÓN DE SERILOG =====
-    // Integrar Serilog como proveedor de logging principal
     builder.Host.UseSerilog();
 
-    // ===== CONFIGURACIÓN DE KESTREL (LOCAL) =====
+    // ===== CONFIGURACIÓN DE KESTREL PARA RENDER =====
     builder.WebHost.ConfigureKestrel(options =>
     {
         options.Limits.MaxRequestBodySize = 52428800; // 50MB
         options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+        
+        // Configurar para escuchar en el puerto de Render
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        options.ListenAnyIP(int.Parse(port));
     });
 
     // ===== RESPONSE COMPRESSION =====
@@ -228,65 +226,75 @@ try
     builder.Services.AddAuthorization();
 
     // ===== CONFIGURACIÓN DE BASE DE DATOS MYSQL RAILWAY =====
-    // Obtener la cadena de conexión desde variables de entorno (Railway) o appsettings
-    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-                          ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-                          ?? builder.Configuration.GetConnectionString("DefaultConnection") 
-                          ?? throw new InvalidOperationException("MySQL connection string is required");
+    string connectionString;
     
-    // Si viene de DATABASE_URL (Railway), convertir formato
-    if (connectionString.StartsWith("mysql://"))
+    try 
     {
-        // Convertir de mysql://user:password@host:port/database a formato .NET
-        var uri = new Uri(connectionString);
-        connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;";
+        // Prioridad: 1. Variable de entorno específica, 2. DATABASE_URL, 3. appsettings
+        connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                          ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+                          ?? builder.Configuration.GetConnectionString("DefaultConnection");
+        
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("No se encontró cadena de conexión a la base de datos");
+        }
+        
+        // Si viene de DATABASE_URL (Railway), convertir formato
+        if (connectionString.StartsWith("mysql://"))
+        {
+            var uri = new Uri(connectionString);
+            var userInfo = uri.UserInfo.Split(':');
+            connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;CommandTimeout=30;";
+        }
+        
+        Log.Information("🔌 Configurando conexión a MySQL Railway");
+        
+        // Enmascarar contraseña para logs
+        var maskedConnectionString = System.Text.RegularExpressions.Regex.Replace(
+            connectionString, @"Password=[^;]+", "Password=***");
+        Log.Information("🔌 Connection: {ConnectionString}", maskedConnectionString);
     }
-    
-    // ===== LOG DE TIPO DE CONEXIÓN =====
-    Log.Information("🔌 Using Railway MySQL connection to railway database");
-    
-    // ===== ENMASCARAR CONTRASEÑA PARA EL LOG =====
-    var maskedConnectionString = System.Text.RegularExpressions.Regex.Replace(
-        connectionString, @"Password=[^;]+", "Password=***");
-    Log.Information("🔌 Connection: {ConnectionString}", maskedConnectionString);
+    catch (Exception ex)
+    {
+        Log.Fatal("❌ Error configurando cadena de conexión: {Error}", ex.Message);
+        throw;
+    }
 
     // ===== CONFIGURAR ENTITY FRAMEWORK CON MYSQL =====
-    // AddDbContext: registrar el contexto de base de datos en el contenedor de dependencias
-    builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
+    try 
     {
-        // ===== DETECTAR VERSIÓN DE MYSQL =====
-        // ServerVersion.AutoDetect: detecta automáticamente la versión de MySQL del servidor
-        // Esto es importante para usar las características correctas de MySQL (5.7, 8.0, etc.)
-        var serverVersion = ServerVersion.AutoDetect(connectionString); // Conecta y detecta versión
-        
-        // ===== CONFIGURAR PROVEEDOR MYSQL =====
-        // UseMySql: configura Entity Framework para usar MySQL en lugar de SQL Server o PostgreSQL
-        options.UseMySql(connectionString, serverVersion, mySqlOptions =>
+        builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
         {
-            // ===== TIMEOUT DE COMANDOS =====
-            // CommandTimeout: tiempo máximo de espera para comandos SQL (30 segundos)
-            mySqlOptions.CommandTimeout(30); // Timeout de 30 segundos para consultas
+            // Usar versión fija para evitar problemas de conexión en Render
+            var serverVersion = new MySqlServerVersion(new Version(8, 0, 21));
             
-            // ===== REINTENTOS AUTOMÁTICOS =====
-            // EnableRetryOnFailure: reintentar automáticamente en caso de errores transitorios
-            // Útil para problemas de red temporales o bloqueos de base de datos
-            mySqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 3, // Máximo 3 reintentos
-                maxRetryDelay: TimeSpan.FromSeconds(5), // Esperar máximo 5 segundos entre reintentos
-                errorNumbersToAdd: null); // null = usar errores por defecto de MySQL
-        });
+            options.UseMySql(connectionString, serverVersion, mySqlOptions =>
+            {
+                mySqlOptions.CommandTimeout(60); // Aumentar timeout para Render
+                mySqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5, // Más reintentos para conexiones de red
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
+            });
 
-        // ===== OPCIONES DE DESARROLLO =====
-        // EnableSensitiveDataLogging: mostrar valores de parámetros en logs (solo en desarrollo)
-        // ADVERTENCIA: no usar en producción por seguridad
-        options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment()); // Solo en Development
+            // Solo habilitar logging sensible en desarrollo
+            if (builder.Environment.IsDevelopment())
+            {
+                options.EnableSensitiveDataLogging();
+                options.EnableDetailedErrors();
+            }
+            
+            options.EnableServiceProviderCaching();
+        });
         
-        // ===== CACHÉ DEL PROVEEDOR DE SERVICIOS =====
-        // EnableServiceProviderCaching: cachear el proveedor de servicios para mejor rendimiento
-        options.EnableServiceProviderCaching(); // Mejora el rendimiento
-        
-        // ===== ERRORES DETALLADOS =====
-        // EnableDetailedErrors: mostrar errores detallados de Entity Framework (solo en desarrollo)
+        Log.Information("✅ Entity Framework configurado correctamente");
+    }
+    catch (Exception ex)
+    {
+        Log.Fatal("❌ Error configurando Entity Framework: {Error}", ex.Message);
+        throw;
+    }
         options.EnableDetailedErrors(builder.Environment.IsDevelopment()); // Solo en Development
     });
 
@@ -352,7 +360,57 @@ try
 
     Log.Information("🔧 Configuring middleware pipeline...");
 
+    // ===== VERIFICAR CONEXIÓN A BASE DE DATOS =====
+    try 
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<FlexoAPPDbContext>();
+            Log.Information("🔍 Verificando conexión a base de datos...");
+            
+            // Verificar que podemos conectar
+            await context.Database.CanConnectAsync();
+            Log.Information("✅ Conexión a base de datos exitosa");
+            
+            // Ejecutar scripts de creación si es necesario
+            Log.Information("🗄️ Verificando estructura de base de datos...");
+            await context.Database.EnsureCreatedAsync();
+            Log.Information("✅ Estructura de base de datos verificada");
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Fatal("❌ Error conectando a base de datos: {Error}", ex.Message);
+        Log.Fatal("❌ Stack trace: {StackTrace}", ex.StackTrace);
+        throw;
+    }
+
     // ===== MIDDLEWARE PIPELINE =====
+
+    // Global error handling
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+
+            var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+            var exception = exceptionHandlerPathFeature?.Error;
+
+            Log.Error(exception, "Error no manejado en {Path}", context.Request.Path);
+
+            var response = new
+            {
+                error = "Internal Server Error",
+                message = app.Environment.IsDevelopment() ? exception?.Message : "An error occurred processing your request",
+                path = context.Request.Path.Value,
+                timestamp = DateTime.UtcNow
+            };
+
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+        });
+    });
 
     // Response compression
     app.UseResponseCompression();
