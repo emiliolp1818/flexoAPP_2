@@ -27,7 +27,7 @@ services:
     
   # Frontend Service - Angular App
   - type: static
-    name: frontend-f54v
+    name: flexoapp-frontend
     buildCommand: npm ci --include=dev && npx ng build --configuration=render
     publishDir: dist/flexoapp
     rootDir: Frontend
