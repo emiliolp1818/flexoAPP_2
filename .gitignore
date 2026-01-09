@@ -1,97 +1,62 @@
 # =====================================================
-# GITIGNORE PARA FLEXOAPP
-# Archivos y carpetas que NO deben subirse a GitHub
+# GITIGNORE PARA FLEXOAPP - PROYECTO COMPLETO
 # =====================================================
 
-# ===== NODE_MODULES =====
-# Dependencias de Node.js (se instalan con npm install)
+# ===== NODE.JS / FRONTEND =====
 node_modules/
 **/node_modules/
-
-# ===== LOGS =====
-# Archivos de log generados por la aplicación
-logs/
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
-
-# ===== ARCHIVOS DE ENTORNO =====
-# Variables de entorno con información sensible
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# ===== ARCHIVOS DE BUILD =====
-# Archivos generados durante el build
-dist/
-build/
-out/
-*.dll
-*.exe
-
-# ===== ARCHIVOS DE SISTEMA =====
-# Archivos del sistema operativo
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# ===== ARCHIVOS DE IDE =====
-# Configuraciones de editores e IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.project
-.classpath
-.settings/
-
-# ===== ARCHIVOS DE BACKUP =====
-# Backups generados por la aplicación
-Backups/
-*.backup
-*.bak
-
-# ===== ARCHIVOS TEMPORALES =====
-# Archivos temporales
-tmp/
-temp/
-*.tmp
-
-# ===== ARCHIVOS DE ANGULAR =====
-# Archivos específicos de Angular
 .angular/
+dist/
 .angular/cache/
 
-# ===== ARCHIVOS DE .NET =====
-# Archivos específicos de .NET
+# ===== .NET / BACKEND =====
 bin/
 obj/
 *.user
 *.suo
 *.cache
 *.pdb
+*.dll
+*.exe
+[Dd]ebug/
+[Rr]elease/
+.vs/
+*.log
+logs/
 
-# ===== ARCHIVOS DE BASE DE DATOS =====
-# Archivos de base de datos local (no subir a GitHub)
-*.db
-*.sqlite
-*.sqlite3
+# ===== ARCHIVOS DE ENTORNO Y CONFIGURACIÓN =====
+.env
+.env.*
+appsettings.Development.json
+connectionstrings.json
 
-# ===== CERTIFICADOS Y CLAVES =====
-# Archivos de seguridad (NUNCA subir a GitHub)
+# ===== ARCHIVOS DE SISTEMA =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== ARCHIVOS TEMPORALES =====
+tmp/
+temp/
+*.tmp
+*.backup
+*.bak
+
+# ===== ARCHIVOS DE SEGURIDAD =====
 *.pfx
 *.key
 *.pem
 *.crt
 *.cer
 
-# ===== ARCHIVOS DE CONFIGURACIÓN SENSIBLES =====
-# Archivos con información sensible
-appsettings.Development.json
-appsettings.Production.json
-connectionstrings.json
+# ===== BASE DE DATOS LOCAL =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== UPLOADS Y ARCHIVOS GENERADOS =====
+uploads/
+Backups/

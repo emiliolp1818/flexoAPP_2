@@ -9,10 +9,6 @@ services:
         value: Production
       - key: ConnectionStrings__DefaultConnection
         value: Server=hopper.proxy.rlwy.net;Port=43791;Database=railway;User=root;Password=CqkLOlVTDfHuOmYSPfJlXUCfiNXlibtm;AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;CommandTimeout=60;
-      - key: DATABASE_URL
-        value: mysql://root:CqkLOlVTDfHuOmYSPfJlXUCfiNXlibtm@hopper.proxy.rlwy.net:43791/railway
-      - key: FRONTEND_URL
-        value: https://frontend-f54v.onrender.com
       - key: JWT_SECRET_KEY
         value: FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
       - key: PORT
@@ -20,18 +16,10 @@ services:
     healthCheckPath: /health
     
   # Frontend Service - Angular App
-  - type: web
+  - type: static
     name: frontend-f54v
-    env: node
-    buildCommand: |
-      cd Frontend
-      npm ci
-      npm run build -- --configuration=render
-    startCommand: |
-      cd Frontend
-      npx serve -s dist/flexoapp -l 10000
+    buildCommand: cd Frontend && npm ci && npm run build -- --configuration=render
+    publishDir: Frontend/dist/flexoapp
     envVars:
       - key: NODE_ENV
         value: production
-      - key: API_URL
-        value: https://flexoapp-backend.onrender.com/api
