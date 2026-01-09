@@ -68,20 +68,38 @@
 ===============================================================================
 
 3.1 CREAR SERVICIO WEB EN RENDER
-   - En Render Dashboard → "New" → "Web Service"
-   - Connect Repository: flexoAPP_2
+   - En Render Dashboard → "New +" → "Web Service"
+   - Connect Repository: Selecciona flexoAPP_2
    - Branch: render (o main)
-   - Name: flexoapp-backend
-   - Region: Oregon (US West)
-   - Environment: Docker
-   - Dockerfile Path: Dockerfile
+   
+   OPCIONES QUE VERÁS EN LA INTERFAZ:
+   ┌─────────────────────────────────────────┐
+   │ Name: flexoapp-backend                  │
+   │ Region: Oregon (US West)                │
+   │ Branch: render                          │
+   │ Root Directory: [dejar vacío]           │
+   │ Environment: Docker                     │
+   │ Dockerfile Path: Dockerfile             │
+   └─────────────────────────────────────────┘
 
 3.2 CONFIGURACIÓN DEL SERVICIO
-   Build Command: (dejar vacío - usa Dockerfile)
-   Start Command: (dejar vacío - usa Dockerfile)
+   En la interfaz de Render verás estas opciones:
+   
+   - Name: flexoapp-backend
+   - Region: Oregon (US West) - recomendado por costo
+   - Branch: render (o main)
+   - Root Directory: (dejar vacío)
+   - Environment: Docker
+   - Dockerfile Path: Dockerfile
+   
+   IMPORTANTE: NO verás "Build Command" ni "Start Command" cuando seleccionas Docker.
+   Render usa automáticamente el Dockerfile para build y start.
 
 3.3 VARIABLES DE ENTORNO DEL BACKEND
-   Agregar estas variables en Render:
+   DESPUÉS de crear el servicio, ve a:
+   Dashboard → Tu servicio → "Environment" tab
+   
+   Haz clic en "Add Environment Variable" para cada una:
 
    ASPNETCORE_ENVIRONMENT = Production
    
@@ -95,30 +113,57 @@
    
    PORT = 10000
    ASPNETCORE_URLS = http://+:10000
+   
+   IMPORTANTE: Después de agregar variables, haz clic en "Save Changes"
 
 3.4 CONFIGURACIÓN AVANZADA
-   - Health Check Path: /health
-   - Auto-Deploy: Yes
-   - Plan: Free (para testing)
+   En la misma pantalla de creación del servicio, busca:
+   
+   ┌─────────────────────────────────────────┐
+   │ Advanced Settings (expandir)            │
+   │ ├─ Health Check Path: /health           │
+   │ ├─ Auto-Deploy: Yes ✓                   │
+   │ └─ Instance Type: Free                  │
+   └─────────────────────────────────────────┘
+   
+   NOTA: Si no ves "Health Check Path", búscalo en la sección
+   "Advanced" o "Settings" después de crear el servicio.
 
 ===============================================================================
 4. CONFIGURACIÓN DEL FRONTEND (ANGULAR)
 ===============================================================================
 
 4.1 CREAR SERVICIO ESTÁTICO EN RENDER
-   - En Render Dashboard → "New" → "Static Site"
-   - Connect Repository: flexoAPP_2
+   - En Render Dashboard → "New +" → "Static Site"
+   - Connect Repository: Selecciona flexoAPP_2
    - Branch: render (o main)
-   - Name: flexoapp-frontend
-   - Root Directory: Frontend
+   
+   OPCIONES QUE VERÁS EN LA INTERFAZ:
+   ┌─────────────────────────────────────────┐
+   │ Name: flexoapp-frontend                 │
+   │ Region: Oregon (US West)                │
+   │ Branch: render                          │
+   │ Root Directory: Frontend                │
+   │ Build Command: npm ci && npm run build:render │
+   │ Publish Directory: dist/flexoapp        │
+   └─────────────────────────────────────────┘
 
-4.2 CONFIGURACIÓN DE BUILD
-   Build Command: npm ci && npm run build:render
-   Publish Directory: dist/flexoapp
+4.2 CONFIGURACIÓN DE BUILD (YA INCLUIDA ARRIBA)
+   Las opciones de build ya están incluidas en la sección 4.1
+   
+   NOTA: Cuando seleccionas "Static Site", Render automáticamente
+   te pide Build Command y Publish Directory.
 
 4.3 VARIABLES DE ENTORNO DEL FRONTEND
+   DESPUÉS de crear el servicio, ve a:
+   Dashboard → Tu servicio → "Environment" tab
+   
+   Haz clic en "Add Environment Variable" para cada una:
+   
    NODE_ENV = production
    ANGULAR_ENV = render
+   
+   IMPORTANTE: Después de agregar variables, haz clic en "Save Changes"
 
 4.4 ACTUALIZAR ENVIRONMENT.RENDER.TS
    En Frontend/src/environments/environment.render.ts:
