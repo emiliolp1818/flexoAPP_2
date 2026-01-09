@@ -28,8 +28,9 @@ services:
   # Frontend Service - Angular App
   - type: static
     name: frontend-f54v
-    buildCommand: cd Frontend && npm ci --include=dev && npx ng build --configuration=render
-    publishDir: Frontend/dist/flexoapp
+    buildCommand: npm ci --include=dev && npx ng build --configuration=render
+    publishDir: dist/flexoapp
+    rootDir: Frontend
     envVars:
       - key: NODE_ENV
         value: production
