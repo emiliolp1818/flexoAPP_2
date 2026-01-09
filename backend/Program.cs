@@ -245,7 +245,7 @@ try
         {
             var uri = new Uri(connectionString);
             var userInfo = uri.UserInfo.Split(':');
-            connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;CommandTimeout=30;";
+            connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;";
         }
         
         Log.Information("🔌 Configurando conexión a MySQL Railway");
