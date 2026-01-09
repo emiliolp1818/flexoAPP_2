@@ -20,7 +20,7 @@ RUN mkdir -p logs uploads
 
 # Configuración
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:10000
+EXPOSE 10000
 
 ENTRYPOINT ["dotnet", "FlexoAPP.API.dll"]

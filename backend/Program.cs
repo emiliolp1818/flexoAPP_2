@@ -38,7 +38,7 @@ try
         options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
         
         // Configurar para escuchar en el puerto de Render
-        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
         options.ListenAnyIP(int.Parse(port));
     });
 
