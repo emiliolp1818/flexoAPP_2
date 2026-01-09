@@ -1,4 +1,5 @@
 # Dockerfile para FlexoAPP Backend - Railway/Render
+# Este Dockerfile debe ejecutarse desde el directorio raíz del proyecto
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
@@ -9,10 +10,14 @@ RUN addgroup --system --gid 1001 flexoapp && \
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["flexoAPP.csproj", "."]
-RUN dotnet restore "./flexoAPP.csproj"
-COPY . .
-WORKDIR "/src/."
+
+# Copiar archivo de proyecto desde la carpeta backend
+COPY backend/flexoAPP.csproj ./backend/
+RUN dotnet restore "backend/flexoAPP.csproj"
+
+# Copiar todo el código fuente del backend
+COPY backend/ ./backend/
+WORKDIR "/src/backend"
 RUN dotnet build "flexoAPP.csproj" -c Release -o /app/build
 
 FROM build AS publish

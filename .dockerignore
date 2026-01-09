@@ -1,0 +1,38 @@
+# Ignorar archivos innecesarios para el build de Docker
+
+# Frontend (no necesario para backend)
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.angular/
+
+# Backend - archivos de build y cache
+backend/bin/
+backend/obj/
+backend/logs/
+backend/uploads/
+
+# Git
+.git/
+.gitignore
+
+# Documentación
+*.md
+README.md
+
+# Scripts de desarrollo
+*.bat
+*.sh
+*.ps1
+
+# Archivos de configuración local
+.vscode/
+.vs/
+
+# Archivos temporales
+*.tmp
+*.temp
+*.log
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
