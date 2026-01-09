@@ -1,0 +1,230 @@
+===============================================================================
+                    CAMBIOS ESPECÍFICOS PARA TU PROYECTO
+                         FlexoAPP - Render Configuration
+===============================================================================
+
+🔧 ARCHIVOS QUE NECESITAS MODIFICAR:
+
+===============================================================================
+1. DOCKERFILE (raíz del proyecto) - REEMPLAZAR COMPLETAMENTE
+===============================================================================
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /app
+
+# Copiar archivos del proyecto
+COPY backend/*.csproj ./
+RUN dotnet restore
+
+# Copiar todo el código fuente
+COPY backend/ ./
+RUN dotnet publish -c Release -o out
+
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build-env /app/out .
+
+# Crear directorios
+RUN mkdir -p logs uploads
+
+# Configuración
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:10000
+EXPOSE 10000
+
+ENTRYPOINT ["dotnet", "FlexoAPP.API.dll"]
+
+===============================================================================
+2. RENDER.YAML (raíz del proyecto) - REEMPLAZAR COMPLETAMENTE
+===============================================================================
+
+services:
+  # Backend Service - FlexoAPP API
+  - type: web
+    name: flexoapp-backend-v2
+    env: docker
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        value: CAMBIAR_POR_TU_STRING_DE_DB
+      - key: JwtSettings__SecretKey
+        value: FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
+      - key: JwtSettings__Issuer
+        value: FlexoAPP
+      - key: JwtSettings__Audience
+        value: FlexoAPP-Users
+      - key: JwtSettings__ExpirationMinutes
+        value: 1440
+      - key: PORT
+        value: 10000
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+    healthCheckPath: /health
+    
+  # Frontend Service - Angular App
+  - type: static
+    name: flexoapp-frontend-v2
+    buildCommand: npm ci && npm run build:render
+    publishDir: dist/flexoapp
+    rootDir: Frontend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ANGULAR_ENV
+        value: render
+
+===============================================================================
+3. ENVIRONMENT.RENDER.TS - ACTUALIZAR URLs
+===============================================================================
+
+Archivo: Frontend/src/environments/environment.render.ts
+
+export const environment = {
+  production: true,
+  apiUrl: 'https://flexoapp-backend-v2.onrender.com/api',
+  socketUrl: 'https://flexoapp-backend-v2.onrender.com',
+  fallbackUrls: [
+    'https://flexoapp-backend-v2.onrender.com/api'
+  ],
+  enableLogging: false,
+  enableDebugMode: false,
+  cacheTimeout: 10 * 60 * 1000,
+  retryAttempts: 3,
+  networkMode: false,
+  disableNetworkStability: true,
+  allowCrossOrigin: true,
+  networkInterface: 'flexoapp-backend-v2.onrender.com',
+  imageBaseUrl: 'https://flexoapp-backend-v2.onrender.com',
+  alternativeUrls: []
+};
+
+===============================================================================
+4. APPSETTINGS.PRODUCTION.JSON - ACTUALIZAR PARA POSTGRESQL
+===============================================================================
+
+Archivo: backend/appsettings.Production.json
+
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "SERA_REEMPLAZADO_POR_VARIABLE_DE_ENTORNO"
+  },
+  "JwtSettings": {
+    "SecretKey": "FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable",
+    "Issuer": "FlexoAPP",
+    "Audience": "FlexoAPP-Users",
+    "ExpirationMinutes": 1440,
+    "RefreshTokenExpirationDays": 90,
+    "AutoRefreshMinutes": 60,
+    "RememberMeExpirationDays": 365
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning",
+      "FlexoAPP": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  "Urls": "http://0.0.0.0:10000"
+}
+
+===============================================================================
+5. PROGRAM.CS - VERIFICAR CONFIGURACIÓN DE PUERTO
+===============================================================================
+
+En backend/Program.cs, buscar esta sección y asegurar que esté así:
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 52428800; // 50MB
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+    
+    // Configurar para escuchar en el puerto de Render
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+    options.ListenAnyIP(int.Parse(port));
+});
+
+===============================================================================
+6. CORS CONFIGURATION - ACTUALIZAR PARA NUEVAS URLs
+===============================================================================
+
+En backend/Program.cs, buscar la configuración de CORS y actualizar:
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowRenderOrigins", policy =>
+    {
+        policy.WithOrigins(
+            "https://flexoapp-frontend-v2.onrender.com",
+            "http://localhost:4200",
+            "http://127.0.0.1:4200"
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
+    });
+});
+
+===============================================================================
+7. PASOS PARA IMPLEMENTAR LOS CAMBIOS
+===============================================================================
+
+1. HACER BACKUP DE TU CONFIGURACIÓN ACTUAL
+   git checkout -b backup-old-config
+   git add .
+   git commit -m "Backup old configuration"
+   git checkout render
+
+2. APLICAR LOS CAMBIOS
+   - Reemplazar Dockerfile
+   - Reemplazar render.yaml
+   - Actualizar environment.render.ts
+   - Verificar Program.cs
+   - Actualizar appsettings.Production.json
+
+3. COMMIT Y PUSH
+   git add .
+   git commit -m "feat: Complete Render configuration from scratch"
+   git push origin render
+
+4. CREAR SERVICIOS EN RENDER
+   - Seguir la guía RENDER_SETUP_GUIDE.txt
+   - Usar los nombres: flexoapp-backend-v2 y flexoapp-frontend-v2
+
+===============================================================================
+8. VARIABLES DE ENTORNO PARA RENDER DASHBOARD
+===============================================================================
+
+BACKEND (flexoapp-backend-v2):
+ASPNETCORE_ENVIRONMENT = Production
+ConnectionStrings__DefaultConnection = [STRING DE TU NUEVA DB POSTGRESQL]
+JwtSettings__SecretKey = FlexoAPP-Super-Secret-Key-2024-Production-Ready-Ultra-Stable
+JwtSettings__Issuer = FlexoAPP
+JwtSettings__Audience = FlexoAPP-Users
+JwtSettings__ExpirationMinutes = 1440
+PORT = 10000
+ASPNETCORE_URLS = http://+:10000
+
+FRONTEND (flexoapp-frontend-v2):
+NODE_ENV = production
+ANGULAR_ENV = render
+
+===============================================================================
+9. TESTING CHECKLIST
+===============================================================================
+
+□ Dockerfile builds locally: docker build -t test .
+□ Frontend builds locally: cd Frontend && npm run build:render
+□ Environment files updated with new URLs
+□ CORS configured for new domains
+□ Database connection string format correct for PostgreSQL
+□ Port configuration set to 10000
+□ Health check endpoint accessible
+
+===============================================================================
+                        ¡CONFIGURACIÓN LISTA! 🎯
+===============================================================================
