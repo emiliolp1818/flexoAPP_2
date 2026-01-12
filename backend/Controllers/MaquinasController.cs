@@ -793,7 +793,7 @@ namespace backend.Controllers
                         referencia = design.Description ?? "",
                         sustrato = design.Substrate ?? "",
                         numeroColores = colors.Count,
-                     
+                        colores = colors // ✅ Agregamos la lista de colores
                     },
                     timestamp = DateTime.UtcNow
                 });
