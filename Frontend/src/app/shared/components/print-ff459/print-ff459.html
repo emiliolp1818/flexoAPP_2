@@ -229,8 +229,47 @@
 
   <body>
 <style>
-@page { margin-left: 0in; margin-right: 0in; margin-top: 0in; margin-bottom: 0in; }
-body { margin-left: 0in; margin-right: 0in; margin-top: 0in; margin-bottom: 0in; }
+/* ===== ESTILOS DE IMPRESIÓN OPTIMIZADOS PARA MÁXIMO ESPACIO ===== */
+@page { 
+  margin: 0.1in 0.1in 0.1in 0.1in; /* Márgenes mínimos para evitar corte */
+  size: A4 landscape; /* Formato A4 horizontal */
+}
+
+@media print {
+  body { 
+    margin: 0 !important;
+    padding: 2px !important; /* Padding mínimo */
+    width: 100% !important;
+    transform-origin: top left;
+    zoom: 1.0; /* Tamaño completo sin reducción */
+  }
+  
+  table.sheet0 {
+    margin: 0 auto !important; /* Centrar la tabla horizontalmente */
+    width: 99% !important; /* Usar casi todo el ancho disponible */
+    max-width: none !important;
+    page-break-inside: avoid;
+  }
+  
+  /* Evitar saltos de página dentro de filas importantes */
+  tr.row0, tr.row1, tr.row2, tr.row3, tr.row4, tr.row5 {
+    page-break-inside: avoid;
+  }
+}
+
+/* Estilos para vista previa en pantalla */
+@media screen {
+  body {
+    padding: 10px;
+    background-color: #f5f5f5;
+  }
+  
+  table.sheet0 {
+    margin: 0 auto;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+}
 </style>
     <table border="0" cellpadding="0" cellspacing="0" id="sheet0" class="sheet0 gridlines">
         <col class="col0">
