@@ -114,7 +114,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   
   // Señales para optimización de carga
   currentPage = signal<number>(1);
-  pageSize = signal<number>(100);
+  pageSize = signal<number>(10000); // Aumentado para cargar todos los diseños
   totalRecords = signal<number>(0);
   hasMoreData = signal<boolean>(true);
   loadingMore = signal<boolean>(false);
@@ -203,21 +203,21 @@ export class DesignComponent implements OnInit, OnDestroy {
     const memory = this.getMemoryUsage();
     if (memory) {
       if (memory.limit < 1000) { // Menos de 1GB
-        this.pageSize.set(25);
-        console.log('📄 Memoria limitada detectada - Página reducida a 25');
+        this.pageSize.set(1000); // Reducido pero aún suficiente para la mayoría de casos
+        console.log('📄 Memoria limitada detectada - Página reducida a 1000');
       } else if (memory.limit < 2000) { // Menos de 2GB
-        this.pageSize.set(50);
-        console.log('📄 Memoria media detectada - Página establecida en 50');
+        this.pageSize.set(5000);
+        console.log('📄 Memoria media detectada - Página establecida en 5000');
       } else {
-        this.pageSize.set(100);
-        console.log('📄 Memoria suficiente - Página establecida en 100');
+        this.pageSize.set(10000);
+        console.log('📄 Memoria suficiente - Página establecida en 10000');
       }
     }
     
     // Configurar virtual scrolling basado en el dispositivo
     const isMobile = window.innerWidth < 768;
     if (isMobile) {
-      this.pageSize.set(Math.min(this.pageSize(), 25));
+      this.pageSize.set(Math.min(this.pageSize(), 500)); // Reducir en móviles pero mantener un número razonable
       console.log('📱 Dispositivo móvil detectado - Optimizaciones aplicadas');
     }
     
@@ -353,16 +353,48 @@ export class DesignComponent implements OnInit, OnDestroy {
   async loadDesigns() {
     this.loading.set(true);
     try {
-      console.log('🚀 Cargando diseños con paginación por defecto...');
+      console.log('🚀 Cargando TODOS los diseños...');
       
-      // Usar endpoint paginado por defecto para carga rápida
+      // Primero intentar cargar todos los diseños usando el endpoint /designs/all
+      try {
+        console.log('🌐 Intentando cargar todos los diseños con /designs/all...');
+        const response = await this.http.get<FlexographicDesign[]>(`${environment.apiUrl}/designs/all`).toPromise();
+        
+        if (response && Array.isArray(response)) {
+          console.log(`✅ Cargados ${response.length} diseños exitosamente`);
+          
+          // Procesar colores para cada diseño
+          const processedDesigns = response.map(design => ({
+            ...design,
+            colors: this.extractColorsFromDesign(design)
+          }));
+          
+          this.allDesigns.set(processedDesigns);
+          this.filteredDesigns.set(processedDesigns);
+          this.totalRecords.set(processedDesigns.length);
+          this.hasMoreData.set(false); // No hay más datos porque cargamos todo
+          this.currentPage.set(1);
+          
+          this.snackBar.open(`${processedDesigns.length} diseños cargados exitosamente`, 'Cerrar', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+          
+          return; // Salir exitosamente
+        }
+      } catch (error: any) {
+        console.warn('⚠️ Error con endpoint /designs/all, intentando fallback:', error.message);
+      }
+      
+      // Fallback: usar endpoint paginado con pageSize grande
+      console.log('🔄 Fallback a carga paginada con pageSize grande...');
       await this.loadDesignsWithVirtualScroll();
       
     } catch (error: any) {
-      console.error('❌ Error cargando diseños con paginación:', error);
+      console.error('❌ Error cargando diseños:', error);
       
-      // Fallback a carga normal solo si falla
-      console.log('🔄 Fallback a carga normal...');
+      // Último fallback a carga normal
+      console.log('🔄 Último fallback a carga normal...');
       await this.loadDesignsNormal();
     } finally {
       this.loading.set(false);
@@ -2267,5 +2299,25 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /**
+   * Extraer colores de un diseño desde las propiedades color1-color10
+   */
+  private extractColorsFromDesign(design: FlexographicDesign): string[] {
+    const colors: string[] = [];
+    
+    if (design.color1) colors.push(design.color1);
+    if (design.color2) colors.push(design.color2);
+    if (design.color3) colors.push(design.color3);
+    if (design.color4) colors.push(design.color4);
+    if (design.color5) colors.push(design.color5);
+    if (design.color6) colors.push(design.color6);
+    if (design.color7) colors.push(design.color7);
+    if (design.color8) colors.push(design.color8);
+    if (design.color9) colors.push(design.color9);
+    if (design.color10) colors.push(design.color10);
+    
+    return colors;
   }
 }
