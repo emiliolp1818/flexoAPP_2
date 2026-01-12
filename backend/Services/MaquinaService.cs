@@ -1228,6 +1228,88 @@ namespace flexoAPP.Services
             }
         }
 
+        public async Task<object> UpdateKilosDecimalPrecisionAsync()
+        {
+            var result = new Dictionary<string, object>();
+            var logs = new List<string>();
+            result["success"] = false;
+            result["logs"] = logs;
+
+            try
+            {
+                logs.Add("Iniciando actualización de precisión decimal para kilos...");
+                
+                var cs = _context.Database.GetConnectionString();
+                using var conn = new MySqlConnector.MySqlConnection(cs);
+                await conn.OpenAsync();
+
+                // Verificar estructura actual
+                using var checkCmd = conn.CreateCommand();
+                checkCmd.CommandText = @"
+                    SELECT NUMERIC_PRECISION, NUMERIC_SCALE, COLUMN_TYPE
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'maquinas' 
+                    AND COLUMN_NAME = 'kilos'";
+                
+                using var reader = await checkCmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var precision = reader.GetInt32("NUMERIC_PRECISION");
+                    var scale = reader.GetInt32("NUMERIC_SCALE");
+                    var columnType = reader.GetString("COLUMN_TYPE");
+                    
+                    logs.Add($"Estructura actual: {columnType} (precisión: {precision}, escala: {scale})");
+                    
+                    if (scale >= 3)
+                    {
+                        logs.Add("La columna ya tiene 3 o más decimales. No se requiere migración.");
+                        result["success"] = true;
+                        return result;
+                    }
+                }
+                reader.Close();
+
+                // Actualizar columna para permitir 3 decimales
+                logs.Add("Actualizando columna kilos a DECIMAL(10,3)...");
+                using var updateCmd = conn.CreateCommand();
+                updateCmd.CommandText = @"
+                    ALTER TABLE maquinas 
+                    MODIFY COLUMN kilos DECIMAL(10,3) NOT NULL 
+                    COMMENT 'Cantidad en kilogramos a producir (hasta 3 decimales)'";
+                
+                await updateCmd.ExecuteNonQueryAsync();
+                logs.Add("✅ Columna kilos actualizada exitosamente a DECIMAL(10,3)");
+
+                // Verificar cambio aplicado
+                using var verifyCmd = conn.CreateCommand();
+                verifyCmd.CommandText = @"
+                    SELECT NUMERIC_PRECISION, NUMERIC_SCALE, COLUMN_TYPE
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'maquinas' 
+                    AND COLUMN_NAME = 'kilos'";
+                
+                using var verifyReader = await verifyCmd.ExecuteReaderAsync();
+                if (await verifyReader.ReadAsync())
+                {
+                    var newColumnType = verifyReader.GetString("COLUMN_TYPE");
+                    logs.Add($"✅ Verificación: Nueva estructura = {newColumnType}");
+                }
+
+                result["success"] = true;
+                logs.Add("🎉 Migración completada exitosamente. Ahora se pueden guardar kilos con 3 decimales (ej: 2.234)");
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logs.Add($"❌ Error: {ex.Message}");
+                _logger.LogError(ex, "Error en UpdateKilosDecimalPrecisionAsync");
+                return result;
+            }
+        }
+
         private MaquinaDto MapToDto(Maquina maquina)
         {
             return new MaquinaDto

@@ -82,8 +82,8 @@ namespace FlexoAPP.API.Models.Entities
         /// Cantidad en kilogramos a producir
         /// </summary>
         [Required]
-        [Column(TypeName = "DECIMAL(10,2)")]
-        [Range(0.01, 99999.99, ErrorMessage = "Los kilos deben ser mayor a 0")]
+        [Column(TypeName = "DECIMAL(10,3)")]
+        [Range(0.001, 99999.999, ErrorMessage = "Los kilos deben ser mayor a 0")]
         public decimal Kilos { get; set; }
 
         /// <summary>

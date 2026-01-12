@@ -15,5 +15,6 @@ namespace flexoAPP.Services
         Task<ExcelProcessResultDto> ProcessExcelFileAsync(IFormFile file, int? userId);
         Task<int> ClearAllProgrammingAsync(int? userId);
         Task<object> FixDatabaseSchemaAsync();
+        Task<object> UpdateKilosDecimalPrecisionAsync();
     }
 }

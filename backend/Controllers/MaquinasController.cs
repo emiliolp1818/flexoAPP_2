@@ -301,6 +301,27 @@ namespace backend.Controllers
         }
 
         /// <summary>
+        /// POST: api/maquinas/maintenance/update-kilos-precision
+        /// Actualiza la precisión decimal de la columna kilos de DECIMAL(10,2) a DECIMAL(10,3)
+        /// para permitir guardar valores con 3 decimales (ej: 2.234 kilos)
+        /// </summary>
+        [HttpPost("maintenance/update-kilos-precision")]
+        public async Task<ActionResult<object>> UpdateKilosDecimalPrecision()
+        {
+            try
+            {
+                _logger.LogInformation("🛠️ Iniciando actualización de precisión decimal para kilos...");
+                var result = await _maquinaService.UpdateKilosDecimalPrecisionAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error en actualización de precisión decimal");
+                return StatusCode(500, new { success = false, error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// POST: api/maquinas/seed-data
         /// ENDPOINT TEMPORAL - Crear múltiples registros de prueba
         /// </summary>
