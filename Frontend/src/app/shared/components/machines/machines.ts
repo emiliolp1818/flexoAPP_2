@@ -1854,7 +1854,7 @@ Error: ${loginError.message || 'Error de conexión'}`);
         .replaceAll("${program.td || ''}", program.td || '')
         .replaceAll("${program.otSap || ''}", program.otSap || '')
         .replaceAll("${program.machineNumber || program.numeroMaquina || ''}", String(program.machineNumber || program.numeroMaquina || ''))
-        .replaceAll("${program.kilos || 0}", String(program.kilos || 0))
+        .replaceAll("${program.kilos || 0}", this.formatKilosForPrint(program.kilos))
         .replaceAll("${program.sustrato || ''}", program.sustrato || '')
         .replaceAll("${program.articulo || ''}", program.articulo || '');
       
@@ -1918,6 +1918,20 @@ Error: ${loginError.message || 'Error de conexión'}`);
 
     // ===== RETORNAR ARRAY DE 10 COLORES =====
     return coloresFF459;
+  }
+
+  // ===== MÉTODO AUXILIAR PARA FORMATEAR KILOS EN IMPRESIÓN =====
+  // Formatea los kilos con hasta 3 decimales para mostrar en documentos de impresión
+  private formatKilosForPrint(kilos: number | null | undefined): string {
+    if (kilos === null || kilos === undefined || kilos === 0) {
+      return '0';
+    }
+    
+    // Formatear con hasta 3 decimales, eliminando ceros innecesarios al final
+    const formatted = Number(kilos).toFixed(3);
+    
+    // Eliminar ceros innecesarios al final y el punto decimal si no hay decimales
+    return formatted.replace(/\.?0+$/, '') || '0';
   }
 
 
