@@ -4,7 +4,7 @@ Sistema completo de gestión para empresas de impresión flexográfica, desarrol
 
 ## 📋 Descripción
 
-FlexoAPP es una solución integral que permite gestionar máquinas flexográficas, diseños, pedidos, usuarios y documentos de manera eficiente. Incluye dashboard en tiempo real, autenticación segura, y está optimizado para despliegue en la nube.
+FlexoAPP es una solución integral que permite gestionar máquinas flexográficas, diseños, usuarios y documentos de manera eficiente. Incluye dashboard en tiempo real, autenticación segura, y está optimizado para despliegue en la nube.
 
 ## 🏗️ Arquitectura del Sistema
 
@@ -148,13 +148,6 @@ API_URL=https://flexoapp-backend.onrender.com/api
 - Búsqueda y filtros avanzados
 - Duplicación de diseños
 
-### 📦 Pedidos de Producción
-- Gestión completa de pedidos
-- Asignación a máquinas
-- Estados y prioridades
-- Seguimiento de entregas
-- Reportes de producción
-
 ### 📄 Gestión Documental
 - Subida de archivos (PDF, Word, Excel)
 - Visualizador integrado
@@ -182,7 +175,6 @@ API_URL=https://flexoapp-backend.onrender.com/api
 - **Activities** - Log de actividades
 - **designs** - Diseños flexográficos
 - **maquinas** - Máquinas y programas
-- **Pedidos** - Pedidos de producción
 - **condicionunica** - Condiciones únicas
 - **Documento** - Documentos del sistema
 - **refresh_tokens** - Tokens JWT

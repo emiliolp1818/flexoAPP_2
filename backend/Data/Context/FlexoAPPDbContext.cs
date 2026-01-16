@@ -18,7 +18,6 @@ namespace FlexoAPP.API.Data.Context
         public DbSet<User> Users { get; set; }
         public DbSet<Design> Designs { get; set; }
         public DbSet<Maquina> Maquinas { get; set; }
-        public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<Activity> Activities { get; set; }
         public DbSet<CondicionUnica> CondicionUnica { get; set; }
         public DbSet<Documento> Documentos { get; set; } // Tabla de documentos
@@ -78,42 +77,6 @@ namespace FlexoAPP.API.Data.Context
                 
                 entity.Ignore(e => e.CreatedByUserId);
                 entity.Ignore(e => e.CreatedBy);
-            });
-
-            // ===== CONFIGURACIÓN PEDIDO =====
-            modelBuilder.Entity<Pedido>(entity =>
-            {
-                entity.ToTable("pedidos");
-                entity.HasKey(e => e.Id);
-                
-                entity.Property(e => e.MachineNumber).IsRequired();
-                entity.Property(e => e.NumeroPedido).IsRequired().HasMaxLength(50);
-                entity.HasIndex(e => e.NumeroPedido).IsUnique();
-                
-                entity.Property(e => e.Articulo).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.Cliente).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Descripcion).HasMaxLength(500);
-                entity.Property(e => e.Cantidad).IsRequired().HasColumnType("DECIMAL(10,2)");
-                entity.Property(e => e.Unidad).HasMaxLength(50).HasDefaultValue("kg");
-                entity.Property(e => e.Estado).IsRequired().HasMaxLength(20).HasDefaultValue("PENDIENTE");
-                entity.Property(e => e.FechaPedido).IsRequired();
-                entity.Property(e => e.Prioridad).HasMaxLength(20).HasDefaultValue("NORMAL");
-                entity.Property(e => e.Observaciones).HasMaxLength(1000);
-                entity.Property(e => e.AsignadoA).HasMaxLength(100);
-                
-                // MySQL timestamps - usando TIMESTAMP para compatibilidad
-                entity.Property(e => e.CreatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.UpdatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-                
-                entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy).OnDelete(DeleteBehavior.SetNull);
-                entity.HasOne(e => e.UpdatedByUser).WithMany().HasForeignKey(e => e.UpdatedBy).OnDelete(DeleteBehavior.SetNull);
-                
-                entity.HasIndex(e => e.MachineNumber);
-                entity.HasIndex(e => e.Estado);
-                entity.HasIndex(e => e.FechaPedido);
-                entity.HasIndex(e => e.Prioridad);
-                entity.HasIndex(e => new { e.MachineNumber, e.Estado });
-                entity.HasIndex(e => new { e.Cliente, e.Estado });
             });
 
             // ===== CONFIGURACIÓN MÁQUINA =====

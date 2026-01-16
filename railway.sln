@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "flexoAPP_2", "flexoAPP_2", "{BA1BC35D-6788-BDC7-94F0-734C89F47BBE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{7ADE451D-028C-9564-D2A3-9B6D621076F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "flexoAPP", "flexoAPP_2\backend\flexoAPP.csproj", "{91EABCFA-B597-975D-3C04-EA6E7C12C637}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{91EABCFA-B597-975D-3C04-EA6E7C12C637}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91EABCFA-B597-975D-3C04-EA6E7C12C637}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91EABCFA-B597-975D-3C04-EA6E7C12C637}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91EABCFA-B597-975D-3C04-EA6E7C12C637}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7ADE451D-028C-9564-D2A3-9B6D621076F4} = {BA1BC35D-6788-BDC7-94F0-734C89F47BBE}
+		{91EABCFA-B597-975D-3C04-EA6E7C12C637} = {7ADE451D-028C-9564-D2A3-9B6D621076F4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {94ACDAD1-9D6C-477F-89BF-3986163779A1}
+	EndGlobalSection
+EndGlobal

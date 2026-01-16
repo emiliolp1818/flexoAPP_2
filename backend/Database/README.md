@@ -63,11 +63,6 @@ SELECT * FROM users WHERE UserCode = 'admin';
 - **Clave primaria**: `ot_sap` (VARCHAR)
 - **Características**: Validación de números de máquina (11-21)
 
-#### 📦 Pedidos
-- **Propósito**: Pedidos de producción
-- **Clave primaria**: `Id` (INT AUTO_INCREMENT)
-- **Características**: Estados y prioridades definidas
-
 #### 📋 condicionunica
 - **Propósito**: Condiciones únicas de artículos
 - **Clave primaria**: `Id` (INT AUTO_INCREMENT)
@@ -89,7 +84,6 @@ SELECT * FROM users WHERE UserCode = 'admin';
 erDiagram
     users ||--o{ Activities : "UserId"
     users ||--o{ maquinas : "CreatedBy/UpdatedBy"
-    users ||--o{ Pedidos : "CreatedBy/UpdatedBy"
     users ||--o{ refresh_tokens : "UserId"
 ```
 

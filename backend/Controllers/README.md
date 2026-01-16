@@ -11,7 +11,6 @@ Esta carpeta contiene todos los controladores de la API REST que manejan las pet
 
 ### 🏭 Gestión de Producción
 - **`MaquinasController.cs`** - Máquinas flexográficas y programas
-- **`PedidosController.cs`** - Pedidos de producción
 - **`DesignsController.cs`** - Diseños flexográficos
 - **`CondicionUnicaController.cs`** - Condiciones únicas de artículos
 

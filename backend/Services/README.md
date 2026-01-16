@@ -11,7 +11,6 @@ Esta carpeta contiene todos los servicios que implementan la lógica de negocio 
 
 ### 🏭 Lógica de Negocio
 - **`MaquinaService.cs`** - Gestión de máquinas flexográficas
-- **`PedidoService.cs`** - Gestión de pedidos de producción
 - **`DesignService.cs`** - Gestión de diseños flexográficos
 - **`ActivityService.cs`** - Gestión de actividades del sistema
 

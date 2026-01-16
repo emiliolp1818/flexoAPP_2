@@ -324,8 +324,6 @@ try
     // Business Services
     builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
     builder.Services.AddScoped<IActivityService, ActivityService>();
-    builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
-    builder.Services.AddScoped<IPedidoService, PedidoService>();
     builder.Services.AddScoped<IDesignRepository, DesignRepository>();
     builder.Services.AddScoped<IDesignService, DesignService>();
     builder.Services.AddScoped<ICondicionUnicaRepository, CondicionUnicaRepository>();
@@ -563,7 +561,6 @@ try
             "/api/designs",           // Endpoint de diseños
             "/api/maquinas",          // Endpoint de máquinas (TABLA: maquinas)
             "/api/machine-programs",  // Endpoint de programas de máquinas (TABLA: machine_programs)
-            "/api/pedidos",           // Endpoint de pedidos
             "/api/performance",       // Endpoint de rendimiento
             "/health",                // Endpoint de salud
             "/swagger",               // Documentación Swagger

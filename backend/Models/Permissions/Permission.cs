@@ -26,13 +26,6 @@ namespace FlexoAPP.API.Models.Permissions
         public const string DeleteMachines = "machines.delete";
         public const string ManageMachinePrograms = "machines.manage_programs";
 
-        // ===== PEDIDOS =====
-        public const string ViewOrders = "orders.view";
-        public const string CreateOrders = "orders.create";
-        public const string EditOrders = "orders.edit";
-        public const string DeleteOrders = "orders.delete";
-        public const string ChangeOrderStatus = "orders.change_status";
-
         // ===== REPORTES =====
         public const string ViewReports = "reports.view";
         public const string ExportReports = "reports.export";
@@ -57,7 +50,6 @@ namespace FlexoAPP.API.Models.Permissions
         // ===== IMPORTACIÓN =====
         public const string ImportMachinePrograms = "import.machine_programs";
         public const string ImportDesigns = "import.designs";
-        public const string ImportOrders = "import.orders";
         public const string ImportDocuments = "import.documents";
         public const string ImportData = "import.data";
 
@@ -77,9 +69,6 @@ namespace FlexoAPP.API.Models.Permissions
                 // Máquinas
                 ViewMachines, CreateMachines, EditMachines, DeleteMachines, ManageMachinePrograms,
                 
-                // Pedidos
-                ViewOrders, CreateOrders, EditOrders, DeleteOrders, ChangeOrderStatus,
-                
                 // Reportes
                 ViewReports, ExportReports, ViewAdvancedReports,
                 
@@ -93,7 +82,7 @@ namespace FlexoAPP.API.Models.Permissions
                 ViewDocuments, UploadDocuments, DeleteDocuments,
                 
                 // Importación
-                ImportMachinePrograms, ImportDesigns, ImportOrders, ImportDocuments, ImportData
+                ImportMachinePrograms, ImportDesigns, ImportDocuments, ImportData
             };
         }
 
@@ -110,41 +99,40 @@ namespace FlexoAPP.API.Models.Permissions
                 {
                     ViewUsers, ViewDesigns, CreateDesigns, EditDesigns, ExportDesigns,
                     ViewMachines, CreateMachines, EditMachines, ManageMachinePrograms,
-                    ViewOrders, CreateOrders, EditOrders, ChangeOrderStatus,
                     ViewReports, ExportReports, ViewAdvancedReports,
                     ViewSettings, ViewActivities, ViewAllActivities,
                     ViewDocuments, UploadDocuments,
-                    ImportMachinePrograms, ImportDesigns, ImportOrders, ImportDocuments, ImportData
+                    ImportMachinePrograms, ImportDesigns, ImportDocuments, ImportData
                 },
                 
                 "prealistador" or "pre-alistador" => new List<string>
                 {
-                    ViewDesigns, ViewMachines, ViewOrders, CreateOrders, EditOrders,
+                    ViewDesigns, ViewMachines,
                     ViewReports, ViewActivities, ViewDocuments, UploadDocuments,
-                    ImportMachinePrograms, ImportOrders
+                    ImportMachinePrograms
                 },
                 
                 "matizadores" or "matizador" => new List<string>
                 {
                     ViewDesigns, CreateDesigns, EditDesigns,
-                    ViewMachines, ViewOrders,
+                    ViewMachines,
                     ViewReports, ViewActivities, ViewDocuments,
                     ImportDesigns
                 },
                 
                 "operario" => new List<string>
                 {
-                    ViewDesigns, ViewMachines, ViewOrders,
+                    ViewDesigns, ViewMachines,
                     ViewReports, ViewActivities, ViewDocuments
                 },
                 
                 "retornos" => new List<string>
                 {
-                    ViewDesigns, ViewMachines, ViewOrders, EditOrders,
+                    ViewDesigns, ViewMachines,
                     ViewReports, ViewActivities, ViewDocuments
                 },
                 
-                _ => new List<string> { ViewDesigns, ViewMachines, ViewOrders, ViewReports }
+                _ => new List<string> { ViewDesigns, ViewMachines, ViewReports }
             };
         }
 
@@ -176,13 +164,6 @@ namespace FlexoAPP.API.Models.Permissions
                 DeleteMachines => "Eliminar máquinas",
                 ManageMachinePrograms => "Gestionar programas de máquinas",
                 
-                // Pedidos
-                ViewOrders => "Ver pedidos",
-                CreateOrders => "Crear pedidos",
-                EditOrders => "Editar pedidos",
-                DeleteOrders => "Eliminar pedidos",
-                ChangeOrderStatus => "Cambiar estado de pedidos",
-                
                 // Reportes
                 ViewReports => "Ver reportes",
                 ExportReports => "Exportar reportes",
@@ -207,7 +188,6 @@ namespace FlexoAPP.API.Models.Permissions
                 // Importación
                 ImportMachinePrograms => "Importar programaciones de máquinas",
                 ImportDesigns => "Importar diseños",
-                ImportOrders => "Importar pedidos",
                 ImportDocuments => "Importar documentos",
                 ImportData => "Importar datos generales",
                 
@@ -223,7 +203,6 @@ namespace FlexoAPP.API.Models.Permissions
             if (permission.StartsWith("users.")) return "Usuarios";
             if (permission.StartsWith("designs.")) return "Diseños";
             if (permission.StartsWith("machines.")) return "Máquinas";
-            if (permission.StartsWith("orders.")) return "Pedidos";
             if (permission.StartsWith("reports.")) return "Reportes";
             if (permission.StartsWith("settings.")) return "Configuraciones";
             if (permission.StartsWith("activities.")) return "Actividades";

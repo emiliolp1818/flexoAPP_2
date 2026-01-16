@@ -169,7 +169,6 @@ ng e2e
   - Diseño
   - Documento
   - Máquinas
-  - Pedidos
   - Reportes
   - Condición Única
   - Header
