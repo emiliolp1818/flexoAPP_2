@@ -250,7 +250,7 @@ $gray-900: #0f172a;  // Gris máximo
 
 // ===== CONTENIDO DE PESTAÑAS - Copiado del módulo de configuración =====
 .tab-content {
-  padding: 16px 20px 20px 20px;  // Padding lateral aumentado para separar del borde
+  padding: 12px 20px 20px 20px;  // Padding superior reducido de 16px a 12px para compactar
   height: 100%;
   overflow: auto;
 }
@@ -262,7 +262,7 @@ $gray-900: #0f172a;  // Gris máximo
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba($primary-blue, 0.12);
   border: 2px solid rgba($primary-blue, 0.2);
-  margin-bottom: 16px;  // Reducido de 24px a 16px
+  margin-bottom: 8px;  // Reducido de 16px a 8px para compactar el diseño
   padding: 20px;  // Agregado padding interno para separar del borde
   transition: all 0.3s ease;
 
@@ -1817,7 +1817,8 @@ $gray-900: #0f172a;  // Gris máximo
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 16px;  // Reducido de 24px a 16px
+  margin-bottom: 8px;  // Reducido de 16px a 8px para compactar el diseño
+  margin-top: 6px;  // Reducido para pegar más cerca del perfil
 
   mat-card-header {
     padding: 12px 16px;  // Reducido el padding
@@ -2564,6 +2565,7 @@ $gray-900: #0f172a;  // Gris máximo
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid $gray-200;
   margin-bottom: 8px;  // Reducido de 16px a 8px para que el contenido quede casi pegado al buscador
+  margin-top: 6px;  // Reducido de 16px a 6px para pegar el perfil al buscador
   flex-wrap: wrap;
 
   // Información del usuario - Compacta
