@@ -145,7 +145,7 @@ $gray-900: #0f172a;  // Gris máximo
 // ===== CONTENIDO PRINCIPAL - Copiado del módulo de configuración =====
 .reports-content {
   flex: 1;
-  padding: 12px 12px 0px 12px;  // Padding superior para separar del header
+  padding: 12px 20px 0px 20px;  // Padding lateral aumentado de 12px a 20px para separar del borde
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -250,7 +250,7 @@ $gray-900: #0f172a;  // Gris máximo
 
 // ===== CONTENIDO DE PESTAÑAS - Copiado del módulo de configuración =====
 .tab-content {
-  padding: 24px 12px 20px 12px;  // Padding lateral igual al header (12px) para alineación perfecta
+  padding: 16px 20px 20px 20px;  // Padding lateral aumentado para separar del borde
   height: 100%;
   overflow: auto;
 }
@@ -262,13 +262,22 @@ $gray-900: #0f172a;  // Gris máximo
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba($primary-blue, 0.12);
   border: 2px solid rgba($primary-blue, 0.2);
-  margin-bottom: 24px;
+  margin-bottom: 16px;  // Reducido de 24px a 16px
+  padding: 20px;  // Agregado padding interno para separar del borde
   transition: all 0.3s ease;
 
   &:hover {
     border-color: $primary-blue;
     box-shadow: 0 12px 40px rgba($primary-blue, 0.2);
     transform: translateY(-2px);
+  }
+
+  mat-card-header {
+    padding: 0 0 16px 0;  // Ajustado el padding del header
+  }
+
+  mat-card-content {
+    padding: 0;  // Sin padding adicional ya que el card tiene padding
   }
 }
 
@@ -1359,7 +1368,7 @@ $gray-900: #0f172a;  // Gris máximo
 
 // ===== VISUALIZACIÓN MEJORADA DE RESULTADOS =====
 .results-section-modern {
-  margin-top: 32px;
+  margin-top: 8px;  // Reducido de 32px a 8px para que quede casi pegado al buscador
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -1803,16 +1812,40 @@ $gray-900: #0f172a;  // Gris máximo
   }
 }
 
-// Desglose por módulo con barras
+// Desglose por módulo con barras - COMPACTO
 .module-breakdown-card {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;  // Reducido de 24px a 16px
+
+  mat-card-header {
+    padding: 12px 16px;  // Reducido el padding
+
+    mat-card-title {
+      font-size: 1rem;  // Reducido el tamaño del título
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: $primary-blue;
+      }
+    }
+  }
+
+  mat-card-content {
+    padding: 12px 16px 16px 16px;  // Reducido el padding
+  }
 
   .module-bars {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;  // Reducido de 20px a 12px
   }
 
   .module-bar-item {
@@ -1820,43 +1853,46 @@ $gray-900: #0f172a;  // Gris máximo
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;  // Reducido de 8px a 6px
 
       .module-bar-label {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;  // Reducido de 8px a 6px
         font-weight: 600;
         color: $gray-700;
 
         .module-icon-small {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
+          font-size: 18px;  // Reducido de 20px a 18px
+          width: 18px;
+          height: 18px;
           color: $primary-blue-500;
         }
 
         .module-name {
-          font-size: 14px;
+          font-size: 0.85rem;  // Reducido de 14px a 0.85rem
         }
       }
 
       .module-count {
         font-weight: 700;
-        font-size: 16px;
+        font-size: 0.95rem;  // Reducido de 16px a 0.95rem
         color: $gray-800;
+        background: $gray-100;
+        padding: 2px 8px;
+        border-radius: 6px;
       }
     }
 
     .module-bar-container {
-      height: 12px;
+      height: 8px;  // Reducido de 12px a 8px
       background: $gray-100;
-      border-radius: 6px;
+      border-radius: 4px;  // Reducido de 6px a 4px
       overflow: hidden;
 
       .module-bar-fill {
         height: 100%;
-        border-radius: 6px;
+        border-radius: 4px;
         transition: width 0.6s ease;
 
         &.module-auth {
@@ -2159,6 +2195,612 @@ $gray-900: #0f172a;  // Gris máximo
 
     .stats-grid-inline {
       grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+// ===== BUSCADOR COMPACTO - Todo en una línea =====
+.search-form-compact {
+  width: 100%; // Ancho completo del contenedor
+  
+  .search-row-compact {
+    display: flex; // Usar flexbox para layout horizontal
+    align-items: flex-start; // Alinear elementos al inicio verticalmente
+    gap: 12px; // Espacio de 12px entre elementos
+    width: 100%; // Ancho completo
+    flex-wrap: nowrap; // No permitir que los elementos se envuelvan
+
+    // Campos compactos - Estilos base para todos los campos
+    .field-compact {
+      flex-shrink: 0; // No permitir que los campos se encojan
+
+      // Labels más pequeños con iconos - MEJORADO
+      ::ng-deep .mat-mdc-form-field-label {
+        display: flex; // Flexbox para alinear icono y texto
+        align-items: center; // Centrar verticalmente
+        gap: 4px; // Espacio de 4px entre icono y texto
+        font-size: 0.8rem; // Tamaño de fuente reducido a 0.8rem
+        font-weight: 500; // Peso de fuente medio
+        white-space: nowrap; // Evitar que el label se corte en múltiples líneas
+        overflow: visible; // Permitir que el label sea completamente visible
+        color: $gray-700; // Color gris oscuro para el texto
+
+        mat-icon {
+          font-size: 15px; // Tamaño de icono reducido a 15px
+          width: 15px; // Ancho fijo de 15px
+          height: 15px; // Alto fijo de 15px
+          color: $primary-blue; // Color azul principal para el icono
+          flex-shrink: 0; // No permitir que el icono se encoja
+        }
+      }
+
+      // Ajustar el wrapper para mejor posicionamiento y altura reducida
+      ::ng-deep .mat-mdc-text-field-wrapper {
+        padding-top: 4px; // Padding superior reducido a 4px
+        padding-bottom: 4px; // Padding inferior reducido a 4px
+        height: 46.8px; // Altura exacta de 46.8px como solicitado
+      }
+
+      // Ajustar el infix para mejor alineación y centrado
+      ::ng-deep .mat-mdc-form-field-infix {
+        padding-top: 12px; // Padding superior de 12px para centrar el texto
+        padding-bottom: 6px; // Padding inferior de 6px
+        min-height: 46.8px; // Altura mínima de 46.8px
+        display: flex; // Flexbox para centrar contenido
+        align-items: center; // Centrar verticalmente el contenido
+      }
+
+      // Inputs y selects compactos - MEJORADO con colores sutiles
+      .input-compact,
+      .select-compact {
+        font-size: 0.85rem; // Tamaño de fuente reducido a 0.85rem
+        padding: 8px 12px; // Padding interno: 8px vertical, 12px horizontal
+        line-height: 1.4; // Altura de línea para mejor legibilidad
+        height: auto; // Altura automática
+        text-align: left; // Alinear texto a la izquierda
+        background: rgba($primary-blue, 0.02); // Fondo azul muy sutil (2% opacidad)
+        border-radius: 8px; // Bordes redondeados de 8px
+        transition: all 0.3s ease; // Transición suave para todos los cambios
+
+        // Efecto hover - Cambiar fondo al pasar el mouse
+        &:hover {
+          background: rgba($primary-blue, 0.04); // Fondo azul más visible (4% opacidad)
+        }
+
+        // Efecto focus - Cambiar fondo cuando está enfocado
+        &:focus {
+          background: rgba($primary-blue, 0.06); // Fondo azul aún más visible (6% opacidad)
+        }
+      }
+
+      // Mejorar el hint para que no se corte
+      ::ng-deep .mat-mdc-form-field-hint-wrapper {
+        padding: 0; // Sin padding
+        overflow: visible; // Permitir que sea visible
+      }
+
+      ::ng-deep .mat-mdc-form-field-hint {
+        font-size: 0.7rem; // Tamaño de fuente muy pequeño
+        color: $gray-500; // Color gris medio
+        white-space: nowrap; // No permitir saltos de línea
+        overflow: visible; // Permitir que sea visible
+      }
+
+      // Mejorar el error para que no se corte
+      ::ng-deep .mat-mdc-form-field-error-wrapper {
+        padding: 0; // Sin padding
+        overflow: visible; // Permitir que sea visible
+      }
+
+      ::ng-deep .mat-mdc-form-field-error {
+        font-size: 0.7rem; // Tamaño de fuente muy pequeño
+        white-space: nowrap; // No permitir saltos de línea
+        overflow: visible; // Permitir que sea visible
+      }
+
+      // Borde azul cuando está enfocado
+      &.mat-focused {
+        ::ng-deep .mat-mdc-form-field-outline {
+          border-color: $primary-blue !important; // Borde azul principal
+          border-width: 2px !important; // Grosor de borde de 2px
+        }
+      }
+
+      // Ajustar el outline para mejor visualización con bordes redondeados
+      ::ng-deep .mat-mdc-notched-outline {
+        .mat-mdc-notched-outline-leading {
+          border-width: 1px; // Grosor de borde de 1px
+          border-radius: 8px 0 0 8px; // Redondear esquinas izquierdas
+          border-color: rgba($primary-blue, 0.3); // Color azul sutil para el borde
+        }
+
+        .mat-mdc-notched-outline-notch {
+          border-width: 1px; // Grosor de borde de 1px
+          border-color: rgba($primary-blue, 0.3); // Color azul sutil para el borde
+        }
+
+        .mat-mdc-notched-outline-trailing {
+          border-width: 1px; // Grosor de borde de 1px
+          border-radius: 0 8px 8px 0; // Redondear esquinas derechas
+          border-color: rgba($primary-blue, 0.3); // Color azul sutil para el borde
+        }
+      }
+
+      // Ajustar el notch para que el label no se corte
+      ::ng-deep .mat-mdc-notched-outline-notch {
+        padding: 0 4px; // Padding horizontal de 4px
+        border-right-style: hidden; // Ocultar borde derecho
+        border-left-style: hidden; // Ocultar borde izquierdo
+      }
+    }
+
+    // Campo de usuario - Más ancho para acomodar el texto
+    .field-user {
+      width: 220px; // Ancho de 220px
+      min-width: 220px; // Ancho mínimo de 220px
+    }
+
+    // Campo de módulo - Ancho medio
+    .field-module {
+      width: 200px; // Ancho de 200px
+      min-width: 200px; // Ancho mínimo de 200px
+    }
+
+    // Campos de fecha - Ancho estándar
+    .field-date {
+      width: 160px; // Ancho de 160px
+      min-width: 160px; // Ancho mínimo de 160px
+
+      // Ajustar el datepicker toggle para mejor posicionamiento
+      ::ng-deep .mat-datepicker-toggle {
+        margin-right: -8px; // Margen negativo para acercar al borde
+      }
+
+      // Ajustar el icono del datepicker
+      ::ng-deep .mat-datepicker-toggle-default-icon {
+        width: 18px; // Ancho de 18px
+        height: 18px; // Alto de 18px
+        color: $primary-blue; // Color azul principal
+      }
+    }
+
+    // Contenedor de botones - Alineación y espaciado
+    .actions-compact {
+      display: flex; // Flexbox para layout horizontal
+      gap: 8px; // Espacio de 8px entre botones
+      align-items: flex-start; // Alinear al inicio verticalmente
+      padding-top: 4px; // Padding superior de 4px para alineación con los inputs
+
+      // Estilos base para todos los botones
+      .btn-compact {
+        height: 46.8px; // Altura exacta de 46.8px para alinearse con los inputs
+        min-width: auto; // Ancho mínimo automático
+        padding: 0 16px; // Padding horizontal de 16px
+        border-radius: 10px; // Bordes redondeados de 10px (más redondeados)
+        font-size: 0.85rem; // Tamaño de fuente de 0.85rem
+        font-weight: 500; // Peso de fuente medio
+        display: flex; // Flexbox para alinear contenido
+        align-items: center; // Centrar verticalmente
+        justify-content: center; // Centrar horizontalmente
+        gap: 6px; // Espacio de 6px entre icono y texto
+        transition: all 0.3s ease; // Transición suave para todos los cambios
+
+        // Iconos dentro de los botones
+        mat-icon {
+          font-size: 18px; // Tamaño de icono de 18px
+          width: 18px; // Ancho de 18px
+          height: 18px; // Alto de 18px
+        }
+
+        // Spinner de carga dentro del botón
+        mat-spinner {
+          margin-right: 4px; // Margen derecho de 4px
+        }
+      }
+
+      // Botón de búsqueda - Estilo principal con gradiente azul
+      .btn-search-compact {
+        background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul
+        color: white; // Texto blanco
+        border: none; // Sin borde
+        box-shadow: 0 2px 8px rgba($primary-blue, 0.3); // Sombra azul suave
+
+        // Efecto hover - Cambiar gradiente al pasar el mouse
+        &:hover:not(:disabled) {
+          background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%); // Gradiente más claro
+          transform: translateY(-1px); // Elevar 1px hacia arriba
+          box-shadow: 0 4px 12px rgba($primary-blue, 0.4); // Sombra más pronunciada
+        }
+
+        // Estado deshabilitado - Reducir opacidad
+        &:disabled {
+          opacity: 0.6; // Opacidad del 60%
+          cursor: not-allowed; // Cursor de no permitido
+        }
+      }
+
+      // Botón de limpiar - Estilo secundario con borde
+      .btn-clear-compact {
+        border: 2px solid rgba($primary-blue, 0.3); // Borde azul sutil
+        color: $gray-700; // Texto gris oscuro
+        background: white; // Fondo blanco
+        min-width: 46.8px; // Ancho mínimo de 46.8px (cuadrado)
+        padding: 0 12px; // Padding horizontal de 12px
+
+        // Efecto hover - Cambiar a color azul
+        &:hover:not(:disabled) {
+          border-color: $primary-blue; // Borde azul sólido
+          color: $primary-blue; // Texto azul
+          background: rgba($primary-blue, 0.05); // Fondo azul muy sutil
+          transform: translateY(-1px); // Elevar 1px hacia arriba
+        }
+
+        // Estado deshabilitado - Reducir opacidad
+        &:disabled {
+          opacity: 0.5; // Opacidad del 50%
+          cursor: not-allowed; // Cursor de no permitido
+        }
+      }
+    }
+  }
+
+  // Responsive para tablets - Ajustar layout en pantallas medianas
+  @media (max-width: 1200px) {
+    .search-row-compact {
+      flex-wrap: wrap; // Permitir que los elementos se envuelvan
+
+      // Hacer los campos flexibles en tablets
+      .field-user,
+      .field-module,
+      .field-date {
+        flex: 1; // Ocupar espacio disponible
+        min-width: 150px; // Ancho mínimo de 150px
+      }
+
+      // Botones ocupan todo el ancho en tablets
+      .actions-compact {
+        width: 100%; // Ancho completo
+        justify-content: flex-start; // Alinear al inicio
+      }
+    }
+  }
+
+  // Responsive para móviles - Layout vertical en pantallas pequeñas
+  @media (max-width: 768px) {
+    .search-row-compact {
+      flex-direction: column; // Cambiar a layout vertical
+
+      // Todos los elementos ocupan todo el ancho en móviles
+      .field-compact,
+      .actions-compact {
+        width: 100%; // Ancho completo
+      }
+
+      // Campos ocupan todo el ancho en móviles
+      .field-user,
+      .field-module,
+      .field-date {
+        width: 100%; // Ancho completo
+        min-width: 100%; // Ancho mínimo completo
+      }
+
+      // Botones en fila horizontal en móviles
+      .actions-compact {
+        flex-direction: row; // Layout horizontal para botones
+
+        // Botón de búsqueda ocupa la mayor parte del espacio
+        .btn-compact {
+          flex: 1; // Ocupar espacio disponible
+        }
+
+        // Botón de limpiar mantiene su tamaño
+        .btn-clear-compact {
+          flex: 0 0 auto; // No crecer ni encoger
+        }
+      }
+    }
+  }
+}
+
+// Estilos para opciones del select compacto
+::ng-deep {
+  .mat-mdc-option {
+    .option-compact {
+      display: flex; // Flexbox para alinear icono y texto
+      align-items: center; // Centrar verticalmente
+      gap: 8px; // Espacio de 8px entre icono y texto
+      font-size: 0.85rem; // Tamaño de fuente de 0.85rem
+
+      // Iconos dentro de las opciones
+      mat-icon {
+        font-size: 16px; // Tamaño de icono de 16px
+        width: 16px; // Ancho de 16px
+        height: 16px; // Alto de 16px
+        color: $primary-blue; // Color azul principal
+        flex-shrink: 0; // No permitir que el icono se encoja
+      }
+
+      // Texto de la opción
+      span {
+        white-space: nowrap; // No permitir saltos de línea
+        overflow: hidden; // Ocultar texto que sobresalga
+        text-overflow: ellipsis; // Mostrar puntos suspensivos si el texto es muy largo
+      }
+    }
+  }
+
+  // Ajustes globales para los form fields compactos
+  .field-compact {
+    // Asegurar que el label flotante tenga suficiente espacio
+    .mat-mdc-form-field-label-wrapper {
+      padding-top: 0; // Sin padding superior
+      overflow: visible; // Permitir que sea visible
+    }
+
+    // Mejorar el subscript wrapper (hints y errors)
+    .mat-mdc-form-field-subscript-wrapper {
+      height: auto; // Altura automática
+      min-height: 14px; // Altura mínima de 14px
+      margin-top: 2px; // Margen superior de 2px
+      overflow: visible; // Permitir que sea visible
+    }
+
+    // Ajustar el flex para mejor alineación
+    .mat-mdc-form-field-flex {
+      align-items: center; // Centrar elementos verticalmente
+    }
+  }
+}
+
+// ===== ENCABEZADO DE REPORTE SIMPLIFICADO =====
+.report-header-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid $gray-200;
+  margin-bottom: 8px;  // Reducido de 16px a 8px para que el contenido quede casi pegado al buscador
+  flex-wrap: wrap;
+
+  // Información del usuario - Compacta
+  .user-info-simple {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 300px;
+
+    // Avatar pequeño
+    .user-avatar-simple {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 2px solid $primary-blue;
+
+      .avatar-img-simple {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: $primary-blue;
+      }
+    }
+
+    // Datos del usuario
+    .user-data-simple {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+
+      .user-name-simple {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: $gray-800;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        line-height: 1.2;
+
+        .user-code-simple {
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: $primary-blue;
+          background: rgba($primary-blue, 0.1);
+          padding: 2px 8px;
+          border-radius: 6px;
+        }
+      }
+
+      .user-details-simple {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: $gray-600;
+        flex-wrap: wrap;
+
+        .detail-item-simple {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+            color: $primary-blue;
+          }
+        }
+
+        .detail-separator {
+          color: $gray-400;
+        }
+      }
+    }
+  }
+
+  // Estadísticas compactas
+  .stats-simple {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+
+    .stat-simple {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: $gray-50;
+      border-radius: 8px;
+      border: 1px solid $gray-200;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: $primary-blue;
+      }
+
+      .stat-content-simple {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .stat-number-simple {
+          font-size: 1rem;
+          font-weight: 700;
+          color: $gray-800;
+          line-height: 1;
+        }
+
+        .stat-label-simple {
+          font-size: 0.7rem;
+          color: $gray-600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          line-height: 1;
+        }
+      }
+
+      &.stat-primary-simple {
+        background: rgba($primary-blue, 0.1);
+        border-color: $primary-blue;
+
+        mat-icon {
+          color: $primary-blue;
+        }
+
+        .stat-number-simple {
+          color: $primary-blue;
+        }
+      }
+
+      &.stat-info-simple {
+        background: rgba(#06b6d4, 0.1);
+        border-color: #06b6d4;
+
+        mat-icon {
+          color: #06b6d4;
+        }
+      }
+
+      &.stat-success-simple {
+        background: rgba($success-emerald, 0.1);
+        border-color: $success-emerald;
+
+        mat-icon {
+          color: $success-emerald;
+        }
+      }
+    }
+  }
+
+  // Botón de exportar
+  .export-action-simple {
+    .btn-export-simple {
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      padding: 0 20px;
+      height: 40px;
+      box-shadow: 0 2px 8px rgba($primary-blue, 0.3);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba($primary-blue, 0.4);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  // Responsive para tablets
+  @media (max-width: 1024px) {
+    .stats-simple {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+  }
+
+  // Responsive para móviles
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+
+    .user-info-simple {
+      min-width: 100%;
+    }
+
+    .stats-simple {
+      width: 100%;
+      justify-content: space-between;
+
+      .stat-simple {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    .export-action-simple {
+      width: 100%;
+
+      .btn-export-simple {
+        width: 100%;
+        justify-content: center;
+      }
     }
   }
 }

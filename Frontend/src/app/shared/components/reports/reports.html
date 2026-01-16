@@ -30,263 +30,172 @@
             </mat-card-header>
             
             <mat-card-content>
-              <form [formGroup]="searchForm" class="search-form-modern">
-                <div class="search-container">
-                  <!-- Campos de búsqueda -->
-                  <div class="search-fields">
-                    <!-- Campo de código de usuario - Input de texto simple -->
-                    <div class="field-wrapper">
-                      <!-- mat-form-field: Contenedor de Material Design para inputs con label flotante y validación -->
-                      <mat-form-field appearance="outline" class="field-modern user-field">
-                        <!-- mat-label: Etiqueta flotante que se muestra arriba del input cuando está enfocado -->
-                        <mat-label>
-                          <!-- mat-icon: Icono de Material Design que representa un usuario -->
-                          <mat-icon class="label-icon">person</mat-icon>
-                          Código de Usuario
-                        </mat-label>
-                        
-                        <!-- input matInput: Campo de texto vinculado al formulario reactivo -->
-                        <!-- formControlName: Vincula este input al control 'userCode' del formulario -->
-                        <!-- placeholder: Texto de ejemplo que se muestra cuando el campo está vacío -->
-                        <!-- class: Clase CSS para estilos personalizados -->
-                        <input 
-                          matInput 
-                          formControlName="userCode" 
-                          placeholder="Ej: admin, jperez, mgarcia"
-                          class="input-modern"
-                          autocomplete="off">
-                        
-                        <!-- mat-hint: Texto de ayuda que se muestra debajo del input -->
-                        <!-- Proporciona información adicional al usuario sobre qué ingresar -->
-                        <mat-hint>Ingrese el código del usuario a consultar</mat-hint>
-                        
-                        <!-- mat-error: Mensaje de error que se muestra cuando la validación falla -->
-                        <!-- *ngIf: Solo se muestra si el campo tiene el error 'required' -->
-                        <mat-error *ngIf="searchForm.get('userCode')?.hasError('required')">
-                          El código de usuario es requerido
-                        </mat-error>
-                      </mat-form-field>
-                    </div>
+              <form [formGroup]="searchForm" class="search-form-compact">
+                <!-- Buscador compacto - Todo en una línea -->
+                <div class="search-row-compact">
+                  <!-- Campo de búsqueda de usuario -->
+                  <mat-form-field appearance="outline" class="field-compact field-user">
+                    <mat-label>
+                      <mat-icon>person</mat-icon>
+                      Usuario
+                    </mat-label>
+                    <input 
+                      matInput 
+                      formControlName="userCode" 
+                      placeholder="Código de usuario"
+                      class="input-compact"
+                      autocomplete="off">
+                    <mat-error *ngIf="searchForm.get('userCode')?.hasError('required')">
+                      Requerido
+                    </mat-error>
+                  </mat-form-field>
 
-                    <!-- Módulo -->
-                    <div class="field-wrapper">
-                      <mat-form-field appearance="outline" class="field-modern module-field">
-                        <mat-label>
-                          <mat-icon class="label-icon">category</mat-icon>
-                          Módulo
-                        </mat-label>
-                        <mat-select formControlName="module" class="select-modern">
-                          <mat-option *ngFor="let option of moduleOptions" [value]="option.value">
-                            <mat-icon class="option-icon">{{ getModuleIcon(option.value) }}</mat-icon>
-                            {{ option.label }}
-                          </mat-option>
-                        </mat-select>
-                      </mat-form-field>
-                    </div>
+                  <!-- Módulo -->
+                  <mat-form-field appearance="outline" class="field-compact field-module">
+                    <mat-label>
+                      <mat-icon>category</mat-icon>
+                      Módulo
+                    </mat-label>
+                    <mat-select formControlName="module" class="select-compact">
+                      <mat-option *ngFor="let option of moduleOptions" [value]="option.value">
+                        <div class="option-compact">
+                          <mat-icon>{{ getModuleIcon(option.value) }}</mat-icon>
+                          <span>{{ option.label }}</span>
+                        </div>
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
 
-                    <!-- Rango de fechas -->
-                    <div class="date-range-wrapper">
-                      <div class="field-wrapper date-field-wrapper">
-                        <mat-form-field appearance="outline" class="field-modern date-field">
-                          <mat-label>
-                            <mat-icon class="label-icon">event</mat-icon>
-                            Desde
-                          </mat-label>
-                          <input matInput 
-                                 [matDatepicker]="startPicker" 
-                                 formControlName="startDate" 
-                                 placeholder="dd/mm/aaaa"
-                                 class="input-modern"
-                                 (dateChange)="onDateChange('start', $event)">
-                          <mat-datepicker-toggle matSuffix [for]="startPicker">
-                            <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
-                          </mat-datepicker-toggle>
-                          <mat-datepicker #startPicker 
-                                         [startAt]="getDefaultStartDate()"
-                                         [touchUi]="false">
-                          </mat-datepicker>
-                        </mat-form-field>
-                      </div>
+                  <!-- Fecha desde -->
+                  <mat-form-field appearance="outline" class="field-compact field-date">
+                    <mat-label>
+                      <mat-icon>event</mat-icon>
+                      Desde
+                    </mat-label>
+                    <input matInput 
+                           [matDatepicker]="startPicker" 
+                           formControlName="startDate" 
+                           placeholder="dd/mm/aaaa"
+                           class="input-compact"
+                           (dateChange)="onDateChange('start', $event)">
+                    <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #startPicker [startAt]="getDefaultStartDate()"></mat-datepicker>
+                  </mat-form-field>
 
-                      <span class="date-separator">—</span>
-
-                      <div class="field-wrapper date-field-wrapper">
-                        <mat-form-field appearance="outline" class="field-modern date-field">
-                          <mat-label>
-                            <mat-icon class="label-icon">event</mat-icon>
-                            Hasta
-                          </mat-label>
-                          <input matInput 
-                                 [matDatepicker]="endPicker" 
-                                 formControlName="endDate" 
-                                 placeholder="dd/mm/aaaa"
-                                 class="input-modern"
-                                 (dateChange)="onDateChange('end', $event)">
-                          <mat-datepicker-toggle matSuffix [for]="endPicker">
-                            <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>
-                          </mat-datepicker-toggle>
-                          <mat-datepicker #endPicker 
-                                         [startAt]="getDefaultEndDate()"
-                                         [touchUi]="false">
-                          </mat-datepicker>
-                        </mat-form-field>
-                      </div>
-                    </div>
-                  </div>
+                  <!-- Fecha hasta -->
+                  <mat-form-field appearance="outline" class="field-compact field-date">
+                    <mat-label>
+                      <mat-icon>event</mat-icon>
+                      Hasta
+                    </mat-label>
+                    <input matInput 
+                           [matDatepicker]="endPicker" 
+                           formControlName="endDate" 
+                           placeholder="dd/mm/aaaa"
+                           class="input-compact"
+                           (dateChange)="onDateChange('end', $event)">
+                    <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #endPicker [startAt]="getDefaultEndDate()"></mat-datepicker>
+                  </mat-form-field>
 
                   <!-- Botones de acción -->
-                  <!-- search-actions: Contenedor flex para los botones de búsqueda y limpieza -->
-                  <div class="search-actions">
-                    <!-- Botón principal de búsqueda -->
-                    <!-- mat-raised-button: Botón elevado de Material Design con sombra -->
-                    <!-- color="primary": Aplica el color primario del tema (azul) -->
-                    <!-- (click): Evento que ejecuta la búsqueda de actividades -->
-                    <!-- [disabled]: Deshabilita el botón mientras carga o si el formulario es inválido -->
+                  <div class="actions-compact">
                     <button 
                       mat-raised-button 
                       color="primary" 
                       (click)="searchUserActivities()" 
                       [disabled]="loading() || searchForm.invalid" 
-                      class="btn-search">
-                      <!-- mat-spinner: Indicador de carga circular que se muestra mientras busca -->
-                      <!-- *ngIf: Solo se muestra cuando loading() es true -->
-                      <!-- diameter: Tamaño del spinner en píxeles -->
-                      <mat-spinner *ngIf="loading()" diameter="20" class="btn-spinner"></mat-spinner>
-                      
-                      <!-- mat-icon: Icono de búsqueda que se muestra cuando NO está cargando -->
-                      <!-- *ngIf: Solo se muestra cuando loading() es false -->
-                      <mat-icon *ngIf="!loading()" class="btn-icon">search</mat-icon>
-                      
-                      <!-- span: Texto del botón que cambia según el estado de carga -->
-                      <!-- Muestra "Buscando..." mientras carga, "Buscar" cuando está listo -->
-                      <span class="btn-text">{{ loading() ? 'Buscando...' : 'Buscar' }}</span>
+                      class="btn-compact btn-search-compact"
+                      matTooltip="Buscar actividades">
+                      <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+                      <mat-icon *ngIf="!loading()">search</mat-icon>
+                      <span>Buscar</span>
                     </button>
 
-                    <!-- Botón secundario para limpiar resultados -->
-                    <!-- mat-stroked-button: Botón con borde pero sin relleno -->
-                    <!-- (click): Evento que limpia los resultados y resetea el formulario -->
-                    <!-- [disabled]: Deshabilita el botón mientras está cargando -->
                     <button 
                       mat-stroked-button 
                       (click)="clearResults()" 
                       [disabled]="loading()" 
-                      class="btn-clear">
-                      <!-- mat-icon: Icono de refrescar/limpiar -->
-                      <mat-icon class="btn-icon">refresh</mat-icon>
-                      
-                      <!-- span: Texto del botón -->
-                      <span class="btn-text">Limpiar</span>
+                      class="btn-compact btn-clear-compact"
+                      matTooltip="Limpiar búsqueda">
+                      <mat-icon>refresh</mat-icon>
                     </button>
                   </div>
                 </div>
               </form>
 
               <!-- Resultados de búsqueda mejorados -->
-              <div *ngIf="searchResults()" class="results-section-modern">
+              <div *ngIf="searchResults()" class="results-section-modern" style="margin-top: 8px;">
                 
-                <!-- Header del reporte con acciones -->
-                <div class="report-header">
-                  <div class="report-title-section">
-                    <h2 class="report-title">
-                      <mat-icon>assessment</mat-icon>
-                      Reporte de Actividades
-                    </h2>
-                    <p class="report-subtitle">
-                      {{ searchResults()?.totalActivities }} actividades encontradas
-                    </p>
+                <!-- Header del reporte simplificado -->
+                <div class="report-header-simple">
+                  <!-- Información del usuario en una línea compacta -->
+                  <div class="user-info-simple">
+                    <!-- Avatar pequeño -->
+                    <div class="user-avatar-simple">
+                      <img
+                        *ngIf="searchResults()?.user?.profileImage && searchResults()?.user?.profileImage !== 'large_image_available'" 
+                        [src]="getUserProfileImage(searchResults()?.user?.profileImage)!" 
+                        [alt]="searchResults()?.user?.firstName + ' ' + searchResults()?.user?.lastName"
+                        class="avatar-img-simple"
+                        (error)="handleImageError($event)">
+                      <mat-icon *ngIf="!searchResults()?.user?.profileImage || searchResults()?.user?.profileImage === 'large_image_available'">account_circle</mat-icon>
+                    </div>
+                    
+                    <!-- Datos del usuario -->
+                    <div class="user-data-simple">
+                      <h3 class="user-name-simple">
+                        {{ searchResults()?.user?.firstName }} {{ searchResults()?.user?.lastName }}
+                        <span class="user-code-simple">@{{ searchResults()?.user?.userCode }}</span>
+                      </h3>
+                      <div class="user-details-simple">
+                        <span class="detail-item-simple">
+                          <mat-icon>work</mat-icon>
+                          {{ getRoleDisplayName(searchResults()?.user?.role || '') }}
+                        </span>
+                        <span class="detail-separator">•</span>
+                        <span class="detail-item-simple">
+                          <mat-icon>email</mat-icon>
+                          {{ searchResults()?.user?.email }}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div class="report-actions">
-                    <button mat-raised-button color="accent" (click)="exportToPDF()" 
-                            [disabled]="loading()" class="export-btn-modern">
+
+                  <!-- Estadísticas compactas en línea -->
+                  <div class="stats-simple">
+                    <div class="stat-simple stat-primary-simple">
+                      <mat-icon>timeline</mat-icon>
+                      <div class="stat-content-simple">
+                        <span class="stat-number-simple">{{ searchResults()?.totalActivities }}</span>
+                        <span class="stat-label-simple">Actividades</span>
+                      </div>
+                    </div>
+                    
+                    <div class="stat-simple stat-info-simple">
+                      <mat-icon>date_range</mat-icon>
+                      <div class="stat-content-simple">
+                        <span class="stat-number-simple">{{ searchResults()?.dateRange?.start | date:'dd/MM/yy' }}</span>
+                        <span class="stat-label-simple">Desde</span>
+                      </div>
+                    </div>
+                    
+                    <div class="stat-simple stat-success-simple">
+                      <mat-icon>event</mat-icon>
+                      <div class="stat-content-simple">
+                        <span class="stat-number-simple">{{ searchResults()?.dateRange?.end | date:'dd/MM/yy' }}</span>
+                        <span class="stat-label-simple">Hasta</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Botón de exportar -->
+                  <div class="export-action-simple">
+                    <button mat-raised-button color="primary" (click)="exportToPDF()" 
+                            [disabled]="loading()" class="btn-export-simple">
                       <mat-icon>picture_as_pdf</mat-icon>
                       Exportar PDF
                     </button>
-                  </div>
-                </div>
-
-                <!-- Sección unificada: Usuario + Estadísticas en una sola línea -->
-                <div class="user-stats-unified">
-                  <!-- Tarjeta de usuario compacta con foto de perfil -->
-                  <mat-card class="user-card-inline">
-                    <div class="user-inline-content">
-                      <!-- Avatar del usuario: muestra la foto si existe, sino muestra icono por defecto -->
-                      <div class="user-avatar-inline">
-                        <!-- Imagen del usuario si está disponible -->
-                        <img
-                          *ngIf="searchResults()?.user?.profileImage && searchResults()?.user?.profileImage !== 'large_image_available'" 
-                          [src]="getUserProfileImage(searchResults()?.user?.profileImage)!" 
-                          [alt]="searchResults()?.user?.firstName + ' ' + searchResults()?.user?.lastName"
-                          class="user-avatar-img"
-                          (error)="handleImageError($event)">
-                        <!-- Icono por defecto si no hay imagen o si falla la carga -->
-                        <mat-icon *ngIf="!searchResults()?.user?.profileImage || searchResults()?.user?.profileImage === 'large_image_available'">account_circle</mat-icon>
-                      </div>
-                      <!-- Información del usuario -->
-                      <div class="user-info-inline">
-                        <!-- Nombre completo del usuario -->
-                        <h3 class="user-name-inline">
-                          {{ searchResults()?.user?.firstName }} {{ searchResults()?.user?.lastName }}
-                        </h3>
-                        <!-- Metadatos del usuario: código, rol y email -->
-                        <div class="user-meta-inline">
-                          <!-- Badge con el código de usuario -->
-                          <span class="user-code-badge-inline">@{{ searchResults()?.user?.userCode }}</span>
-                          <!-- Badge con el rol del usuario -->
-                          <span class="user-role-badge-inline">
-                            <mat-icon>work</mat-icon>
-                            {{ getRoleDisplayName(searchResults()?.user?.role || '') }}
-                          </span>
-                          <!-- Email del usuario -->
-                          <span class="user-email-inline">
-                            <mat-icon>email</mat-icon>
-                            {{ searchResults()?.user?.email }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </mat-card>
-
-                  <!-- Estadísticas visuales en línea -->
-                  <div class="stats-grid-inline">
-                    <div class="stat-card-inline stat-primary">
-                      <div class="stat-icon-inline">
-                        <mat-icon>timeline</mat-icon>
-                      </div>
-                      <div class="stat-content-inline">
-                        <div class="stat-number-inline">{{ searchResults()?.totalActivities }}</div>
-                        <div class="stat-label-inline">Total de Actividades</div>
-                      </div>
-                    </div>
-
-                    <div class="stat-card-inline stat-info">
-                      <div class="stat-icon-inline">
-                        <mat-icon>date_range</mat-icon>
-                      </div>
-                      <div class="stat-content-inline">
-                        <div class="stat-number-inline">{{ searchResults()?.dateRange?.start | date:'dd/MM/yyyy' }}</div>
-                        <div class="stat-label-inline">Fecha de Inicio</div>
-                      </div>
-                    </div>
-
-                    <div class="stat-card-inline stat-success">
-                      <div class="stat-icon-inline">
-                        <mat-icon>event</mat-icon>
-                      </div>
-                      <div class="stat-content-inline">
-                        <div class="stat-number-inline">{{ searchResults()?.dateRange?.end | date:'dd/MM/yyyy' }}</div>
-                        <div class="stat-label-inline">Fecha de Fin</div>
-                      </div>
-                    </div>
-
-                    <div class="stat-card-inline stat-warning">
-                      <div class="stat-icon-inline">
-                        <mat-icon>apps</mat-icon>
-                      </div>
-                      <div class="stat-content-inline">
-                        <div class="stat-number-inline">{{ (searchResults()?.moduleBreakdown | keyvalue)?.length || 0 }}</div>
-                        <div class="stat-label-inline">Módulos Utilizados</div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
