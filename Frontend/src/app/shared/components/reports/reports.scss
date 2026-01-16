@@ -66,7 +66,7 @@ $gray-900: #0f172a;  // Gris máximo
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 16px;
-  margin: 12px 12px 0px 12px;  // Margen inferior eliminado para mejor espaciado
+  margin: 100px 102px 0px 102px;  // Margen inferior eliminado para mejor espaciado
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
@@ -2211,157 +2211,172 @@ $gray-900: #0f172a;  // Gris máximo
     width: 100%; // Ancho completo
     flex-wrap: nowrap; // No permitir que los elementos se envuelvan
 
-    // Campos compactos - Estilos base para todos los campos
+    // Campos compactos - Estilos base para todos los campos del formulario
     .field-compact {
-      flex-shrink: 0; // No permitir que los campos se encojan
+      flex-shrink: 0; // No permitir que los campos se encojan cuando hay poco espacio
 
-      // Labels más pequeños con iconos - MEJORADO
+      // Labels más pequeños con iconos - MEJORADO para mejor visualización
       ::ng-deep .mat-mdc-form-field-label {
-        display: flex; // Flexbox para alinear icono y texto
-        align-items: center; // Centrar verticalmente
-        gap: 4px; // Espacio de 4px entre icono y texto
-        font-size: 0.8rem; // Tamaño de fuente reducido a 0.8rem
-        font-weight: 500; // Peso de fuente medio
+        display: flex; // Usar flexbox para alinear icono y texto horizontalmente
+        align-items: center; // Centrar verticalmente el icono y el texto
+        gap: 4px; // Espacio de 4px entre el icono y el texto del label
+        font-size: 0.75rem; // Tamaño de fuente reducido a 0.75rem para diseño compacto
+        font-weight: 500; // Peso de fuente medio para buena legibilidad
         white-space: nowrap; // Evitar que el label se corte en múltiples líneas
-        overflow: visible; // Permitir que el label sea completamente visible
-        color: $gray-700; // Color gris oscuro para el texto
+        overflow: visible; // Permitir que el label sea completamente visible sin cortes
+        color: $gray-700; // Color gris oscuro para el texto del label
+        top: 50%; // Posicionar al 50% del contenedor para centrado vertical
+        transform: translateY(-50%); // Ajustar posición para centrado perfecto
 
+        // Iconos dentro de los labels (ej: person, category, event)
         mat-icon {
-          font-size: 15px; // Tamaño de icono reducido a 15px
-          width: 15px; // Ancho fijo de 15px
-          height: 15px; // Alto fijo de 15px
-          color: $primary-blue; // Color azul principal para el icono
+          font-size: 14px; // Tamaño de icono reducido a 14px para diseño compacto
+          width: 14px; // Ancho fijo de 14px para consistencia
+          height: 14px; // Alto fijo de 14px para consistencia
+          color: $primary-blue; // Color azul principal para destacar el icono
           flex-shrink: 0; // No permitir que el icono se encoja
         }
       }
 
+      // Ajustar el label cuando está flotando (cuando hay texto en el input)
+      ::ng-deep .mat-mdc-form-field-label.mdc-floating-label--float-above {
+        transform: translateY(-100%) scale(0.85); // Mover hacia arriba y reducir tamaño
+      }
+
       // Ajustar el wrapper para mejor posicionamiento y altura reducida
       ::ng-deep .mat-mdc-text-field-wrapper {
-        padding-top: 4px; // Padding superior reducido a 4px
-        padding-bottom: 4px; // Padding inferior reducido a 4px
+        padding-top: 0; // Sin padding superior para aprovechar toda la altura
+        padding-bottom: 0; // Sin padding inferior para aprovechar toda la altura
         height: 46.8px; // Altura exacta de 46.8px como solicitado
       }
 
-      // Ajustar el infix para mejor alineación y centrado
+      // Ajustar el infix para mejor alineación y centrado del texto
       ::ng-deep .mat-mdc-form-field-infix {
-        padding-top: 12px; // Padding superior de 12px para centrar el texto
-        padding-bottom: 6px; // Padding inferior de 6px
-        min-height: 46.8px; // Altura mínima de 46.8px
-        display: flex; // Flexbox para centrar contenido
-        align-items: center; // Centrar verticalmente el contenido
+        padding-top: 8px; // Padding superior de 8px para dar espacio al label flotante
+        padding-bottom: 8px; // Padding inferior de 8px para balance y centrado
+        min-height: 46.8px; // Altura mínima de 46.8px para mantener consistencia
+        display: flex; // Flexbox para centrar contenido verticalmente
+        align-items: center; // Centrar verticalmente el contenido del input
       }
 
-      // Inputs y selects compactos - MEJORADO con colores sutiles
+      // Inputs y selects compactos - MEJORADO con colores sutiles y padding ajustado
       .input-compact,
       .select-compact {
-        font-size: 0.85rem; // Tamaño de fuente reducido a 0.85rem
-        padding: 8px 12px; // Padding interno: 8px vertical, 12px horizontal
-        line-height: 1.4; // Altura de línea para mejor legibilidad
-        height: auto; // Altura automática
+        font-size: 0.85rem; // Tamaño de fuente reducido a 0.85rem para mejor legibilidad
+        padding: 0 14px; // Padding horizontal de 14px (sin padding vertical para usar el del infix)
+        line-height: 1.5; // Altura de línea de 1.5 para mejor legibilidad del texto
+        height: 100%; // Altura del 100% para ocupar todo el espacio del infix
         text-align: left; // Alinear texto a la izquierda
-        background: rgba($primary-blue, 0.02); // Fondo azul muy sutil (2% opacidad)
-        border-radius: 8px; // Bordes redondeados de 8px
-        transition: all 0.3s ease; // Transición suave para todos los cambios
+        background: rgba($primary-blue, 0.02); // Fondo azul muy sutil (2% opacidad) para contraste suave
+        border-radius: 8px; // Bordes redondeados de 8px para diseño moderno
+        transition: all 0.3s ease; // Transición suave para todos los cambios de estado
+        display: flex; // Flexbox para centrar el texto
+        align-items: center; // Centrar verticalmente el texto dentro del input
 
-        // Efecto hover - Cambiar fondo al pasar el mouse
+        // Efecto hover - Cambiar fondo al pasar el mouse por encima
         &:hover {
-          background: rgba($primary-blue, 0.04); // Fondo azul más visible (4% opacidad)
+          background: rgba($primary-blue, 0.04); // Fondo azul más visible (4% opacidad) en hover
         }
 
-        // Efecto focus - Cambiar fondo cuando está enfocado
+        // Efecto focus - Cambiar fondo cuando el input está enfocado/activo
         &:focus {
-          background: rgba($primary-blue, 0.06); // Fondo azul aún más visible (6% opacidad)
+          background: rgba($primary-blue, 0.06); // Fondo azul aún más visible (6% opacidad) en focus
         }
       }
 
-      // Mejorar el hint para que no se corte
+      // Mejorar el hint wrapper para que los mensajes de ayuda no se corten
       ::ng-deep .mat-mdc-form-field-hint-wrapper {
-        padding: 0; // Sin padding
-        overflow: visible; // Permitir que sea visible
+        padding: 0; // Sin padding para aprovechar todo el espacio disponible
+        overflow: visible; // Permitir que el hint sea visible sin cortes
       }
 
+      // Estilos para los mensajes de ayuda (hints) debajo de los inputs
       ::ng-deep .mat-mdc-form-field-hint {
-        font-size: 0.7rem; // Tamaño de fuente muy pequeño
-        color: $gray-500; // Color gris medio
-        white-space: nowrap; // No permitir saltos de línea
-        overflow: visible; // Permitir que sea visible
+        font-size: 0.7rem; // Tamaño de fuente muy pequeño para no ocupar mucho espacio
+        color: $gray-500; // Color gris medio para texto secundario
+        white-space: nowrap; // No permitir saltos de línea en el hint
+        overflow: visible; // Permitir que el hint sea completamente visible
       }
 
-      // Mejorar el error para que no se corte
+      // Mejorar el error wrapper para que los mensajes de error no se corten
       ::ng-deep .mat-mdc-form-field-error-wrapper {
-        padding: 0; // Sin padding
-        overflow: visible; // Permitir que sea visible
+        padding: 0; // Sin padding para aprovechar todo el espacio disponible
+        overflow: visible; // Permitir que el error sea visible sin cortes
       }
 
+      // Estilos para los mensajes de error debajo de los inputs
       ::ng-deep .mat-mdc-form-field-error {
-        font-size: 0.7rem; // Tamaño de fuente muy pequeño
-        white-space: nowrap; // No permitir saltos de línea
-        overflow: visible; // Permitir que sea visible
+        font-size: 0.7rem; // Tamaño de fuente muy pequeño para mensajes de error
+        white-space: nowrap; // No permitir saltos de línea en el error
+        overflow: visible; // Permitir que el error sea completamente visible
       }
 
-      // Borde azul cuando está enfocado
+      // Borde azul cuando el campo está enfocado/activo
       &.mat-focused {
         ::ng-deep .mat-mdc-form-field-outline {
-          border-color: $primary-blue !important; // Borde azul principal
-          border-width: 2px !important; // Grosor de borde de 2px
+          border-color: $primary-blue !important; // Borde azul principal para indicar foco
+          border-width: 2px !important; // Grosor de borde de 2px para mayor visibilidad
         }
       }
 
-      // Ajustar el outline para mejor visualización con bordes redondeados
+      // Ajustar el outline (borde) para mejor visualización con bordes redondeados
       ::ng-deep .mat-mdc-notched-outline {
+        // Borde izquierdo del input con esquinas redondeadas
         .mat-mdc-notched-outline-leading {
-          border-width: 1px; // Grosor de borde de 1px
-          border-radius: 8px 0 0 8px; // Redondear esquinas izquierdas
-          border-color: rgba($primary-blue, 0.3); // Color azul sutil para el borde
+          border-width: 1px; // Grosor de borde de 1px para diseño sutil
+          border-radius: 8px 0 0 8px; // Redondear solo las esquinas izquierdas (superior e inferior)
+          border-color: rgba($primary-blue, 0.3); // Color azul sutil con 30% de opacidad para el borde
         }
 
+        // Borde superior donde va el label flotante
         .mat-mdc-notched-outline-notch {
           border-width: 1px; // Grosor de borde de 1px
-          border-color: rgba($primary-blue, 0.3); // Color azul sutil para el borde
+          border-color: rgba($primary-blue, 0.3); // Color azul sutil con 30% de opacidad
         }
 
+        // Borde derecho del input con esquinas redondeadas
         .mat-mdc-notched-outline-trailing {
-          border-width: 1px; // Grosor de borde de 1px
-          border-radius: 0 8px 8px 0; // Redondear esquinas derechas
-          border-color: rgba($primary-blue, 0.3); // Color azul sutil para el borde
+          border-width: 1px; // Grosor de borde de 1px para diseño sutil
+          border-radius: 0 8px 8px 0; // Redondear solo las esquinas derechas (superior e inferior)
+          border-color: rgba($primary-blue, 0.3); // Color azul sutil con 30% de opacidad para el borde
         }
       }
 
-      // Ajustar el notch para que el label no se corte
+      // Ajustar el notch (espacio del label) para que el label flotante no se corte
       ::ng-deep .mat-mdc-notched-outline-notch {
-        padding: 0 4px; // Padding horizontal de 4px
-        border-right-style: hidden; // Ocultar borde derecho
-        border-left-style: hidden; // Ocultar borde izquierdo
+        padding: 0 4px; // Padding horizontal de 4px para dar espacio al label
+        border-right-style: hidden; // Ocultar borde derecho del notch para continuidad visual
+        border-left-style: hidden; // Ocultar borde izquierdo del notch para continuidad visual
       }
     }
 
-    // Campo de usuario - Más ancho para acomodar el texto
+    // Campo de usuario - Más ancho para acomodar nombres largos y códigos
     .field-user {
-      width: 220px; // Ancho de 220px
-      min-width: 220px; // Ancho mínimo de 220px
+      width: 220px; // Ancho de 220px para dar espacio suficiente al texto del usuario
+      min-width: 220px; // Ancho mínimo de 220px para mantener consistencia
     }
 
-    // Campo de módulo - Ancho medio
+    // Campo de módulo - Ancho medio para nombres de módulos
     .field-module {
-      width: 200px; // Ancho de 200px
-      min-width: 200px; // Ancho mínimo de 200px
+      width: 200px; // Ancho de 200px para nombres de módulos (Auth, Profile, etc.)
+      min-width: 200px; // Ancho mínimo de 200px para mantener consistencia
     }
 
-    // Campos de fecha - Ancho estándar
+    // Campos de fecha - Ancho estándar para formato de fecha
     .field-date {
-      width: 160px; // Ancho de 160px
-      min-width: 160px; // Ancho mínimo de 160px
+      width: 160px; // Ancho de 160px suficiente para formato dd/mm/aaaa
+      min-width: 160px; // Ancho mínimo de 160px para mantener consistencia
 
-      // Ajustar el datepicker toggle para mejor posicionamiento
+      // Ajustar el datepicker toggle (botón del calendario) para mejor posicionamiento
       ::ng-deep .mat-datepicker-toggle {
-        margin-right: -8px; // Margen negativo para acercar al borde
+        margin-right: -8px; // Margen negativo para acercar el botón al borde derecho del input
       }
 
-      // Ajustar el icono del datepicker
+      // Ajustar el icono del datepicker (icono del calendario)
       ::ng-deep .mat-datepicker-toggle-default-icon {
-        width: 18px; // Ancho de 18px
-        height: 18px; // Alto de 18px
-        color: $primary-blue; // Color azul principal
+        width: 18px; // Ancho de 18px para icono compacto
+        height: 18px; // Alto de 18px para icono compacto
+        color: $primary-blue; // Color azul principal para consistencia visual
       }
     }
 
