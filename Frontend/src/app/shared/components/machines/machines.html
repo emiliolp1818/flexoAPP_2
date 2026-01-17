@@ -322,8 +322,8 @@
                           matTooltipPosition="right">
                           <!-- Icono de paleta -->
                           <mat-icon class="colors-icon-small">palette</mat-icon>
-                          <!-- Número de colores -->
-                          <span class="numero-colores-text">{{ program.numeroColores || program.colores?.length || 0 }}</span>
+                          <!-- Número de colores - Usar siempre el length real del array -->
+                          <span class="numero-colores-text">{{ program.colores?.length || 0 }}</span>
                         </button>
                         
                         <!-- Chips de colores inline cuando está expandido -->

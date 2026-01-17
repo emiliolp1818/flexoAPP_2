@@ -248,7 +248,7 @@ export class MachinesComponent implements OnInit {
             cliente: program.cliente || '', // Nombre del cliente (columna cliente) - vacío si es null
             referencia: program.referencia || '', // Referencia del producto (columna referencia) - vacío si es null
             td: program.td || '', // Código TD - Tipo de Diseño (columna td) - vacío si es null
-            numeroColores: program.numeroColores || colores.length, // Número de colores (columna numero_colores)
+            numeroColores: colores.length, // Número de colores - SIEMPRE usar el length real del array de colores
             colores: colores, // Array de colores parseado desde la columna JSON 'colores'
             kilos: program.kilos || 0, // Cantidad en kilogramos (columna kilos) - 0 si es null
             fechaTintaEnMaquina: program.fechaTintaEnMaquina ? new Date(program.fechaTintaEnMaquina) : new Date(), // Fecha de tinta (columna fecha_tinta_en_maquina)
@@ -642,14 +642,17 @@ export class MachinesComponent implements OnInit {
         const updatedPrograms = programs.map(p => {
           // Usar comparación robusta de strings
           if (String(p.otSap).trim() === String(program.otSap).trim()) {
+            // Obtener colores actualizados desde designInfo o mantener los actuales
+            const updatedColores = designInfo.colores || p.colores;
             return {
               ...p,
               // Actualizar campos desde la base de datos de diseño
               cliente: designInfo.cliente || p.cliente,
               referencia: designInfo.referencia || p.referencia,
               sustrato: designInfo.sustrato || p.sustrato,
-              colores: designInfo.colores || p.colores,
-              numeroColores: designInfo.numeroColores || p.numeroColores
+              colores: updatedColores,
+              // SIEMPRE calcular numeroColores desde el array real de colores
+              numeroColores: updatedColores?.length || 0
             };
           }
           return p;
