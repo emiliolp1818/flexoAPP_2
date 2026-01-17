@@ -21,6 +21,7 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar'; //
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Spinner de carga
 import { MatTooltipModule } from '@angular/material/tooltip'; // Tooltips informativos
 import { MatDialogModule, MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog'; // Diálogos modales
+import { MatSelectModule } from '@angular/material/select'; // Select dropdown Material
 
 // Importar módulos de formularios de Angular
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // Formularios template-driven y reactivos
@@ -231,8 +232,21 @@ export class CondicionUnicaComponent implements OnInit {
             // Mostrar error en consola para debugging
             console.error('Error creando registro:', error);
             
-            // Mostrar notificación de error al usuario
-            this.snackBar.open('Error al crear registro', 'Cerrar', { duration: 3000 });
+            // ✅ MANEJO ESPECIAL PARA ERROR DE DUPLICADO (HTTP 409 Conflict)
+            if (error.status === 409 && error.error?.errorType === 'DUPLICATE_RECORD') {
+              // Mostrar mensaje personalizado con icono de advertencia para duplicados
+              this.snackBar.open(
+                `⚠️ ${error.error.message}`, 
+                'Cerrar', 
+                { 
+                  duration: 5000,
+                  panelClass: ['error-snackbar'] // Clase CSS para estilo de error
+                }
+              );
+            } else {
+              // Mostrar notificación de error genérico al usuario
+              this.snackBar.open('Error al crear registro', 'Cerrar', { duration: 3000 });
+            }
           }
         });
       }
@@ -275,8 +289,21 @@ export class CondicionUnicaComponent implements OnInit {
             // Mostrar error en consola para debugging
             console.error('Error actualizando registro:', error);
             
-            // Mostrar notificación de error al usuario
-            this.snackBar.open('Error al actualizar registro', 'Cerrar', { duration: 3000 });
+            // ✅ MANEJO ESPECIAL PARA ERROR DE DUPLICADO (HTTP 409 Conflict)
+            if (error.status === 409 && error.error?.errorType === 'DUPLICATE_RECORD') {
+              // Mostrar mensaje personalizado con icono de advertencia para duplicados
+              this.snackBar.open(
+                `⚠️ ${error.error.message}`, 
+                'Cerrar', 
+                { 
+                  duration: 5000,
+                  panelClass: ['error-snackbar'] // Clase CSS para estilo de error
+                }
+              );
+            } else {
+              // Mostrar notificación de error genérico al usuario
+              this.snackBar.open('Error al actualizar registro', 'Cerrar', { duration: 3000 });
+            }
           }
         });
       }
@@ -421,14 +448,13 @@ export class CondicionUnicaComponent implements OnInit {
       }
 
       // Crear array de encabezados CSV en español
-      // Cambiado de "Referencia" a "Descripción"
       const headers = ['F Artículo', 'Descripción', 'Estante', 'Número de Carpeta', 'Fecha de Creación', 'Última Modificación'];
       
       // Convertir cada registro a un array de valores para CSV
       const rows = dataToExport.map(item => [
         // F Artículo del registro
         item.fArticulo,
-        // Descripción del registro (antes era referencia)
+        // Descripción del registro
         item.descripcion,
         // Estante del registro
         item.estante,
@@ -512,6 +538,7 @@ export class CondicionUnicaComponent implements OnInit {
     MatInputModule, // Inputs de texto Material
     MatIconModule, // Iconos Material
     MatProgressSpinnerModule, // Spinner de carga
+    MatSelectModule, // Select dropdown Material (para campo Estado)
     ReactiveFormsModule // Formularios reactivos
   ],
   
@@ -555,9 +582,9 @@ export class CondicionUnicaComponent implements OnInit {
             <mat-hint *ngIf="designFound">✓ Descripción cargada desde diseños</mat-hint>
           </mat-form-field>
 
-          <!-- Campo de formulario: Descripción (antes era Referencia) -->
+          <!-- Campo de formulario: Descripción -->
           <mat-form-field appearance="outline" class="full-width">
-            <!-- Etiqueta del campo cambiada de "Referencia" a "Descripción" -->
+            <!-- Etiqueta del campo: se muestra como "Descripción" en la UI -->
             <mat-label>Descripción</mat-label>
             <!-- Input vinculado al control 'descripcion' del formulario -->
             <!-- Este campo se llena automáticamente si el artículo existe en designs -->
@@ -602,6 +629,20 @@ export class CondicionUnicaComponent implements OnInit {
             <mat-error *ngIf="form.get('numeroCarpeta')?.hasError('required')">
               El Número de Carpeta es requerido
             </mat-error>
+          </mat-form-field>
+
+          <!-- Campo de formulario: Estado -->
+          <mat-form-field appearance="outline" class="full-width">
+            <!-- Etiqueta del campo -->
+            <mat-label>Estado</mat-label>
+            <!-- Select dropdown vinculado al control 'estado' del formulario -->
+            <mat-select formControlName="estado">
+              <mat-option value="ACTIVO">ACTIVO</mat-option>
+              <mat-option value="INACTIVO">INACTIVO</mat-option>
+              <mat-option value="EN REVISIÓN">EN REVISIÓN</mat-option>
+            </mat-select>
+            <!-- Icono prefijo (antes del select) -->
+            <mat-icon matPrefix>info</mat-icon>
           </mat-form-field>
         </form>
       </mat-dialog-content>
@@ -720,7 +761,6 @@ export class CondicionUnicaFormDialog {
       fArticulo: [this.data.item?.fArticulo || '', Validators.required],
       
       // Control 'descripcion': valor inicial del item o cadena vacía, validador requerido
-      // CAMBIADO: antes era 'referencia', ahora es 'descripcion'
       // Este campo se carga automáticamente desde designs.descripcion si el artículo existe
       descripcion: [this.data.item?.descripcion || '', Validators.required],
       
@@ -730,7 +770,11 @@ export class CondicionUnicaFormDialog {
       
       // Control 'numeroCarpeta': valor inicial del item o cadena vacía, validador requerido
       // Número de carpeta donde está archivado el documento del artículo
-      numeroCarpeta: [this.data.item?.numeroCarpeta || '', Validators.required]
+      numeroCarpeta: [this.data.item?.numeroCarpeta || '', Validators.required],
+      
+      // Control 'estado': valor inicial del item o 'ACTIVO' por defecto
+      // Estado del registro (ACTIVO, INACTIVO, EN REVISIÓN)
+      estado: [this.data.item?.estado || 'ACTIVO']
     });
   }
 
@@ -778,7 +822,7 @@ export class CondicionUnicaFormDialog {
       // Verificar si se encontró el diseño y tiene el campo descripcion
       // La respuesta tiene la estructura: { success: true, found: true, data: { descripcion, cliente, ... } }
       if (response && response.success && response.found && response.data && response.data.descripcion) {
-        // Cargar la descripción en el campo del formulario usando patchValue
+        // Cargar la descripción en el campo "descripcion" del formulario usando patchValue
         // patchValue actualiza solo los campos especificados sin afectar los demás
         this.form.patchValue({
           descripcion: response.data.descripcion

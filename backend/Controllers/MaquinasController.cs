@@ -811,7 +811,8 @@ namespace backend.Controllers
                     {
                         articulo = articulo,
                         cliente = design.Client ?? "",
-                        referencia = design.Description ?? "",
+                        descripcion = design.Description ?? "", // ✅ Cambiado de "referencia" a "descripcion" para condición única
+                        referencia = design.Description ?? "", // ✅ Mantener "referencia" para compatibilidad con máquinas
                         sustrato = design.Substrate ?? "",
                         numeroColores = colors.Count,
                         colores = colors // ✅ Agregamos la lista de colores

@@ -29,6 +29,11 @@ export interface CondicionUnica {
   // Organización documental del artículo para gestión de archivos físicos
   numeroCarpeta: string;
   
+  // Estado actual del registro (ej: "ACTIVO", "INACTIVO", "EN REVISIÓN", etc.)
+  // Permite gestionar el ciclo de vida del registro
+  // Valor por defecto: "ACTIVO"
+  estado?: string;
+  
   // Fecha de creación del registro (opcional)
   // Se genera automáticamente al crear el registro en la base de datos
   createdDate?: Date;

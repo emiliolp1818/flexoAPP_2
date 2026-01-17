@@ -52,5 +52,13 @@ namespace FlexoAPP.API.Repositories
         /// <param name="id">ID del registro a eliminar</param>
         /// <returns>True si se eliminó correctamente, False si no existe</returns>
         Task<bool> DeleteAsync(int id);
+        
+        /// <summary>
+        /// Verificar si existe un registro con el F Artículo especificado
+        /// </summary>
+        /// <param name="fArticulo">Código del artículo F a verificar</param>
+        /// <param name="excludeId">ID a excluir de la búsqueda (opcional, para edición)</param>
+        /// <returns>True si existe, False si no existe</returns>
+        Task<bool> ExistsByFArticuloAsync(string fArticulo, int? excludeId = null);
     }
 }

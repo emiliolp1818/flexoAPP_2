@@ -511,3 +511,71 @@ $gray-900: #0f172a;
     transform: rotate(360deg);
   }
 }
+
+// ===== ESTILOS PARA SNACKBAR DE ERROR =====
+// Estilos globales para el snackbar de error de duplicado
+::ng-deep {
+  .error-snackbar {
+    // Fondo rojo para indicar error
+    background-color: #fee2e2 !important;
+    // Borde rojo más oscuro
+    border-left: 4px solid $error-red !important;
+    
+    // Contenedor del snackbar
+    .mat-mdc-snack-bar-label {
+      // Texto rojo oscuro
+      color: #991b1b !important;
+      // Texto en negrita para mayor visibilidad
+      font-weight: 600 !important;
+      // Tamaño de fuente ligeramente mayor
+      font-size: 0.95rem !important;
+    }
+    
+    // Botón de cerrar
+    .mat-mdc-button {
+      // Color del botón rojo
+      color: $error-red !important;
+      // Texto en negrita
+      font-weight: 600 !important;
+    }
+  }
+}
+
+// ===== ESTILOS PARA COLUMNA ESTADO =====
+// Badges de estado con colores distintivos
+
+.estado-cell {
+  text-align: center;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+// Estado ACTIVO - Verde
+.estado-activo {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+// Estado INACTIVO - Rojo
+.estado-inactivo {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+// Estado EN REVISIÓN - Amarillo/Naranja
+.estado-revision {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}

@@ -272,7 +272,7 @@ namespace FlexoAPP.API.Data.Context
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 
                 entity.Property(e => e.FArticulo).IsRequired().HasMaxLength(50).HasColumnName("farticulo");
-                entity.Property(e => e.Referencia).IsRequired().HasMaxLength(200).HasColumnName("referencia");
+                entity.Property(e => e.Descripcion).IsRequired().HasMaxLength(500).HasColumnName("descripcion");
                 entity.Property(e => e.Estante).IsRequired().HasMaxLength(50).HasColumnName("estante");
                 entity.Property(e => e.NumeroCarpeta).IsRequired().HasMaxLength(50).HasColumnName("numerocarpeta");
                 

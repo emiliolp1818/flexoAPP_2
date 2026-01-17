@@ -179,9 +179,9 @@ namespace FlexoAPP.API.Controllers
                     return BadRequest(new { message = "El campo F Artículo es requerido" });
                 }
                 
-                if (string.IsNullOrWhiteSpace(condicion.Referencia))
+                if (string.IsNullOrWhiteSpace(condicion.Descripcion))
                 {
-                    return BadRequest(new { message = "El campo Referencia es requerido" });
+                    return BadRequest(new { message = "El campo Descripción es requerido" });
                 }
                 
                 if (string.IsNullOrWhiteSpace(condicion.Estante))
@@ -192,6 +192,20 @@ namespace FlexoAPP.API.Controllers
                 if (string.IsNullOrWhiteSpace(condicion.NumeroCarpeta))
                 {
                     return BadRequest(new { message = "El campo Número de Carpeta es requerido" });
+                }
+                
+                // ✅ VALIDAR SI EL F ARTÍCULO YA EXISTE
+                var exists = await _repository.ExistsByFArticuloAsync(condicion.FArticulo);
+                if (exists)
+                {
+                    _logger.LogWarning($"Intento de crear registro duplicado: {condicion.FArticulo}");
+                    return Conflict(new 
+                    { 
+                        success = false,
+                        message = $"El registro con F Artículo '{condicion.FArticulo}' ya existe en el sistema",
+                        errorType = "DUPLICATE_RECORD",
+                        fArticulo = condicion.FArticulo
+                    });
                 }
                 
                 // Log de la petición
@@ -248,6 +262,20 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning($"Registro con ID {id} no encontrado para actualizar");
                     return NotFound(new { message = $"Registro con ID {id} no encontrado" });
+                }
+                
+                // ✅ VALIDAR SI EL F ARTÍCULO YA EXISTE (excluyendo el registro actual)
+                var exists = await _repository.ExistsByFArticuloAsync(condicion.FArticulo, id);
+                if (exists)
+                {
+                    _logger.LogWarning($"Intento de actualizar a F Artículo duplicado: {condicion.FArticulo}");
+                    return Conflict(new 
+                    { 
+                        success = false,
+                        message = $"El F Artículo '{condicion.FArticulo}' ya existe en otro registro",
+                        errorType = "DUPLICATE_RECORD",
+                        fArticulo = condicion.FArticulo
+                    });
                 }
                 
                 // Log de la petición

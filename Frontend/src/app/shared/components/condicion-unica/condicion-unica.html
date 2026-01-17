@@ -164,6 +164,13 @@
                     <span>Número de Carpeta</span>
                   </div>
                 </th>
+                <!-- Columna: Estado -->
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>info</mat-icon>
+                    <span>Estado</span>
+                  </div>
+                </th>
                 <!-- Columna: Acciones -->
                 <th class="excel-header">
                   <div class="header-content">
@@ -182,7 +189,7 @@
                 <td class="excel-cell farticulo-cell">
                   <span class="farticulo-code">{{ item.fArticulo }}</span>
                 </td>
-                <!-- Celda: Descripción (antes era Referencia) -->
+                <!-- Celda: Descripción -->
                 <td class="excel-cell referencia-cell">
                   <span class="referencia-text">{{ item.descripcion }}</span>
                 </td>
@@ -193,6 +200,16 @@
                 <!-- Celda: Número de Carpeta -->
                 <td class="excel-cell carpeta-cell">
                   <span class="carpeta-text">{{ item.numeroCarpeta }}</span>
+                </td>
+                <!-- Celda: Estado -->
+                <td class="excel-cell estado-cell">
+                  <span class="estado-badge" [ngClass]="{
+                    'estado-activo': item.estado === 'ACTIVO',
+                    'estado-inactivo': item.estado === 'INACTIVO',
+                    'estado-revision': item.estado === 'EN REVISIÓN'
+                  }">
+                    {{ item.estado || 'ACTIVO' }}
+                  </span>
                 </td>
                 <!-- Celda: Acciones -->
                 <td class="excel-cell actions-cell">

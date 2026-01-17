@@ -120,6 +120,14 @@ namespace FlexoAPP.API.Repositories
             // Actualizar fecha de última modificación
             condicion.LastModified = DateTime.UtcNow;
             
+            // Detach any existing tracked entity with the same ID to avoid tracking conflicts
+            var existingEntity = _context.ChangeTracker.Entries<CondicionUnica>()
+                .FirstOrDefault(e => e.Entity.Id == condicion.Id);
+            if (existingEntity != null)
+            {
+                existingEntity.State = EntityState.Detached;
+            }
+            
             // Marcar entidad como modificada
             _context.Entry(condicion).State = EntityState.Modified;
             
@@ -152,6 +160,41 @@ namespace FlexoAPP.API.Repositories
             
             // Retornar true indicando eliminación exitosa
             return true;
+        }
+
+        /// <summary>
+        /// Verificar si existe un registro con el F Artículo especificado
+        /// Útil para validar duplicados antes de crear o actualizar
+        /// </summary>
+        /// <param name="fArticulo">Código del artículo F a verificar</param>
+        /// <param name="excludeId">ID a excluir de la búsqueda (opcional, para edición)</param>
+        /// <returns>True si existe, False si no existe</returns>
+        public async Task<bool> ExistsByFArticuloAsync(string fArticulo, int? excludeId = null)
+        {
+            try
+            {
+                // Normalizar el F Artículo para comparación case-insensitive
+                var normalizedFArticulo = fArticulo.Trim().ToUpper();
+                
+                // Construir query base
+                var query = _context.CondicionUnica
+                    .Where(c => c.FArticulo.ToUpper() == normalizedFArticulo);
+                
+                // Si se proporciona excludeId, excluir ese registro (útil para edición)
+                if (excludeId.HasValue)
+                {
+                    query = query.Where(c => c.Id != excludeId.Value);
+                }
+                
+                // Verificar si existe algún registro que coincida
+                return await query.AnyAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log del error y retornar false en caso de fallo
+                Console.WriteLine($"Error checking if F Artículo exists: {ex.Message}");
+                return false;
+            }
         }
     }
 }

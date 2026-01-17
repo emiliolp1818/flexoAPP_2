@@ -109,7 +109,14 @@ try
     });
 
     // ===== API CONFIGURATION =====
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            // Configurar para aceptar camelCase desde el frontend
+            options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            // Permitir que las propiedades sean case-insensitive
+            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        });
     builder.Services.AddEndpointsApiExplorer();
 
     // ===== SWAGGER CONFIGURATION =====
