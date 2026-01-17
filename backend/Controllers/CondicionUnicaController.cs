@@ -51,6 +51,48 @@ namespace FlexoAPP.API.Controllers
         }
 
         /// <summary>
+        /// Diagnóstico - Verificar estructura de datos
+        /// GET: api/condicion-unica/diagnostico
+        /// </summary>
+        [HttpGet("diagnostico")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Diagnostico()
+        {
+            try
+            {
+                var registros = await _repository.GetAllAsync();
+                var primerRegistro = registros.FirstOrDefault();
+                
+                return Ok(new { 
+                    message = "Diagnóstico de Condición Única",
+                    totalRegistros = registros.Count(),
+                    primerRegistro = primerRegistro,
+                    camposDelModelo = new 
+                    {
+                        id = primerRegistro?.Id,
+                        fArticulo = primerRegistro?.FArticulo,
+                        descripcion = primerRegistro?.Descripcion,
+                        estante = primerRegistro?.Estante,
+                        numeroCarpeta = primerRegistro?.NumeroCarpeta,
+                        estado = primerRegistro?.Estado ?? "NULL",
+                        createdDate = primerRegistro?.CreatedDate,
+                        lastModified = primerRegistro?.LastModified
+                    },
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new {
+                    message = "Error en diagnóstico",
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace,
+                    innerException = ex.InnerException?.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Obtener todos los registros de Condición Única
         /// GET: api/condicion-unica
         /// </summary>
