@@ -430,9 +430,9 @@ export class CondicionUnicaComponent implements OnInit {
   }
 
   /**
-   * Exportar registros a Excel (CSV)
-   * Genera archivo CSV con todos los registros filtrados
-   * Compatible con Excel sin dependencias externas
+   * Exportar registros a Excel con formato profesional
+   * Genera archivo XLSX con estructura ordenada, columnas bien definidas y estilos
+   * Compatible con Excel, Google Sheets y LibreOffice
    */
   exportToExcel(): void {
     try {
@@ -447,72 +447,95 @@ export class CondicionUnicaComponent implements OnInit {
         return;
       }
 
-      // Crear array de encabezados CSV en español
-      const headers = ['F Artículo', 'Descripción', 'Estante', 'Número de Carpeta', 'Fecha de Creación', 'Última Modificación'];
-      
-      // Convertir cada registro a un array de valores para CSV
-      const rows = dataToExport.map(item => [
-        // F Artículo del registro
-        item.fArticulo,
-        // Descripción del registro
-        item.descripcion,
-        // Estante del registro
-        item.estante,
-        // Número de carpeta del registro
-        item.numeroCarpeta,
-        // Fecha de creación formateada en español (dd/mm/aaaa) o cadena vacía si no existe
-        item.createdDate ? new Date(item.createdDate).toLocaleDateString('es-ES') : '',
-        // Fecha de última modificación formateada en español o cadena vacía si no existe
-        item.lastModified ? new Date(item.lastModified).toLocaleDateString('es-ES') : ''
-      ]);
+      // Importar la librería XLSX dinámicamente
+      import('xlsx').then(XLSX => {
+        // ===== PREPARAR DATOS PARA EXCEL =====
+        
+        // Crear array de objetos con estructura ordenada y nombres de columnas en español
+        const excelData = dataToExport.map((item, index) => ({
+          'N°': index + 1, // Número de fila
+          'F Artículo': item.fArticulo || '',
+          'Descripción': item.descripcion || '',
+          'Estante': item.estante || '',
+          'Número de Carpeta': item.numeroCarpeta || '',
+          'Estado': item.estado || 'ACTIVO',
+          'Fecha de Creación': item.createdDate 
+            ? new Date(item.createdDate).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            : '',
+          'Última Modificación': item.lastModified 
+            ? new Date(item.lastModified).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            : ''
+        }));
 
-      // Combinar encabezados y filas en formato CSV
-      const csvContent = [
-        // Primera línea: encabezados separados por comas
-        headers.join(','),
-        // Resto de líneas: filas de datos
-        // Cada celda se envuelve en comillas para manejar comas dentro de los datos
-        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-      ].join('\n'); // Unir todas las líneas con salto de línea
+        // ===== CREAR HOJA DE EXCEL =====
+        
+        // Convertir datos a hoja de Excel
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-      // Crear Blob (objeto binario) con el contenido CSV
-      // \ufeff es el BOM (Byte Order Mark) para UTF-8, necesario para Excel
-      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-      
-      // Crear elemento <a> (enlace) para descargar el archivo
-      const link = document.createElement('a');
-      
-      // Crear URL temporal del Blob
-      const url = URL.createObjectURL(blob);
-      
-      // Generar nombre de archivo con fecha y hora actual
-      // Formato: CondicionUnica_YYYY-MM-DDTHH-MM-SS.csv
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const fileName = `CondicionUnica_${timestamp}.csv`;
-      
-      // Configurar atributos del enlace de descarga
-      link.setAttribute('href', url); // URL del archivo
-      link.setAttribute('download', fileName); // Nombre del archivo a descargar
-      link.style.visibility = 'hidden'; // Ocultar el enlace (no visible en la página)
-      
-      // Agregar enlace al DOM
-      document.body.appendChild(link);
-      
-      // Simular clic en el enlace para iniciar descarga
-      link.click();
-      
-      // Remover enlace del DOM (limpieza)
-      document.body.removeChild(link);
-      
-      // Liberar URL del objeto Blob (liberar memoria)
-      URL.revokeObjectURL(url);
+        // ===== CONFIGURAR ANCHOS DE COLUMNAS =====
+        
+        // Definir anchos óptimos para cada columna (en caracteres)
+        worksheet['!cols'] = [
+          { wch: 5 },   // N° - ancho 5
+          { wch: 15 },  // F Artículo - ancho 15
+          { wch: 40 },  // Descripción - ancho 40 (más ancho para texto largo)
+          { wch: 12 },  // Estante - ancho 12
+          { wch: 18 },  // Número de Carpeta - ancho 18
+          { wch: 12 },  // Estado - ancho 12
+          { wch: 20 },  // Fecha de Creación - ancho 20
+          { wch: 20 }   // Última Modificación - ancho 20
+        ];
 
-      // Mostrar notificación de éxito con el nombre del archivo
-      this.snackBar.open(`Archivo ${fileName} descargado exitosamente`, 'Cerrar', { duration: 3000 });
+        // ===== CREAR LIBRO DE EXCEL =====
+        
+        // Crear libro de Excel (workbook)
+        const workbook = XLSX.utils.book_new();
+        
+        // Agregar hoja al libro con nombre descriptivo
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Condición Única');
+
+        // ===== GENERAR NOMBRE DE ARCHIVO =====
+        
+        // Generar nombre de archivo con fecha y hora actual
+        // Formato: CondicionUnica_DD-MM-YYYY_HH-MM.xlsx
+        const now = new Date();
+        const fecha = now.toLocaleDateString('es-ES').replace(/\//g, '-');
+        const hora = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }).replace(/:/g, '-');
+        const fileName = `CondicionUnica_${fecha}_${hora}.xlsx`;
+
+        // ===== DESCARGAR ARCHIVO =====
+        
+        // Escribir archivo Excel y descargarlo automáticamente
+        XLSX.writeFile(workbook, fileName);
+
+        // Mostrar notificación de éxito con el nombre del archivo y cantidad de registros
+        this.snackBar.open(
+          `✓ Archivo exportado: ${fileName} (${dataToExport.length} registros)`, 
+          'Cerrar', 
+          { duration: 4000 }
+        );
+      }).catch(error => {
+        // Error al cargar la librería XLSX
+        console.error('Error cargando librería XLSX:', error);
+        this.snackBar.open('Error al cargar módulo de exportación', 'Cerrar', { duration: 3000 });
+      });
+      
     } catch (error) {
       // Capturar cualquier error durante la exportación
       // Mostrar error en consola para debugging
-      console.error('Error exportando a CSV:', error);
+      console.error('Error exportando a Excel:', error);
       
       // Mostrar notificación de error al usuario
       this.snackBar.open('Error al exportar archivo', 'Cerrar', { duration: 3000 });
