@@ -270,32 +270,33 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
 
       // Ajustar el infix (contenedor del input) para centrado perfecto
       ::ng-deep .mat-mdc-form-field-infix {
-        padding-top: 6px;                              // Padding superior de 6px para dar espacio al label
-        padding-bottom: 6px;                           // Padding inferior de 6px para balance
+        padding-top: 10px;                             // Padding superior de 10px para dar más espacio al label
+        padding-bottom: 10px;                          // Padding inferior de 10px para balance
         min-height: 46.8px;                            // Altura mínima de 46.8px
         display: flex;                                 // Flexbox para centrado
         align-items: center;                           // Centrar verticalmente el contenido
       }
 
-      // Label flotante - Ajustado para no cortarse con el borde
+      // Label flotante - Ajustado para estar dentro del input sin cortarse
       ::ng-deep .mat-mdc-form-field-label {
         display: flex;                                 // Flexbox para alinear icono y texto
         align-items: center;                           // Centrar verticalmente
         gap: 4px;                                      // Espacio de 4px entre icono y texto
-        font-size: 0.7rem;                             // Tamaño de fuente pequeño (0.7rem)
+        font-size: 0.75rem;                            // Tamaño de fuente pequeño (0.75rem)
         font-weight: 500;                              // Peso de fuente medio
         white-space: nowrap;                           // No permitir saltos de línea
         overflow: visible;                             // Permitir que sea visible
-        color: $gray-700;                              // Color gris oscuro
+        color: $gray-600;                              // Color gris medio para mejor contraste
         top: 50%;                                      // Posicionar al 50% del contenedor
         transform: translateY(-50%);                   // Centrar verticalmente con transform
-        padding: 0 4px;                                // Padding horizontal de 4px para separar del borde
+        padding: 0 6px;                                // Padding horizontal de 6px para separar del borde
+        background: transparent;                       // Fondo transparente
 
         // Iconos dentro de los labels
         mat-icon {
-          font-size: 13px;                             // Tamaño de icono pequeño (13px)
-          width: 13px;                                 // Ancho fijo de 13px
-          height: 13px;                                // Alto fijo de 13px
+          font-size: 14px;                             // Tamaño de icono pequeño (14px)
+          width: 14px;                                 // Ancho fijo de 14px
+          height: 14px;                                // Alto fijo de 14px
           color: $primary-blue;                        // Color azul principal
           flex-shrink: 0;                              // No permitir que se encoja
         }
@@ -303,8 +304,9 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
 
       // Label cuando está flotando (cuando hay texto en el input)
       ::ng-deep .mat-mdc-form-field-label.mdc-floating-label--float-above {
-        transform: translateY(-110%) scale(0.85);      // Mover hacia arriba (-110%) y reducir tamaño (85%)
-        padding: 0 2px;                                // Padding reducido cuando está flotando
+        transform: translateY(-140%) scale(0.85);      // Mover hacia arriba (-140%) y reducir tamaño (85%)
+        padding: 0 4px;                                // Padding reducido cuando está flotando
+        background: white;                             // Fondo blanco para cubrir el borde
       }
 
       // Inputs y selects compactos con colores sutiles
