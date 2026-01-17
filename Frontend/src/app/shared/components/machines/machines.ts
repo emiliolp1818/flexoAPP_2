@@ -686,7 +686,11 @@ export class MachinesComponent implements OnInit {
   // Este endpoint actualiza la columna 'estado' en la tabla machine_programs
   async changeStatus(program: MachineProgram, newStatus: MachineProgram['estado']) {
     // ===== LOG DE ENTRADA AL MÉTODO =====
-    console.log('🎯 changeStatus llamado con:', { program, newStatus });
+    console.log('🎯 ===== INICIO changeStatus =====');
+    console.log('📋 Programa:', program);
+    console.log('📋 OT SAP:', program.otSap, 'Tipo:', typeof program.otSap);
+    console.log('📋 Estado actual:', program.estado);
+    console.log('📋 Nuevo estado:', newStatus);
     
     // ===== VALIDACIÓN DE OT SAP =====
     // Verificar que el programa tenga un OT SAP válido antes de intentar actualizar
@@ -698,6 +702,7 @@ export class MachinesComponent implements OnInit {
     
     try {
       this.loading.set(true); // Activar indicador de carga en la UI para mostrar spinner
+      console.log('⏳ Loading activado');
       
       // ===== LOG DE INICIO DE CAMBIO DE ESTADO =====
       console.log(`🔄 Cambiando estado de programa ${program.otSap} a ${newStatus} en la base de datos`);
@@ -713,7 +718,9 @@ export class MachinesComponent implements OnInit {
       
       // ===== LOG DEL DTO Y URL =====
       const url = `${environment.apiUrl}/maquinas/${program.otSap}/status`;
-      console.log('📤 Enviando petición PATCH:', { url, dto: changeStatusDto });
+      console.log('📤 DTO preparado:', changeStatusDto);
+      console.log('🌐 URL:', url);
+      console.log('📤 Enviando petición PATCH...');
       
       // ===== PETICIÓN HTTP PATCH AL BACKEND =====
       // Realizar petición HTTP PATCH al endpoint api/maquinas/{otSap}/status
@@ -726,27 +733,33 @@ export class MachinesComponent implements OnInit {
       
       // ===== LOG DE RESPUESTA =====
       console.log('📥 Respuesta recibida del servidor:', response);
+      console.log('📥 Respuesta completa:', JSON.stringify(response, null, 2));
       
       // ===== VALIDACIÓN DE LA RESPUESTA DEL BACKEND =====
       // Verificar que la respuesta del servidor tenga la estructura esperada: { success: true, data: {...} }
       if (response && response.success) {
-        console.log(`✅ Estado cambiado exitosamente a ${newStatus} en la base de datos`);
+        console.log(`✅ Respuesta exitosa del servidor - Estado cambiado a ${newStatus}`);
         
         // ===== ACTUALIZACIÓN LOCAL DEL ESTADO =====
         // Actualizar el estado localmente en el frontend para reflejar los cambios inmediatamente
         // Esto evita tener que recargar todos los datos desde el servidor
         const programs = this.programs(); // Obtener array actual de programas desde la señal reactiva
+        console.log('📊 Total de programas antes de actualizar:', programs.length);
+        console.log('📊 Programas:', programs.map(p => ({ otSap: p.otSap, estado: p.estado })));
+        
         // Usar comparación robusta de strings para encontrar el índice
         const programIndex = programs.findIndex(p => String(p.otSap).trim() === String(program.otSap).trim()); 
-        console.log('🔍 Índice del programa en el array:', programIndex, 'OT SAP:', program.otSap);
+        console.log('🔍 Índice del programa encontrado:', programIndex, 'OT SAP buscado:', program.otSap);
         
         if (programIndex !== -1) {
+          console.log('📋 Programa ANTES de actualizar:', programs[programIndex]);
+          
           // ===== CREAR NUEVO ARRAY CON EL PROGRAMA ACTUALIZADO =====
           // Crear un nuevo array inmutable para disparar la detección de cambios de Angular
           const updatedPrograms = programs.map((p, index) => {
             if (index === programIndex) {
               // Actualizar el programa encontrado con los nuevos datos
-              return {
+              const updated = {
                 ...p, // Mantener todos los datos existentes (spread operator)
                 estado: newStatus, // Actualizar columna 'estado' con el nuevo valor
                 // Actualizar información de auditoría de la última acción
@@ -755,21 +768,32 @@ export class MachinesComponent implements OnInit {
                 lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
                 observaciones: response.data?.observaciones || p.observaciones
               };
+              console.log('📋 Programa DESPUÉS de actualizar:', updated);
+              return updated;
             }
             return p; // Mantener los demás programas sin cambios
           });
           
+          console.log('📊 Actualizando signal con nuevos programas...');
           // Actualizar la señal reactiva con el nuevo array (esto dispara la detección de cambios)
           this.programs.set(updatedPrograms);
+          console.log('📊 Signal actualizado');
+          console.log('📊 Estado del signal después de actualizar:', this.programs());
           
+          console.log('🔄 Forzando detección de cambios...');
           // Forzar detección de cambios para actualizar la vista inmediatamente
           this.cdr.detectChanges();
+          console.log('🔄 Detección de cambios completada');
           
-          console.log('🔄 Estado actualizado localmente:', {
+          console.log('✅ Estado actualizado localmente:', {
             programaOtSap: program.otSap,
             estadoAnterior: program.estado,
             estadoNuevo: newStatus
           });
+        } else {
+          console.error('❌ Programa NO encontrado en el array');
+          console.error('❌ OT SAP buscado:', program.otSap);
+          console.error('❌ OT SAPs disponibles:', programs.map(p => p.otSap));
         }
         
         // Definir mensajes de éxito específicos para cada estado
@@ -784,6 +808,7 @@ export class MachinesComponent implements OnInit {
         
         // Mostrar notificación de éxito al usuario
         this.snackBar.open(statusMessages[newStatus] || 'Estado actualizado', 'Cerrar', { duration: 3000 });
+        console.log('✅ Notificación mostrada al usuario');
         
         // Log de confirmación con detalles
         console.log(`✅ ${statusMessages[newStatus] || 'Estado actualizado'}`, {
@@ -794,18 +819,19 @@ export class MachinesComponent implements OnInit {
         
       } else {
         // Si la respuesta no tiene la estructura esperada, lanzar error
+        console.error('❌ Respuesta del servidor NO exitosa:', response);
         throw new Error('Respuesta del servidor inválida');
       }
       
     } catch (error: any) {
-      console.error('❌ Error cambiando estado:', error); // Log del error
-      console.error('❌ Error completo:', {
-        status: error.status,
-        statusText: error.statusText,
-        message: error.message,
-        error: error.error,
-        url: error.url
-      });
+      console.error('❌ ===== ERROR EN changeStatus =====');
+      console.error('❌ Error completo:', error);
+      console.error('❌ ===== ERROR EN changeStatus =====');
+      console.error('❌ Error completo:', error);
+      console.error('❌ Status:', error.status);
+      console.error('❌ StatusText:', error.statusText);
+      console.error('❌ Message:', error.message);
+      console.error('❌ Error del servidor:', error.error);
       
       // Determinar mensaje de error específico basado en el código de estado HTTP
       let errorMessage = 'Error al cambiar el estado del programa'; // Mensaje por defecto
@@ -831,6 +857,8 @@ export class MachinesComponent implements OnInit {
     } finally {
       // Siempre desactivar el indicador de carga, sin importar el resultado
       this.loading.set(false);
+      console.log('⏳ Loading desactivado');
+      console.log('🎯 ===== FIN changeStatus =====');
     }
   }
 
@@ -866,8 +894,13 @@ export class MachinesComponent implements OnInit {
     // Validar que hay un programa seleccionado y un motivo ingresado
     if (!this.currentProgramToSuspend || !this.suspendReason.trim()) return;
 
+    console.log('🎯 ===== INICIO confirmSuspend =====');
+    console.log('📋 Programa a suspender:', this.currentProgramToSuspend);
+    console.log('📋 Motivo:', this.suspendReason);
+
     try {
       this.loading.set(true); // Activar indicador de carga
+      console.log('⏳ Loading activado');
       
       console.log(`⏸️ Suspendiendo programa ${this.currentProgramToSuspend.otSap} con motivo: ${this.suspendReason}`);
       
@@ -877,25 +910,36 @@ export class MachinesComponent implements OnInit {
         observaciones: this.suspendReason.trim() // Motivo de suspensión limpio
       };
       
+      const url = `${environment.apiUrl}/maquinas/${this.currentProgramToSuspend.otSap}/status`;
+      console.log('📤 DTO preparado:', changeStatusDto);
+      console.log('🌐 URL:', url);
+      console.log('📤 Enviando petición PATCH...');
+      
       // Realizar petición HTTP PATCH para suspender el programa usando el endpoint de maquinas
-      const response = await firstValueFrom(this.http.patch<any>(
-        `${environment.apiUrl}/maquinas/${this.currentProgramToSuspend.otSap}/status`, 
-        changeStatusDto
-      ));
+      const response = await firstValueFrom(this.http.patch<any>(url, changeStatusDto));
+      
+      console.log('📥 Respuesta recibida del servidor:', response);
+      console.log('📥 Respuesta completa:', JSON.stringify(response, null, 2));
       
       // Verificar que la respuesta del servidor sea exitosa
       if (response && response.success) {
-        console.log('✅ Programa suspendido exitosamente'); // Log de éxito
+        console.log('✅ Respuesta exitosa del servidor - Programa suspendido'); // Log de éxito
         
         // Actualizar el estado localmente para reflejar los cambios inmediatamente
         const programs = this.programs(); // Obtener array actual de programas
+        console.log('📊 Total de programas antes de actualizar:', programs.length);
+        
         // Usar comparación robusta de strings
         const index = programs.findIndex(p => String(p.otSap).trim() === String(this.currentProgramToSuspend!.otSap).trim()); 
+        console.log('🔍 Índice del programa encontrado:', index, 'OT SAP buscado:', this.currentProgramToSuspend.otSap);
+        
         if (index !== -1) {
+          console.log('📋 Programa ANTES de actualizar:', programs[index]);
+          
           // Crear nuevo array inmutable con el programa actualizado
           const updatedPrograms = programs.map((p, i) => {
             if (i === index) {
-              return {
+              const updated = {
                 ...p, // Mantener datos existentes
                 estado: 'SUSPENDIDO' as MachineProgram['estado'], // Nuevo estado con tipo explícito
                 observaciones: this.suspendReason, // Motivo de suspensión
@@ -903,13 +947,24 @@ export class MachinesComponent implements OnInit {
                 lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
                 lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date()
               };
+              console.log('📋 Programa DESPUÉS de actualizar:', updated);
+              return updated;
             }
             return p;
           });
-          this.programs.set(updatedPrograms); // Actualizar la señal reactiva con nuevo array
           
+          console.log('📊 Actualizando signal con nuevos programas...');
+          this.programs.set(updatedPrograms); // Actualizar la señal reactiva con nuevo array
+          console.log('📊 Signal actualizado');
+          
+          console.log('🔄 Forzando detección de cambios...');
           // Forzar detección de cambios para actualizar la vista inmediatamente
           this.cdr.detectChanges();
+          console.log('🔄 Detección de cambios completada');
+        } else {
+          console.error('❌ Programa NO encontrado en el array');
+          console.error('❌ OT SAP buscado:', this.currentProgramToSuspend.otSap);
+          console.error('❌ OT SAPs disponibles:', programs.map(p => p.otSap));
         }
         
         // Log de confirmación detallado
@@ -920,15 +975,24 @@ export class MachinesComponent implements OnInit {
           fecha: new Date().toLocaleString()
         });
         
+        this.snackBar.open('Programa SUSPENDIDO', 'Cerrar', { duration: 3000 });
+        console.log('✅ Notificación mostrada al usuario');
+        
         this.closeSuspendDialog(); // Cerrar el diálogo de suspensión
         
       } else {
         // Si la respuesta no tiene la estructura esperada, lanzar error
+        console.error('❌ Respuesta del servidor NO exitosa:', response);
         throw new Error('Respuesta del servidor inválida');
       }
       
     } catch (error: any) {
-      console.error('❌ Error suspendiendo programa:', error); // Log del error
+      console.error('❌ ===== ERROR EN confirmSuspend =====');
+      console.error('❌ Error completo:', error); // Log del error
+      console.error('❌ Status:', error.status);
+      console.error('❌ StatusText:', error.statusText);
+      console.error('❌ Message:', error.message);
+      console.error('❌ Error del servidor:', error.error);
       
       // Determinar mensaje de error específico basado en el código de estado HTTP
       let errorMessage = 'Error al suspender el programa'; // Mensaje por defecto
@@ -940,6 +1004,8 @@ export class MachinesComponent implements OnInit {
         errorMessage = 'Error interno del servidor al suspender'; // Error del servidor
       }
       
+      this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
+      
       // Log de error detallado
       console.error(`❌ ${errorMessage}`, {
         programa: this.currentProgramToSuspend?.articulo,
@@ -949,6 +1015,8 @@ export class MachinesComponent implements OnInit {
     } finally {
       // Siempre desactivar el indicador de carga, sin importar el resultado
       this.loading.set(false);
+      console.log('⏳ Loading desactivado');
+      console.log('🎯 ===== FIN confirmSuspend =====');
     }
   }
 
