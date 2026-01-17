@@ -1,35 +1,36 @@
 // ============================================================================
-// IMPORTS - Módulos y servicios necesarios para el componente de reportes
+// IMPORTS - Módulos y servicios necesarios
 // ============================================================================
 
-// Importaciones de Angular Core - Funcionalidades básicas del framework
-import { Component, signal, OnInit } from '@angular/core';        // Component: Decorador para definir componentes | signal: Sistema de reactividad | OnInit: Hook de inicialización
-import { CommonModule } from '@angular/common';                   // Directivas comunes de Angular (ngIf, ngFor, pipes, etc.)
+// Angular Core
+import { Component, signal, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-// Importaciones de Angular Material - Componentes de UI
-import { MatButtonModule } from '@angular/material/button';       // Botones con estilos Material Design
-import { MatIconModule } from '@angular/material/icon';           // Iconos de Material Design
-import { MatCardModule } from '@angular/material/card';           // Tarjetas contenedoras con elevación
-import { MatFormFieldModule } from '@angular/material/form-field'; // Campos de formulario con labels flotantes
-import { MatInputModule } from '@angular/material/input';         // Inputs de texto con validación
-import { MatSelectModule } from '@angular/material/select';       // Selectores dropdown
-import { MatDatepickerModule } from '@angular/material/datepicker'; // Selector de fechas con calendario
-import { MatNativeDateModule, DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core'; // Adaptador de fechas nativo
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar'; // Notificaciones toast
-import { MatAutocompleteModule } from '@angular/material/autocomplete'; // Autocompletado de inputs
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Indicador de carga circular
-import { MatTabsModule } from '@angular/material/tabs';           // Pestañas de navegación
-import { MatChipsModule } from '@angular/material/chips';         // Chips/badges informativos
-import { MatDatepickerInputEvent } from '@angular/material/datepicker'; // Evento de cambio de fecha
+// Angular Material
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
-// Importaciones de Formularios Reactivos - Manejo de formularios con validación
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; // FormBuilder: Constructor de formularios | FormGroup: Grupo de controles | Validators: Validadores | ReactiveFormsModule: Módulo de formularios reactivos
+// Formularios Reactivos
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
-// Importaciones de Servicios - Lógica de negocio y comunicación con backend
-import { AuthService, User } from '../../../core/services/auth.service'; // AuthService: Servicio de autenticación | User: Interfaz de usuario
-import { HttpClient } from '@angular/common/http';                // Cliente HTTP para llamadas a la API REST
-import { environment } from '../../../../environments/environment'; // Configuración de entorno (URLs, API keys, etc.)
-import { TimeFormatService } from '../../../core/services/time-format.service'; // Servicio de formato de hora y fecha
+// Servicios
+import { User } from '../../../core/services/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { TimeFormatService } from '../../../core/services/time-format.service';
+
+// jsPDF para generación de PDFs
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // ============================================================================
 // INTERFACES - Definición de tipos de datos para el componente
@@ -100,119 +101,74 @@ export const MY_DATE_FORMATS = {
  * - Actividades de Usuario: Todas las acciones realizadas por un usuario en el sistema
  */
 @Component({
-  selector: 'app-reports',                    // Selector HTML para usar el componente: <app-reports></app-reports>
-  standalone: true,                           // Componente standalone (no requiere módulo padre)
-  imports: [                                  // Módulos importados que el componente necesita
-    CommonModule,                             // Directivas básicas de Angular (ngIf, ngFor, pipes)
-    MatButtonModule,                          // Botones de Material Design
-    MatIconModule,                            // Iconos de Material Design
-    MatCardModule,                            // Tarjetas contenedoras
-    MatFormFieldModule,                       // Campos de formulario
-    MatInputModule,                           // Inputs de texto
-    MatSelectModule,                          // Selectores dropdown
-    MatDatepickerModule,                      // Selector de fechas
-    MatNativeDateModule,                      // Adaptador de fechas
-    MatSnackBarModule,                        // Notificaciones toast
-    MatProgressSpinnerModule,                 // Indicadores de carga
-    MatTabsModule,                            // Pestañas de navegación
-    MatChipsModule,                           // Chips/badges
-    MatAutocompleteModule,                    // Autocompletado
-    ReactiveFormsModule                       // Formularios reactivos
+  selector: 'app-reports',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatSnackBarModule,
+    MatProgressSpinnerModule,
+    ReactiveFormsModule
   ],
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
     { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
   ],
-  templateUrl: './reports.html',              // Ruta al archivo HTML del template
-  styleUrls: ['./reports.scss']               // Ruta al archivo SCSS de estilos
+  templateUrl: './reports.html',
+  styleUrls: ['./reports.scss']
 })
-export class ReportsComponent implements OnInit {  // Implementa OnInit para ejecutar lógica al inicializar
+export class ReportsComponent implements OnInit {
   // ============================================================================
-  // PROPIEDADES DEL COMPONENTE - Estado y configuración
+  // PROPIEDADES - Estado del componente
   // ============================================================================
 
-  // --- Señales para Reportes de Actividades de Usuario ---
-  // Las señales (signals) son el nuevo sistema de reactividad de Angular que reemplaza a los Observables en muchos casos
-  loading = signal<boolean>(false);                      // Indica si hay una búsqueda de actividades en progreso
-  searchResults = signal<UserReport | null>(null);       // Almacena los resultados de la búsqueda de actividades de usuario
-  availableUsers = signal<User[]>([]);                   // Lista de usuarios disponibles para búsqueda (para autocompletado)
+  loading = signal<boolean>(false);                    // Indicador de carga
+  searchResults = signal<UserReport | null>(null);     // Resultados de búsqueda
+  searchForm: FormGroup;                               // Formulario de búsqueda
 
-  // --- Formularios Reactivos ---
-  // FormGroup permite agrupar controles de formulario con validación
-  searchForm: FormGroup;                                 // Formulario para búsqueda de actividades de usuario
-
-  // --- Opciones de Configuración ---
-  // Array de opciones para el filtro de módulos en la búsqueda
+  // Opciones de módulos para el filtro
   moduleOptions = [
-    { value: 'ALL', label: 'Todos los módulos' },        // Opción para mostrar actividades de todos los módulos
-    { value: 'AUTH', label: 'Autenticación' },           // Filtrar solo actividades de autenticación (login, logout)
-    { value: 'PROFILE', label: 'Perfil' },               // Filtrar solo actividades de perfil de usuario
-    { value: 'MACHINES', label: 'Máquinas' },            // Filtrar solo actividades relacionadas con máquinas
-    { value: 'DESIGN', label: 'Diseño' },                // Filtrar solo actividades de diseño
-    { value: 'REPORTS', label: 'Reportes' },             // Filtrar solo actividades de generación de reportes
-    { value: 'SETTINGS', label: 'Configuraciones' }      // Filtrar solo actividades de configuración del sistema
+    { value: 'ALL', label: 'Todos los módulos' },
+    { value: 'AUTH', label: 'Autenticación' },
+    { value: 'PROFILE', label: 'Perfil' },
+    { value: 'MACHINES', label: 'Máquinas' },
+    { value: 'DESIGN', label: 'Diseño' },
+    { value: 'REPORTS', label: 'Reportes' },
+    { value: 'SETTINGS', label: 'Configuraciones' }
   ];
 
   // ============================================================================
-  // CONSTRUCTOR - Inicialización de dependencias y formularios
+  // CONSTRUCTOR
   // ============================================================================
 
-  /**
-   * Constructor del componente
-   * Angular inyecta automáticamente las dependencias declaradas en los parámetros
-   * 
-   * @param fb - FormBuilder: Servicio para construir formularios reactivos de forma simplificada
-   * @param authService - AuthService: Servicio de autenticación para obtener información del usuario actual
-   * @param snackBar - MatSnackBar: Servicio para mostrar notificaciones toast al usuario
-   * @param http - HttpClient: Cliente HTTP para realizar peticiones a la API REST del backend
-   */
   constructor(
-    private fb: FormBuilder,           // Inyección del constructor de formularios
-    private authService: AuthService,  // Inyección del servicio de autenticación
-    private snackBar: MatSnackBar,     // Inyección del servicio de notificaciones
-    private http: HttpClient,          // Inyección del cliente HTTP
-    public timeFormatService: TimeFormatService // Inyección del servicio de formato
+    private fb: FormBuilder,
+    private snackBar: MatSnackBar,
+    private http: HttpClient,
+    public timeFormatService: TimeFormatService
   ) {
-    // Inicialización del formulario de búsqueda de actividades de usuario
-    // fb.group() crea un FormGroup con los controles especificados
+    // Inicializar formulario de búsqueda
     this.searchForm = this.fb.group({
-      userCode: ['', [Validators.required]],  // Control 'userCode': valor inicial vacío, validación requerida
-      startDate: [''],                        // Control 'startDate': valor inicial vacío, sin validación (opcional)
-      endDate: [''],                          // Control 'endDate': valor inicial vacío, sin validación (opcional)
-      module: ['ALL']                         // Control 'module': valor inicial 'ALL' (todos los módulos)
+      userCode: ['', [Validators.required]],  // Código de usuario (requerido)
+      startDate: [''],                        // Fecha inicio (opcional)
+      endDate: [''],                          // Fecha fin (opcional)
+      module: ['ALL']                         // Módulo (por defecto: todos)
     });
   }
 
   // ============================================================================
-  // LIFECYCLE HOOKS - Métodos del ciclo de vida del componente
+  // LIFECYCLE HOOKS
   // ============================================================================
 
-  /**
-   * ngOnInit - Hook de inicialización del componente
-   * Se ejecuta una vez después de que Angular inicializa las propiedades del componente
-   * Es el lugar ideal para cargar datos iniciales y configurar el estado del componente
-   */
   ngOnInit() {
-    this.loadAvailableUsers();    // Cargar lista de usuarios disponibles para el autocompletado
-  }
-
-  // ============================================================================
-  // MÉTODOS DE CARGA DE DATOS - Obtención de información desde el backend
-  // ============================================================================
-
-  /**
-   * loadAvailableUsers - Método eliminado
-   * 
-   * Ya no se necesita cargar la lista de usuarios porque ahora el usuario
-   * ingresa directamente el código en un campo de texto.
-   * 
-   * Este método se mantiene vacío para evitar errores si se llama desde ngOnInit,
-   * pero no realiza ninguna acción.
-   */
-  loadAvailableUsers() {
-    // Método vacío - Ya no se carga lista de usuarios
-    // El usuario ingresa el código directamente en el input
-    console.log('ℹ️ Carga de usuarios deshabilitada - Se usa input de texto directo');
+    // No se requiere inicialización adicional
   }
 
   // ============================================================================
@@ -423,329 +379,325 @@ export class ReportsComponent implements OnInit {  // Implementa OnInit para eje
   // ============================================================================
 
   /**
-   * exportToPDF - Exportar reporte de actividades a archivo PDF
+   * exportToPDF - Exportar reporte de actividades a archivo PDF optimizado y compacto
    * 
-   * Genera un archivo PDF con el reporte completo de actividades del usuario
-   * y lo descarga automáticamente en el navegador del usuario.
+   * Genera un archivo PDF profesional con el reporte completo de actividades del usuario
+   * usando la librería jsPDF y jspdf-autotable para tablas formateadas.
    * 
-   * Flujo de ejecución:
-   * 1. Verifica que existan resultados de búsqueda
-   * 2. Genera el contenido del PDF en formato texto
-   * 3. Crea un Blob (objeto binario) con el contenido
-   * 4. Genera un nombre de archivo único con fecha
-   * 5. Descarga el archivo usando técnicas compatibles con todos los navegadores
-   * 6. Limpia recursos y muestra notificación de éxito
-   * 
-   * Compatibilidad:
-   * - Internet Explorer/Edge: Usa msSaveOrOpenBlob
-   * - Otros navegadores: Usa createObjectURL y elemento <a> temporal
+   * Optimizaciones aplicadas:
+   * - Diseño compacto con márgenes reducidos
+   * - Información del usuario y estadísticas en dos columnas
+   * - Tabla de actividades con más filas por página
+   * - Fuentes más pequeñas pero legibles
+   * - Distribución uniforme del espacio
    */
   exportToPDF() {
-    const report = this.searchResults();  // Obtener resultados actuales de la búsqueda
-    if (!report) return;                  // Si no hay resultados, salir de la función
+    const report = this.searchResults();
+    if (!report) return;
 
-    this.loading.set(true);  // Activar indicador de carga
+    this.loading.set(true);
 
-    // Simular delay de generación de PDF (1.5 segundos)
-    setTimeout(() => {
-      try {
-        // Generar contenido del PDF en formato texto
-        const pdfContent = this.generatePDFContent(report);
+    try {
+      // Crear nuevo documento PDF en formato A4
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15; // Margen reducido de 15mm
+      const contentWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
 
-        // Crear Blob (Binary Large Object) con el contenido del PDF
-        const blob = new Blob([pdfContent], {
-          type: 'application/pdf;charset=utf-8'  // Tipo MIME para PDF con codificación UTF-8
-        });
+      // ===== ENCABEZADO COMPACTO =====
+      doc.setFontSize(16); // Tamaño reducido
+      doc.setTextColor(37, 99, 235);
+      doc.setFont('helvetica', 'bold');
+      doc.text('REPORTE DE ACTIVIDADES DE USUARIO', pageWidth / 2, yPosition, { align: 'center' });
+      
+      yPosition += 6; // Espacio reducido
+      
+      // Línea decorativa más delgada
+      doc.setDrawColor(37, 99, 235);
+      doc.setLineWidth(0.3);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      
+      yPosition += 8; // Espacio reducido
 
-        // Generar nombre de archivo único: reporte_actividades_admin_2024-11-10.pdf
-        const fileName = `reporte_actividades_${report.user.userCode}_${new Date().toISOString().split('T')[0]}.pdf`;
+      // ===== INFORMACIÓN EN DOS COLUMNAS (Usuario + Período) =====
+      const col1X = margin;
+      const col2X = pageWidth / 2 + 5;
+      const startY = yPosition;
 
-        // Compatibilidad con Internet Explorer y Edge legacy
-        if (window.navigator && (window.navigator as any).msSaveOrOpenBlob) {
-          (window.navigator as any).msSaveOrOpenBlob(blob, fileName);  // Método específico de IE/Edge
-        } else {
-          // Método estándar para navegadores modernos (Chrome, Firefox, Safari, Edge Chromium)
-          const link = document.createElement('a');  // Crear elemento <a> temporal
-          const url = URL.createObjectURL(blob);     // Crear URL temporal del blob
-
-          link.href = url;                    // Asignar URL al href del link
-          link.download = fileName;           // Asignar nombre de archivo para descarga
-          link.style.display = 'none';        // Ocultar el link (no visible en la página)
-
-          document.body.appendChild(link);    // Agregar link al DOM
-          link.click();                       // Simular click para iniciar descarga
-
-          // Limpiar recursos después de 100ms
-          setTimeout(() => {
-            document.body.removeChild(link);  // Remover link del DOM
-            URL.revokeObjectURL(url);         // Liberar memoria del objeto URL
-          }, 100);
-        }
-
-        this.loading.set(false);  // Desactivar indicador de carga
-        this.snackBar.open(`Reporte PDF generado: ${fileName}`, 'Cerrar', {
-          duration: 4000,
-          panelClass: ['success-snackbar']
-        });
-      } catch (error) {
-        console.error('Error generando PDF:', error);
-        this.loading.set(false);
-        this.snackBar.open('Error al generar el reporte PDF', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
+      // COLUMNA 1: Información del Usuario
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Información del Usuario', col1X, yPosition);
+      
+      yPosition += 5;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text(`Nombre: ${report.user.firstName} ${report.user.lastName}`, col1X, yPosition);
+      yPosition += 4;
+      doc.text(`Código: ${report.user.userCode}`, col1X, yPosition);
+      yPosition += 4;
+      doc.text(`Email: ${report.user.email}`, col1X, yPosition);
+      yPosition += 4;
+      
+      // Agregar teléfono si existe
+      if (report.user.phone) {
+        doc.text(`Teléfono: ${report.user.phone}`, col1X, yPosition);
+        yPosition += 4;
       }
-    }, 1500);
-  }
+      
+      doc.text(`Rol: ${this.getRoleDisplayName(report.user.role || '')}`, col1X, yPosition);
 
-  /**
-   * generatePDFContent - Generar contenido del PDF en formato texto
-   * 
-   * Crea el contenido del reporte en formato texto plano que será convertido a PDF.
-   * Incluye toda la información del usuario, estadísticas y detalle de actividades.
-   * 
-   * Estructura del reporte:
-   * 1. Encabezado con título
-   * 2. Información del usuario (nombre, código, email, rol)
-   * 3. Período del reporte y total de actividades
-   * 4. Desglose estadístico por módulo
-   * 5. Listado detallado de todas las actividades
-   * 6. Pie de página con fecha de generación
-   * 
-   * @param report - Objeto UserReport con todos los datos del reporte
-   * @returns String con el contenido formateado del PDF
-   * 
-   * @private - Método privado, solo usado internamente
-   * 
-   * TODO: Implementar generación real de PDF usando librerías como jsPDF o pdfmake
-   * para obtener un PDF con formato profesional, tablas, gráficos y estilos
-   */
-  private generatePDFContent(report: UserReport): string {
-    return `
-REPORTE DE ACTIVIDADES DE USUARIO
-=================================
+      // COLUMNA 2: Período y Estadísticas (resetear yPosition)
+      yPosition = startY;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Período del Reporte', col2X, yPosition);
+      
+      yPosition += 5;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text(`Desde: ${this.timeFormatService.formatDate(report.dateRange.start)}`, col2X, yPosition);
+      yPosition += 4;
+      doc.text(`Hasta: ${this.timeFormatService.formatDate(report.dateRange.end)}`, col2X, yPosition);
+      yPosition += 4;
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total: ${report.totalActivities} actividades`, col2X, yPosition);
+      
+      // Ajustar yPosition al máximo de ambas columnas (considerando si hay teléfono o no)
+      yPosition = startY + (report.user.phone ? 25 : 21);
 
-Usuario: ${report.user.firstName} ${report.user.lastName}
-Código: ${report.user.userCode}
-Email: ${report.user.email}
-Rol: ${report.user.role}
+      // ===== DESGLOSE POR MÓDULO EN LÍNEA HORIZONTAL =====
+      yPosition += 5;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('Distribución por Módulo:', margin, yPosition);
+      
+      yPosition += 4;
+      
+      // Crear texto compacto con todos los módulos en una línea
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      const moduleText = Object.entries(report.moduleBreakdown)
+        .map(([module, count]) => `${this.getModuleLabel(module)}: ${count}`)
+        .join('  •  ');
+      
+      // Dividir en múltiples líneas si es muy largo
+      const splitText = doc.splitTextToSize(moduleText, contentWidth);
+      doc.text(splitText, margin, yPosition);
+      yPosition += (splitText.length * 3) + 3;
 
-Período: ${this.timeFormatService.formatDate(report.dateRange.start)} - ${this.timeFormatService.formatDate(report.dateRange.end)}
-Total de actividades: ${report.totalActivities}
+      // ===== TABLA DE ACTIVIDADES OPTIMIZADA =====
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Detalle de Actividades', margin, yPosition);
+      
+      yPosition += 4;
 
-DESGLOSE POR MÓDULO:
-${Object.entries(report.moduleBreakdown).map(([module, count]) => `${module}: ${count} actividades`).join('\n')}
+      // Preparar datos para la tabla con descripciones más largas
+      const tableData = report.activities.map((activity, index) => [
+        (index + 1).toString(),
+        this.timeFormatService.formatDate(new Date(activity.timestamp)) + '\n' + 
+        this.timeFormatService.formatTime(new Date(activity.timestamp)),
+        this.getModuleLabel(activity.module),
+        activity.action,
+        activity.description.length > 60 ? activity.description.substring(0, 57) + '...' : activity.description
+      ]);
 
-DETALLE DE ACTIVIDADES:
-${report.activities.map((activity, index) => `
-${index + 1}. ${activity.action}
-   Fecha: ${this.timeFormatService.formatDate(new Date(activity.timestamp))} ${this.timeFormatService.formatTime(new Date(activity.timestamp))}
-   Módulo: ${activity.module}
-   Descripción: ${activity.description}
-   Componente: ${activity.component}
-`).join('\n')}
+      // Generar tabla compacta con autoTable
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['#', 'Fecha/Hora', 'Módulo', 'Acción', 'Descripción']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [37, 99, 235],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 8,
+          cellPadding: 2
+        },
+        bodyStyles: {
+          fontSize: 7,
+          cellPadding: 2,
+          lineColor: [220, 220, 220],
+          lineWidth: 0.1
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 8, halign: 'center' },
+          1: { cellWidth: 28, fontSize: 6.5 },
+          2: { cellWidth: 22, fontSize: 7 },
+          3: { cellWidth: 30, fontSize: 7 },
+          4: { cellWidth: 82, fontSize: 7 }
+        },
+        margin: { left: margin, right: margin },
+        rowPageBreak: 'avoid',
+        didDrawPage: (data) => {
+          // Encabezado en cada página (excepto la primera)
+          if (data.pageNumber > 1) {
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont('helvetica', 'italic');
+            doc.text(
+              `Reporte de ${report.user.userCode} - Continuación`,
+              margin,
+              10
+            );
+          }
 
-Reporte generado el: ${this.timeFormatService.formatDate(new Date())} ${this.timeFormatService.formatTime(new Date())}
-Sistema FlexoAPP - Gestión Flexográfica
-    `;
+          // Pie de página en cada página
+          const pageCount = (doc as any).internal.getNumberOfPages();
+          doc.setFontSize(7);
+          doc.setTextColor(128, 128, 128);
+          doc.setFont('helvetica', 'normal');
+          
+          // Número de página
+          doc.text(
+            `Página ${data.pageNumber} de ${pageCount}`,
+            pageWidth / 2,
+            pageHeight - 8,
+            { align: 'center' }
+          );
+          
+          // Fecha de generación (solo en la primera página)
+          if (data.pageNumber === 1) {
+            doc.setFontSize(6);
+            doc.text(
+              `Generado: ${this.timeFormatService.formatDate(new Date())} ${this.timeFormatService.formatTime(new Date())}`,
+              pageWidth - margin,
+              pageHeight - 8,
+              { align: 'right' }
+            );
+          }
+        }
+      });
+
+      // ===== PIE DE PÁGINA FINAL (solo en última página) =====
+      const finalY = (doc as any).lastAutoTable.finalY + 5;
+      if (finalY < pageHeight - 20) {
+        doc.setFontSize(7);
+        doc.setTextColor(100, 100, 100);
+        doc.setFont('helvetica', 'italic');
+        doc.text('Sistema FlexoAPP - Gestión Flexográfica', pageWidth / 2, finalY, { align: 'center' });
+      }
+
+      // ===== GUARDAR PDF =====
+      const fileName = `reporte_${report.user.userCode}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+
+      this.loading.set(false);
+      this.snackBar.open(`✅ PDF generado: ${fileName}`, 'Cerrar', {
+        duration: 4000,
+        panelClass: ['success-snackbar']
+      });
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      this.loading.set(false);
+      this.snackBar.open('❌ Error al generar el PDF', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+    }
   }
 
   // ============================================================================
-  // MÉTODOS DE UTILIDAD - Funciones auxiliares y helpers
+  // MÉTODOS DE UTILIDAD
   // ============================================================================
 
   /**
-   * clearResults - Limpiar resultados de búsqueda y resetear formulario
-   * 
-   * Limpia todos los resultados de la búsqueda actual y resetea el formulario
-   * a su estado inicial. Útil cuando el usuario quiere hacer una nueva búsqueda
-   * desde cero.
-   * 
-   * Acciones realizadas:
-   * 1. Limpia los resultados de búsqueda (searchResults = null)
-   * 2. Resetea todos los campos del formulario a sus valores iniciales
-   * 3. Restaura el valor del módulo a 'ALL' (todos los módulos)
+   * clearResults - Limpiar resultados y resetear formulario
    */
   clearResults() {
-    this.searchResults.set(null);                      // Limpiar resultados actuales
-    this.searchForm.reset();                           // Resetear formulario a valores iniciales
-    this.searchForm.patchValue({ module: 'ALL' });     // Restaurar módulo a 'ALL'
+    this.searchResults.set(null);
+    this.searchForm.reset();
+    this.searchForm.patchValue({ module: 'ALL' });
   }
 
   /**
    * getModuleLabel - Obtener etiqueta legible del módulo
-   * 
-   * Convierte el valor técnico del módulo (ej: 'AUTH') en una etiqueta
-   * legible para el usuario (ej: 'Autenticación').
-   * 
-   * @param moduleValue - Valor técnico del módulo (AUTH, MACHINES, etc.)
-   * @returns Etiqueta legible del módulo o el valor original si no se encuentra
-   * 
-   * Ejemplo:
-   * getModuleLabel('AUTH') => 'Autenticación'
-   * getModuleLabel('MACHINES') => 'Máquinas'
    */
   getModuleLabel(moduleValue: string): string {
-    const module = this.moduleOptions.find(m => m.value === moduleValue);  // Buscar módulo en opciones
-    return module ? module.label : moduleValue;  // Retornar label o valor original
+    const module = this.moduleOptions.find(m => m.value === moduleValue);
+    return module ? module.label : moduleValue;
   }
 
   /**
    * getModuleIcon - Obtener icono de Material Design para el módulo
-   * 
-   * Mapea cada módulo del sistema a un icono específico de Material Design
-   * para mejorar la visualización y reconocimiento rápido en la interfaz.
-   * 
-   * @param module - Nombre del módulo (AUTH, MACHINES, DESIGN, etc.)
-   * @returns Nombre del icono de Material Design
-   * 
-   * Iconos por módulo:
-   * - ALL: apps (icono de todos los módulos)
-   * - AUTH: login (icono de inicio de sesión)
-   * - PROFILE: person (icono de persona)
-   * - MACHINES: precision_manufacturing (icono de máquina industrial)
-   * - DESIGN: design_services (icono de diseño)
-   * - REPORTS: assessment (icono de gráficos/reportes)
-   * - SETTINGS: settings (icono de configuración)
-   * - Otros: info (icono de información por defecto)
    */
   getModuleIcon(module: string): string {
     const icons: { [key: string]: string } = {
-      'ALL': 'apps',                          // Icono para todos los módulos
-      'AUTH': 'login',                        // Icono para autenticación
-      'PROFILE': 'person',                    // Icono para perfil de usuario
-      'MACHINES': 'precision_manufacturing',  // Icono para máquinas
-      'DESIGN': 'design_services',            // Icono para diseño
-      'REPORTS': 'assessment',                // Icono para reportes
-      'SETTINGS': 'settings'                  // Icono para configuraciones
+      'ALL': 'apps',
+      'AUTH': 'login',
+      'PROFILE': 'person',
+      'MACHINES': 'precision_manufacturing',
+      'DESIGN': 'design_services',
+      'REPORTS': 'assessment',
+      'SETTINGS': 'settings'
     };
-    return icons[module] || 'info';  // Retornar icono específico o 'info' por defecto
-  }
-
-  // Método displayUserCode eliminado - Ya no se usa autocomplete, ahora es un select con usuarios REALES
-
-  /**
-   * selectUser - Seleccionar usuario desde chips de sugerencias
-   * 
-   * Permite al usuario hacer clic en un chip de sugerencia para
-   * autocompletar el campo de código de usuario rápidamente.
-   * 
-   * @param userCode - Código del usuario a seleccionar
-   * 
-   * Uso típico: Chips con usuarios frecuentes o recientes
-   */
-  selectUser(userCode: string) {
-    this.searchForm.patchValue({ userCode });  // Actualizar valor del campo userCode en el formulario
+    return icons[module] || 'info';
   }
 
   /**
-   * getDefaultStartDate - Obtener fecha de inicio por defecto
-   * 
-   * Calcula la fecha de 30 días atrás desde hoy para usar como
-   * fecha de inicio predeterminada en el selector de fechas.
-   * 
-   * @returns Fecha de hace 30 días
-   * 
-   * Cálculo:
-   * - Date.now(): Timestamp actual en milisegundos
-   * - 30 * 24 * 60 * 60 * 1000: 30 días en milisegundos
-   * - Resta para obtener fecha pasada
+   * getDefaultStartDate - Fecha de inicio por defecto (30 días atrás)
    */
   getDefaultStartDate(): Date {
-    return new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);  // Fecha de hace 30 días
+    return new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   }
 
   /**
-   * getDefaultEndDate - Obtener fecha de fin por defecto
-   * 
-   * Retorna la fecha actual para usar como fecha de fin
-   * predeterminada en el selector de fechas.
-   * 
-   * @returns Fecha actual (hoy)
+   * getDefaultEndDate - Fecha de fin por defecto (hoy)
    */
   getDefaultEndDate(): Date {
-    return new Date();  // Fecha actual
+    return new Date();
   }
 
   /**
-   * onDateChange - Manejar cambio de fecha
-   * 
-   * Se ejecuta cuando el usuario selecciona una fecha del datepicker
-   * 
-   * @param type - Tipo de fecha ('start' o 'end')
-   * @param event - Evento del datepicker con la fecha seleccionada
+   * onDateChange - Manejar cambio de fecha en el datepicker
    */
   onDateChange(type: 'start' | 'end', event: MatDatepickerInputEvent<Date>) {
-    // El valor ya se actualiza automáticamente en el formulario
-    // Este método está disponible para validaciones adicionales si se necesitan
     if (event.value) {
       console.log(`Fecha ${type} seleccionada:`, event.value);
     }
   }
 
   /**
-   * getRoleDisplayName - Obtener nombre legible del rol de usuario
-   * 
-   * Convierte el valor técnico del rol (ej: 'admin') en un nombre
-   * legible en español (ej: 'Administrador') para mostrar en la UI.
-   * 
-   * @param role - Valor técnico del rol (admin, manager, designer, etc.)
-   * @returns Nombre legible del rol en español
-   * 
-   * Mapeo de roles:
-   * - admin => Administrador (acceso total al sistema)
-   * - manager => Gerente (gestión de operaciones)
-   * - designer => Diseñador (creación de diseños)
-   * - operator => Operario (operación de máquinas)
-   * - viewer => Visualizador (solo lectura)
-   * - user => Usuario (rol genérico)
-   * 
-   * Si el rol no está en el mapeo, retorna el valor original
+   * getRoleDisplayName - Obtener nombre legible del rol
    */
   getRoleDisplayName(role: string): string {
     const roleMap: { [key: string]: string } = {
-      'admin': 'Administrador',      // Rol con máximos privilegios
-      'manager': 'Gerente',          // Rol de gestión
-      'designer': 'Diseñador',       // Rol de diseño
-      'operator': 'Operario',        // Rol de operación
-      'viewer': 'Visualizador',      // Rol de solo lectura
-      'user': 'Usuario'              // Rol genérico
+      'admin': 'Administrador',
+      'manager': 'Gerente',
+      'designer': 'Diseñador',
+      'operator': 'Operario',
+      'viewer': 'Visualizador',
+      'user': 'Usuario'
     };
-    return roleMap[role] || role || 'Sin rol';  // Retornar nombre legible o valor original
+    return roleMap[role] || role || 'Sin rol';
   }
 
   /**
    * getUserProfileImage - Obtener URL completa de la imagen de perfil
-   * 
-   * Maneja tanto URLs completas (http/https) como rutas relativas del servidor.
-   * Si la imagen es una ruta relativa (ej: /uploads/profiles/...), 
-   * se le agrega la URL base del API.
-   * 
-   * @param profileImage - URL o ruta de la imagen de perfil
-   * @returns URL completa de la imagen o null si no hay imagen
    */
   getUserProfileImage(profileImage?: string): string | null {
-    if (!profileImage) {
+    if (!profileImage || profileImage === 'large_image_available') {
       return null;
     }
 
-    // Si es el indicador de imagen grande, no mostrar
-    if (profileImage === 'large_image_available') {
-      return null;
-    }
-
-    // Si ya es una URL completa (http/https), retornarla tal cual
     if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
       return profileImage;
     }
 
-    // Si es base64, retornarla tal cual
     if (profileImage.startsWith('data:image/')) {
       return profileImage;
     }
 
-    // Si es una ruta relativa, agregar la URL base del API
-    // Nota: environment.apiUrl ya incluye '/api', así que quitamos '/api' si viene en la ruta
     const cleanPath = profileImage.startsWith('/api/') ? profileImage.substring(4) : profileImage;
     const separator = cleanPath.startsWith('/') ? '' : '/';
 
@@ -754,10 +706,6 @@ Sistema FlexoAPP - Gestión Flexográfica
 
   /**
    * handleImageError - Manejar error al cargar imagen de perfil
-   * 
-   * Oculta la imagen y muestra el icono por defecto cuando falla la carga
-   * 
-   * @param event - Evento de error de la imagen
    */
   handleImageError(event: Event): void {
     const imgElement = event.target as HTMLImageElement;

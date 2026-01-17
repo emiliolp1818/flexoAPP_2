@@ -268,16 +268,16 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
         height: 46.8px;                                // Altura exacta de 46.8px
       }
 
-      // Ajustar el infix (contenedor del input) para centrado perfecto y espacio para label
+      // Ajustar el infix (contenedor del input) para centrado perfecto vertical
       ::ng-deep .mat-mdc-form-field-infix {
-        padding-top: 20px;                             // Padding superior de 20px para dar mucho espacio al label
-        padding-bottom: 0px;                           // Sin padding inferior
+        padding-top: 12px;                             // Padding superior reducido de 20px a 12px
+        padding-bottom: 12px;                          // Padding inferior de 12px para centrar
         min-height: 46.8px;                            // Altura mínima de 46.8px
         display: flex;                                 // Flexbox para centrado
-        align-items: flex-end;                         // Alinear al final (abajo) para que el texto quede abajo
+        align-items: center;                           // Centrar verticalmente el texto
       }
 
-      // Label flotante - Posicionado MUY abajo dentro del input para no cortarse
+      // Label flotante - Posicionado dentro del input
       ::ng-deep .mat-mdc-form-field-label {
         display: flex;                                 // Flexbox para alinear icono y texto
         align-items: center;                           // Centrar verticalmente
@@ -287,13 +287,13 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
         white-space: nowrap;                           // No permitir saltos de línea
         overflow: visible;                             // Permitir que sea visible
         color: $gray-500;                              // Color gris medio para placeholder
-        top: 14px !important;                          // Posicionar a 14px desde arriba (MUY abajo dentro del input)
+        top: 14px !important;                          // Posicionar a 14px desde arriba dentro del input
         left: 0;                                       // Alinear a la izquierda
-        transform: none !important;                    // Sin transform inicial (forzado con !important)
-        padding: 0 10px;                               // Padding horizontal de 10px para separar del borde
+        transform: none !important;                    // Sin transform inicial
+        padding: 0 10px;                               // Padding horizontal de 10px
         background: transparent;                       // Fondo transparente
-        transition: all 0.2s ease;                     // Transición suave para animación
-        line-height: 1;                                // Altura de línea de 1 para compactar
+        transition: all 0.2s ease;                     // Transición suave
+        line-height: 1;                                // Altura de línea de 1
 
         // Iconos dentro de los labels
         mat-icon {
@@ -307,9 +307,9 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
 
       // Label cuando está flotando (cuando hay texto en el input)
       ::ng-deep .mat-mdc-form-field-label.mdc-floating-label--float-above {
-        top: -12px !important;                         // Posicionar a -12px (fuera del input, arriba del borde)
+        top: -8px !important;                          // Posicionar a -8px (más bajo para evitar que se corte)
         left: 0;                                       // Mantener alineación izquierda
-        transform: scale(0.85) !important;             // Solo reducir tamaño (85%) - forzado con !important
+        transform: scale(0.85) !important;             // Reducir tamaño al 85%
         padding: 0 6px;                                // Padding cuando está flotando
         background: white;                             // Fondo blanco para cubrir el borde
         color: $primary-blue;                          // Color azul cuando está flotando
@@ -414,12 +414,22 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
     .field-user {
       width: 220px;                                    // Ancho de 220px
       min-width: 220px;                                // Ancho mínimo de 220px
+      
+      // Label flotante más abajo solo para este campo
+      ::ng-deep .mat-mdc-form-field-label.mdc-floating-label--float-above {
+        top: -6px !important;                          // Bajar más el label solo para usuario (evita corte)
+      }
     }
 
     // Campo de módulo - Ancho medio
     .field-module {
       width: 200px;                                    // Ancho de 200px
       min-width: 200px;                                // Ancho mínimo de 200px
+      
+      // Label flotante más abajo solo para este campo
+      ::ng-deep .mat-mdc-form-field-label.mdc-floating-label--float-above {
+        top: -6px !important;                          // Bajar más el label solo para módulo (evita corte)
+      }
     }
 
     // Campos de fecha - Ancho estándar
@@ -452,16 +462,18 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
       // Estilos base para todos los botones
       .btn-compact {
         height: 46.8px;                                // Altura exacta de 46.8px (igual que inputs)
-        min-width: auto;                               // Ancho mínimo automático
-        padding: 0 16px;                               // Padding horizontal de 16px
+        min-width: 110px;                              // Ancho mínimo de 110px
+        padding: 0 20px;                               // Padding horizontal de 20px
         border-radius: 10px;                           // Bordes redondeados de 10px
         font-size: 0.85rem;                            // Tamaño de fuente de 0.85rem
-        font-weight: 500;                              // Peso de fuente medio
+        font-weight: 600;                              // Peso de fuente semi-negrita
         display: flex;                                 // Flexbox para alinear contenido
         align-items: center;                           // Centrar verticalmente
         justify-content: center;                       // Centrar horizontalmente
         gap: 6px;                                      // Espacio de 6px entre icono y texto
         transition: all 0.3s ease;                     // Transición suave
+        text-transform: none;                          // Sin transformación de texto
+        letter-spacing: 0.3px;                         // Espaciado entre letras
 
         // Iconos dentro de los botones
         mat-icon {
@@ -472,7 +484,7 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
 
         // Spinner de carga
         mat-spinner {
-          margin-right: 4px;                           // Margen derecho de 4px
+          margin-right: 0;                             // Sin margen
         }
       }
 
@@ -490,33 +502,46 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
           box-shadow: 0 4px 12px rgba($primary-blue, 0.4); // Sombra más pronunciada
         }
 
+        // Estado activo (al hacer clic)
+        &:active:not(:disabled) {
+          transform: translateY(0);                    // Volver a posición original
+          box-shadow: 0 2px 6px rgba($primary-blue, 0.3); // Sombra reducida
+        }
+
         // Estado deshabilitado
         &:disabled {
           opacity: 0.6;                                // Opacidad del 60%
           cursor: not-allowed;                         // Cursor de no permitido
+          background: linear-gradient(135deg, $gray-400 0%, $gray-500 100%); // Gradiente gris
         }
       }
 
-      // Botón de limpiar - Estilo secundario con borde
+      // Botón de limpiar - Estilo secundario con gradiente naranja/rojo
       .btn-clear-compact {
-        border: 2px solid rgba($primary-blue, 0.3);    // Borde azul sutil
-        color: $gray-700;                              // Texto gris oscuro
-        background: white;                             // Fondo blanco
-        min-width: 46.8px;                             // Ancho mínimo cuadrado
-        padding: 0 12px;                               // Padding horizontal de 12px
+        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); // Gradiente naranja
+        color: white;                                  // Texto blanco
+        border: none;                                  // Sin borde
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); // Sombra naranja suave
+        min-width: 110px;                              // Ancho mínimo igual al botón de búsqueda
 
         // Efecto hover
         &:hover:not(:disabled) {
-          border-color: $primary-blue;                 // Borde azul sólido
-          color: $primary-blue;                        // Texto azul
-          background: rgba($primary-blue, 0.05);       // Fondo azul muy sutil
+          background: linear-gradient(135deg, #fbbf24 0%, #fb923c 100%); // Gradiente más claro
           transform: translateY(-1px);                 // Elevar 1px
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); // Sombra más pronunciada
+        }
+
+        // Estado activo (al hacer clic)
+        &:active:not(:disabled) {
+          transform: translateY(0);                    // Volver a posición original
+          box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3); // Sombra reducida
         }
 
         // Estado deshabilitado
         &:disabled {
           opacity: 0.5;                                // Opacidad del 50%
           cursor: not-allowed;                         // Cursor de no permitido
+          background: linear-gradient(135deg, $gray-400 0%, $gray-500 100%); // Gradiente gris
         }
       }
     }
@@ -575,32 +600,40 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
     }
   }
 }
+
 // ============================================================================
 // SECCIÓN DE RESULTADOS - Área donde se muestran los resultados de búsqueda
 // ============================================================================
 .results-section-modern {
-  margin-top: 6px;                                     // Margen superior de 6px (pegado al buscador)
+  margin-top: 2px;                                     // Margen superior de 2px (mínimo espacio con el buscador)
   display: flex;                                       // Flexbox para layout vertical
   flex-direction: column;                              // Dirección vertical
-  gap: 24px;                                           // Espacio de 24px entre elementos
+  gap: 8px;                                            // Espacio de 8px entre elementos (reducido para compactar)
 }
 
 // ============================================================================
-// HEADER DEL REPORTE SIMPLIFICADO - Información del usuario y estadísticas
+// HEADER DEL REPORTE SIMPLIFICADO - Información del usuario y estadísticas + Distribución por módulo
 // ============================================================================
 .report-header-simple {
-  display: flex;                                       // Flexbox para layout horizontal
-  align-items: center;                                 // Centrar verticalmente
-  justify-content: space-between;                      // Espacio entre elementos
-  gap: 24px;                                           // Espacio de 24px entre secciones
+  display: flex;                                       // Flexbox para layout vertical
+  flex-direction: column;                              // Dirección vertical para incluir distribución
+  gap: 12px;                                           // Espacio de 12px entre secciones
   padding: 16px 20px;                                  // Padding: 16px vertical, 20px horizontal
   background: white;                                   // Fondo blanco sólido
   border-radius: 12px;                                 // Bordes redondeados de 12px
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);           // Sombra suave
   border: 1px solid $gray-200;                        // Borde gris claro
-  margin-bottom: 8px;                                  // Margen inferior de 8px
-  margin-top: 6px;                                     // Margen superior de 6px (pegado al buscador)
-  flex-wrap: wrap;                                     // Permitir que los elementos se envuelvan
+  margin-bottom: 8px;                                  // Margen inferior de 8px (espacio con el contenido siguiente)
+  margin-top: -20px;                                     // Margen superior de 2px (mínimo espacio con el buscador)
+
+  // Fila superior: Información del usuario + Estadísticas
+  .header-top-row {
+    display: flex;                                     // Flexbox para layout horizontal
+    align-items: center;                               // Centrar verticalmente
+    justify-content: space-between;                    // Espacio entre elementos
+    gap: 24px;                                         // Espacio de 24px entre secciones
+    flex-wrap: wrap;                                   // Permitir que los elementos se envuelvan
+  }
 
   // Información del usuario - Avatar + Datos
   .user-info-simple {
@@ -821,133 +854,140 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
       }
     }
   }
-}
-// ============================================================================
-// DISTRIBUCIÓN POR MÓDULO - Barras de progreso por módulo
-// ============================================================================
-.module-breakdown-card {
-  background: white;                                   // Fondo blanco sólido
-  border-radius: 12px;                                 // Bordes redondeados de 12px
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);           // Sombra suave
-  margin-bottom: 8px;                                  // Margen inferior de 8px
-  margin-top: 6px;                                     // Margen superior de 6px (pegado al perfil)
 
-  // Header de la tarjeta
-  mat-card-header {
-    padding: 12px 16px;                                // Padding: 12px vertical, 16px horizontal
+  // ========================================================================
+  // DISTRIBUCIÓN POR MÓDULO INTEGRADA - Compacta en una línea
+  // ========================================================================
+  .module-distribution-inline {
+    padding-top: 12px;                                 // Padding superior de 12px para separar de la fila superior
+    border-top: 1px solid $gray-200;                  // Borde superior gris claro para separar visualmente
+    display: flex;                                     // Flexbox para layout horizontal
+    align-items: center;                               // Centrar verticalmente
+    gap: 16px;                                         // Espacio de 16px entre título y barras
+    flex-wrap: wrap;                                   // Permitir wrap si no cabe
 
-    // Título de la tarjeta
-    mat-card-title {
-      font-size: 1rem;                                 // Tamaño de fuente de 1rem
+    // Título de la sección
+    .distribution-title {
+      font-size: 0.75rem;                              // Tamaño de fuente pequeño (0.75rem)
       font-weight: 600;                                // Texto semi-negrita
+      color: $gray-600;                                // Color gris medio
+      text-transform: uppercase;                       // Texto en mayúsculas
+      letter-spacing: 0.5px;                           // Espaciado entre letras
       display: flex;                                   // Flexbox para alinear icono y texto
       align-items: center;                             // Centrar verticalmente
-      gap: 8px;                                        // Espacio de 8px entre icono y texto
+      gap: 6px;                                        // Espacio de 6px entre icono y texto
+      flex-shrink: 0;                                  // No permitir que se encoja
 
       // Icono del título
       mat-icon {
-        font-size: 20px;                               // Tamaño de icono de 20px
-        width: 20px;                                   // Ancho de 20px
-        height: 20px;                                  // Alto de 20px
-        color: $primary-blue;                         // Color azul principal
+        font-size: 16px;                               // Tamaño de icono de 16px
+        width: 16px;                                   // Ancho de 16px
+        height: 16px;                                  // Alto de 16px
+        color: $primary-blue;                          // Color azul principal
       }
     }
-  }
 
-  // Contenido de la tarjeta
-  mat-card-content {
-    padding: 12px 16px 16px 16px;                      // Padding: 12px arriba, 16px laterales, 16px abajo
-  }
-
-  // Contenedor de barras de módulos
-  .module-bars {
-    display: flex;                                     // Flexbox para layout vertical
-    flex-direction: column;                            // Dirección vertical
-    gap: 12px;                                         // Espacio de 12px entre barras
-  }
-
-  // Item individual de barra de módulo
-  .module-bar-item {
-    // Header de la barra (label y contador)
-    .module-bar-header {
+    // Contenedor de módulos en línea
+    .modules-inline {
       display: flex;                                   // Flexbox para layout horizontal
-      justify-content: space-between;                  // Espacio entre label y contador
+      gap: 12px;                                       // Espacio de 12px entre módulos
       align-items: center;                             // Centrar verticalmente
-      margin-bottom: 6px;                              // Margen inferior de 6px
+      flex-wrap: wrap;                                 // Permitir wrap si no cabe
+      flex: 1;                                         // Ocupar espacio disponible
 
-      // Label del módulo (icono + nombre)
-      .module-bar-label {
-        display: flex;                                 // Flexbox para alinear icono y texto
+      // Item individual de módulo
+      .module-item-inline {
+        display: flex;                                 // Flexbox para layout horizontal
         align-items: center;                           // Centrar verticalmente
-        gap: 6px;                                      // Espacio de 6px entre icono y texto
-        font-weight: 600;                              // Texto semi-negrita
-        color: $gray-700;                             // Color gris oscuro
+        gap: 6px;                                      // Espacio de 6px entre elementos
+        padding: 4px 10px;                             // Padding: 4px vertical, 10px horizontal
+        background: $gray-50;                          // Fondo gris muy claro
+        border-radius: 8px;                            // Bordes redondeados de 8px
+        border: 1px solid $gray-200;                   // Borde gris claro
+        flex-shrink: 0;                                // No permitir que se encoja
 
-        // Icono pequeño del módulo
-        .module-icon-small {
-          font-size: 18px;                             // Tamaño de icono de 18px
-          width: 18px;                                 // Ancho de 18px
-          height: 18px;                                // Alto de 18px
-          color: $primary-blue-500;                   // Color azul intenso
+        // Icono del módulo
+        .module-icon-inline {
+          font-size: 14px;                             // Tamaño de icono de 14px
+          width: 14px;                                 // Ancho de 14px
+          height: 14px;                                // Alto de 14px
+          color: $primary-blue-500;                    // Color azul intenso
         }
 
         // Nombre del módulo
-        .module-name {
-          font-size: 0.85rem;                          // Tamaño de fuente de 0.85rem
-        }
-      }
-
-      // Contador de actividades del módulo
-      .module-count {
-        font-weight: 700;                              // Texto negrita
-        font-size: 0.95rem;                            // Tamaño de fuente de 0.95rem
-        color: $gray-800;                             // Color gris oscuro
-        background: $gray-100;                        // Fondo gris claro
-        padding: 2px 8px;                              // Padding: 2px vertical, 8px horizontal
-        border-radius: 6px;                            // Bordes redondeados de 6px
-      }
-    }
-
-    // Contenedor de la barra de progreso
-    .module-bar-container {
-      height: 8px;                                     // Altura de 8px (compacta)
-      background: $gray-100;                          // Fondo gris claro
-      border-radius: 4px;                              // Bordes redondeados de 4px
-      overflow: hidden;                                // Ocultar contenido que sobresalga
-
-      // Relleno de la barra (progreso)
-      .module-bar-fill {
-        height: 100%;                                  // Altura completa
-        border-radius: 4px;                            // Bordes redondeados de 4px
-        transition: width 0.6s ease;                   // Transición suave del ancho
-
-        // Colores por módulo
-        &.module-auth {
-          background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%); // Gradiente azul
+        .module-name-inline {
+          font-size: 0.75rem;                          // Tamaño de fuente de 0.75rem
+          font-weight: 500;                            // Peso de fuente medio
+          color: $gray-700;                            // Color gris oscuro
+          white-space: nowrap;                         // No permitir saltos de línea
         }
 
-        &.module-profile {
-          background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%); // Gradiente morado
+        // Badge con contador
+        .module-count-inline {
+          font-weight: 700;                            // Texto negrita
+          font-size: 0.7rem;                           // Tamaño de fuente pequeño (0.7rem)
+          color: white;                                // Texto blanco
+          background: $primary-blue;                   // Fondo azul principal
+          padding: 2px 6px;                            // Padding: 2px vertical, 6px horizontal
+          border-radius: 10px;                         // Bordes muy redondeados (píldora)
+          min-width: 18px;                             // Ancho mínimo de 18px
+          text-align: center;                          // Centrar texto
         }
 
-        &.module-machines {
-          background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%); // Gradiente naranja
-        }
+        // Barra de progreso mini
+        .module-bar-inline {
+          width: 50px;                                 // Ancho fijo de 50px (muy compacto)
+          height: 4px;                                 // Altura de 4px (muy compacta)
+          background: $gray-200;                       // Fondo gris claro
+          border-radius: 2px;                          // Bordes redondeados de 2px
+          overflow: hidden;                            // Ocultar contenido que sobresalga
+          position: relative;                          // Posición relativa para el fill
 
-        &.module-design {
-          background: linear-gradient(90deg, #ec4899 0%, #f472b6 100%); // Gradiente rosa
-        }
+          // Relleno de la barra
+          .module-bar-fill-inline {
+            height: 100%;                              // Altura completa
+            border-radius: 2px;                        // Bordes redondeados de 2px
+            transition: width 0.6s ease;               // Transición suave del ancho
+            position: absolute;                        // Posición absoluta
+            left: 0;                                   // Alinear a la izquierda
+            top: 0;                                    // Alinear arriba
 
-        &.module-reports {
-          background: linear-gradient(90deg, #10b981 0%, #34d399 100%); // Gradiente verde
-        }
+            // Colores por módulo
+            &.module-auth {
+              background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%); // Gradiente azul
+            }
 
-        &.module-settings {
-          background: linear-gradient(90deg, #6366f1 0%, #818cf8 100%); // Gradiente índigo
+            &.module-profile {
+              background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%); // Gradiente morado
+            }
+
+            &.module-machines {
+              background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%); // Gradiente naranja
+            }
+
+            &.module-design {
+              background: linear-gradient(90deg, #ec4899 0%, #f472b6 100%); // Gradiente rosa
+            }
+
+            &.module-reports {
+              background: linear-gradient(90deg, #10b981 0%, #34d399 100%); // Gradiente verde
+            }
+
+            &.module-settings {
+              background: linear-gradient(90deg, #6366f1 0%, #818cf8 100%); // Gradiente índigo
+            }
+          }
         }
       }
     }
   }
+}
+
+// ============================================================================
+// DISTRIBUCIÓN POR MÓDULO - OCULTO (Ahora está integrado en report-header-simple)
+// ============================================================================
+.module-breakdown-card {
+  display: none !important;                            // Ocultar completamente - Ahora está integrado en report-header-simple
 }
 
 // ============================================================================
@@ -1023,6 +1063,7 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
     border-collapse: separate;                         // Separar bordes para border-radius
     border-spacing: 0;                                 // Sin espacio entre celdas
     font-size: 0.85rem;                                // Tamaño de fuente de 0.85rem
+    border: 1px solid rgba($primary-blue, 0.15);       // Borde exterior sutil azul
 
     // Encabezado de la tabla (thead)
     thead {
@@ -1044,6 +1085,7 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
           letter-spacing: 0.5px;                       // Espaciado entre letras
           white-space: nowrap;                         // No permitir saltos de línea
           border-bottom: 2px solid $primary-blue-700;  // Borde inferior azul oscuro
+          border-right: 1px solid rgba(255, 255, 255, 0.1); // Borde derecho sutil blanco
 
           // Primera celda (esquina superior izquierda)
           &:first-child {
@@ -1053,6 +1095,7 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
           // Última celda (esquina superior derecha)
           &:last-child {
             border-top-right-radius: 0;                // Sin redondeo (ya está en la tarjeta)
+            border-right: none;                        // Sin borde derecho en última celda
           }
         }
       }
@@ -1063,7 +1106,7 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
       // Filas de actividades
       .activity-row {
         transition: all 0.2s ease;                     // Transición suave para efectos
-        border-bottom: 1px solid $gray-100;            // Borde inferior gris claro
+        border-bottom: 1px solid rgba($primary-blue, 0.08); // Borde inferior azul muy sutil
 
         // Efecto hover en la fila
         &:hover {
@@ -1083,6 +1126,12 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
           vertical-align: middle;                      // Alinear verticalmente al centro
           color: $gray-700;                            // Color gris oscuro
           line-height: 1.5;                            // Altura de línea de 1.5
+          border-right: 1px solid rgba($primary-blue, 0.06); // Borde derecho sutil azul
+          
+          // Última celda sin borde derecho
+          &:last-child {
+            border-right: none;                        // Sin borde derecho en última celda
+          }
         }
 
         // Columna de módulo

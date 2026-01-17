@@ -36,17 +36,17 @@
                   <!-- Campo de búsqueda de usuario -->
                   <mat-form-field appearance="outline" class="field-compact field-user">
                     <mat-label>
-                      <mat-icon>person</mat-icon>
-                      Usuario
+                      <mat-icon>person_search</mat-icon>
+                      Código de Usuario
                     </mat-label>
                     <input 
                       matInput 
                       formControlName="userCode" 
-                      placeholder="Código de usuario"
+                      placeholder="Ingrese código del usuario"
                       class="input-compact"
                       autocomplete="off">
                     <mat-error *ngIf="searchForm.get('userCode')?.hasError('required')">
-                      Requerido
+                      El código de usuario es requerido
                     </mat-error>
                   </mat-form-field>
 
@@ -54,7 +54,7 @@
                   <mat-form-field appearance="outline" class="field-compact field-module">
                     <mat-label>
                       <mat-icon>category</mat-icon>
-                      Módulo
+                      Filtrar por Módulo
                     </mat-label>
                     <mat-select formControlName="module" class="select-compact">
                       <mat-option *ngFor="let option of moduleOptions" [value]="option.value">
@@ -69,13 +69,13 @@
                   <!-- Fecha desde -->
                   <mat-form-field appearance="outline" class="field-compact field-date">
                     <mat-label>
-                      <mat-icon>event</mat-icon>
-                      Desde
+                      <mat-icon>calendar_today</mat-icon>
+                      Fecha Inicio
                     </mat-label>
                     <input matInput 
                            [matDatepicker]="startPicker" 
                            formControlName="startDate" 
-                           placeholder="dd/mm/aaaa"
+                           placeholder="Seleccione fecha"
                            class="input-compact"
                            (dateChange)="onDateChange('start', $event)">
                     <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
@@ -86,12 +86,12 @@
                   <mat-form-field appearance="outline" class="field-compact field-date">
                     <mat-label>
                       <mat-icon>event</mat-icon>
-                      Hasta
+                      Fecha Fin
                     </mat-label>
                     <input matInput 
                            [matDatepicker]="endPicker" 
                            formControlName="endDate" 
-                           placeholder="dd/mm/aaaa"
+                           placeholder="Seleccione fecha"
                            class="input-compact"
                            (dateChange)="onDateChange('end', $event)">
                     <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
@@ -106,19 +106,20 @@
                       (click)="searchUserActivities()" 
                       [disabled]="loading() || searchForm.invalid" 
                       class="btn-compact btn-search-compact"
-                      matTooltip="Buscar actividades">
-                      <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+                      matTooltip="Buscar actividades del usuario">
+                      <mat-spinner *ngIf="loading()" diameter="18"></mat-spinner>
                       <mat-icon *ngIf="!loading()">search</mat-icon>
                       <span>Buscar</span>
                     </button>
 
                     <button 
-                      mat-stroked-button 
+                      mat-raised-button
                       (click)="clearResults()" 
                       [disabled]="loading()" 
                       class="btn-compact btn-clear-compact"
-                      matTooltip="Limpiar búsqueda">
-                      <mat-icon>refresh</mat-icon>
+                      matTooltip="Limpiar formulario y resultados">
+                      <mat-icon>restart_alt</mat-icon>
+                      <span>Limpiar</span>
                     </button>
                   </div>
                 </div>
@@ -127,107 +128,107 @@
               <!-- Resultados de búsqueda mejorados -->
               <div *ngIf="searchResults()" class="results-section-modern" style="margin-top: 6px;">
                 
-                <!-- Header del reporte simplificado -->
+                <!-- Header del reporte simplificado con distribución integrada -->
                 <div class="report-header-simple">
-                  <!-- Información del usuario en una línea compacta -->
-                  <div class="user-info-simple">
-                    <!-- Avatar pequeño -->
-                    <div class="user-avatar-simple">
-                      <img
-                        *ngIf="searchResults()?.user?.profileImage && searchResults()?.user?.profileImage !== 'large_image_available'" 
-                        [src]="getUserProfileImage(searchResults()?.user?.profileImage)!" 
-                        [alt]="searchResults()?.user?.firstName + ' ' + searchResults()?.user?.lastName"
-                        class="avatar-img-simple"
-                        (error)="handleImageError($event)">
-                      <mat-icon *ngIf="!searchResults()?.user?.profileImage || searchResults()?.user?.profileImage === 'large_image_available'">account_circle</mat-icon>
-                    </div>
-                    
-                    <!-- Datos del usuario -->
-                    <div class="user-data-simple">
-                      <h3 class="user-name-simple">
-                        {{ searchResults()?.user?.firstName }} {{ searchResults()?.user?.lastName }}
-                        <span class="user-code-simple">@{{ searchResults()?.user?.userCode }}</span>
-                      </h3>
-                      <div class="user-details-simple">
-                        <span class="detail-item-simple">
-                          <mat-icon>work</mat-icon>
-                          {{ getRoleDisplayName(searchResults()?.user?.role || '') }}
-                        </span>
-                        <span class="detail-separator">•</span>
-                        <span class="detail-item-simple">
-                          <mat-icon>email</mat-icon>
-                          {{ searchResults()?.user?.email }}
-                        </span>
+                  <!-- Fila superior: Usuario + Estadísticas + Exportar -->
+                  <div class="header-top-row">
+                    <!-- Información del usuario en una línea compacta -->
+                    <div class="user-info-simple">
+                      <!-- Avatar pequeño -->
+                      <div class="user-avatar-simple">
+                        <img
+                          *ngIf="searchResults()?.user?.profileImage && searchResults()?.user?.profileImage !== 'large_image_available'" 
+                          [src]="getUserProfileImage(searchResults()?.user?.profileImage)!" 
+                          [alt]="searchResults()?.user?.firstName + ' ' + searchResults()?.user?.lastName"
+                          class="avatar-img-simple"
+                          (error)="handleImageError($event)">
+                        <mat-icon *ngIf="!searchResults()?.user?.profileImage || searchResults()?.user?.profileImage === 'large_image_available'">account_circle</mat-icon>
                       </div>
+                      
+                      <!-- Datos del usuario -->
+                      <div class="user-data-simple">
+                        <h3 class="user-name-simple">
+                          {{ searchResults()?.user?.firstName }} {{ searchResults()?.user?.lastName }}
+                          <span class="user-code-simple">@{{ searchResults()?.user?.userCode }}</span>
+                        </h3>
+                        <div class="user-details-simple">
+                          <span class="detail-item-simple">
+                            <mat-icon>work</mat-icon>
+                            {{ getRoleDisplayName(searchResults()?.user?.role || '') }}
+                          </span>
+                          <span class="detail-separator">•</span>
+                          <span class="detail-item-simple">
+                            <mat-icon>email</mat-icon>
+                            {{ searchResults()?.user?.email }}
+                          </span>
+                          <span class="detail-separator" *ngIf="searchResults()?.user?.phone">•</span>
+                          <span class="detail-item-simple" *ngIf="searchResults()?.user?.phone">
+                            <mat-icon>phone</mat-icon>
+                            {{ searchResults()?.user?.phone }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Estadísticas compactas en línea -->
+                    <div class="stats-simple">
+                      <div class="stat-simple stat-primary-simple">
+                        <mat-icon>timeline</mat-icon>
+                        <div class="stat-content-simple">
+                          <span class="stat-number-simple">{{ searchResults()?.totalActivities }}</span>
+                          <span class="stat-label-simple">Actividades</span>
+                        </div>
+                      </div>
+                      
+                      <div class="stat-simple stat-info-simple">
+                        <mat-icon>date_range</mat-icon>
+                        <div class="stat-content-simple">
+                          <span class="stat-number-simple">{{ searchResults()?.dateRange?.start | date:'dd/MM/yy' }}</span>
+                          <span class="stat-label-simple">Desde</span>
+                        </div>
+                      </div>
+                      
+                      <div class="stat-simple stat-success-simple">
+                        <mat-icon>event</mat-icon>
+                        <div class="stat-content-simple">
+                          <span class="stat-number-simple">{{ searchResults()?.dateRange?.end | date:'dd/MM/yy' }}</span>
+                          <span class="stat-label-simple">Hasta</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Botón de exportar -->
+                    <div class="export-action-simple">
+                      <button mat-raised-button color="primary" (click)="exportToPDF()" 
+                              [disabled]="loading()" class="btn-export-simple">
+                        <mat-icon>picture_as_pdf</mat-icon>
+                        Exportar PDF
+                      </button>
                     </div>
                   </div>
 
-                  <!-- Estadísticas compactas en línea -->
-                  <div class="stats-simple">
-                    <div class="stat-simple stat-primary-simple">
-                      <mat-icon>timeline</mat-icon>
-                      <div class="stat-content-simple">
-                        <span class="stat-number-simple">{{ searchResults()?.totalActivities }}</span>
-                        <span class="stat-label-simple">Actividades</span>
-                      </div>
-                    </div>
-                    
-                    <div class="stat-simple stat-info-simple">
-                      <mat-icon>date_range</mat-icon>
-                      <div class="stat-content-simple">
-                        <span class="stat-number-simple">{{ searchResults()?.dateRange?.start | date:'dd/MM/yy' }}</span>
-                        <span class="stat-label-simple">Desde</span>
-                      </div>
-                    </div>
-                    
-                    <div class="stat-simple stat-success-simple">
-                      <mat-icon>event</mat-icon>
-                      <div class="stat-content-simple">
-                        <span class="stat-number-simple">{{ searchResults()?.dateRange?.end | date:'dd/MM/yy' }}</span>
-                        <span class="stat-label-simple">Hasta</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Botón de exportar -->
-                  <div class="export-action-simple">
-                    <button mat-raised-button color="primary" (click)="exportToPDF()" 
-                            [disabled]="loading()" class="btn-export-simple">
-                      <mat-icon>picture_as_pdf</mat-icon>
-                      Exportar PDF
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Desglose por módulo visual -->
-                <mat-card class="module-breakdown-card">
-                  <mat-card-header>
-                    <mat-card-title>
+                  <!-- Distribución por módulo integrada en línea -->
+                  <div class="module-distribution-inline">
+                    <div class="distribution-title">
                       <mat-icon>category</mat-icon>
                       Distribución por Módulo
-                    </mat-card-title>
-                  </mat-card-header>
-                  <mat-card-content>
-                    <div class="module-bars">
+                    </div>
+                    <div class="modules-inline">
                       <div *ngFor="let item of searchResults()?.moduleBreakdown | keyvalue" 
-                           class="module-bar-item">
-                        <div class="module-bar-header">
-                          <div class="module-bar-label">
-                            <mat-icon class="module-icon-small">{{ getModuleIcon(item.key) }}</mat-icon>
-                            <span class="module-name">{{ getModuleLabel(item.key) }}</span>
-                          </div>
-                          <span class="module-count">{{ item.value }}</span>
-                        </div>
-                        <div class="module-bar-container">
-                          <div class="module-bar-fill" 
+                           class="module-item-inline">
+                        <mat-icon class="module-icon-inline">{{ getModuleIcon(item.key) }}</mat-icon>
+                        <span class="module-name-inline">{{ getModuleLabel(item.key) }}</span>
+                        <span class="module-count-inline">{{ item.value }}</span>
+                        <div class="module-bar-inline">
+                          <div class="module-bar-fill-inline" 
                                [class]="'module-' + item.key.toLowerCase()"
                                [style.width.%]="(item.value / searchResults()!.totalActivities) * 100">
                           </div>
                         </div>
                       </div>
                     </div>
-                  </mat-card-content>
-                </mat-card>
+                  </div>
+                </div>
 
                 <!-- Tabla de actividades con scroll -->
                 <mat-card class="activities-table-card">
