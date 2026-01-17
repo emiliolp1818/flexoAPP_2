@@ -539,7 +539,7 @@ export class ReportsComponent implements OnInit {
         },
         margin: { left: margin, right: margin },
         rowPageBreak: 'avoid',
-        didDrawPage: (data) => {
+        didDrawPage: (data: any) => {
           // Encabezado en cada página (excepto la primera)
           if (data.pageNumber > 1) {
             doc.setFontSize(8);
