@@ -798,23 +798,6 @@ export class MachinesComponent implements OnInit {
           console.error('❌ OT SAP buscado:', program.otSap);
           console.error('❌ OT SAPs disponibles:', programs.map(p => p.otSap));
         }
-          console.log('📊 Estado del signal después de actualizar:', this.programs());
-          
-          console.log('🔄 Forzando detección de cambios...');
-          // Forzar detección de cambios para actualizar la vista inmediatamente
-          this.cdr.detectChanges();
-          console.log('🔄 Detección de cambios completada');
-          
-          console.log('✅ Estado actualizado localmente:', {
-            programaOtSap: program.otSap,
-            estadoAnterior: program.estado,
-            estadoNuevo: newStatus
-          });
-        } else {
-          console.error('❌ Programa NO encontrado en el array');
-          console.error('❌ OT SAP buscado:', program.otSap);
-          console.error('❌ OT SAPs disponibles:', programs.map(p => p.otSap));
-        }
         
         // Definir mensajes de éxito específicos para cada estado
         const statusMessages = {
@@ -1790,7 +1773,5 @@ export class MachinesComponent implements OnInit {
     // Eliminar ceros innecesarios al final y el punto decimal si no hay decimales
     return formatted.replace(/\.?0+$/, '') || '0';
   }
-
-
 
 }
