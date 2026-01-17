@@ -115,11 +115,11 @@ Color borde: #10b981
 Uso: Registro activo y en uso
 ```
 
-### INACTIVO (Gris)
+### INACTIVO (Rojo)
 ```
-Color texto: #374151
-Color fondo: #f3f4f6
-Color borde: #9ca3af
+Color texto: #991b1b
+Color fondo: #fee2e2
+Color borde: #ef4444
 Uso: Registro inactivo o archivado
 ```
 

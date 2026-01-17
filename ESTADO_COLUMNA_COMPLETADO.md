@@ -97,7 +97,7 @@ lastmodified    DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE
 | Estado | Color Texto | Color Fondo | Color Borde | Ejemplo Visual |
 |--------|-------------|-------------|-------------|----------------|
 | ACTIVO | #065f46 (verde oscuro) | #d1fae5 (verde claro) | #10b981 (verde) | 🟢 ACTIVO |
-| INACTIVO | #374151 (gris oscuro) | #f3f4f6 (gris claro) | #9ca3af (gris) | ⚪ INACTIVO |
+| INACTIVO | #991b1b (rojo oscuro) | #fee2e2 (rojo claro) | #ef4444 (rojo) | 🔴 INACTIVO |
 | EN REVISIÓN | #92400e (naranja oscuro) | #fef3c7 (amarillo claro) | #f59e0b (naranja) | 🟡 EN REVISIÓN |
 
 ### Características de los Badges:
