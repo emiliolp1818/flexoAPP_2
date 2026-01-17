@@ -912,7 +912,9 @@ export class MachinesComponent implements OnInit {
   // Método asíncrono para confirmar y ejecutar la suspensión de un programa
   async confirmSuspend() {
     // Validar que hay un programa seleccionado y un motivo ingresado
-    if (!this.currentProgramToSuspend || !this.suspendReason.trim()) return;
+    if (!this.currentProgramToSuspend || !this.suspendReason.trim()) {
+      return;
+    }
 
     console.log('🎯 ===== INICIO confirmSuspend =====');
     console.log('📋 Programa a suspender:', this.currentProgramToSuspend);
