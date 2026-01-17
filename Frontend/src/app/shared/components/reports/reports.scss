@@ -268,16 +268,16 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
         height: 46.8px;                                // Altura exacta de 46.8px
       }
 
-      // Ajustar el infix (contenedor del input) para centrado perfecto
+      // Ajustar el infix (contenedor del input) para centrado perfecto y espacio para label
       ::ng-deep .mat-mdc-form-field-infix {
-        padding-top: 10px;                             // Padding superior de 10px para dar más espacio al label
-        padding-bottom: 10px;                          // Padding inferior de 10px para balance
+        padding-top: 18px;                             // Padding superior de 18px para dar espacio al label
+        padding-bottom: 2px;                           // Padding inferior de 2px para balance
         min-height: 46.8px;                            // Altura mínima de 46.8px
         display: flex;                                 // Flexbox para centrado
-        align-items: center;                           // Centrar verticalmente el contenido
+        align-items: flex-end;                         // Alinear al final (abajo) para que el texto quede abajo
       }
 
-      // Label flotante - Ajustado para estar dentro del input sin cortarse
+      // Label flotante - Posicionado dentro del input completamente visible
       ::ng-deep .mat-mdc-form-field-label {
         display: flex;                                 // Flexbox para alinear icono y texto
         align-items: center;                           // Centrar verticalmente
@@ -286,11 +286,14 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
         font-weight: 500;                              // Peso de fuente medio
         white-space: nowrap;                           // No permitir saltos de línea
         overflow: visible;                             // Permitir que sea visible
-        color: $gray-600;                              // Color gris medio para mejor contraste
-        top: 50%;                                      // Posicionar al 50% del contenedor
-        transform: translateY(-50%);                   // Centrar verticalmente con transform
-        padding: 0 6px;                                // Padding horizontal de 6px para separar del borde
+        color: $gray-500;                              // Color gris medio para placeholder
+        top: 10px;                                     // Posicionar a 10px desde arriba (dentro del input)
+        left: 0;                                       // Alinear a la izquierda
+        transform: none;                               // Sin transform inicial
+        padding: 0 8px;                                // Padding horizontal de 8px para separar del borde
         background: transparent;                       // Fondo transparente
+        transition: all 0.2s ease;                     // Transición suave para animación
+        line-height: 1;                                // Altura de línea de 1 para compactar
 
         // Iconos dentro de los labels
         mat-icon {
@@ -304,9 +307,19 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
 
       // Label cuando está flotando (cuando hay texto en el input)
       ::ng-deep .mat-mdc-form-field-label.mdc-floating-label--float-above {
-        transform: translateY(-140%) scale(0.85);      // Mover hacia arriba (-140%) y reducir tamaño (85%)
-        padding: 0 4px;                                // Padding reducido cuando está flotando
+        top: -10px;                                    // Posicionar a -10px (fuera del input, arriba del borde)
+        left: 0;                                       // Mantener alineación izquierda
+        transform: scale(0.85);                        // Solo reducir tamaño (85%)
+        padding: 0 6px;                                // Padding cuando está flotando
         background: white;                             // Fondo blanco para cubrir el borde
+        color: $primary-blue;                          // Color azul cuando está flotando
+      }
+
+      // Ajustar el notch (espacio del label) para que el label flotante no se corte
+      ::ng-deep .mat-mdc-notched-outline-notch {
+        padding: 0 8px;                                // Padding horizontal de 8px (aumentado de 6px)
+        border-right-style: hidden;                    // Ocultar borde derecho
+        border-left-style: hidden;                     // Ocultar borde izquierdo
       }
 
       // Inputs y selects compactos con colores sutiles
@@ -390,13 +403,6 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
           border-radius: 0 8px 8px 0;                  // Redondear esquinas derechas
           border-color: rgba($primary-blue, 0.3);      // Color azul sutil
         }
-      }
-
-      // Notch (espacio del label) ajustado para que el label no se corte
-      ::ng-deep .mat-mdc-notched-outline-notch {
-        padding: 0 6px;                                // Padding horizontal de 6px (aumentado de 4px)
-        border-right-style: hidden;                    // Ocultar borde derecho
-        border-left-style: hidden;                     // Ocultar borde izquierdo
       }
     }
 
