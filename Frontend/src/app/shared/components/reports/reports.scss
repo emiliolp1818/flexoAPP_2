@@ -270,14 +270,14 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
 
       // Ajustar el infix (contenedor del input) para centrado perfecto y espacio para label
       ::ng-deep .mat-mdc-form-field-infix {
-        padding-top: 18px;                             // Padding superior de 18px para dar espacio al label
-        padding-bottom: 2px;                           // Padding inferior de 2px para balance
+        padding-top: 20px;                             // Padding superior de 20px para dar mucho espacio al label
+        padding-bottom: 0px;                           // Sin padding inferior
         min-height: 46.8px;                            // Altura mínima de 46.8px
         display: flex;                                 // Flexbox para centrado
         align-items: flex-end;                         // Alinear al final (abajo) para que el texto quede abajo
       }
 
-      // Label flotante - Posicionado dentro del input completamente visible
+      // Label flotante - Posicionado MUY abajo dentro del input para no cortarse
       ::ng-deep .mat-mdc-form-field-label {
         display: flex;                                 // Flexbox para alinear icono y texto
         align-items: center;                           // Centrar verticalmente
@@ -287,10 +287,10 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
         white-space: nowrap;                           // No permitir saltos de línea
         overflow: visible;                             // Permitir que sea visible
         color: $gray-500;                              // Color gris medio para placeholder
-        top: 10px;                                     // Posicionar a 10px desde arriba (dentro del input)
+        top: 14px !important;                          // Posicionar a 14px desde arriba (MUY abajo dentro del input)
         left: 0;                                       // Alinear a la izquierda
-        transform: none;                               // Sin transform inicial
-        padding: 0 8px;                                // Padding horizontal de 8px para separar del borde
+        transform: none !important;                    // Sin transform inicial (forzado con !important)
+        padding: 0 10px;                               // Padding horizontal de 10px para separar del borde
         background: transparent;                       // Fondo transparente
         transition: all 0.2s ease;                     // Transición suave para animación
         line-height: 1;                                // Altura de línea de 1 para compactar
@@ -307,9 +307,9 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
 
       // Label cuando está flotando (cuando hay texto en el input)
       ::ng-deep .mat-mdc-form-field-label.mdc-floating-label--float-above {
-        top: -10px;                                    // Posicionar a -10px (fuera del input, arriba del borde)
+        top: -12px !important;                         // Posicionar a -12px (fuera del input, arriba del borde)
         left: 0;                                       // Mantener alineación izquierda
-        transform: scale(0.85);                        // Solo reducir tamaño (85%)
+        transform: scale(0.85) !important;             // Solo reducir tamaño (85%) - forzado con !important
         padding: 0 6px;                                // Padding cuando está flotando
         background: white;                             // Fondo blanco para cubrir el borde
         color: $primary-blue;                          // Color azul cuando está flotando
@@ -317,7 +317,7 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
 
       // Ajustar el notch (espacio del label) para que el label flotante no se corte
       ::ng-deep .mat-mdc-notched-outline-notch {
-        padding: 0 8px;                                // Padding horizontal de 8px (aumentado de 6px)
+        padding: 0 10px;                               // Padding horizontal de 10px (aumentado para más espacio)
         border-right-style: hidden;                    // Ocultar borde derecho
         border-left-style: hidden;                     // Ocultar borde izquierdo
       }
