@@ -452,7 +452,7 @@
                         <!-- Botón Preparando: Marca el programa como en preparación (AMARILLO) -->
                         <button mat-icon-button 
                           class="action-btn preparando-btn"
-                          (click)="changeStatus(program, 'PREPARANDO')" 
+                          (click)="$event.stopPropagation(); changeStatus(program, 'PREPARANDO')" 
                           [disabled]="program.estado === 'PREPARANDO'"
                           matTooltip="Preparando">
                           <!-- Icono Material Design para reloj/preparando -->
@@ -462,7 +462,7 @@
                         <!-- Botón Listo: Marca el programa como listo para producción (VERDE) -->
                         <button mat-icon-button 
                           class="action-btn listo-btn"
-                          (click)="changeStatus(program, 'LISTO')" 
+                          (click)="$event.stopPropagation(); changeStatus(program, 'LISTO')" 
                           [disabled]="program.estado === 'LISTO'"
                           matTooltip="Preparado">
                           <!-- Icono Material Design para check/listo -->
@@ -472,7 +472,7 @@
                         <!-- Botón Suspendido: Suspende temporalmente el programa con motivo (NARANJA) -->
                         <button mat-icon-button 
                           class="action-btn suspendido-btn"
-                          (click)="suspendProgram(program)" 
+                          (click)="$event.stopPropagation(); suspendProgram(program)" 
                           [disabled]="program.estado === 'SUSPENDIDO'"
                           matTooltip="Suspender">
                           <!-- Icono Material Design para pausa/suspender -->
@@ -482,7 +482,7 @@
                         <!-- Botón Corriendo: Inicia o continúa la producción del programa (ROJO) -->
                         <button mat-icon-button 
                           class="action-btn corriendo-btn"
-                          (click)="changeStatus(program, 'CORRIENDO')" 
+                          (click)="$event.stopPropagation(); changeStatus(program, 'CORRIENDO')" 
                           [disabled]="program.estado === 'CORRIENDO'"
                           matTooltip="Corriendo">
                           <!-- Icono Material Design para play/iniciar -->
@@ -492,7 +492,7 @@
                         <!-- Botón Imprimir: Imprime el formato FF459 del programa -->
                         <button mat-icon-button 
                           class="action-btn imprimir-btn"
-                          (click)="printFF459(program)" 
+                          (click)="$event.stopPropagation(); printFF459(program)" 
                           matTooltip="Imprimir FF459">
                           <!-- Icono Material Design para impresora -->
                           <mat-icon>print</mat-icon>

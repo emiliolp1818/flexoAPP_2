@@ -2,13 +2,12 @@
 export const environment = {
   production: false,
   // Usar localhost para desarrollo local estable
-  apiUrl: 'http://192.168.1.14:7003/api',
-  socketUrl: 'http://192.168.1.14:7003',
+  apiUrl: 'http://localhost:10000/api',
+  socketUrl: 'http://localhost:10000',
   fallbackUrls: [
-    'http://192.168.1.14:7003/api',
-    'http://localhost:7003/api',
-    'http://127.0.0.1:7003/api',
-    'http://192.168.1.20:7003/api'
+    'http://localhost:10000/api',
+    'http://127.0.0.1:10000/api',
+    'http://192.168.1.14:10000/api'
   ],
   enableLogging: true,
   enableDebugMode: true,
@@ -17,10 +16,10 @@ export const environment = {
   networkMode: true, // Modo red activado
   disableNetworkStability: false,
   allowCrossOrigin: true,
-  networkInterface: '192.168.1.14', // IP estática
-  imageBaseUrl: 'http://192.168.1.14:7003',
+  networkInterface: 'localhost', // Usar localhost
+  imageBaseUrl: 'http://localhost:10000',
   alternativeUrls: [
-    'http://192.168.1.14:7003/api',
-    'http://localhost:7003/api'
+    'http://localhost:10000/api',
+    'http://192.168.1.14:10000/api'
   ]
 };

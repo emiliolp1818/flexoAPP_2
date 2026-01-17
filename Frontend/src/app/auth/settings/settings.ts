@@ -1179,9 +1179,7 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
     const newStatus = !user.isActive;
     const action = newStatus ? 'activar' : 'desactivar';
 
-    if (!confirm(`¿${action.charAt(0).toUpperCase() + action.slice(1)} al usuario ${user.firstName} ${user.lastName} en la base de datos?`)) {
-      return;
-    }
+    // Confirmación eliminada - Acción directa sin diálogos molestos
 
     this.loading.set(true);
     try {
@@ -1199,14 +1197,18 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
 
       console.log(`✅ Usuario ${action}do en MySQL: ${user.userCode}`);
 
-      // Notificación eliminada - No mostrar mensajes técnicos molestos
+      // Mostrar mensaje minimalista y elegante con icono único en el centro
+      const statusMessage = newStatus ? '✓ Usuario activo' : '⊘ Usuario inactivo';
+      this.snackBar.open(statusMessage, '', {
+        duration: 2000,
+        panelClass: [newStatus ? 'user-active-snackbar' : 'user-inactive-snackbar'],
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
+      });
     } catch (error) {
       console.error(`❌ Error ${action}ndo usuario en MySQL:`, error);
 
-      this.snackBar.open(`Error al ${action} usuario en la base de datos`, 'Cerrar', {
-        duration: 4000,
-        panelClass: ['error-snackbar']
-      });
+      // Notificación de error eliminada - No mostrar mensajes técnicos molestos
     } finally {
       this.loading.set(false);
     }
