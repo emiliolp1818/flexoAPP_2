@@ -1,62 +1,60 @@
 -- =====================================================
 -- SCRIPT: CREAR TABLA REFRESH_TOKENS
+-- =====================================================
+-- Sistema: FlexoAPP - Sistema de Gestión Flexográfica
 -- Propósito: Crear tabla para tokens de actualización JWT
--- Base de datos: MySQL (Railway/Render)
+-- Base de datos: MySQL 8.0+ (Railway/Render)
 -- Tabla: refresh_tokens
+-- Autor: Sistema FlexoAPP
+-- Fecha: 2026-01-17
+-- Versión: 2.0
 -- =====================================================
 
 -- Verificar si la tabla existe y crearla si no existe
 CREATE TABLE IF NOT EXISTS `refresh_tokens` (
-    -- Clave primaria autoincremental
-    `Id` INT AUTO_INCREMENT PRIMARY KEY,
+    -- ===== IDENTIFICACIÓN =====
+    `Id` INT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID único del token (clave primaria)',
     
-    -- Token de actualización (único)
-    `Token` VARCHAR(500) NOT NULL UNIQUE,
+    -- ===== INFORMACIÓN DEL TOKEN =====
+    `Token` VARCHAR(500) NOT NULL UNIQUE COMMENT 'Token de actualización JWT (único)',
+    `UserId` INT NOT NULL COMMENT 'ID del usuario propietario del token',
     
-    -- ID del usuario propietario del token
-    `UserId` INT NOT NULL,
+    -- ===== FECHAS =====
+    `CreatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Fecha de creación del token',
+    `ExpiresAt` DATETIME(6) NOT NULL COMMENT 'Fecha de expiración del token',
     
-    -- Fecha de creación del token
-    `CreatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    -- ===== REVOCACIÓN =====
+    `IsRevoked` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Token revocado (1) o activo (0)',
+    `RevokedAt` DATETIME(6) NULL COMMENT 'Fecha de revocación del token',
+    `RevokedReason` VARCHAR(200) NULL COMMENT 'Razón de la revocación',
     
-    -- Fecha de expiración del token
-    `ExpiresAt` DATETIME(6) NOT NULL,
+    -- ===== INFORMACIÓN DE RED =====
+    `CreatedByIp` VARCHAR(45) NULL COMMENT 'Dirección IP desde donde se creó el token',
+    `RevokedByIp` VARCHAR(45) NULL COMMENT 'Dirección IP desde donde se revocó el token',
     
-    -- Indica si el token ha sido revocado
-    `IsRevoked` TINYINT(1) NOT NULL DEFAULT 0,
+    -- ===== REEMPLAZO =====
+    `ReplacedByToken` VARCHAR(500) NULL COMMENT 'Token que reemplazó a este (si aplica)',
     
-    -- Fecha de revocación (si aplica)
-    `RevokedAt` DATETIME(6) NULL,
+    -- ===== INFORMACIÓN DEL DISPOSITIVO =====
+    `UserAgent` VARCHAR(500) NULL COMMENT 'Información del navegador/dispositivo',
     
-    -- Razón de la revocación
-    `RevokedReason` VARCHAR(200) NULL,
+    -- ===== ÍNDICES PARA OPTIMIZACIÓN =====
+    INDEX `idx_refresh_tokens_userid` (`UserId`) COMMENT 'Índice para búsquedas por usuario',
+    INDEX `idx_refresh_tokens_expires` (`ExpiresAt`) COMMENT 'Índice para limpiar tokens expirados',
+    INDEX `idx_refresh_tokens_revoked` (`IsRevoked`) COMMENT 'Índice para filtrar tokens revocados',
+    INDEX `idx_refresh_tokens_created` (`CreatedAt`) COMMENT 'Índice para ordenar por fecha de creación',
     
-    -- IP desde donde se creó el token
-    `CreatedByIp` VARCHAR(45) NULL,
-    
-    -- IP desde donde se revocó el token
-    `RevokedByIp` VARCHAR(45) NULL,
-    
-    -- Token que reemplazó a este (si aplica)
-    `ReplacedByToken` VARCHAR(500) NULL,
-    
-    -- Información adicional del dispositivo/navegador
-    `UserAgent` VARCHAR(500) NULL,
-    
-    -- Índices para optimizar consultas
-    INDEX `idx_refresh_tokens_userid` (`UserId`),
-    INDEX `idx_refresh_tokens_expires` (`ExpiresAt`),
-    INDEX `idx_refresh_tokens_revoked` (`IsRevoked`),
-    INDEX `idx_refresh_tokens_created` (`CreatedAt`),
-    
-    -- Clave foránea hacia la tabla users
+    -- ===== CLAVES FORÁNEAS =====
     CONSTRAINT `fk_refresh_tokens_user` 
         FOREIGN KEY (`UserId`) 
         REFERENCES `users`(`Id`) 
         ON DELETE CASCADE 
         ON UPDATE CASCADE
         
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tokens de actualización JWT para autenticación';
 
--- Verificar creación
-SELECT 'Tabla refresh_tokens creada exitosamente' as resultado;
+-- ===== VERIFICACIÓN =====
+SELECT '✓ Tabla refresh_tokens creada exitosamente' as resultado;
+
+-- ===== INFORMACIÓN DE LA TABLA =====
+DESCRIBE `refresh_tokens`;

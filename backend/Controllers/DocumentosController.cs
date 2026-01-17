@@ -482,10 +482,10 @@ namespace FlexoAPP.API.Controllers
                     // Consulta SQL INSERT para guardar los metadatos del documento
                     var query = @"INSERT INTO Documento 
                         (Nombre, Tipo, Categoria, Descripcion, Estado, NombreArchivo, RutaArchivo, 
-                         TamanoBytes, TamanoFormateado, Extension, EsPublico, FechaCreacion) 
+                         TamanoBytes, TamanoFormateado, Extension, EsPublico, NivelAcceso, FechaCreacion) 
                         VALUES 
                         (@Nombre, @Tipo, @Categoria, @Descripcion, @Estado, @NombreArchivo, @RutaArchivo, 
-                         @TamanoBytes, @TamanoFormateado, @Extension, @EsPublico, @FechaCreacion);
+                         @TamanoBytes, @TamanoFormateado, @Extension, @EsPublico, @NivelAcceso, @FechaCreacion);
                         SELECT LAST_INSERT_ID();";
                     
                     // Crear comando SQL
@@ -502,7 +502,8 @@ namespace FlexoAPP.API.Controllers
                         command.Parameters.AddWithValue("@TamanoBytes", file.Length);
                         command.Parameters.AddWithValue("@TamanoFormateado", tamanoFormateado);
                         command.Parameters.AddWithValue("@Extension", extension.TrimStart('.'));
-                        command.Parameters.AddWithValue("@EsPublico", false); // Por defecto no es público
+                        command.Parameters.AddWithValue("@EsPublico", 0); // Por defecto no es público
+                        command.Parameters.AddWithValue("@NivelAcceso", 1); // Nivel de acceso por defecto
                         command.Parameters.AddWithValue("@FechaCreacion", DateTime.UtcNow);
                         
                         _logger.LogInformation("Executing SQL INSERT query...");

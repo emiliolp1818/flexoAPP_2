@@ -1,67 +1,72 @@
 -- =====================================================
 -- SCRIPT: CREAR TABLA DOCUMENTO
--- Propósito: Crear tabla de documentos del sistema
--- Base de datos: MySQL (Railway/Render)
+-- =====================================================
+-- Sistema: FlexoAPP - Sistema de Gestión Flexográfica
+-- Propósito: Crear tabla de gestión documental del sistema
+-- Base de datos: MySQL 8.0+ (Railway/Render)
 -- Tabla: Documento
+-- Autor: Sistema FlexoAPP
+-- Fecha: 2026-01-17
+-- Versión: 2.0
 -- =====================================================
 
 -- Verificar si la tabla existe y crearla si no existe
 CREATE TABLE IF NOT EXISTS `Documento` (
-    -- Clave primaria autoincremental
-    `DocumentoID` INT AUTO_INCREMENT PRIMARY KEY,
+    -- ===== IDENTIFICACIÓN =====
+    `DocumentoID` INT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID único del documento (clave primaria)',
     
-    -- Información básica del documento
-    `Nombre` VARCHAR(255) NOT NULL,
-    `Tipo` VARCHAR(50) NOT NULL,
-    `Categoria` VARCHAR(100) NOT NULL,
-    `Descripcion` TEXT NULL,
+    -- ===== INFORMACIÓN BÁSICA =====
+    `Nombre` VARCHAR(255) NOT NULL COMMENT 'Nombre del documento',
+    `Tipo` VARCHAR(50) NOT NULL COMMENT 'Tipo de documento (PDF, Word, Excel, Image, etc.)',
+    `Categoria` VARCHAR(100) NOT NULL COMMENT 'Categoría del documento',
+    `Descripcion` TEXT NULL COMMENT 'Descripción detallada del documento',
     
-    -- Información del archivo físico
-    `NombreArchivo` VARCHAR(255) NULL,
-    `RutaArchivo` VARCHAR(500) NULL,
-    `TamanoBytes` BIGINT NULL,
-    `TamanoFormateado` VARCHAR(50) NULL,
-    `Extension` VARCHAR(20) NULL,
-    `HashMD5` VARCHAR(32) NULL,
+    -- ===== INFORMACIÓN DEL ARCHIVO FÍSICO =====
+    `NombreArchivo` VARCHAR(255) NULL COMMENT 'Nombre del archivo físico original',
+    `RutaArchivo` VARCHAR(500) NULL COMMENT 'Ruta del archivo en el servidor',
+    `TamanoBytes` BIGINT NULL COMMENT 'Tamaño del archivo en bytes',
+    `TamanoFormateado` VARCHAR(50) NULL COMMENT 'Tamaño formateado (ej: 2.5 MB)',
+    `Extension` VARCHAR(20) NULL COMMENT 'Extensión del archivo (pdf, docx, xlsx, etc.)',
+    `HashMD5` VARCHAR(32) NULL COMMENT 'Hash MD5 del archivo para verificación de integridad',
     
-    -- Estado y control
-    `Estado` VARCHAR(20) NOT NULL DEFAULT 'draft',
-    `Version` VARCHAR(20) NULL,
+    -- ===== ESTADO Y CONTROL =====
+    `Estado` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'Estado del documento (draft, active, archived)',
+    `Version` VARCHAR(20) NULL COMMENT 'Versión del documento',
     
-    -- Metadatos
-    `Etiquetas` VARCHAR(500) NULL,
-    `PalabrasClave` VARCHAR(500) NULL,
+    -- ===== METADATOS =====
+    `Etiquetas` VARCHAR(500) NULL COMMENT 'Etiquetas del documento separadas por comas',
+    `PalabrasClave` VARCHAR(500) NULL COMMENT 'Palabras clave para búsqueda',
     
-    -- Auditoría
-    `CreadoPor` VARCHAR(100) NULL,
-    `FechaCreacion` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    `ModificadoPor` VARCHAR(100) NULL,
-    `FechaModificacion` DATETIME(6) NULL,
+    -- ===== AUDITORÍA =====
+    `CreadoPor` VARCHAR(100) NULL COMMENT 'Usuario que creó el documento',
+    `FechaCreacion` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Fecha de creación del documento',
+    `ModificadoPor` VARCHAR(100) NULL COMMENT 'Usuario que modificó el documento',
+    `FechaModificacion` DATETIME(6) NULL COMMENT 'Fecha de última modificación',
     
-    -- Control de acceso
-    `EsPublico` TINYINT(1) NOT NULL DEFAULT 0,
-    `NivelAcceso` INT NOT NULL DEFAULT 1,
+    -- ===== CONTROL DE ACCESO =====
+    `EsPublico` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Documento público (1) o privado (0)',
+    `NivelAcceso` INT NOT NULL DEFAULT 1 COMMENT 'Nivel de acceso (0=público, 1=privado, 2=restringido)',
     
-    -- Estadísticas
-    `NumeroVistas` INT NOT NULL DEFAULT 0,
-    `NumeroDescargas` INT NOT NULL DEFAULT 0,
-    `FechaUltimoAcceso` DATETIME(6) NULL,
+    -- ===== ESTADÍSTICAS =====
+    `NumeroVistas` INT NOT NULL DEFAULT 0 COMMENT 'Número de veces que se ha visualizado',
+    `NumeroDescargas` INT NOT NULL DEFAULT 0 COMMENT 'Número de veces que se ha descargado',
+    `FechaUltimoAcceso` DATETIME(6) NULL COMMENT 'Fecha del último acceso al documento',
     
-    -- Índices para optimizar consultas
-    INDEX `idx_documento_nombre` (`Nombre`),
-    INDEX `idx_documento_tipo` (`Tipo`),
-    INDEX `idx_documento_categoria` (`Categoria`),
-    INDEX `idx_documento_estado` (`Estado`),
-    INDEX `idx_documento_creado_por` (`CreadoPor`),
-    INDEX `idx_documento_fecha_creacion` (`FechaCreacion`),
-    INDEX `idx_documento_publico` (`EsPublico`),
-    INDEX `idx_documento_nivel_acceso` (`NivelAcceso`),
-    INDEX `idx_documento_extension` (`Extension`),
+    -- ===== ÍNDICES PARA OPTIMIZACIÓN =====
+    INDEX `idx_documento_nombre` (`Nombre`) COMMENT 'Índice para búsquedas por nombre',
+    INDEX `idx_documento_tipo` (`Tipo`) COMMENT 'Índice para filtrar por tipo',
+    INDEX `idx_documento_categoria` (`Categoria`) COMMENT 'Índice para filtrar por categoría',
+    INDEX `idx_documento_estado` (`Estado`) COMMENT 'Índice para filtrar por estado',
+    INDEX `idx_documento_creado_por` (`CreadoPor`) COMMENT 'Índice para filtrar por creador',
+    INDEX `idx_documento_fecha_creacion` (`FechaCreacion`) COMMENT 'Índice para ordenar por fecha',
+    INDEX `idx_documento_publico` (`EsPublico`) COMMENT 'Índice para filtrar documentos públicos',
+    INDEX `idx_documento_nivel_acceso` (`NivelAcceso`) COMMENT 'Índice para filtrar por nivel de acceso',
+    INDEX `idx_documento_extension` (`Extension`) COMMENT 'Índice para filtrar por extensión',
     
-    -- Índice de texto completo para búsquedas
-    FULLTEXT INDEX `ft_documento_busqueda` (`Nombre`, `Descripcion`, `Etiquetas`, `PalabrasClave`),
+    -- ===== ÍNDICE DE TEXTO COMPLETO =====
+    FULLTEXT INDEX `ft_documento_busqueda` (`Nombre`, `Descripcion`, `Etiquetas`, `PalabrasClave`) COMMENT 'Índice de texto completo para búsquedas',
     
-    -- Restricciones de validación
+    -- ===== RESTRICCIONES DE VALIDACIÓN =====
     CONSTRAINT `chk_documento_estado_valido` 
         CHECK (`Estado` IN ('draft', 'active', 'archived')),
         
@@ -77,7 +82,10 @@ CREATE TABLE IF NOT EXISTS `Documento` (
     CONSTRAINT `chk_documento_descargas_positivas` 
         CHECK (`NumeroDescargas` >= 0)
         
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Sistema de gestión documental';
 
--- Verificar creación
-SELECT 'Tabla Documento creada exitosamente' as resultado;
+-- ===== VERIFICACIÓN =====
+SELECT '✓ Tabla Documento creada exitosamente' as resultado;
+
+-- ===== INFORMACIÓN DE LA TABLA =====
+DESCRIBE `Documento`;

@@ -1,177 +1,251 @@
-# 🗄️ Base de Datos - FlexoAPP
+# Base de Datos FlexoAPP
 
-Esta carpeta contiene toda la configuración y scripts relacionados con la base de datos MySQL de FlexoAPP.
+## 📋 Descripción General
 
-## 📁 Estructura
+Sistema de base de datos MySQL para FlexoAPP - Sistema de Gestión Flexográfica. Incluye gestión de usuarios, diseños, máquinas, documentos y ubicación de artículos.
+
+## 🗂️ Estructura del Directorio
 
 ```
 Database/
-├── Scripts/           # Scripts SQL de creación de tablas
-│   ├── 00_MASTER_SETUP.sql
+├── Scripts/              # Scripts de creación de tablas
+│   ├── 00_MASTER_CREATE_ALL_TABLES.sql
 │   ├── 01_CREATE_USERS_TABLE.sql
 │   ├── 02_CREATE_ACTIVITIES_TABLE.sql
-│   └── ... (más scripts)
-├── Migrations/        # Migraciones de Entity Framework
-└── Setup/            # Scripts de configuración adicional
+│   ├── 03_CREATE_DESIGNS_TABLE.sql
+│   ├── 04_CREATE_MAQUINAS_TABLE.sql
+│   ├── 07_CREATE_DOCUMENTO_TABLE.sql
+│   ├── 08_CREATE_REFRESH_TOKENS_TABLE.sql
+│   ├── 10_CREATE_CONDICIONUNICA_TABLE.sql
+│   └── README.md
+├── Migrations/           # Scripts de migración y actualizaciones
+│   ├── ADD_ESTADO_COLUMN.sql
+│   ├── ADD_ESTADO_COLUMN_RENDER.sql
+│   ├── REMOVE_CURRENCY_CONFIG.sql
+│   ├── REMOVE_EMAIL_NOTIFICATIONS.sql
+│   ├── REMOVE_GENERAL_CATEGORY.sql
+│   └── RENAME_REFERENCIA_TO_DESCRIPCION.sql
+├── Migration_UpdateKilosDecimalPrecision.sql
+└── README.md (este archivo)
 ```
 
-## 🚀 Configuración Inicial
+## 🚀 Inicio Rápido
 
-### 1. Ejecutar Scripts de Base de Datos
-
-**Opción A: Script Maestro (Recomendado)**
-```bash
-# En Railway/Render MySQL
-mysql -h hopper.proxy.rlwy.net -P 43791 -u root -p railway < Scripts/00_MASTER_SETUP.sql
-```
-
-**Opción B: Desde la aplicación**
-Los scripts se ejecutan automáticamente al iniciar la aplicación si las tablas no existen.
-
-### 2. Verificar Configuración
+### 1. Crear Base de Datos
 
 ```sql
--- Verificar tablas creadas
-SHOW TABLES;
+CREATE DATABASE IF NOT EXISTS flexoapp_db 
+CHARACTER SET utf8mb4 
+COLLATE utf8mb4_unicode_ci;
 
--- Verificar usuario por defecto
+USE flexoapp_db;
+```
+
+### 2. Ejecutar Script Maestro
+
+```sql
+SOURCE backend/Database/Scripts/00_MASTER_CREATE_ALL_TABLES.sql;
+```
+
+### 3. Verificar Instalación
+
+```sql
+SHOW TABLES;
 SELECT * FROM users WHERE UserCode = 'admin';
 ```
 
-## 🗂️ Esquema de Base de Datos
+## 📊 Tablas del Sistema
 
-### Tablas Principales
+| # | Tabla | Descripción | Registros Típicos |
+|---|-------|-------------|-------------------|
+| 1 | users | Usuarios del sistema | 10-50 |
+| 2 | Activities | Registro de actividades | 1000+ |
+| 3 | designs | Diseños flexográficos | 500-2000 |
+| 4 | maquinas | Programación de máquinas | 100-500 |
+| 5 | Documento | Gestión documental | 50-200 |
+| 6 | refresh_tokens | Tokens JWT | 10-100 |
+| 7 | condicionunica | Ubicación de artículos | 500-2000 |
 
-#### 👥 users
-- **Propósito**: Gestión de usuarios del sistema
-- **Clave primaria**: `Id` (INT AUTO_INCREMENT)
-- **Campos únicos**: `UserCode`
-- **Relaciones**: Referenciada por múltiples tablas
+## 🔧 Configuración
 
-#### 📊 Activities
-- **Propósito**: Log de actividades del sistema
-- **Clave primaria**: `Id` (INT AUTO_INCREMENT)
-- **Relaciones**: FK hacia `users`
+### Requisitos
+- MySQL 8.0 o superior
+- Charset: utf8mb4
+- Collation: utf8mb4_unicode_ci
+- Motor: InnoDB
 
-#### 🎨 designs
-- **Propósito**: Diseños flexográficos
-- **Clave primaria**: `Id` (INT AUTO_INCREMENT)
-- **Características**: Soporte para hasta 10 colores
+### Cadena de Conexión (appsettings.json)
 
-#### 🏭 maquinas
-- **Propósito**: Programas de máquinas flexográficas
-- **Clave primaria**: `ot_sap` (VARCHAR)
-- **Características**: Validación de números de máquina (11-21)
-
-#### 📋 condicionunica
-- **Propósito**: Condiciones únicas de artículos
-- **Clave primaria**: `Id` (INT AUTO_INCREMENT)
-- **Características**: Índice único por artículo+referencia
-
-#### 📄 Documento
-- **Propósito**: Gestión de documentos
-- **Clave primaria**: `DocumentoID` (INT AUTO_INCREMENT)
-- **Características**: Metadatos completos y control de acceso
-
-#### 🔑 refresh_tokens
-- **Propósito**: Tokens de actualización JWT
-- **Clave primaria**: `Id` (INT AUTO_INCREMENT)
-- **Características**: Gestión de expiración y revocación
-
-## 🔗 Relaciones entre Tablas
-
-```mermaid
-erDiagram
-    users ||--o{ Activities : "UserId"
-    users ||--o{ maquinas : "CreatedBy/UpdatedBy"
-    users ||--o{ refresh_tokens : "UserId"
-```
-
-## 🛠️ Configuración de Entity Framework
-
-### Connection String (Producción)
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=hopper.proxy.rlwy.net;Port=43791;Database=railway;User=root;Password=***;AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;"
+    "DefaultConnection": "Server=localhost;Database=flexoapp_db;User=root;Password=tu_password;"
   }
 }
 ```
 
-### DbContext
-- **Archivo**: `Data/Context/FlexoAPPDbContext.cs`
-- **Proveedor**: MySQL (Pomelo.EntityFrameworkCore.MySql)
-- **Características**: 
-  - Auto-detección de versión MySQL
-  - Retry automático en fallos
-  - Logging sensible solo en desarrollo
-
-## 📈 Optimizaciones
-
-### Índices Implementados
-- **Búsquedas frecuentes**: UserCode, timestamps, estados
-- **Claves foráneas**: Todas indexadas automáticamente
-- **Texto completo**: En tabla Documento para búsquedas
-
-### Constraints de Validación
-- **Rangos numéricos**: Números de máquina, cantidades positivas
-- **Estados válidos**: Enums definidos para estados
-- **Integridad referencial**: Claves foráneas con cascada apropiada
-
 ## 🔐 Seguridad
 
-### Características Implementadas
-- **Passwords hasheados**: BCrypt para usuarios
-- **Tokens seguros**: JWT con refresh tokens
-- **Auditoría completa**: Tracking de cambios
-- **Validación de datos**: Constraints a nivel de BD
-
-### Permisos Requeridos
-```sql
--- Permisos mínimos para la aplicación
-GRANT SELECT, INSERT, UPDATE, DELETE ON railway.* TO 'app_user'@'%';
-GRANT CREATE, ALTER, INDEX ON railway.* TO 'app_user'@'%';
+### Usuario Administrador por Defecto
+```
+UserCode: admin
+Password: admin123
 ```
 
-## 🚨 Troubleshooting
+**⚠️ IMPORTANTE:** 
+1. Cambiar la contraseña inmediatamente en producción
+2. Crear usuarios específicos para cada rol
+3. No usar el usuario admin para operaciones diarias
 
-### Problemas Comunes
+### Mejores Prácticas
+- ✅ Usar contraseñas fuertes (mínimo 12 caracteres)
+- ✅ Implementar rotación de tokens JWT
+- ✅ Revisar logs de Activities regularmente
+- ✅ Hacer respaldos diarios de la base de datos
+- ✅ Usar conexiones SSL en producción
 
-#### Error de conexión
+## 📈 Migraciones
+
+Las migraciones se encuentran en `/Migrations/` y deben ejecutarse en orden cronológico:
+
+1. **ADD_ESTADO_COLUMN.sql** - Agrega columna Estado a maquinas
+2. **RENAME_REFERENCIA_TO_DESCRIPCION.sql** - Renombra columna en condicionunica
+3. **REMOVE_CURRENCY_CONFIG.sql** - Elimina configuración de moneda
+4. **REMOVE_EMAIL_NOTIFICATIONS.sql** - Elimina notificaciones por email
+5. **REMOVE_GENERAL_CATEGORY.sql** - Elimina categoría general
+
+### Ejecutar Migraciones
+
+```sql
+SOURCE backend/Database/Migrations/nombre_migracion.sql;
+```
+
+## 🔄 Respaldos
+
+### Crear Respaldo
+
 ```bash
-# Verificar conectividad
-mysql -h hopper.proxy.rlwy.net -P 43791 -u root -p
+mysqldump -u root -p flexoapp_db > backup_$(date +%Y%m%d).sql
 ```
 
-#### Tablas no creadas
-```sql
--- Verificar si existen
-SELECT COUNT(*) FROM information_schema.tables 
-WHERE table_schema = 'railway';
+### Restaurar Respaldo
+
+```bash
+mysql -u root -p flexoapp_db < backup_20260117.sql
 ```
 
-#### Error de charset
-```sql
--- Configurar charset correcto
-SET NAMES utf8mb4;
-ALTER DATABASE railway CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+### Respaldo Automático (Recomendado)
+
+Configurar cron job para respaldos diarios:
+
+```bash
+0 2 * * * /usr/bin/mysqldump -u root -p'password' flexoapp_db > /backups/flexoapp_$(date +\%Y\%m\%d).sql
 ```
 
-## 📝 Mantenimiento
+## 📊 Monitoreo
 
-### Tareas Regulares
-1. **Limpieza de logs**: Actividades antiguas
-2. **Limpieza de tokens**: Tokens expirados
-3. **Backup**: Respaldo regular de datos
-4. **Optimización**: Análisis de consultas lentas
+### Verificar Tamaño de Tablas
 
-### Scripts de Mantenimiento
 ```sql
--- Limpiar actividades antiguas (>90 días)
-DELETE FROM Activities 
-WHERE Timestamp < DATE_SUB(NOW(), INTERVAL 90 DAY);
+SELECT 
+    table_name AS 'Tabla',
+    ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Tamaño (MB)'
+FROM information_schema.TABLES
+WHERE table_schema = 'flexoapp_db'
+ORDER BY (data_length + index_length) DESC;
+```
 
--- Limpiar tokens expirados
+### Verificar Índices
+
+```sql
+SELECT 
+    TABLE_NAME,
+    INDEX_NAME,
+    COLUMN_NAME
+FROM information_schema.STATISTICS
+WHERE TABLE_SCHEMA = 'flexoapp_db'
+ORDER BY TABLE_NAME, INDEX_NAME;
+```
+
+### Actividad Reciente
+
+```sql
+SELECT 
+    Action,
+    Module,
+    UserCode,
+    Timestamp
+FROM Activities
+ORDER BY Timestamp DESC
+LIMIT 20;
+```
+
+## 🛠️ Mantenimiento
+
+### Optimizar Tablas
+
+```sql
+OPTIMIZE TABLE users, Activities, designs, maquinas, Documento, refresh_tokens, condicionunica;
+```
+
+### Limpiar Tokens Expirados
+
+```sql
 DELETE FROM refresh_tokens 
 WHERE ExpiresAt < NOW() OR IsRevoked = 1;
 ```
+
+### Limpiar Actividades Antiguas (opcional)
+
+```sql
+DELETE FROM Activities 
+WHERE Timestamp < DATE_SUB(NOW(), INTERVAL 90 DAY);
+```
+
+## 📚 Documentación Adicional
+
+- **Scripts:** Ver `/Scripts/README.md` para detalles de cada tabla
+- **Migraciones:** Ver archivos individuales en `/Migrations/`
+- **API:** Consultar documentación de controladores en `/backend/Controllers/`
+
+## 🐛 Solución de Problemas
+
+### Error: Table already exists
+```sql
+DROP TABLE IF EXISTS nombre_tabla;
+-- Luego ejecutar el script de creación
+```
+
+### Error: Foreign key constraint fails
+```sql
+SET FOREIGN_KEY_CHECKS = 0;
+-- Ejecutar operación
+SET FOREIGN_KEY_CHECKS = 1;
+```
+
+### Error: Charset mismatch
+```sql
+ALTER DATABASE flexoapp_db 
+CHARACTER SET utf8mb4 
+COLLATE utf8mb4_unicode_ci;
+```
+
+## 📞 Soporte
+
+Para problemas o preguntas:
+1. Revisar logs en `/backend/logs/`
+2. Verificar tabla Activities para auditoría
+3. Consultar documentación de MySQL 8.0
+
+## 🔄 Versión
+
+**Versión Actual:** 2.0  
+**Fecha:** 2026-01-17  
+**MySQL Requerido:** 8.0+  
+**Charset:** utf8mb4  
+**Motor:** InnoDB
+
+---
+
+**Última Actualización:** 2026-01-17  
+**Sistema:** FlexoAPP - Sistema de Gestión Flexográfica

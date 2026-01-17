@@ -373,84 +373,297 @@ $gray-900: #0f172a;
 
 // ===== CONTENEDOR DE TABLA - CON SCROLL =====
 .table-container {
-  flex: 1; // Ocupa todo el espacio disponible
-  overflow: auto; // Scroll vertical y horizontal
-  position: relative;
-  min-height: 0; // Importante para que el scroll funcione
-  max-height: 100%; // No exceder el contenedor padre
+  flex: 1;
+  overflow: auto;
+  border-radius: 8px;
+  min-height: 0;
+
+  &::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(241, 245, 249, 0.8);
+    border-radius: 8px;
+    margin: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, $primary-blue-300, $primary-blue-500);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, $primary-blue-400, $primary-blue-600);
+  }
 }
 
-// ===== TABLA ESTILO EXCEL - COMPACTA =====
+// ===== TABLA ESTILO EXCEL - DISEÑO UNIFORME CON DOCUMENTOS =====
 .excel-table {
   width: 100%;
+  min-width: 800px;
+  background: white;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.875rem; // Texto más pequeño
+  border-radius: 2px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e2e8f0;
+  border-top: 3px solid $primary-blue;
 
+  // Header de la tabla
   thead {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: $gray-50;
+    background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%);
+
+    tr {
+      background: transparent;
+    }
   }
 
   .excel-header {
-    background: $gray-50;
-    border-bottom: 2px solid $gray-300;
-    padding: 10px 12px; // Padding reducido
-    text-align: left;
-    font-weight: 600;
+    background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%);
     color: $gray-700;
+    font-family: Arial, sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding: 14px 12px;
+    border-bottom: 2px solid $primary-blue;
+    border-right: 1px solid $gray-300;
+    text-align: left;
     white-space: nowrap;
-        font-size: 0.85rem; // Texto del header más pequeño
+
+    &:last-child {
+      border-right: none;
+    }
 
     .header-content {
       display: flex;
       align-items: center;
-      gap: 6px; // Gap reducido
+      gap: 4px;
 
       mat-icon {
-        font-size: 16px; // Icono más pequeño
-        width: 16px;
-        height: 16px;
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
         color: $primary-blue;
+      }
+
+      span {
+        font-size: 12px;
+        font-weight: 700;
       }
     }
   }
 
-  .excel-row {
-    transition: background-color 0.2s ease;
+  // Celdas de datos
+  .excel-cell {
+    padding: 12px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    background: white;
+    font-size: 12px;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+    min-height: 48px;
 
-    &:hover {
-      background-color: $primary-blue-50;
+    &:last-child {
+      border-right: none;
     }
   }
 
-  .excel-cell {
-    padding: 10px 12px; // Padding reducido
-    border-bottom: 1px solid $gray-200;
-    color: $gray-700;
-    font-size: 0.875rem; // Texto más pequeño
+  // Filas de datos
+  .excel-row {
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba($primary-blue, 0.15);
+      transform: translateY(-1px);
+
+      .excel-cell {
+        background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+      }
+    }
+
+    &:last-child {
+      .excel-cell {
+        border-bottom: none;
+      }
+    }
   }
 
+  // Columna de artículo (farticulo)
   .farticulo-cell {
-    font-weight: 600;
-    color: $primary-blue;
+    .farticulo-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: $primary-blue;
+      }
+
+      .farticulo-text {
+        color: $gray-800;
+        font-weight: 600;
+        font-size: 13px;
+      }
+    }
   }
 
+  // Columna de descripción
+  .descripcion-cell {
+    max-width: 300px;
+
+    .descripcion-text {
+      display: block;
+      color: $gray-700;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: help;
+    }
+  }
+
+  // Columna de estante
+  .estante-cell {
+    .estante-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
+      color: $primary-blue-700;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid $primary-blue-200;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s ease;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%);
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  // Columna de carpeta
+  .carpeta-cell {
+    .carpeta-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      color: #15803d;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid #86efac;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  // Columna de estado
+  .estado-cell {
+    .estado-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s ease;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+
+      // Estado activo - verde
+      &.estado-activo {
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        color: #15803d;
+        border: 1px solid #86efac;
+      }
+
+      // Estado inactivo - rojo
+      &.estado-inactivo {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        color: #991b1b;
+        border: 1px solid #f87171;
+      }
+
+      // Estado en revisión - amarillo
+      &.estado-revision {
+        background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+        color: #a16207;
+        border: 1px solid #fde047;
+      }
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  // Columna de acciones
   .actions-cell {
+    text-align: center;
+
     .action-buttons {
       display: flex;
-      gap: 2px; // Gap reducido
-      
-      button {
-        width: 32px; // Botones más pequeños
+      gap: 4px;
+      justify-content: center;
+
+      .action-btn {
+        width: 32px;
         height: 32px;
-        
+        padding: 0;
+        min-width: 32px;
+        line-height: 32px;
+        transition: all 0.2s ease;
+
         mat-icon {
           font-size: 18px;
           width: 18px;
           height: 18px;
+        }
+
+        &:hover {
+          transform: scale(1.1);
+        }
+
+        // Botón de editar - azul
+        &.edit-btn:hover {
+          background: $primary-blue-50;
+        }
+
+        // Botón de eliminar - rojo
+        &.delete-btn:hover {
+          background: rgba(239, 68, 68, 0.1);
         }
       }
     }
@@ -541,19 +754,19 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== ESTILOS PARA COLUMNA ESTADO =====
-// Badges de estado con colores distintivos
-
-.estado-cell {
-  text-align: center;
-}
+// ===== ESTILOS ADICIONALES PARA BADGES =====
+// Los estilos de badges ahora están integrados en .excel-table
+// Mantenemos estos para compatibilidad con código legacy
 
 .estado-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 11px;
+  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
@@ -561,21 +774,21 @@ $gray-900: #0f172a;
 
 // Estado ACTIVO - Verde
 .estado-activo {
-  background-color: #d1fae5;
-  color: #065f46;
-  border: 1px solid #10b981;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #15803d;
+  border: 1px solid #86efac;
 }
 
 // Estado INACTIVO - Rojo
 .estado-inactivo {
-  background-color: #fee2e2;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
   color: #991b1b;
-  border: 1px solid #ef4444;
+  border: 1px solid #f87171;
 }
 
 // Estado EN REVISIÓN - Amarillo/Naranja
 .estado-revision {
-  background-color: #fef3c7;
-  color: #92400e;
-  border: 1px solid #f59e0b;
+  background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+  color: #a16207;
+  border: 1px solid #fde047;
 }
