@@ -764,18 +764,20 @@ export class CondicionUnicaFormDialog {
       // Log para debugging: mostrar qué artículo se está buscando
       console.log(`🔍 Buscando diseño para artículo: ${fArticulo}`);
       
-      // Realizar petición HTTP GET al endpoint de designs
+      // Realizar petición HTTP GET al endpoint de maquinas/design-info
       // El endpoint busca en la tabla designs por el campo article_f
       // Retorna el diseño completo si existe, incluyendo el campo descripcion
+      // IMPORTANTE: El endpoint correcto es /api/maquinas/design-info/{articulo}
       const response = await firstValueFrom(
-        this.http.get<any>(`${environment.apiUrl}/designs/articulo/${fArticulo}`)
+        this.http.get<any>(`${environment.apiUrl}/maquinas/design-info/${fArticulo}`)
       );
       
       // Log para debugging: mostrar respuesta completa del servidor
       console.log('📡 Respuesta del servidor:', response);
       
       // Verificar si se encontró el diseño y tiene el campo descripcion
-      if (response && response.success && response.data && response.data.descripcion) {
+      // La respuesta tiene la estructura: { success: true, found: true, data: { descripcion, cliente, ... } }
+      if (response && response.success && response.found && response.data && response.data.descripcion) {
         // Cargar la descripción en el campo del formulario usando patchValue
         // patchValue actualiza solo los campos especificados sin afectar los demás
         this.form.patchValue({
