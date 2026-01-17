@@ -229,56 +229,72 @@
                   </mat-card-content>
                 </mat-card>
 
-                <!-- Timeline de actividades -->
-                <mat-card class="activities-timeline-card">
+                <!-- Tabla de actividades con scroll -->
+                <mat-card class="activities-table-card">
                   <mat-card-header>
                     <mat-card-title>
                       <mat-icon>history</mat-icon>
-                      Línea de Tiempo de Actividades
+                      Historial de Actividades
                     </mat-card-title>
                   </mat-card-header>
                   <mat-card-content>
-                    <div class="timeline-container">
-                      <div *ngFor="let activity of searchResults()?.activities; let i = index; let isLast = last" 
-                           class="timeline-item"
-                           [class.timeline-item-last]="isLast">
-                        
-                        <div class="timeline-marker">
-                          <div class="timeline-dot" [class]="'timeline-dot-' + activity.module.toLowerCase()">
-                            <mat-icon>{{ getModuleIcon(activity.module) }}</mat-icon>
-                          </div>
-                          <div *ngIf="!isLast" class="timeline-line"></div>
-                        </div>
-
-                        <div class="timeline-content">
-                          <div class="timeline-card">
-                            <div class="timeline-card-header">
-                              <div class="timeline-card-title">
-                                <h4>{{ activity.action }}</h4>
-                                <mat-chip class="module-chip-timeline">{{ getModuleLabel(activity.module) }}</mat-chip>
+                    <!-- Contenedor con scroll para la tabla -->
+                    <div class="table-container" *ngIf="searchResults()?.activities && searchResults()!.activities.length > 0">
+                      <table class="activities-table">
+                        <!-- Encabezado de la tabla -->
+                        <thead>
+                          <tr>
+                            <th class="col-module">Módulo</th>
+                            <th class="col-action">Acción</th>
+                            <th class="col-description">Descripción</th>
+                            <th class="col-timestamp">Fecha y Hora</th>
+                            <th class="col-metadata">Información Adicional</th>
+                          </tr>
+                        </thead>
+                        <!-- Cuerpo de la tabla -->
+                        <tbody>
+                          <tr *ngFor="let activity of searchResults()?.activities; let i = index" 
+                              class="activity-row"
+                              [class]="'module-' + activity.module.toLowerCase()">
+                            <!-- Columna de módulo con icono -->
+                            <td class="col-module">
+                              <div class="module-badge" [class]="'badge-' + activity.module.toLowerCase()">
+                                <mat-icon>{{ getModuleIcon(activity.module) }}</mat-icon>
+                                <span>{{ getModuleLabel(activity.module) }}</span>
                               </div>
-                              <span class="timeline-time">{{ activity.timestamp | date:'short' }}</span>
-                            </div>
-                            
-                            <p class="timeline-description">{{ activity.description }}</p>
-                            
-                            <div class="timeline-metadata" *ngIf="activity.metadata">
-                              <span class="metadata-item" *ngIf="activity.metadata.ip">
-                                <mat-icon>computer</mat-icon>
-                                {{ activity.metadata.ip }}
-                              </span>
-                              <span class="metadata-item" *ngIf="activity.metadata.browser">
-                                <mat-icon>web</mat-icon>
-                                {{ activity.metadata.browser }}
-                              </span>
-                              <span class="metadata-item">
-                                <mat-icon>code</mat-icon>
-                                {{ activity.component }}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                            </td>
+                            <!-- Columna de acción -->
+                            <td class="col-action">
+                              <span class="action-text">{{ activity.action }}</span>
+                            </td>
+                            <!-- Columna de descripción -->
+                            <td class="col-description">
+                              <span class="description-text">{{ activity.description }}</span>
+                            </td>
+                            <!-- Columna de fecha y hora -->
+                            <td class="col-timestamp">
+                              <span class="timestamp-text">{{ activity.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                            </td>
+                            <!-- Columna de metadata -->
+                            <td class="col-metadata">
+                              <div class="metadata-container" *ngIf="activity.metadata">
+                                <span class="metadata-badge" *ngIf="activity.metadata.ip">
+                                  <mat-icon>computer</mat-icon>
+                                  {{ activity.metadata.ip }}
+                                </span>
+                                <span class="metadata-badge" *ngIf="activity.metadata.browser">
+                                  <mat-icon>web</mat-icon>
+                                  {{ activity.metadata.browser }}
+                                </span>
+                                <span class="metadata-badge">
+                                  <mat-icon>code</mat-icon>
+                                  {{ activity.component }}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
 
                     <!-- Mensaje cuando no hay actividades -->
