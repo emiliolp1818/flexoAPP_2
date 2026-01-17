@@ -421,14 +421,15 @@ export class CondicionUnicaComponent implements OnInit {
       }
 
       // Crear array de encabezados CSV en español
-      const headers = ['F Artículo', 'Referencia', 'Estante', 'Número de Carpeta', 'Fecha de Creación', 'Última Modificación'];
+      // Cambiado de "Referencia" a "Descripción"
+      const headers = ['F Artículo', 'Descripción', 'Estante', 'Número de Carpeta', 'Fecha de Creación', 'Última Modificación'];
       
       // Convertir cada registro a un array de valores para CSV
       const rows = dataToExport.map(item => [
         // F Artículo del registro
         item.fArticulo,
-        // Referencia del registro
-        item.referencia,
+        // Descripción del registro (antes era referencia)
+        item.descripcion,
         // Estante del registro
         item.estante,
         // Número de carpeta del registro
@@ -536,35 +537,42 @@ export class CondicionUnicaComponent implements OnInit {
             <!-- Etiqueta del campo -->
             <mat-label>F Artículo</mat-label>
             <!-- Input vinculado al control 'fArticulo' del formulario con evento blur -->
+            <!-- El evento blur se dispara cuando el usuario sale del campo (pierde el foco) -->
+            <!-- Esto activa la búsqueda automática en la tabla designs -->
             <input matInput formControlName="fArticulo" placeholder="Ej: F204567" required
               (blur)="onArticuloBlur()">
             <!-- Icono prefijo (antes del input) -->
             <mat-icon matPrefix>tag</mat-icon>
             <!-- Spinner de carga cuando está buscando en designs -->
+            <!-- Solo visible cuando loadingDesign es true -->
             <mat-spinner *ngIf="loadingDesign" diameter="20" matSuffix></mat-spinner>
             <!-- Mensaje de error si el campo es requerido y está vacío -->
             <mat-error *ngIf="form.get('fArticulo')?.hasError('required')">
               El F Artículo es requerido
             </mat-error>
             <!-- Hint informativo cuando se encuentra en designs -->
-            <mat-hint *ngIf="designFound">✓ Referencia cargada desde diseños</mat-hint>
+            <!-- Muestra un check verde cuando se carga la descripción automáticamente -->
+            <mat-hint *ngIf="designFound">✓ Descripción cargada desde diseños</mat-hint>
           </mat-form-field>
 
-          <!-- Campo de formulario: Referencia -->
+          <!-- Campo de formulario: Descripción (antes era Referencia) -->
           <mat-form-field appearance="outline" class="full-width">
-            <!-- Etiqueta del campo -->
-            <mat-label>Referencia</mat-label>
-            <!-- Input vinculado al control 'referencia' del formulario -->
-            <input matInput formControlName="referencia" placeholder="Ej: REF-001" required>
+            <!-- Etiqueta del campo cambiada de "Referencia" a "Descripción" -->
+            <mat-label>Descripción</mat-label>
+            <!-- Input vinculado al control 'descripcion' del formulario -->
+            <!-- Este campo se llena automáticamente si el artículo existe en designs -->
+            <!-- Si no existe, el usuario debe ingresarlo manualmente -->
+            <input matInput formControlName="descripcion" placeholder="Ej: Bolsa de polietileno" required>
             <!-- Icono prefijo (antes del input) -->
             <mat-icon matPrefix>description</mat-icon>
             <!-- Mensaje de error si el campo es requerido y está vacío -->
-            <mat-error *ngIf="form.get('referencia')?.hasError('required')">
-              La Referencia es requerida
+            <mat-error *ngIf="form.get('descripcion')?.hasError('required')">
+              La Descripción es requerida
             </mat-error>
             <!-- Hint informativo cuando no se encuentra en designs -->
+            <!-- Indica al usuario que debe ingresar la descripción manualmente -->
             <mat-hint *ngIf="!designFound && form.get('fArticulo')?.value">
-              Ingrese manualmente la referencia
+              Ingrese manualmente la descripción
             </mat-hint>
           </mat-form-field>
 
@@ -674,15 +682,20 @@ export class CondicionUnicaFormDialog {
   form: FormGroup;
   
   // Estado de carga cuando busca en designs
+  // Se activa (true) mientras se realiza la petición HTTP a la tabla designs
   loadingDesign = false;
   
   // Indica si se encontró el diseño en la tabla designs
+  // true = artículo existe en designs y se cargó la descripción automáticamente
+  // false = artículo no existe en designs, usuario debe ingresar descripción manualmente
   designFound = false;
   
   // Inyectar HttpClient para buscar en designs
+  // Permite realizar peticiones HTTP al backend para buscar el artículo
   private http = inject(HttpClient);
   
   // Inyectar SnackBar para notificaciones
+  // Muestra mensajes toast al usuario sobre el resultado de la búsqueda
   private snackBar = inject(MatSnackBar);
 
   /**
@@ -703,103 +716,121 @@ export class CondicionUnicaFormDialog {
     // Inicializar formulario reactivo con FormBuilder
     this.form = this.fb.group({
       // Control 'fArticulo': valor inicial del item o cadena vacía, validador requerido
+      // Este campo identifica el artículo de forma única
       fArticulo: [this.data.item?.fArticulo || '', Validators.required],
       
-      // Control 'referencia': valor inicial del item o cadena vacía, validador requerido
-      referencia: [this.data.item?.referencia || '', Validators.required],
+      // Control 'descripcion': valor inicial del item o cadena vacía, validador requerido
+      // CAMBIADO: antes era 'referencia', ahora es 'descripcion'
+      // Este campo se carga automáticamente desde designs.descripcion si el artículo existe
+      descripcion: [this.data.item?.descripcion || '', Validators.required],
       
       // Control 'estante': valor inicial del item o cadena vacía, validador requerido
+      // Ubicación física del artículo en el almacén
       estante: [this.data.item?.estante || '', Validators.required],
       
       // Control 'numeroCarpeta': valor inicial del item o cadena vacía, validador requerido
+      // Número de carpeta donde está archivado el documento del artículo
       numeroCarpeta: [this.data.item?.numeroCarpeta || '', Validators.required]
     });
   }
 
   /**
    * Buscar diseño en la tabla designs cuando el usuario sale del campo F Artículo
-   * Carga automáticamente la descripción (referencia) si existe
+   * Carga automáticamente la descripción si existe en la tabla designs
+   * Se ejecuta cuando el usuario hace blur (pierde el foco) en el campo F Artículo
    */
   async onArticuloBlur(): Promise<void> {
-    // Obtener el valor del campo F Artículo
+    // Obtener el valor del campo F Artículo y eliminar espacios en blanco
     const fArticulo = this.form.get('fArticulo')?.value?.trim();
     
-    // Si no hay valor, salir
+    // Si no hay valor, salir de la función sin hacer nada
     if (!fArticulo) {
       return;
     }
     
-    // Si ya hay referencia ingresada manualmente, no buscar
-    const referenciaActual = this.form.get('referencia')?.value?.trim();
-    if (referenciaActual && this.data.mode === 'create') {
+    // Si ya hay descripción ingresada manualmente en modo crear, no buscar
+    // Esto evita sobrescribir una descripción que el usuario ya ingresó
+    const descripcionActual = this.form.get('descripcion')?.value?.trim();
+    if (descripcionActual && this.data.mode === 'create') {
       return;
     }
     
     try {
-      // Activar estado de carga
+      // Activar estado de carga para mostrar spinner en la UI
       this.loadingDesign = true;
+      // Resetear flag de diseño encontrado
       this.designFound = false;
       
+      // Log para debugging: mostrar qué artículo se está buscando
       console.log(`🔍 Buscando diseño para artículo: ${fArticulo}`);
       
       // Realizar petición HTTP GET al endpoint de designs
+      // El endpoint busca en la tabla designs por el campo article_f
+      // Retorna el diseño completo si existe, incluyendo el campo descripcion
       const response = await firstValueFrom(
         this.http.get<any>(`${environment.apiUrl}/designs/articulo/${fArticulo}`)
       );
       
+      // Log para debugging: mostrar respuesta completa del servidor
       console.log('📡 Respuesta del servidor:', response);
       
-      // Si se encontró el diseño y tiene descripción
+      // Verificar si se encontró el diseño y tiene el campo descripcion
       if (response && response.success && response.data && response.data.descripcion) {
-        // Cargar la descripción en el campo referencia
+        // Cargar la descripción en el campo del formulario usando patchValue
+        // patchValue actualiza solo los campos especificados sin afectar los demás
         this.form.patchValue({
-          referencia: response.data.descripcion
+          descripcion: response.data.descripcion
         });
         
+        // Marcar que se encontró el diseño para mostrar hint de éxito
         this.designFound = true;
-        console.log(`✅ Diseño encontrado - Referencia cargada: ${response.data.descripcion}`);
+        // Log de éxito con la descripción cargada
+        console.log(`✅ Diseño encontrado - Descripción cargada: ${response.data.descripcion}`);
         
-        // Mostrar notificación al usuario
+        // Mostrar notificación toast al usuario confirmando la carga automática
         this.snackBar.open(
-          `✓ Referencia cargada desde diseños: ${response.data.descripcion}`, 
+          `✓ Descripción cargada desde diseños: ${response.data.descripcion}`, 
           'Cerrar', 
           { duration: 3000 }
         );
       } else {
-        // No se encontró el diseño
+        // No se encontró el diseño en la tabla designs
         console.log(`⚠️ Diseño no encontrado para artículo: ${fArticulo}`);
         this.designFound = false;
         
-        // Mostrar notificación informativa
+        // Mostrar notificación informativa al usuario
+        // Indica que debe ingresar la descripción manualmente
         this.snackBar.open(
-          'Artículo no encontrado en diseños. Ingrese la referencia manualmente.', 
+          'Artículo no encontrado en diseños. Ingrese la descripción manualmente.', 
           'Cerrar', 
           { duration: 3000 }
         );
       }
       
     } catch (error: any) {
+      // Capturar cualquier error durante la búsqueda
       console.error('❌ Error buscando diseño:', error);
       this.designFound = false;
       
-      // Si es error 404, el artículo no existe
+      // Si es error 404, el artículo no existe en la tabla designs
       if (error.status === 404) {
         console.log(`⚠️ Artículo ${fArticulo} no existe en la tabla designs`);
         this.snackBar.open(
-          'Artículo no encontrado en diseños. Ingrese la referencia manualmente.', 
+          'Artículo no encontrado en diseños. Ingrese la descripción manualmente.', 
           'Cerrar', 
           { duration: 3000 }
         );
       } else {
-        // Otro tipo de error
+        // Otro tipo de error (500, error de red, etc.)
         this.snackBar.open(
-          'Error al buscar en diseños. Ingrese la referencia manualmente.', 
+          'Error al buscar en diseños. Ingrese la descripción manualmente.', 
           'Cerrar', 
           { duration: 3000 }
         );
       }
     } finally {
-      // Desactivar estado de carga
+      // Siempre desactivar estado de carga, sin importar el resultado
+      // Esto oculta el spinner en la UI
       this.loadingDesign = false;
     }
   }
@@ -810,18 +841,20 @@ export class CondicionUnicaFormDialog {
    */
   onCancel(): void {
     // Cerrar el diálogo sin pasar datos (undefined)
+    // El componente padre no recibirá ningún valor
     this.dialogRef.close();
   }
 
   /**
    * Guardar los datos y cerrar el diálogo
    * Retorna los valores del formulario al componente padre
-   * Solo se ejecuta si el formulario es válido
+   * Solo se ejecuta si el formulario es válido (todos los campos requeridos llenos)
    */
   onSave(): void {
     // Verificar que el formulario sea válido (todos los campos requeridos llenos)
     if (this.form.valid) {
       // Cerrar el diálogo y retornar los valores del formulario al componente padre
+      // El componente padre recibirá un objeto con: fArticulo, descripcion, estante, numeroCarpeta
       this.dialogRef.close(this.form.value);
     }
   }
