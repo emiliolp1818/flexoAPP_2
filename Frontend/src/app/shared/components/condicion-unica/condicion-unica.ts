@@ -26,6 +26,15 @@ import { MatDialogModule, MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angu
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // Formularios template-driven y reactivos
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'; // Constructor de formularios y validadores
 
+// Importar HttpClient para peticiones HTTP
+import { HttpClient } from '@angular/common/http';
+
+// Importar firstValueFrom para convertir Observables a Promises
+import { firstValueFrom } from 'rxjs';
+
+// Importar environment para obtener la URL del API
+import { environment } from '../../../../environments/environment';
+
 // Importar servicio personalizado para operaciones CRUD de Condición Única
 import { CondicionUnicaService } from '../../services/condicion-unica.service';
 
@@ -501,6 +510,7 @@ export class CondicionUnicaComponent implements OnInit {
     MatFormFieldModule, // Campos de formulario Material
     MatInputModule, // Inputs de texto Material
     MatIconModule, // Iconos Material
+    MatProgressSpinnerModule, // Spinner de carga
     ReactiveFormsModule // Formularios reactivos
   ],
   
@@ -525,14 +535,19 @@ export class CondicionUnicaComponent implements OnInit {
           <mat-form-field appearance="outline" class="full-width">
             <!-- Etiqueta del campo -->
             <mat-label>F Artículo</mat-label>
-            <!-- Input vinculado al control 'fArticulo' del formulario -->
-            <input matInput formControlName="fArticulo" placeholder="Ej: F204567" required>
+            <!-- Input vinculado al control 'fArticulo' del formulario con evento blur -->
+            <input matInput formControlName="fArticulo" placeholder="Ej: F204567" required
+              (blur)="onArticuloBlur()">
             <!-- Icono prefijo (antes del input) -->
             <mat-icon matPrefix>tag</mat-icon>
+            <!-- Spinner de carga cuando está buscando en designs -->
+            <mat-spinner *ngIf="loadingDesign" diameter="20" matSuffix></mat-spinner>
             <!-- Mensaje de error si el campo es requerido y está vacío -->
             <mat-error *ngIf="form.get('fArticulo')?.hasError('required')">
               El F Artículo es requerido
             </mat-error>
+            <!-- Hint informativo cuando se encuentra en designs -->
+            <mat-hint *ngIf="designFound">✓ Referencia cargada desde diseños</mat-hint>
           </mat-form-field>
 
           <!-- Campo de formulario: Referencia -->
@@ -547,6 +562,10 @@ export class CondicionUnicaComponent implements OnInit {
             <mat-error *ngIf="form.get('referencia')?.hasError('required')">
               La Referencia es requerida
             </mat-error>
+            <!-- Hint informativo cuando no se encuentra en designs -->
+            <mat-hint *ngIf="!designFound && form.get('fArticulo')?.value">
+              Ingrese manualmente la referencia
+            </mat-hint>
           </mat-form-field>
 
           <!-- Campo de formulario: Estante -->
@@ -653,6 +672,18 @@ export class CondicionUnicaFormDialog {
   // Formulario reactivo con validaciones
   // Contiene los controles para cada campo del formulario
   form: FormGroup;
+  
+  // Estado de carga cuando busca en designs
+  loadingDesign = false;
+  
+  // Indica si se encontró el diseño en la tabla designs
+  designFound = false;
+  
+  // Inyectar HttpClient para buscar en designs
+  private http = inject(HttpClient);
+  
+  // Inyectar SnackBar para notificaciones
+  private snackBar = inject(MatSnackBar);
 
   /**
    * Constructor del componente de diálogo
@@ -683,6 +714,94 @@ export class CondicionUnicaFormDialog {
       // Control 'numeroCarpeta': valor inicial del item o cadena vacía, validador requerido
       numeroCarpeta: [this.data.item?.numeroCarpeta || '', Validators.required]
     });
+  }
+
+  /**
+   * Buscar diseño en la tabla designs cuando el usuario sale del campo F Artículo
+   * Carga automáticamente la descripción (referencia) si existe
+   */
+  async onArticuloBlur(): Promise<void> {
+    // Obtener el valor del campo F Artículo
+    const fArticulo = this.form.get('fArticulo')?.value?.trim();
+    
+    // Si no hay valor, salir
+    if (!fArticulo) {
+      return;
+    }
+    
+    // Si ya hay referencia ingresada manualmente, no buscar
+    const referenciaActual = this.form.get('referencia')?.value?.trim();
+    if (referenciaActual && this.data.mode === 'create') {
+      return;
+    }
+    
+    try {
+      // Activar estado de carga
+      this.loadingDesign = true;
+      this.designFound = false;
+      
+      console.log(`🔍 Buscando diseño para artículo: ${fArticulo}`);
+      
+      // Realizar petición HTTP GET al endpoint de designs
+      const response = await firstValueFrom(
+        this.http.get<any>(`${environment.apiUrl}/designs/articulo/${fArticulo}`)
+      );
+      
+      console.log('📡 Respuesta del servidor:', response);
+      
+      // Si se encontró el diseño y tiene descripción
+      if (response && response.success && response.data && response.data.descripcion) {
+        // Cargar la descripción en el campo referencia
+        this.form.patchValue({
+          referencia: response.data.descripcion
+        });
+        
+        this.designFound = true;
+        console.log(`✅ Diseño encontrado - Referencia cargada: ${response.data.descripcion}`);
+        
+        // Mostrar notificación al usuario
+        this.snackBar.open(
+          `✓ Referencia cargada desde diseños: ${response.data.descripcion}`, 
+          'Cerrar', 
+          { duration: 3000 }
+        );
+      } else {
+        // No se encontró el diseño
+        console.log(`⚠️ Diseño no encontrado para artículo: ${fArticulo}`);
+        this.designFound = false;
+        
+        // Mostrar notificación informativa
+        this.snackBar.open(
+          'Artículo no encontrado en diseños. Ingrese la referencia manualmente.', 
+          'Cerrar', 
+          { duration: 3000 }
+        );
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Error buscando diseño:', error);
+      this.designFound = false;
+      
+      // Si es error 404, el artículo no existe
+      if (error.status === 404) {
+        console.log(`⚠️ Artículo ${fArticulo} no existe en la tabla designs`);
+        this.snackBar.open(
+          'Artículo no encontrado en diseños. Ingrese la referencia manualmente.', 
+          'Cerrar', 
+          { duration: 3000 }
+        );
+      } else {
+        // Otro tipo de error
+        this.snackBar.open(
+          'Error al buscar en diseños. Ingrese la referencia manualmente.', 
+          'Cerrar', 
+          { duration: 3000 }
+        );
+      }
+    } finally {
+      // Desactivar estado de carga
+      this.loadingDesign = false;
+    }
   }
 
   /**
