@@ -755,29 +755,49 @@ export class MachinesComponent implements OnInit {
           console.log('📋 Programa ANTES de actualizar:', programs[programIndex]);
           
           // ===== CREAR NUEVO ARRAY CON EL PROGRAMA ACTUALIZADO =====
-          // Crear un nuevo array inmutable para disparar la detección de cambios de Angular
-          const updatedPrograms = programs.map((p, index) => {
-            if (index === programIndex) {
-              // Actualizar el programa encontrado con los nuevos datos
-              const updated = {
-                ...p, // Mantener todos los datos existentes (spread operator)
-                estado: newStatus, // Actualizar columna 'estado' con el nuevo valor
-                // Actualizar información de auditoría de la última acción
-                // Estos datos vienen de las columnas last_action_by y last_action_at de la tabla
-                lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
-                lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
-                observaciones: response.data?.observaciones || p.observaciones
-              };
-              console.log('📋 Programa DESPUÉS de actualizar:', updated);
-              return updated;
-            }
-            return p; // Mantener los demás programas sin cambios
-          });
+          // Estrategia: Crear un nuevo array completamente nuevo para forzar detección de cambios
+          const updatedPrograms = [...programs]; // Crear copia del array
+          
+          // Crear nuevo objeto del programa con el estado actualizado
+          updatedPrograms[programIndex] = {
+            ...programs[programIndex], // Copiar todos los datos del programa original
+            estado: newStatus, // Actualizar estado
+            lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
+            lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
+            observaciones: response.data?.observaciones || programs[programIndex].observaciones
+          };
+          
+          console.log('📋 Programa DESPUÉS de actualizar:', updatedPrograms[programIndex]);
           
           console.log('📊 Actualizando signal con nuevos programas...');
           // Actualizar la señal reactiva con el nuevo array (esto dispara la detección de cambios)
           this.programs.set(updatedPrograms);
           console.log('📊 Signal actualizado');
+          console.log('📊 Estado del signal después de actualizar:', this.programs());
+          console.log('� Programas filtrados (selectedMachinePrograms):', this.selectedMachinePrograms());
+          
+          console.log('🔄 Forzando detección de cambios...');
+          // Forzar detección de cambios para actualizar la vista inmediatamente
+          this.cdr.detectChanges();
+          console.log('🔄 Detección de cambios completada');
+          
+          // Forzar actualización adicional después de un tick para asegurar que Angular Material Table se actualice
+          setTimeout(() => {
+            console.log('🔄 Forzando segunda detección de cambios (tick)...');
+            this.cdr.detectChanges();
+            console.log('🔄 Segunda detección completada');
+          }, 0);
+          
+          console.log('✅ Estado actualizado localmente:', {
+            programaOtSap: program.otSap,
+            estadoAnterior: program.estado,
+            estadoNuevo: newStatus
+          });
+        } else {
+          console.error('❌ Programa NO encontrado en el array');
+          console.error('❌ OT SAP buscado:', program.otSap);
+          console.error('❌ OT SAPs disponibles:', programs.map(p => p.otSap));
+        }
           console.log('📊 Estado del signal después de actualizar:', this.programs());
           
           console.log('🔄 Forzando detección de cambios...');
@@ -936,31 +956,37 @@ export class MachinesComponent implements OnInit {
         if (index !== -1) {
           console.log('📋 Programa ANTES de actualizar:', programs[index]);
           
-          // Crear nuevo array inmutable con el programa actualizado
-          const updatedPrograms = programs.map((p, i) => {
-            if (i === index) {
-              const updated = {
-                ...p, // Mantener datos existentes
-                estado: 'SUSPENDIDO' as MachineProgram['estado'], // Nuevo estado con tipo explícito
-                observaciones: this.suspendReason, // Motivo de suspensión
-                // Actualizar información de la última acción
-                lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
-                lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date()
-              };
-              console.log('📋 Programa DESPUÉS de actualizar:', updated);
-              return updated;
-            }
-            return p;
-          });
+          // ===== CREAR NUEVO ARRAY CON EL PROGRAMA ACTUALIZADO =====
+          // Estrategia: Crear un nuevo array completamente nuevo para forzar detección de cambios
+          const updatedPrograms = [...programs]; // Crear copia del array
+          
+          // Crear nuevo objeto del programa con el estado actualizado
+          updatedPrograms[index] = {
+            ...programs[index], // Copiar todos los datos del programa original
+            estado: 'SUSPENDIDO' as MachineProgram['estado'], // Nuevo estado
+            observaciones: this.suspendReason, // Motivo de suspensión
+            lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
+            lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date()
+          };
+          
+          console.log('📋 Programa DESPUÉS de actualizar:', updatedPrograms[index]);
           
           console.log('📊 Actualizando signal con nuevos programas...');
           this.programs.set(updatedPrograms); // Actualizar la señal reactiva con nuevo array
           console.log('📊 Signal actualizado');
+          console.log('📊 Programas filtrados (selectedMachinePrograms):', this.selectedMachinePrograms());
           
           console.log('🔄 Forzando detección de cambios...');
           // Forzar detección de cambios para actualizar la vista inmediatamente
           this.cdr.detectChanges();
           console.log('🔄 Detección de cambios completada');
+          
+          // Forzar actualización adicional después de un tick para asegurar que Angular Material Table se actualice
+          setTimeout(() => {
+            console.log('🔄 Forzando segunda detección de cambios (tick)...');
+            this.cdr.detectChanges();
+            console.log('🔄 Segunda detección completada');
+          }, 0);
         } else {
           console.error('❌ Programa NO encontrado en el array');
           console.error('❌ OT SAP buscado:', this.currentProgramToSuspend.otSap);
