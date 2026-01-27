@@ -25,6 +25,21 @@ namespace FlexoAPP.API.Services
         /// Registra una actividad con información completa
         /// </summary>
         Task LogActivityAsync(int userId, string userCode, string action, string description, string module, string? details = null, string? ipAddress = null);
+        
+        /// <summary>
+        /// Registra una actividad con información detallada de auditoría
+        /// </summary>
+        Task LogDetailedActivityAsync(
+            string action, 
+            string description, 
+            string module, 
+            string? entityType = null,
+            int? entityId = null,
+            string? entityName = null,
+            TimeSpan? duration = null,
+            object? oldValues = null,
+            object? newValues = null,
+            string? details = null);
     }
 
     /// <summary>
@@ -123,6 +138,83 @@ namespace FlexoAPP.API.Services
                 _logger.LogError(ex, 
                     "Error al guardar actividad en BD: Usuario={UserCode}, Acción={Action}, Módulo={Module}", 
                     userCode, action, module);
+            }
+        }
+
+        /// <summary>
+        /// Registra una actividad con información detallada de auditoría
+        /// </summary>
+        public async Task LogDetailedActivityAsync(
+            string action, 
+            string description, 
+            string module, 
+            string? entityType = null,
+            int? entityId = null,
+            string? entityName = null,
+            TimeSpan? duration = null,
+            object? oldValues = null,
+            object? newValues = null,
+            string? details = null)
+        {
+            try
+            {
+                // Obtener información del usuario del contexto HTTP
+                var httpContext = _httpContextAccessor.HttpContext;
+                if (httpContext?.User?.Identity?.IsAuthenticated != true)
+                {
+                    _logger.LogWarning("Intento de registrar actividad sin usuario autenticado");
+                    return;
+                }
+
+                // Extraer información del usuario del token JWT
+                var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userCodeClaim = httpContext.User.FindFirst("userCode")?.Value;
+
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                {
+                    _logger.LogWarning("No se pudo obtener el ID del usuario del token");
+                    return;
+                }
+
+                // Obtener dirección IP del cliente
+                var ipAddress = GetClientIpAddress(httpContext);
+
+                // Serializar valores antiguos y nuevos a JSON
+                string? oldValuesJson = oldValues != null ? System.Text.Json.JsonSerializer.Serialize(oldValues) : null;
+                string? newValuesJson = newValues != null ? System.Text.Json.JsonSerializer.Serialize(newValues) : null;
+
+                // Crear registro de actividad detallado
+                var activity = new Activity
+                {
+                    UserId = userId,
+                    UserCode = userCodeClaim ?? "unknown",
+                    Action = action,
+                    Description = description,
+                    Module = module,
+                    Details = details,
+                    Timestamp = DateTime.Now,
+                    IpAddress = ipAddress,
+                    EntityType = entityType,
+                    EntityId = entityId,
+                    EntityName = entityName,
+                    Duration = duration,
+                    OldValues = oldValuesJson,
+                    NewValues = newValuesJson
+                };
+
+                // Guardar en la base de datos
+                _context.Activities.Add(activity);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Actividad detallada registrada: Usuario={UserCode}, Acción={Action}, Módulo={Module}, Entidad={EntityType}/{EntityId}", 
+                    userCodeClaim, action, module, entityType, entityId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, 
+                    "Error al guardar actividad detallada en BD: Acción={Action}, Módulo={Module}", 
+                    action, module);
             }
         }
 

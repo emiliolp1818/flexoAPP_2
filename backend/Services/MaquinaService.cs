@@ -14,12 +14,18 @@ namespace flexoAPP.Services
         private readonly IMaquinaRepository _repository;
         private readonly ILogger<MaquinaService> _logger;
         private readonly FlexoAPPDbContext _context;
+        private readonly FlexoAPP.API.Services.IActivityLoggerService _activityLogger;
 
-        public MaquinaService(IMaquinaRepository repository, ILogger<MaquinaService> logger, FlexoAPPDbContext context)
+        public MaquinaService(
+            IMaquinaRepository repository, 
+            ILogger<MaquinaService> logger, 
+            FlexoAPPDbContext context,
+            FlexoAPP.API.Services.IActivityLoggerService activityLogger)
         {
             _repository = repository;
             _logger = logger;
             _context = context;
+            _activityLogger = activityLogger;
             EnsureDatabaseSchema();
         }
 
@@ -366,6 +372,11 @@ namespace flexoAPP.Services
                 throw new KeyNotFoundException($"Máquina con OT SAP {otSap} no encontrada");
             }
 
+            // Guardar estado anterior para auditoría
+            var oldStatus = existing.Estado;
+            var oldObservaciones = existing.Observaciones;
+            DateTime? startTime = existing.PreparandoStartedAt;
+
             // Validar estado
             var estadosValidos = new[] { "SIN_ASIGNAR", "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO", "EN_PROCESO" };
             var estadoUpper = estado?.ToUpper();
@@ -386,6 +397,14 @@ namespace flexoAPP.Services
             {
                 existing.PreparandoStartedAt = DateTime.UtcNow;
                 _logger.LogInformation("⏱️ Guardando PreparandoStartedAt para OT={OtSap}", otSap);
+            }
+            
+            // Calcular duración si cambia de PREPARANDO a LISTO
+            TimeSpan? duration = null;
+            if (existing.Estado == "PREPARANDO" && estadoUpper == "LISTO" && existing.PreparandoStartedAt.HasValue)
+            {
+                duration = DateTime.UtcNow - existing.PreparandoStartedAt.Value;
+                _logger.LogInformation("⏱️ Duración PREPARANDO->LISTO para OT={OtSap}: {Duration}", otSap, duration);
             }
             
             // Limpiar PreparandoStartedAt cuando cambia a otro estado desde PREPARANDO
@@ -409,6 +428,33 @@ namespace flexoAPP.Services
 
             var updated = await _repository.UpdateAsync(existing);
             _logger.LogInformation("✅ Estado actualizado: OT={OtSap}, Estado={Estado}, Usuario={User}", otSap, estadoUpper, userName);
+            
+            // ✅ Registrar actividad detallada en auditoría
+            try
+            {
+                var description = $"Cambio de estado: {oldStatus} → {estadoUpper}";
+                if (duration.HasValue)
+                {
+                    description += $" (Duración: {duration.Value.TotalMinutes:F2} min)";
+                }
+
+                await _activityLogger.LogDetailedActivityAsync(
+                    action: "MACHINE_STATUS_CHANGED",
+                    description: description,
+                    module: "MACHINES",
+                    entityType: "Maquina",
+                    entityId: null, // No tenemos ID numérico, usamos OT SAP en EntityName
+                    entityName: $"{otSap} - {existing.Articulo}",
+                    duration: duration,
+                    oldValues: new { estado = oldStatus, observaciones = oldObservaciones },
+                    newValues: new { estado = estadoUpper, observaciones = existing.Observaciones },
+                    details: $"{{\"otSap\":\"{otSap}\",\"articulo\":\"{existing.Articulo}\",\"descripcion\":\"{existing.Referencia}\",\"maquina\":{existing.NumeroMaquina}}}"
+                );
+            }
+            catch (Exception logEx)
+            {
+                _logger.LogWarning(logEx, "Error al registrar actividad de máquina");
+            }
             
             return MapToDto(updated);
         }

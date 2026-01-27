@@ -12,11 +12,16 @@ namespace flexoAPP.Controllers
     {
         private readonly FlexoAPPDbContext _context;
         private readonly ILogger<SystemConfigController> _logger;
+        private readonly FlexoAPP.API.Services.IActivityLoggerService _activityLogger;
 
-        public SystemConfigController(FlexoAPPDbContext context, ILogger<SystemConfigController> logger)
+        public SystemConfigController(
+            FlexoAPPDbContext context, 
+            ILogger<SystemConfigController> logger,
+            FlexoAPP.API.Services.IActivityLoggerService activityLogger)
         {
             _context = context;
             _logger = logger;
+            _activityLogger = activityLogger;
         }
 
         /// <summary>
@@ -107,6 +112,9 @@ namespace flexoAPP.Controllers
                     return NotFound(new { message = $"Configuración '{id}' no encontrada" });
                 }
 
+                // Guardar valor anterior para auditoría
+                var oldValue = config.Value;
+
                 // Convertir el valor al formato string para almacenar
                 config.Value = request.Value?.ToString() ?? string.Empty;
                 config.UpdatedAt = DateTime.UtcNow;
@@ -114,6 +122,26 @@ namespace flexoAPP.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Configuración '{id}' actualizada a: {config.Value}");
+
+                // ✅ Registrar actividad de cambio de configuración
+                try
+                {
+                    await _activityLogger.LogDetailedActivityAsync(
+                        action: "CONFIG_UPDATED",
+                        description: $"Cambio de configuración: {config.Name}",
+                        module: "CONFIG",
+                        entityType: "SystemConfig",
+                        entityId: null,
+                        entityName: config.Name,
+                        oldValues: new { value = oldValue },
+                        newValues: new { value = config.Value },
+                        details: $"{{\"configId\":\"{id}\",\"category\":\"{config.Category}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de cambio de configuración");
+                }
 
                 return Ok(new { message = "Configuración actualizada correctamente" });
             }
