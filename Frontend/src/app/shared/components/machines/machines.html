@@ -403,10 +403,22 @@
                         
                         <button mat-icon-button 
                           class="action-btn corriendo-btn"
-                          (click)="$event.stopPropagation(); console.log('🔴 CLICK CORRIENDO - OT:', element.otSap, 'Art:', element.articulo); handleAction(element, 'CORRIENDO')"
-                          [disabled]="element.estado === 'CORRIENDO'">
-                          <mat-icon>play_circle</mat-icon>
+                          [matMenuTriggerFor]="corriendoMenu"
+                          (click)="$event.stopPropagation(); setCurrentProgramForMenu(element)"
+                          [disabled]="element.estado === 'CORRIENDO' || element.estado === 'TERMINADO'">
+                          <mat-icon>stop_circle</mat-icon>
                         </button>
+                        
+                        <mat-menu #corriendoMenu="matMenu">
+                          <button mat-menu-item (click)="handleAction(currentProgramForMenu!, 'CORRIENDO')">
+                            <mat-icon>play_circle</mat-icon>
+                            <span>Corriendo</span>
+                          </button>
+                          <button mat-menu-item (click)="handleAction(currentProgramForMenu!, 'TERMINADO')">
+                            <mat-icon>check_circle_outline</mat-icon>
+                            <span>Terminado</span>
+                          </button>
+                        </mat-menu>
                         
                         <button mat-icon-button 
                           class="action-btn imprimir-btn"

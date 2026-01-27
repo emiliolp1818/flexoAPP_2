@@ -14,6 +14,7 @@ import { MatTabsModule } from '@angular/material/tabs'; // Pestañas Material
 import { MatChipsModule } from '@angular/material/chips'; // Chips Material
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Spinner de carga
 import { MatSnackBarModule } from '@angular/material/snack-bar'; // Notificaciones toast
+import { MatMenuModule } from '@angular/material/menu'; // Menús desplegables Material
 // Módulo de formularios reactivos de Angular
 import { FormsModule } from '@angular/forms';
 // Cliente HTTP para comunicación con el backend
@@ -86,6 +87,7 @@ interface MachineStats {
     MatChipsModule, // Chips de Material Design
     MatProgressSpinnerModule, // Spinner de carga de Material
     MatSnackBarModule, // Notificaciones toast de Material
+    MatMenuModule, // Menús desplegables de Material
     FormsModule // Formularios de Angular
   ],
   templateUrl: './machines.html', // Archivo de plantilla HTML
@@ -114,6 +116,9 @@ export class MachinesComponent implements OnInit {
   showSuspendDialog = false; // Controla la visibilidad del diálogo
   currentProgramToSuspend: MachineProgram | null = null; // Programa que se va a suspender
   suspendReason = ''; // Motivo de la suspensión ingresado por el usuario
+  
+  // Variable para el menú de corriendo/terminado
+  currentProgramForMenu: MachineProgram | null = null; // Programa seleccionado para el menú de acciones
   
   // Configuración estática del componente
   machineNumbers = Array.from({ length: 11 }, (_, i) => i + 11); // Genera array [11, 12, 13, ..., 21]
@@ -1025,6 +1030,12 @@ export class MachinesComponent implements OnInit {
     this.currentProgramToSuspend = program; // Guardar referencia del programa a suspender
     this.suspendReason = ''; // Limpiar motivo anterior
     this.showSuspendDialog = true; // Mostrar el diálogo de suspensión
+  }
+
+  // Establece el programa actual para el menú de corriendo/terminado
+  setCurrentProgramForMenu(program: MachineProgram) {
+    this.currentProgramForMenu = program; // Guardar referencia del programa para el menú
+    console.log('🎯 Programa seleccionado para menú - OT:', program.otSap, 'Art:', program.articulo);
   }
 
   // Cierra el diálogo de suspensión y limpia el estado
