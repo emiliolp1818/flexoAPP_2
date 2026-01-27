@@ -63,10 +63,10 @@ namespace FlexoAPP.API.Controllers
                             await _activityLogger.LogActivityAsync(
                                 userId,                              // ID del usuario
                                 response.User.UserCode,              // Código del usuario
-                                "LOGIN",                             // Acción realizada
+                                "LOGIN_SUCCESS",                     // Acción realizada
                                 "Inicio de sesión exitoso",          // Descripción
                                 "AUTH",                              // Módulo
-                                $"{{\"browser\":\"{browser}\"}}",    // Detalles en JSON
+                                $"{{\"browser\":\"{browser}\",\"success\":true}}",    // Detalles en JSON
                                 ipAddress                            // IP del cliente
                             );
                         }
@@ -78,6 +78,33 @@ namespace FlexoAPP.API.Controllers
                     }
                     
                     return Ok(response);
+                }
+                
+                // ✅ Registrar login fallido
+                try
+                {
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    
+                    // Buscar el usuario para obtener su ID (si existe)
+                    var allUsers = await _authService.GetAllUsersAsync();
+                    var user = allUsers.FirstOrDefault(u => u.UserCode == loginDto.UserCode);
+                    
+                    if (user != null && int.TryParse(user.Id, out int userId))
+                    {
+                        await _activityLogger.LogActivityAsync(
+                            userId,
+                            loginDto.UserCode,
+                            "LOGIN_FAILED",
+                            "Intento fallido de inicio de sesión",
+                            "AUTH",
+                            $"{{\"success\":false,\"reason\":\"Invalid credentials\"}}",
+                            ipAddress
+                        );
+                    }
+                }
+                catch (Exception logEx)
+                {
+                    Console.WriteLine($"Error logging failed login: {logEx.Message}");
                 }
                 
                 Console.WriteLine($"Login failed: Invalid credentials for {loginDto.UserCode}"); 
@@ -164,6 +191,24 @@ namespace FlexoAPP.API.Controllers
                 var response = await _authService.UpdateUserPhotoAsync(userId, photoDto.ProfileImage);
                 if (response != null)
                 {
+                    // ✅ Registrar cambio de foto de perfil
+                    try
+                    {
+                        await _activityLogger.LogActivityAsync(
+                            userId,
+                            response.UserCode,
+                            "PROFILE_PHOTO_UPDATED",
+                            "Cambio de foto de perfil",
+                            "PROFILE",
+                            $"{{\"fieldChanged\":\"ProfileImage\",\"hasImage\":{(!string.IsNullOrEmpty(photoDto.ProfileImage)).ToString().ToLower()}}}",
+                            HttpContext.Connection.RemoteIpAddress?.ToString()
+                        );
+                    }
+                    catch (Exception logEx)
+                    {
+                        Console.WriteLine($"Error logging profile photo update: {logEx.Message}");
+                    }
+                    
                     return Ok(response);
                 }
                 
@@ -328,6 +373,31 @@ namespace FlexoAPP.API.Controllers
                 var newUser = await _authService.CreateUserAsync(createUserDto);
                 if (newUser != null)
                 {
+                    // ✅ Registrar creación de usuario
+                    try
+                    {
+                        // Obtener usuario administrador del contexto
+                        var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                        var adminCodeClaim = User.FindFirst("userCode")?.Value;
+                        
+                        if (!string.IsNullOrEmpty(adminIdClaim) && int.TryParse(adminIdClaim, out int adminId))
+                        {
+                            await _activityLogger.LogActivityAsync(
+                                adminId,
+                                adminCodeClaim ?? "system",
+                                "USER_CREATED",
+                                $"Usuario creado: {createUserDto.UserCode}",
+                                "CONFIG",
+                                $"{{\"configType\":\"USER_CREATION\",\"affectedUser\":\"{createUserDto.UserCode}\",\"role\":\"{createUserDto.Role}\",\"firstName\":\"{createUserDto.FirstName}\",\"lastName\":\"{createUserDto.LastName}\"}}",
+                                HttpContext.Connection.RemoteIpAddress?.ToString()
+                            );
+                        }
+                    }
+                    catch (Exception logEx)
+                    {
+                        Console.WriteLine($"Error logging user creation: {logEx.Message}");
+                    }
+                    
                     return Ok(newUser);
                 }
 
@@ -425,6 +495,8 @@ namespace FlexoAPP.API.Controllers
 
                 // Get user ID from JWT token claims
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userCodeClaim = User.FindFirst("userCode")?.Value;
+                
                 if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 {
                     return Unauthorized(new { message = "Token de usuario inválido" });
@@ -434,9 +506,45 @@ namespace FlexoAPP.API.Controllers
                 
                 if (result)
                 {
+                    // ✅ Registrar cambio de contraseña exitoso
+                    try
+                    {
+                        await _activityLogger.LogActivityAsync(
+                            userId,
+                            userCodeClaim ?? "unknown",
+                            "PROFILE_PASSWORD_UPDATED",
+                            "Cambio de contraseña exitoso",
+                            "PROFILE",
+                            $"{{\"fieldChanged\":\"Password\",\"success\":true}}",
+                            HttpContext.Connection.RemoteIpAddress?.ToString()
+                        );
+                    }
+                    catch (Exception logEx)
+                    {
+                        Console.WriteLine($"Error logging password change: {logEx.Message}");
+                    }
+                    
                     return Ok(new { message = "Contraseña cambiada exitosamente" });
                 }
 
+                // ✅ Registrar intento fallido de cambio de contraseña
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        userId,
+                        userCodeClaim ?? "unknown",
+                        "PROFILE_PASSWORD_UPDATE_FAILED",
+                        "Intento fallido de cambio de contraseña",
+                        "PROFILE",
+                        $"{{\"fieldChanged\":\"Password\",\"success\":false,\"reason\":\"Current password incorrect\"}}",
+                        HttpContext.Connection.RemoteIpAddress?.ToString()
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    Console.WriteLine($"Error logging failed password change: {logEx.Message}");
+                }
+                
                 return BadRequest(new { message = "La contraseña actual es incorrecta" });
             }
             catch (Exception ex)
