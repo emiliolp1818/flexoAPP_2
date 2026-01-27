@@ -193,6 +193,7 @@ CREATE TABLE IF NOT EXISTS `maquinas` (
     `Observaciones` VARCHAR(1000) NULL COMMENT 'Observaciones adicionales',
     `LastActionBy` VARCHAR(100) NULL COMMENT 'Último usuario que modificó',
     `LastActionAt` DATETIME(6) NULL COMMENT 'Fecha de última acción',
+    `preparando_started_at` DATETIME NULL COMMENT 'Fecha y hora cuando se marcó como PREPARANDO',
     `CreatedBy` INT NULL COMMENT 'Usuario creador',
     `UpdatedBy` INT NULL COMMENT 'Usuario que actualizó',
     `CreatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Fecha de creación',

@@ -1,16 +1,22 @@
 -- =====================================================
--- SCRIPT: CREAR TABLA MAQUINAS
+-- SCRIPT: CREAR/ACTUALIZAR TABLA MAQUINAS (VERSIÓN ACTUALIZADA)
 -- =====================================================
 -- Sistema: FlexoAPP - Sistema de Gestión Flexográfica
--- Propósito: Crear tabla de máquinas de producción flexográfica
+-- Propósito: Crear tabla de máquinas con columna preparando_started_at
 -- Base de datos: MySQL 8.0+ (Railway/Render)
 -- Tabla: maquinas
 -- Autor: Sistema FlexoAPP
--- Fecha: 2026-01-17
--- Versión: 2.0
+-- Fecha: 2026-01-27
+-- Versión: 2.1 (Incluye preparando_started_at)
 -- =====================================================
 
--- Verificar si la tabla existe y crearla si no existe
+USE flexoapp_bd;
+
+-- Eliminar tabla si existe (CUIDADO: Esto borra todos los datos)
+-- Descomenta la siguiente línea solo si quieres recrear la tabla desde cero
+-- DROP TABLE IF EXISTS `maquinas`;
+
+-- Crear tabla maquinas con la nueva columna preparando_started_at
 CREATE TABLE IF NOT EXISTS `maquinas` (
     -- ===== IDENTIFICACIÓN =====
     `ot_sap` VARCHAR(50) NOT NULL PRIMARY KEY COMMENT 'Orden de Trabajo SAP (clave primaria única)',
@@ -40,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `maquinas` (
     -- ===== SEGUIMIENTO =====
     `LastActionBy` VARCHAR(100) NULL COMMENT 'Usuario que realizó la última acción',
     `LastActionAt` DATETIME(6) NULL COMMENT 'Fecha y hora de la última acción',
-    `preparando_started_at` DATETIME NULL COMMENT 'Fecha y hora cuando se marcó como PREPARANDO',
+    `preparando_started_at` DATETIME NULL COMMENT 'Fecha y hora cuando se marcó como PREPARANDO (para calcular tiempo transcurrido)',
     
     -- ===== AUDITORÍA =====
     `CreatedBy` INT NULL COMMENT 'ID del usuario que creó el registro',
@@ -85,8 +91,42 @@ CREATE TABLE IF NOT EXISTS `maquinas` (
         
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Máquinas de producción flexográfica';
 
+-- ===== SI LA TABLA YA EXISTE, AGREGAR LA COLUMNA =====
+-- Este comando agregará la columna solo si no existe
+SET @dbname = DATABASE();
+SET @tablename = 'maquinas';
+SET @columnname = 'preparando_started_at';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT ''La columna preparando_started_at ya existe'' AS resultado;',
+  'ALTER TABLE maquinas ADD COLUMN preparando_started_at DATETIME NULL COMMENT ''Fecha y hora cuando se marcó como PREPARANDO'' AFTER LastActionAt;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
 -- ===== VERIFICACIÓN =====
-SELECT '✓ Tabla maquinas creada exitosamente' as resultado;
+SELECT '✓ Tabla maquinas creada/actualizada exitosamente' as resultado;
 
 -- ===== INFORMACIÓN DE LA TABLA =====
 DESCRIBE `maquinas`;
+
+-- ===== VERIFICAR QUE LA COLUMNA EXISTE =====
+SELECT 
+    COLUMN_NAME,
+    COLUMN_TYPE,
+    IS_NULLABLE,
+    COLUMN_DEFAULT,
+    COLUMN_COMMENT
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'flexoapp_bd'
+  AND TABLE_NAME = 'maquinas'
+  AND COLUMN_NAME = 'preparando_started_at';
+
+SELECT '✓ Script completado exitosamente' as resultado;
