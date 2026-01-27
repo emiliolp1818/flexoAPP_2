@@ -208,6 +208,7 @@ namespace backend.Controllers
                         estadoNuevo = result.Estado,
                         lastActionBy = result.LastActionBy,
                         lastActionAt = result.LastActionAt,
+                        preparandoStartedAt = result.PreparandoStartedAt,
                         observaciones = result.Observaciones
                     },
                     timestamp = DateTime.UtcNow

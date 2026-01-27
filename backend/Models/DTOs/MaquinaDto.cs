@@ -17,6 +17,7 @@ namespace flexoAPP.Models.DTOs
         public string? Observaciones { get; set; }
         public string? LastActionBy { get; set; }
         public DateTime? LastActionAt { get; set; }
+        public DateTime? PreparandoStartedAt { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
         public DateTime CreatedAt { get; set; }

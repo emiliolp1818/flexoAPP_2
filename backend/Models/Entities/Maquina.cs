@@ -126,6 +126,13 @@ namespace FlexoAPP.API.Models.Entities
         public DateTime? LastActionAt { get; set; }
 
         /// <summary>
+        /// Fecha y hora cuando se marcó como PREPARANDO
+        /// Se guarda solo cuando el estado cambia a PREPARANDO
+        /// Se usa para calcular el tiempo transcurrido hasta LISTO
+        /// </summary>
+        public DateTime? PreparandoStartedAt { get; set; }
+
+        /// <summary>
         /// ID del usuario que creó el registro
         /// </summary>
         public int? CreatedBy { get; set; }

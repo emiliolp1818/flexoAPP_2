@@ -49,6 +49,7 @@ interface MachineProgram {
   observaciones?: string; // Observaciones adicionales (opcional)
   lastActionBy?: string; // Usuario que realizó la última acción (opcional)
   lastActionAt?: Date; // Fecha de la última acción (opcional)
+  preparandoStartedAt?: Date; // Fecha cuando se marcó como PREPARANDO (opcional)
   // Campos adicionales para compatibilidad con el sistema existente
   machineNumber: number; // Alias para numeroMaquina para compatibilidad
 }
@@ -861,6 +862,7 @@ export class MachinesComponent implements OnInit {
                 estado: newStatus, // Actualizar estado
                 lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
                 lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
+                preparandoStartedAt: response.data?.preparandoStartedAt ? new Date(response.data.preparandoStartedAt) : p.preparandoStartedAt,
                 observaciones: response.data?.observaciones || p.observaciones
               };
               
@@ -958,9 +960,9 @@ export class MachinesComponent implements OnInit {
           // Obtener el programa ANTES de actualizar para tener la fecha de cuando se marcó como PREPARANDO
           const programaAnterior = programs[programIndex];
           
-          if (programaAnterior && programaAnterior.lastActionAt) {
+          if (programaAnterior && programaAnterior.preparandoStartedAt) {
             // Calcular tiempo transcurrido desde que se marcó como PREPARANDO hasta ahora
-            const tiempoInicio = new Date(programaAnterior.lastActionAt);
+            const tiempoInicio = new Date(programaAnterior.preparandoStartedAt);
             const tiempoFin = new Date();
             const diferenciaMs = tiempoFin.getTime() - tiempoInicio.getTime();
             

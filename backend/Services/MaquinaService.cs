@@ -381,6 +381,20 @@ namespace flexoAPP.Services
                 estadoUpper = "CORRIENDO";
             }
 
+            // Guardar fecha cuando se marca como PREPARANDO
+            if (estadoUpper == "PREPARANDO" && existing.Estado != "PREPARANDO")
+            {
+                existing.PreparandoStartedAt = DateTime.UtcNow;
+                _logger.LogInformation("⏱️ Guardando PreparandoStartedAt para OT={OtSap}", otSap);
+            }
+            
+            // Limpiar PreparandoStartedAt cuando cambia a otro estado desde PREPARANDO
+            if (existing.Estado == "PREPARANDO" && estadoUpper != "PREPARANDO")
+            {
+                _logger.LogInformation("⏱️ Limpiando PreparandoStartedAt para OT={OtSap} (cambio de PREPARANDO a {Estado})", otSap, estadoUpper);
+                existing.PreparandoStartedAt = null;
+            }
+
             existing.Estado = estadoUpper;
             
             if (observaciones != null)
@@ -1329,6 +1343,7 @@ namespace flexoAPP.Services
                 Observaciones = maquina.Observaciones,
                 LastActionBy = maquina.LastActionBy,
                 LastActionAt = maquina.LastActionAt,
+                PreparandoStartedAt = maquina.PreparandoStartedAt,
                 CreatedBy = maquina.CreatedBy,
                 UpdatedBy = maquina.UpdatedBy,
                 CreatedAt = maquina.CreatedAt,
