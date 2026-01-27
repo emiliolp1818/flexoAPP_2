@@ -964,22 +964,31 @@ export class MachinesComponent implements OnInit {
             const tiempoFin = new Date();
             const diferenciaMs = tiempoFin.getTime() - tiempoInicio.getTime();
             
-            // Convertir a minutos y segundos
-            const minutos = Math.floor(diferenciaMs / 60000);
-            const segundos = Math.floor((diferenciaMs % 60000) / 1000);
+            // Convertir a horas, minutos y segundos
+            const totalSegundos = Math.floor(diferenciaMs / 1000);
+            const horas = Math.floor(totalSegundos / 3600);
+            const minutos = Math.floor((totalSegundos % 3600) / 60);
+            const segundos = totalSegundos % 60;
             
-            // Crear mensaje personalizado con el tiempo transcurrido
-            if (minutos > 0) {
+            // Crear mensaje personalizado según el tiempo transcurrido
+            if (horas > 0) {
+              // Más de 60 minutos: mostrar en horas y minutos
+              successMessage = `✅ Programa PREPARADO en ${horas} hora${horas !== 1 ? 's' : ''} y ${minutos} minuto${minutos !== 1 ? 's' : ''}`;
+            } else if (minutos > 0) {
+              // Entre 60 segundos y 60 minutos: mostrar minutos y segundos
               successMessage = `✅ Programa PREPARADO en ${minutos} minuto${minutos !== 1 ? 's' : ''} y ${segundos} segundo${segundos !== 1 ? 's' : ''}`;
             } else {
+              // Menos de 60 segundos: mostrar solo segundos
               successMessage = `✅ Programa PREPARADO en ${segundos} segundo${segundos !== 1 ? 's' : ''}`;
             }
             
             console.log('⏱️ Tiempo de preparación calculado:', {
               inicio: tiempoInicio.toLocaleString(),
               fin: tiempoFin.toLocaleString(),
+              horas: horas,
               minutos: minutos,
               segundos: segundos,
+              totalSegundos: totalSegundos,
               totalMs: diferenciaMs
             });
           }
