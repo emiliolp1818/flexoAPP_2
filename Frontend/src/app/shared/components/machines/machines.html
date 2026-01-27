@@ -238,7 +238,7 @@
                         <span>Cliente</span>
                       </div>
                     </th>
-                    <td mat-cell *matCellDef="let element" class="excel-cell client-cell">
+                    <td mat-cell *matCellDef="let element" class="excel-cell client-cell" [matTooltip]="element.cliente" matTooltipPosition="above">
                       <span class="client-name">{{ element.cliente }}</span>
                     </td>
                   </ng-container>
@@ -251,7 +251,7 @@
                         <span>Referencia</span>
                       </div>
                     </th>
-                    <td mat-cell *matCellDef="let element" class="excel-cell referencia-cell">
+                    <td mat-cell *matCellDef="let element" class="excel-cell referencia-cell" [matTooltip]="element.referencia" matTooltipPosition="above">
                       <span class="referencia-text">{{ element.referencia }}</span>
                     </td>
                   </ng-container>
