@@ -29,7 +29,7 @@ services:
   - type: static
     name: flexoapp-frontend
     buildCommand: npm ci --include=dev && npx ng build --configuration=render
-    publishDir: dist/browser
+    publishDir: dist/flexoapp/browser
     rootDir: Frontend
     envVars:
       - key: NODE_ENV
