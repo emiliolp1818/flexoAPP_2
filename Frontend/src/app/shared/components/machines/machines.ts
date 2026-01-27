@@ -687,25 +687,30 @@ export class MachinesComponent implements OnInit {
   async changeStatus(program: MachineProgram, newStatus: MachineProgram['estado']) {
     // ===== LOG DE ENTRADA AL MÉTODO =====
     console.log('🎯 ===== INICIO changeStatus =====');
-    console.log('📋 Programa:', program);
+    console.log('📋 Programa completo:', JSON.stringify(program, null, 2));
     console.log('📋 OT SAP:', program.otSap, 'Tipo:', typeof program.otSap);
+    console.log('📋 Artículo:', program.articulo);
     console.log('📋 Estado actual:', program.estado);
     console.log('📋 Nuevo estado:', newStatus);
     
     // ===== VALIDACIÓN DE OT SAP =====
     // Verificar que el programa tenga un OT SAP válido antes de intentar actualizar
-    if (!program.otSap) {
+    if (!program.otSap || program.otSap.trim() === '') {
       console.error('❌ Error: El programa no tiene un OT SAP válido', program);
       this.snackBar.open('Error: No se puede cambiar el estado del programa: Falta OT SAP', 'Cerrar', { duration: 5000 });
       return; // Salir del método si no hay OT SAP
     }
+    
+    // Normalizar el OT SAP para comparación
+    const normalizedOtSap = String(program.otSap).trim();
+    console.log('📋 OT SAP normalizado:', normalizedOtSap);
     
     try {
       this.loading.set(true); // Activar indicador de carga en la UI para mostrar spinner
       console.log('⏳ Loading activado');
       
       // ===== LOG DE INICIO DE CAMBIO DE ESTADO =====
-      console.log(`🔄 Cambiando estado de programa ${program.otSap} a ${newStatus} en la base de datos`);
+      console.log(`🔄 Cambiando estado de programa ${normalizedOtSap} a ${newStatus} en la base de datos`);
       
       // ===== PREPARACIÓN DEL DTO PARA EL BACKEND =====
       // Crear objeto DTO (Data Transfer Object) con los datos a enviar al servidor
@@ -717,7 +722,7 @@ export class MachinesComponent implements OnInit {
       };
       
       // ===== LOG DEL DTO Y URL =====
-      const url = `${environment.apiUrl}/maquinas/${program.otSap}/status`;
+      const url = `${environment.apiUrl}/maquinas/${encodeURIComponent(normalizedOtSap)}/status`;
       console.log('📤 DTO preparado:', changeStatusDto);
       console.log('🌐 URL:', url);
       console.log('📤 Enviando petición PATCH...');
@@ -745,36 +750,46 @@ export class MachinesComponent implements OnInit {
         // Esto evita tener que recargar todos los datos desde el servidor
         const programs = this.programs(); // Obtener array actual de programas desde la señal reactiva
         console.log('📊 Total de programas antes de actualizar:', programs.length);
-        console.log('📊 Programas:', programs.map(p => ({ otSap: p.otSap, estado: p.estado })));
+        console.log('📊 Todos los OT SAPs:', programs.map(p => ({ otSap: p.otSap, articulo: p.articulo, estado: p.estado })));
         
         // Usar comparación robusta de strings para encontrar el índice
-        const programIndex = programs.findIndex(p => String(p.otSap).trim() === String(program.otSap).trim()); 
-        console.log('🔍 Índice del programa encontrado:', programIndex, 'OT SAP buscado:', program.otSap);
+        // IMPORTANTE: Comparar OT SAP normalizado para evitar problemas con espacios
+        const programIndex = programs.findIndex(p => {
+          const pOtSap = String(p.otSap || '').trim();
+          const match = pOtSap === normalizedOtSap;
+          console.log(`🔍 Comparando: "${pOtSap}" === "${normalizedOtSap}" = ${match}`);
+          return match;
+        });
+        
+        console.log('🔍 Índice del programa encontrado:', programIndex, 'OT SAP buscado:', normalizedOtSap);
         
         if (programIndex !== -1) {
-          console.log('📋 Programa ANTES de actualizar:', programs[programIndex]);
+          console.log('📋 Programa ANTES de actualizar:', JSON.stringify(programs[programIndex], null, 2));
           
           // ===== CREAR NUEVO ARRAY CON EL PROGRAMA ACTUALIZADO =====
           // Estrategia: Crear un nuevo array completamente nuevo para forzar detección de cambios
-          const updatedPrograms = [...programs]; // Crear copia del array
+          const updatedPrograms = programs.map((p, index) => {
+            if (index === programIndex) {
+              // Este es el programa que queremos actualizar
+              return {
+                ...p, // Copiar todos los datos del programa original
+                estado: newStatus, // Actualizar estado
+                lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
+                lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
+                observaciones: response.data?.observaciones || p.observaciones
+              };
+            }
+            return p; // Mantener los demás programas sin cambios
+          });
           
-          // Crear nuevo objeto del programa con el estado actualizado
-          updatedPrograms[programIndex] = {
-            ...programs[programIndex], // Copiar todos los datos del programa original
-            estado: newStatus, // Actualizar estado
-            lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
-            lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
-            observaciones: response.data?.observaciones || programs[programIndex].observaciones
-          };
-          
-          console.log('📋 Programa DESPUÉS de actualizar:', updatedPrograms[programIndex]);
+          console.log('📋 Programa DESPUÉS de actualizar:', JSON.stringify(updatedPrograms[programIndex], null, 2));
           
           console.log('📊 Actualizando signal con nuevos programas...');
           // Actualizar la señal reactiva con el nuevo array (esto dispara la detección de cambios)
           this.programs.set(updatedPrograms);
           console.log('📊 Signal actualizado');
-          console.log('📊 Estado del signal después de actualizar:', this.programs());
-          console.log('� Programas filtrados (selectedMachinePrograms):', this.selectedMachinePrograms());
+          console.log('📊 Estado del signal después de actualizar:', this.programs().length, 'programas');
+          console.log('📊 Programas filtrados (selectedMachinePrograms):', this.selectedMachinePrograms().length, 'programas');
           
           console.log('🔄 Forzando detección de cambios...');
           // Forzar detección de cambios para actualizar la vista inmediatamente
@@ -786,17 +801,23 @@ export class MachinesComponent implements OnInit {
             console.log('🔄 Forzando segunda detección de cambios (tick)...');
             this.cdr.detectChanges();
             console.log('🔄 Segunda detección completada');
+            console.log('📊 Verificación final - Programas en tabla:', this.selectedMachinePrograms().map(p => ({ otSap: p.otSap, estado: p.estado })));
           }, 0);
           
           console.log('✅ Estado actualizado localmente:', {
-            programaOtSap: program.otSap,
+            programaOtSap: normalizedOtSap,
+            programaArticulo: program.articulo,
             estadoAnterior: program.estado,
             estadoNuevo: newStatus
           });
         } else {
           console.error('❌ Programa NO encontrado en el array');
-          console.error('❌ OT SAP buscado:', program.otSap);
-          console.error('❌ OT SAPs disponibles:', programs.map(p => p.otSap));
+          console.error('❌ OT SAP buscado:', normalizedOtSap);
+          console.error('❌ OT SAPs disponibles:', programs.map(p => String(p.otSap || '').trim()));
+          
+          // Si no se encuentra, recargar todos los datos
+          console.log('🔄 Recargando todos los programas desde el servidor...');
+          await this.loadPrograms();
         }
         
         // Definir mensajes de éxito específicos para cada estado
@@ -816,6 +837,7 @@ export class MachinesComponent implements OnInit {
         // Log de confirmación con detalles
         console.log(`✅ ${statusMessages[newStatus] || 'Estado actualizado'}`, {
           programa: program.articulo,
+          otSap: normalizedOtSap,
           maquina: program.machineNumber,
           fecha: new Date().toLocaleString()
         });
@@ -827,8 +849,6 @@ export class MachinesComponent implements OnInit {
       }
       
     } catch (error: any) {
-      console.error('❌ ===== ERROR EN changeStatus =====');
-      console.error('❌ Error completo:', error);
       console.error('❌ ===== ERROR EN changeStatus =====');
       console.error('❌ Error completo:', error);
       console.error('❌ Status:', error.status);
