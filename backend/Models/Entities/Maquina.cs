@@ -130,6 +130,7 @@ namespace FlexoAPP.API.Models.Entities
         /// Se guarda solo cuando el estado cambia a PREPARANDO
         /// Se usa para calcular el tiempo transcurrido hasta LISTO
         /// </summary>
+        [Column("preparando_started_at")]
         public DateTime? PreparandoStartedAt { get; set; }
 
         /// <summary>
