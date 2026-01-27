@@ -579,7 +579,7 @@ $gray-900: #0f172a;
 
     flex: 1; // Ocupa todo el espacio disponible en el contenedor
 
-    overflow-y: hidden; // Permite scroll vertical si es necesario
+    overflow-y: auto; // Permite scroll vertical para visualizar todas las máquinas
 
     overflow-x: hidden; // Oculta scroll horizontal
 
