@@ -383,39 +383,34 @@
                         <button mat-icon-button 
                           class="action-btn preparando-btn"
                           (click)="$event.stopPropagation(); console.log('🔵 CLICK PREPARANDO - OT:', element.otSap, 'Art:', element.articulo); handleAction(element, 'PREPARANDO')"
-                          [disabled]="element.estado === 'PREPARANDO'"
-                          [matTooltip]="'Preparando - OT: ' + element.otSap + ' - Art: ' + element.articulo">
+                          [disabled]="element.estado === 'PREPARANDO'">
                           <mat-icon>schedule</mat-icon>
                         </button>
                         
                         <button mat-icon-button 
                           class="action-btn listo-btn"
                           (click)="$event.stopPropagation(); console.log('🟢 CLICK LISTO - OT:', element.otSap, 'Art:', element.articulo); handleAction(element, 'LISTO')"
-                          [disabled]="element.estado === 'LISTO'"
-                          [matTooltip]="'Preparado - OT: ' + element.otSap + ' - Art: ' + element.articulo">
+                          [disabled]="element.estado === 'LISTO'">
                           <mat-icon>check_circle</mat-icon>
                         </button>
                         
                         <button mat-icon-button 
                           class="action-btn suspendido-btn"
                           (click)="$event.stopPropagation(); console.log('🟠 CLICK SUSPENDIDO - OT:', element.otSap, 'Art:', element.articulo); suspendProgram(element)"
-                          [disabled]="element.estado === 'SUSPENDIDO'"
-                          [matTooltip]="'Suspender - OT: ' + element.otSap + ' - Art: ' + element.articulo">
+                          [disabled]="element.estado === 'SUSPENDIDO'">
                           <mat-icon>pause_circle</mat-icon>
                         </button>
                         
                         <button mat-icon-button 
                           class="action-btn corriendo-btn"
                           (click)="$event.stopPropagation(); console.log('🔴 CLICK CORRIENDO - OT:', element.otSap, 'Art:', element.articulo); handleAction(element, 'CORRIENDO')"
-                          [disabled]="element.estado === 'CORRIENDO'"
-                          [matTooltip]="'Corriendo - OT: ' + element.otSap + ' - Art: ' + element.articulo">
+                          [disabled]="element.estado === 'CORRIENDO'">
                           <mat-icon>play_circle</mat-icon>
                         </button>
                         
                         <button mat-icon-button 
                           class="action-btn imprimir-btn"
-                          (click)="$event.stopPropagation(); console.log('🖨️ CLICK IMPRIMIR - OT:', element.otSap, 'Art:', element.articulo); printFF459(element)"
-                          [matTooltip]="'Imprimir FF459 - OT: ' + element.otSap + ' - Art: ' + element.articulo">
+                          (click)="$event.stopPropagation(); console.log('🖨️ CLICK IMPRIMIR - OT:', element.otSap, 'Art:', element.articulo); printFF459(element)">
                           <mat-icon>print</mat-icon>
                         </button>
                       </div>
