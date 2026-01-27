@@ -950,12 +950,47 @@ export class MachinesComponent implements OnInit {
           'TERMINADO': 'Programa TERMINADO exitosamente'
         };
         
-        // Mostrar notificación de éxito al usuario
-        this.snackBar.open(statusMessages[newStatus] || 'Estado actualizado', 'Cerrar', { duration: 3000 });
+        // ===== CALCULAR TIEMPO TRANSCURRIDO DE PREPARANDO A LISTO =====
+        let successMessage = statusMessages[newStatus] || 'Estado actualizado';
+        
+        // Si el programa pasó de PREPARANDO a LISTO, calcular el tiempo transcurrido
+        if (program.estado === 'PREPARANDO' && newStatus === 'LISTO') {
+          // Obtener el programa ANTES de actualizar para tener la fecha de cuando se marcó como PREPARANDO
+          const programaAnterior = programs[programIndex];
+          
+          if (programaAnterior && programaAnterior.lastActionAt) {
+            // Calcular tiempo transcurrido desde que se marcó como PREPARANDO hasta ahora
+            const tiempoInicio = new Date(programaAnterior.lastActionAt);
+            const tiempoFin = new Date();
+            const diferenciaMs = tiempoFin.getTime() - tiempoInicio.getTime();
+            
+            // Convertir a minutos y segundos
+            const minutos = Math.floor(diferenciaMs / 60000);
+            const segundos = Math.floor((diferenciaMs % 60000) / 1000);
+            
+            // Crear mensaje personalizado con el tiempo transcurrido
+            if (minutos > 0) {
+              successMessage = `✅ Programa PREPARADO en ${minutos} minuto${minutos !== 1 ? 's' : ''} y ${segundos} segundo${segundos !== 1 ? 's' : ''}`;
+            } else {
+              successMessage = `✅ Programa PREPARADO en ${segundos} segundo${segundos !== 1 ? 's' : ''}`;
+            }
+            
+            console.log('⏱️ Tiempo de preparación calculado:', {
+              inicio: tiempoInicio.toLocaleString(),
+              fin: tiempoFin.toLocaleString(),
+              minutos: minutos,
+              segundos: segundos,
+              totalMs: diferenciaMs
+            });
+          }
+        }
+        
+        // Mostrar notificación de éxito al usuario con duración de 5 segundos
+        this.snackBar.open(successMessage, 'Cerrar', { duration: 5000 });
         console.log('✅ Notificación mostrada al usuario');
         
         // Log de confirmación con detalles
-        console.log(`✅ ${statusMessages[newStatus] || 'Estado actualizado'}`, {
+        console.log(`✅ ${successMessage}`, {
           programa: program.articulo,
           otSap: normalizedOtSap,
           maquina: program.machineNumber,
