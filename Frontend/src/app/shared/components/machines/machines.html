@@ -55,8 +55,9 @@
 
         <!-- Botón Actualizar - Para refrescar datos -->
         <button mat-icon-button color="primary" (click)="refreshData()" class="refresh-btn"
+          [disabled]="loading()"
           matTooltip="Actualizar datos de máquinas">
-          <mat-icon>refresh</mat-icon>
+          <mat-icon [class.spinning]="loading()">refresh</mat-icon>
         </button>
       </div>
     </div>

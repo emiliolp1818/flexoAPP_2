@@ -1639,24 +1639,56 @@ export class MachinesComponent implements OnInit {
   // Método asíncrono que recarga todos los programas desde la base de datos
   // Útil para sincronizar datos cuando hay cambios externos o para actualizar la vista
   async refreshData() {
-    // ===== LOG DE INICIO DE RECARGA =====
-    console.log('🔄 Refrescando datos de máquinas desde la base de datos...');
-    
-    // ===== MOSTRAR NOTIFICACIÓN AL USUARIO =====
-    // Informar al usuario que se están actualizando los datos
-    this.snackBar.open('Actualizando datos...', '', { duration: 2000 });
-    
-    // ===== LLAMAR AL MÉTODO DE CARGA =====
-    // Reutilizar el método loadPrograms() que ya tiene toda la lógica de carga
-    // Este método maneja automáticamente el estado de carga y los errores
-    await this.loadPrograms();
-    
-    // ===== MOSTRAR NOTIFICACIÓN DE ÉXITO =====
-    // Informar al usuario que los datos se actualizaron correctamente
-    this.snackBar.open('Datos actualizados correctamente', 'Cerrar', { duration: 3000 });
-    
-    // ===== LOG DE CONFIRMACIÓN =====
-    console.log('✅ Datos de máquinas refrescados exitosamente');
+    try {
+      // ===== LOG DE INICIO DE RECARGA =====
+      console.log('🔄 Refrescando datos de máquinas desde la base de datos...');
+      
+      // ===== MOSTRAR NOTIFICACIÓN AL USUARIO =====
+      // Informar al usuario que se están actualizando los datos
+      this.snackBar.open('Actualizando datos...', '', { duration: 2000 });
+      
+      // ===== GUARDAR MÁQUINA SELECCIONADA =====
+      // Guardar el número de máquina seleccionada para restaurarla después de recargar
+      const selectedMachine = this.selectedMachineNumber();
+      console.log('📌 Máquina seleccionada antes de recargar:', selectedMachine);
+      
+      // ===== LLAMAR AL MÉTODO DE CARGA =====
+      // Reutilizar el método loadPrograms() que ya tiene toda la lógica de carga
+      // Este método maneja automáticamente el estado de carga y los errores
+      await this.loadPrograms();
+      
+      // ===== RESTAURAR MÁQUINA SELECCIONADA =====
+      // Si había una máquina seleccionada, volver a seleccionarla
+      if (selectedMachine) {
+        console.log('📌 Restaurando máquina seleccionada:', selectedMachine);
+        this.selectedMachineNumber.set(selectedMachine);
+      }
+      
+      // ===== FORZAR DETECCIÓN DE CAMBIOS =====
+      // Forzar Angular a detectar los cambios y actualizar la vista
+      console.log('🔄 Forzando detección de cambios...');
+      this.cdr.detectChanges();
+      
+      // Forzar actualización adicional después de un tick
+      setTimeout(() => {
+        console.log('🔄 Forzando segunda detección de cambios (tick)...');
+        this.cdr.detectChanges();
+        console.log('📊 Programas después de refrescar:', this.programs().length);
+        console.log('📊 Programas de máquina seleccionada:', this.selectedMachinePrograms().length);
+      }, 0);
+      
+      // ===== MOSTRAR NOTIFICACIÓN DE ÉXITO =====
+      // Informar al usuario que los datos se actualizaron correctamente
+      this.snackBar.open('✅ Datos actualizados correctamente', 'Cerrar', { duration: 3000 });
+      
+      // ===== LOG DE CONFIRMACIÓN =====
+      console.log('✅ Datos de máquinas refrescados exitosamente');
+      console.log('📊 Total de programas cargados:', this.programs().length);
+      
+    } catch (error) {
+      console.error('❌ Error al refrescar datos:', error);
+      this.snackBar.open('❌ Error al actualizar datos', 'Cerrar', { duration: 5000 });
+    }
   }
 
   // ===== MÉTODO PARA IMPRIMIR FORMATO FF-459 =====
