@@ -101,6 +101,9 @@ export class MachinesComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef); // Detector de cambios para forzar actualización de vista
   private pantoneService = inject(PantoneLiveService); // Servicio de colores Pantone
   
+  // Exponer console.log para usar en el template
+  console = console;
+  
   // Señales reactivas de Angular - Estado reactivo del componente
   loading = signal(false); // Estado de carga (true/false)
   selectedMachineNumber = signal<number | null>(null); // Número de máquina seleccionada
@@ -114,6 +117,22 @@ export class MachinesComponent implements OnInit {
   
   // Configuración estática del componente
   machineNumbers = Array.from({ length: 11 }, (_, i) => i + 11); // Genera array [11, 12, 13, ..., 21]
+  
+  // Columnas completas para la tabla reconstruida
+  simpleColumns = [
+    'otSap',
+    'articulo', 
+    'cliente',
+    'referencia',
+    'td',
+    'numeroColores',
+    'kilos',
+    'fechaTintaEnMaquina',
+    'sustrato',
+    'estado',
+    'acciones'
+  ];
+  
   programDisplayedColumns = [ // Columnas que se muestran en la tabla de programación según especificaciones
     'articulo',               // Código del artículo (ej: F204567)
     'otSap',                 // Orden de trabajo SAP
@@ -144,12 +163,22 @@ export class MachinesComponent implements OnInit {
     if (!selected) return []; // Si no hay máquina seleccionada, retorna array vacío
     // Filtra todos los programas para obtener solo los de la máquina seleccionada
     const filtered = this.programs().filter(p => p.machineNumber === selected);
+    // IMPORTANTE: Crear una copia del array antes de ordenar para no mutar el original
     // Ordena por fecha y hora ascendente (más cercana primero)
-    return filtered.sort((a, b) => {
+    const sorted = [...filtered].sort((a, b) => {
       const dateA = new Date(a.fechaTintaEnMaquina).getTime(); // Convierte fecha A a timestamp
       const dateB = new Date(b.fechaTintaEnMaquina).getTime(); // Convierte fecha B a timestamp
       return dateA - dateB; // Orden ascendente: fecha más cercana primero
     });
+    
+    // Log para debugging - verificar que todos los programas tienen OT SAP
+    console.log('📊 selectedMachinePrograms recalculado:', sorted.map(p => ({
+      otSap: p.otSap,
+      articulo: p.articulo,
+      estado: p.estado
+    })));
+    
+    return sorted;
   });
 
   // Estadísticas calculadas de la máquina seleccionada - ACTUALIZADO CON NUEVOS ESTADOS
@@ -350,6 +379,19 @@ export class MachinesComponent implements OnInit {
   // Retorna: el número de máquina como identificador único
   trackByMachineNumber(_: number, machineNumber: number): number {
     return machineNumber; // Retorna el número de máquina como identificador único
+  }
+
+  // ===== FUNCIÓN DE TRACKING PARA FILAS DE LA TABLA DE PROGRAMAS =====
+  // CRÍTICO: Esta función es esencial para que Angular identifique correctamente cada fila
+  // Usa el OT SAP como identificador único para evitar confusión con artículos duplicados
+  // Parámetros:
+  //   - _: índice del elemento (no se usa)
+  //   - program: objeto MachineProgram con todos los datos del programa
+  // Retorna: el OT SAP como identificador único (string)
+  trackByProgramOtSap(_: number, program: MachineProgram): string {
+    // IMPORTANTE: El OT SAP es único para cada programa, incluso si tienen el mismo artículo
+    // Esto asegura que Angular actualice solo la fila correcta cuando cambia el estado
+    return program.otSap;
   }
 
   // ===== MÉTODO PARA DETERMINAR LA CLASE CSS DEL LED INDICADOR DE ESTADO =====
@@ -687,11 +729,28 @@ export class MachinesComponent implements OnInit {
   async changeStatus(program: MachineProgram, newStatus: MachineProgram['estado']) {
     // ===== LOG DE ENTRADA AL MÉTODO =====
     console.log('🎯 ===== INICIO changeStatus =====');
-    console.log('📋 Programa completo:', JSON.stringify(program, null, 2));
-    console.log('📋 OT SAP:', program.otSap, 'Tipo:', typeof program.otSap);
-    console.log('📋 Artículo:', program.articulo);
-    console.log('📋 Estado actual:', program.estado);
-    console.log('📋 Nuevo estado:', newStatus);
+    console.log('📋 PROGRAMA RECIBIDO DESDE EL HTML:');
+    console.log('   - OT SAP:', program.otSap);
+    console.log('   - Artículo:', program.articulo);
+    console.log('   - Cliente:', program.cliente);
+    console.log('   - Máquina:', program.machineNumber);
+    console.log('   - Estado actual:', program.estado);
+    console.log('   - Nuevo estado solicitado:', newStatus);
+    console.log('📋 Objeto completo:', JSON.stringify(program, null, 2));
+    
+    // ===== VERIFICAR SI EL PROGRAMA ES EL CORRECTO =====
+    // Buscar el programa en el array actual para verificar
+    const currentPrograms = this.programs();
+    const foundInArray = currentPrograms.find(p => p.otSap === program.otSap);
+    if (foundInArray) {
+      console.log('✅ Programa encontrado en array actual:');
+      console.log('   - OT SAP:', foundInArray.otSap);
+      console.log('   - Artículo:', foundInArray.articulo);
+      console.log('   - Estado en array:', foundInArray.estado);
+      console.log('   - ¿Coincide con el recibido?', foundInArray.otSap === program.otSap && foundInArray.articulo === program.articulo);
+    } else {
+      console.error('❌ ADVERTENCIA: Programa NO encontrado en array actual con OT SAP:', program.otSap);
+    }
     
     // ===== VALIDACIÓN DE OT SAP =====
     // Verificar que el programa tenga un OT SAP válido antes de intentar actualizar
@@ -701,16 +760,24 @@ export class MachinesComponent implements OnInit {
       return; // Salir del método si no hay OT SAP
     }
     
-    // Normalizar el OT SAP para comparación
+    // Normalizar el OT SAP para comparación - CRÍTICO para identificación única
     const normalizedOtSap = String(program.otSap).trim();
-    console.log('📋 OT SAP normalizado:', normalizedOtSap);
+    console.log('📋 OT SAP normalizado para búsqueda:', normalizedOtSap);
+    
+    // Log de todos los programas actuales para debugging
+    console.log('📊 Programas actuales en memoria:', this.programs().map(p => ({
+      otSap: p.otSap,
+      articulo: p.articulo,
+      maquina: p.machineNumber,
+      estado: p.estado
+    })));
     
     try {
       this.loading.set(true); // Activar indicador de carga en la UI para mostrar spinner
       console.log('⏳ Loading activado');
       
       // ===== LOG DE INICIO DE CAMBIO DE ESTADO =====
-      console.log(`🔄 Cambiando estado de programa ${normalizedOtSap} a ${newStatus} en la base de datos`);
+      console.log(`🔄 Cambiando estado de programa OT SAP: ${normalizedOtSap}, Artículo: ${program.articulo}, Máquina: ${program.machineNumber} a ${newStatus} en la base de datos`);
       
       // ===== PREPARACIÓN DEL DTO PARA EL BACKEND =====
       // Crear objeto DTO (Data Transfer Object) con los datos a enviar al servidor
@@ -724,7 +791,7 @@ export class MachinesComponent implements OnInit {
       // ===== LOG DEL DTO Y URL =====
       const url = `${environment.apiUrl}/maquinas/${encodeURIComponent(normalizedOtSap)}/status`;
       console.log('📤 DTO preparado:', changeStatusDto);
-      console.log('🌐 URL:', url);
+      console.log('🌐 URL completa:', url);
       console.log('📤 Enviando petición PATCH...');
       
       // ===== PETICIÓN HTTP PATCH AL BACKEND =====
@@ -732,7 +799,7 @@ export class MachinesComponent implements OnInit {
       // Este endpoint actualiza las columnas: estado, observaciones, updated_at, updated_by, last_action_by, last_action_at
       // en la tabla machine_programs de la base de datos flexoapp_bd
       const response = await firstValueFrom(this.http.patch<any>(
-        url, // URL del endpoint con el ID del programa
+        url, // URL del endpoint con el OT SAP del programa
         changeStatusDto // Objeto DTO serializado a JSON en el body de la petición
       ));
       
@@ -750,39 +817,75 @@ export class MachinesComponent implements OnInit {
         // Esto evita tener que recargar todos los datos desde el servidor
         const programs = this.programs(); // Obtener array actual de programas desde la señal reactiva
         console.log('📊 Total de programas antes de actualizar:', programs.length);
-        console.log('📊 Todos los OT SAPs:', programs.map(p => ({ otSap: p.otSap, articulo: p.articulo, estado: p.estado })));
         
-        // Usar comparación robusta de strings para encontrar el índice
+        // Usar comparación EXACTA de OT SAP normalizado para encontrar el programa correcto
         // IMPORTANTE: Comparar OT SAP normalizado para evitar problemas con espacios
+        // CRÍTICO: Solo debe coincidir UN programa con este OT SAP único
         const programIndex = programs.findIndex(p => {
           const pOtSap = String(p.otSap || '').trim();
           const match = pOtSap === normalizedOtSap;
-          console.log(`🔍 Comparando: "${pOtSap}" === "${normalizedOtSap}" = ${match}`);
+          if (match) {
+            console.log(`✅ MATCH ENCONTRADO: OT SAP="${pOtSap}", Artículo="${p.articulo}", Máquina=${p.machineNumber}`);
+          }
           return match;
         });
         
-        console.log('🔍 Índice del programa encontrado:', programIndex, 'OT SAP buscado:', normalizedOtSap);
+        console.log('🔍 Índice del programa encontrado:', programIndex);
+        console.log('🔍 OT SAP buscado:', normalizedOtSap);
+        console.log('🔍 Artículo del programa:', program.articulo);
+        console.log('🔍 Máquina del programa:', program.machineNumber);
         
         if (programIndex !== -1) {
-          console.log('📋 Programa ANTES de actualizar:', JSON.stringify(programs[programIndex], null, 2));
+          const foundProgram = programs[programIndex];
+          console.log('📋 Programa ENCONTRADO para actualizar:');
+          console.log('   - OT SAP:', foundProgram.otSap);
+          console.log('   - Artículo:', foundProgram.articulo);
+          console.log('   - Máquina:', foundProgram.machineNumber);
+          console.log('   - Estado actual:', foundProgram.estado);
+          console.log('   - Estado nuevo:', newStatus);
           
           // ===== CREAR NUEVO ARRAY CON EL PROGRAMA ACTUALIZADO =====
           // Estrategia: Crear un nuevo array completamente nuevo para forzar detección de cambios
+          // IMPORTANTE: Solo actualizar el programa con el índice encontrado
           const updatedPrograms = programs.map((p, index) => {
             if (index === programIndex) {
               // Este es el programa que queremos actualizar
-              return {
+              console.log(`🔄 Actualizando programa en índice ${index}`);
+              const updatedProgram = {
                 ...p, // Copiar todos los datos del programa original
                 estado: newStatus, // Actualizar estado
                 lastActionBy: response.data?.lastActionBy || 'Usuario Actual',
                 lastActionAt: response.data?.lastActionAt ? new Date(response.data.lastActionAt) : new Date(),
                 observaciones: response.data?.observaciones || p.observaciones
               };
+              
+              // VERIFICACIÓN CRÍTICA: Asegurar que el OT SAP se mantiene
+              console.log('🔍 Verificación de OT SAP después de actualizar:');
+              console.log('   - OT SAP original:', p.otSap);
+              console.log('   - OT SAP actualizado:', updatedProgram.otSap);
+              console.log('   - Son iguales:', p.otSap === updatedProgram.otSap);
+              
+              return updatedProgram;
             }
-            return p; // Mantener los demás programas sin cambios
+            // Mantener los demás programas sin cambios
+            return p;
           });
           
           console.log('📋 Programa DESPUÉS de actualizar:', JSON.stringify(updatedPrograms[programIndex], null, 2));
+          
+          // Verificar que solo se actualizó un programa
+          const changedCount = updatedPrograms.filter((p, i) => 
+            i === programIndex && p.estado === newStatus
+          ).length;
+          console.log(`✅ Programas actualizados: ${changedCount} (debe ser 1)`);
+          
+          // VERIFICACIÓN ADICIONAL: Verificar que todos los OT SAP están presentes
+          console.log('🔍 Verificación de OT SAPs en array actualizado:');
+          const otSapsBeforeUpdate = programs.map(p => p.otSap);
+          const otSapsAfterUpdate = updatedPrograms.map(p => p.otSap);
+          console.log('   - OT SAPs antes:', otSapsBeforeUpdate);
+          console.log('   - OT SAPs después:', otSapsAfterUpdate);
+          console.log('   - Mismo número de programas:', otSapsBeforeUpdate.length === otSapsAfterUpdate.length);
           
           console.log('📊 Actualizando signal con nuevos programas...');
           // Actualizar la señal reactiva con el nuevo array (esto dispara la detección de cambios)
@@ -801,19 +904,31 @@ export class MachinesComponent implements OnInit {
             console.log('🔄 Forzando segunda detección de cambios (tick)...');
             this.cdr.detectChanges();
             console.log('🔄 Segunda detección completada');
-            console.log('📊 Verificación final - Programas en tabla:', this.selectedMachinePrograms().map(p => ({ otSap: p.otSap, estado: p.estado })));
+            console.log('📊 Verificación final - Programas en tabla:', this.selectedMachinePrograms().map(p => ({ 
+              otSap: p.otSap, 
+              articulo: p.articulo,
+              maquina: p.machineNumber,
+              estado: p.estado 
+            })));
           }, 0);
           
           console.log('✅ Estado actualizado localmente:', {
             programaOtSap: normalizedOtSap,
             programaArticulo: program.articulo,
+            programaMaquina: program.machineNumber,
             estadoAnterior: program.estado,
             estadoNuevo: newStatus
           });
         } else {
           console.error('❌ Programa NO encontrado en el array');
           console.error('❌ OT SAP buscado:', normalizedOtSap);
-          console.error('❌ OT SAPs disponibles:', programs.map(p => String(p.otSap || '').trim()));
+          console.error('❌ Artículo buscado:', program.articulo);
+          console.error('❌ Máquina buscada:', program.machineNumber);
+          console.error('❌ OT SAPs disponibles:', programs.map(p => ({
+            otSap: String(p.otSap || '').trim(),
+            articulo: p.articulo,
+            maquina: p.machineNumber
+          })));
           
           // Si no se encuentra, recargar todos los datos
           console.log('🔄 Recargando todos los programas desde el servidor...');
@@ -874,6 +989,8 @@ export class MachinesComponent implements OnInit {
       // Log de error detallado
       console.error(`❌ ${errorMessage}`, {
         programa: program.articulo,
+        otSap: normalizedOtSap,
+        maquina: program.machineNumber,
         estadoDeseado: newStatus,
         error: error.message || 'Error desconocido'
       });
@@ -883,6 +1000,22 @@ export class MachinesComponent implements OnInit {
       console.log('⏳ Loading desactivado');
       console.log('🎯 ===== FIN changeStatus =====');
     }
+  }
+
+  // ===== MÉTODO SIMPLE PARA MANEJAR ACCIONES (RECONSTRUIDO) =====
+  // Método simplificado que recibe el elemento directamente y el nuevo estado
+  async handleAction(element: MachineProgram, newStatus: MachineProgram['estado']) {
+    console.log('🎯 ===== handleAction LLAMADO =====');
+    console.log('📋 Elemento recibido:');
+    console.log('   - OT SAP:', element.otSap);
+    console.log('   - Artículo:', element.articulo);
+    console.log('   - Cliente:', element.cliente);
+    console.log('   - Máquina:', element.machineNumber);
+    console.log('   - Estado actual:', element.estado);
+    console.log('   - Nuevo estado:', newStatus);
+    
+    // Llamar al método changeStatus existente
+    await this.changeStatus(element, newStatus);
   }
 
   // Métodos para manejo de suspensión de programas
