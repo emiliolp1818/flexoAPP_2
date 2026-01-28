@@ -19,7 +19,9 @@ namespace FlexoAPP.API.Repositories
         {
             try
             {
+                // OPTIMIZACIÓN: No cargar navegaciones innecesarias
                 return await _context.Designs
+                    .AsNoTracking() // Mejora rendimiento al no trackear cambios
                     .OrderByDescending(d => d.LastModified)
                     .ToListAsync();
             }
@@ -365,7 +367,9 @@ namespace FlexoAPP.API.Repositories
         {
             try
             {
-                var query = _context.Designs.AsQueryable();
+                var query = _context.Designs
+                    .AsNoTracking() // Mejora rendimiento
+                    .AsQueryable();
 
                 // Apply search filter
                 if (!string.IsNullOrEmpty(search))
@@ -419,6 +423,7 @@ namespace FlexoAPP.API.Repositories
             try
             {
                 return await _context.Designs
+                    .AsNoTracking() // No trackear cambios
                     .Select(d => new Design
                     {
                         Id = d.Id,
@@ -445,6 +450,7 @@ namespace FlexoAPP.API.Repositories
             try
             {
                 return await _context.Designs
+                    .AsNoTracking() // No trackear cambios
                     .Select(d => new Design
                     {
                         Id = d.Id,

@@ -20,7 +20,7 @@ namespace FlexoAPP.API.Services
         {
             try
             {
-                _logger.LogInformation("🔍 Getting all designs from repository...");
+                _logger.LogInformation("🔍 Getting all designs from repository (OPTIMIZED)...");
                 var designs = await _designRepository.GetAllDesignsAsync();
                 var designsList = designs.ToList();
                 
@@ -32,7 +32,8 @@ namespace FlexoAPP.API.Services
                     return new List<DesignDto>();
                 }
                 
-                _logger.LogInformation("🔄 Starting DTO mapping...");
+                _logger.LogInformation("🔄 Starting FAST DTO mapping (no navigation properties)...");
+                // OPTIMIZACIÓN: Usar MapToDtoSafe que no accede a navegaciones
                 var mappedDesigns = designsList.Select(MapToDtoSafe).ToList();
                 _logger.LogInformation($"✅ Successfully mapped {mappedDesigns.Count} designs to DTOs");
                 

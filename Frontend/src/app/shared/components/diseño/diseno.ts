@@ -114,7 +114,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   
   // Señales para optimización de carga
   currentPage = signal<number>(1);
-  pageSize = signal<number>(10000); // Aumentado para cargar todos los diseños
+  pageSize = signal<number>(50); // ⚡ ULTRA OPTIMIZADO: Solo 50 por página
   totalRecords = signal<number>(0);
   hasMoreData = signal<boolean>(true);
   loadingMore = signal<boolean>(false);
@@ -185,8 +185,8 @@ export class DesignComponent implements OnInit, OnDestroy {
     // Usar método optimizado para cargar datos
     this.loadDesigns();
     
-    // Iniciar actualización automática
-    this.startAutoUpdate();
+    // ⚠️ DESACTIVADO: Actualización automática causa congelamiento
+    // this.startAutoUpdate();
   }
 
   ngOnDestroy() {
@@ -348,132 +348,102 @@ export class DesignComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Cargar diseños desde la base de datos (ULTRA OPTIMIZADO)
+   * Cargar diseños desde la base de datos (ULTRA OPTIMIZADO CON PAGINACIÓN)
    */
   async loadDesigns() {
     this.loading.set(true);
     try {
-      console.log('🚀 Cargando TODOS los diseños...');
+      console.log('🚀 Cargando diseños con paginación optimizada...');
       
-      // Primero intentar cargar todos los diseños usando el endpoint /designs/all
-      try {
-        console.log('🌐 Intentando cargar todos los diseños con /designs/all...');
-        const response = await this.http.get<FlexographicDesign[]>(`${environment.apiUrl}/designs/all`).toPromise();
-        
-        if (response && Array.isArray(response)) {
-          console.log(`✅ Cargados ${response.length} diseños exitosamente`);
-          
-          // Procesar colores para cada diseño
-          const processedDesigns = response.map(design => ({
-            ...design,
-            colors: this.extractColorsFromDesign(design)
-          }));
-          
-          this.allDesigns.set(processedDesigns);
-          this.filteredDesigns.set(processedDesigns);
-          this.totalRecords.set(processedDesigns.length);
-          this.hasMoreData.set(false); // No hay más datos porque cargamos todo
-          this.currentPage.set(1);
-          
-          this.snackBar.open(`${processedDesigns.length} diseños cargados exitosamente`, 'Cerrar', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          
-          return; // Salir exitosamente
+      // ⚡ USAR PAGINACIÓN EN LUGAR DE CARGAR TODO
+      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
+        params: {
+          page: this.currentPage().toString(),
+          pageSize: this.pageSize().toString()
         }
-      } catch (error: any) {
-        console.warn('⚠️ Error con endpoint /designs/all, intentando fallback:', error.message);
+      }).toPromise();
+      
+      if (response && response.items) {
+        console.log(`✅ Cargados ${response.items.length} diseños de ${response.totalCount} totales`);
+        
+        // Procesar colores para cada diseño
+        const processedDesigns = response.items.map((design: FlexographicDesign) => ({
+          ...design,
+          colors: this.extractColorsFromDesign(design)
+        }));
+        
+        this.allDesigns.set(processedDesigns);
+        this.filteredDesigns.set(processedDesigns);
+        this.totalRecords.set(response.totalCount);
+        this.hasMoreData.set(response.page < response.totalPages);
+        
+        this.snackBar.open(
+          `${processedDesigns.length} diseños cargados (Página ${response.page} de ${response.totalPages})`, 
+          'Cerrar', 
+          { duration: 3000, panelClass: ['success-snackbar'] }
+        );
+        
+        return;
       }
       
-      // Fallback: usar endpoint paginado con pageSize grande
-      console.log('🔄 Fallback a carga paginada con pageSize grande...');
-      await this.loadDesignsWithVirtualScroll();
+      // Fallback si no hay respuesta
+      console.warn('⚠️ No se recibió respuesta del servidor');
+      this.allDesigns.set([]);
+      this.filteredDesigns.set([]);
       
     } catch (error: any) {
       console.error('❌ Error cargando diseños:', error);
+      this.snackBar.open(
+        'Error al cargar diseños. Por favor, intenta de nuevo.', 
+        'Cerrar', 
+        { duration: 5000, panelClass: ['error-snackbar'] }
+      );
       
-      // Último fallback a carga normal
-      console.log('🔄 Último fallback a carga normal...');
-      await this.loadDesignsNormal();
+      // Establecer arrays vacíos en caso de error
+      this.allDesigns.set([]);
+      this.filteredDesigns.set([]);
     } finally {
       this.loading.set(false);
     }
   }
 
   /**
-   * Cargar TODOS los diseños después de importación masiva (sin límites)
+   * Cargar diseños después de importación masiva (CON PAGINACIÓN)
    */
   async loadAllDesignsAfterImport() {
     this.loading.set(true);
     try {
-      console.log('🚀 Cargando TODOS los diseños después de importación masiva...');
-      console.log('🌐 URL del endpoint:', `${environment.apiUrl}/designs/all`);
+      console.log('🚀 Recargando diseños después de importación...');
       
-      // Intentar cargar con diferentes endpoints hasta que uno funcione
-      let response = null;
+      // ⚡ USAR PAGINACIÓN - Resetear a página 1
+      this.currentPage.set(1);
       
-      // Intentar endpoint normal primero
-      try {
-        console.log('🔄 Intentando endpoint normal /designs...');
-        response = await this.http.get<any>(`${environment.apiUrl}/designs`).toPromise();
-        console.log('✅ Endpoint normal funciona');
-      } catch (error: any) {
-        console.log('❌ Endpoint normal falló, intentando paginado...');
-        
-        // Fallback a endpoint paginado con tamaño grande
-        try {
-          response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
-            params: {
-              page: '1',
-              pageSize: '10000' // Cargar hasta 10,000 registros
-            }
-          }).toPromise();
-          
-          // Si es respuesta paginada, extraer los items
-          if (response && response.items) {
-            response = response.items;
-          }
-          console.log('✅ Endpoint paginado funciona');
-        } catch (error2: any) {
-          console.error('❌ Todos los endpoints fallaron');
-          throw error2;
+      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
+        params: {
+          page: '1',
+          pageSize: this.pageSize().toString()
         }
-      }
+      }).toPromise();
       
-      if (response) {
-        let designs: FlexographicDesign[] = [];
+      if (response && response.items) {
+        console.log(`✅ Cargados ${response.items.length} diseños de ${response.totalCount} totales`);
         
-        // Manejar diferentes formatos de respuesta
-        if (Array.isArray(response)) {
-          designs = response;
-          console.log(`✅ ${designs.length} diseños cargados (formato array)`);
-        } else if (response.designs && Array.isArray(response.designs)) {
-          designs = response.designs;
-          console.log(`✅ ${designs.length} diseños cargados (formato objeto con designs)`);
-          console.log('📝 Mensaje del servidor:', response.message);
-        } else {
-          console.warn('⚠️ Formato de respuesta inesperado:', response);
-          designs = [];
-        }
+        // Procesar colores para cada diseño
+        const processedDesigns = response.items.map((design: FlexographicDesign) => ({
+          ...design,
+          colors: this.extractColorsFromDesign(design)
+        }));
         
-        console.log('📊 Primeros 3 diseños:', designs.slice(0, 3));
+        this.allDesigns.set(processedDesigns);
+        this.filteredDesigns.set(processedDesigns);
+        this.totalRecords.set(response.totalCount);
+        this.hasMoreData.set(response.page < response.totalPages);
         
-        this.allDesigns.set(designs);
-        this.filteredDesigns.set(designs);
-        this.totalRecords.set(designs.length);
-        
-        if (designs.length > 0) {
-          this.snackBar.open(`${designs.length} diseños cargados completamente`, 'Cerrar', {
-            duration: 4000,
-            panelClass: ['success-snackbar']
-          });
-        } else {
-          this.snackBar.open('No hay diseños en la base de datos', 'Cerrar', {
-            duration: 4000,
-            panelClass: ['info-snackbar']
-          });
-        }
+        this.snackBar.open(
+          `Importación completada: ${response.totalCount} diseños en total`, 
+          'Cerrar', 
+          { duration: 4000, panelClass: ['success-snackbar'] }
+        );
       } else {
         console.warn('⚠️ Respuesta vacía del servidor');
         this.allDesigns.set([]);
@@ -481,35 +451,12 @@ export class DesignComponent implements OnInit, OnDestroy {
         this.totalRecords.set(0);
       }
     } catch (error: any) {
-      console.error('❌ Error cargando todos los diseños:', error);
-      console.error('❌ Status:', error.status);
-      console.error('❌ Error completo:', error.error);
-      
-      // Si es error 400, mostrar mensaje específico con detalles de validación
-      if (error.status === 400) {
-        let errorMessage = 'Error 400: Bad Request';
-        
-        if (error.error?.errors) {
-          console.error('❌ Errores de validación:', error.error.errors);
-          const validationErrors = Object.keys(error.error.errors).map(key => 
-            `${key}: ${error.error.errors[key].join(', ')}`
-          ).join('; ');
-          errorMessage = `Error de validación: ${validationErrors}`;
-        } else if (error.error?.message) {
-          errorMessage = `Error 400: ${error.error.message}`;
-        } else if (error.error?.title) {
-          errorMessage = `Error 400: ${error.error.title}`;
-        }
-        
-        this.snackBar.open(errorMessage, 'Cerrar', {
-          duration: 10000,
-          panelClass: ['error-snackbar']
-        });
-      } else {
-        // Fallback a carga normal solo para otros errores
-        console.log('🔄 Fallback a carga normal...');
-        await this.loadDesignsNormal();
-      }
+      console.error('❌ Error recargando diseños:', error);
+      this.snackBar.open(
+        'Error al recargar diseños. Por favor, recarga la página.', 
+        'Cerrar', 
+        { duration: 5000, panelClass: ['error-snackbar'] }
+      );
     } finally {
       this.loading.set(false);
     }
@@ -715,23 +662,38 @@ export class DesignComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Cargar diseños normal (fallback)
+   * Cargar diseños normal (fallback) - AHORA CON PAGINACIÓN
    */
   async loadDesignsNormal() {
     try {
-      console.log('🎨 Cargando diseños (modo normal)...');
+      console.log('🎨 Cargando diseños con paginación...');
       
-      const response = await this.http.get<FlexographicDesign[]>(`${environment.apiUrl}/designs`).toPromise();
+      // ⚡ USAR PAGINACIÓN EN LUGAR DE CARGAR TODO
+      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
+        params: {
+          page: '1',
+          pageSize: this.pageSize().toString()
+        }
+      }).toPromise();
       
-      if (response) {
-        console.log(`✅ ${response.length} diseños cargados desde MySQL`);
-        this.allDesigns.set(response);
-        this.filteredDesigns.set(response);
+      if (response && response.items) {
+        console.log(`✅ ${response.items.length} diseños cargados de ${response.totalCount} totales`);
         
-        this.snackBar.open(`${response.length} diseños cargados`, 'Cerrar', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
+        const processedDesigns = response.items.map((design: FlexographicDesign) => ({
+          ...design,
+          colors: this.extractColorsFromDesign(design)
+        }));
+        
+        this.allDesigns.set(processedDesigns);
+        this.filteredDesigns.set(processedDesigns);
+        this.totalRecords.set(response.totalCount);
+        this.hasMoreData.set(response.page < response.totalPages);
+        
+        this.snackBar.open(
+          `${processedDesigns.length} diseños cargados`, 
+          'Cerrar', 
+          { duration: 3000, panelClass: ['success-snackbar'] }
+        );
       } else {
         this.allDesigns.set([]);
         this.filteredDesigns.set([]);
