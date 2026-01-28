@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { HeaderComponent } from '../header/header';
 
 // Services
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService, User } from '../../../core/services/auth.service';
 import { DashboardService, DashboardStats, UserAverageTime } from '../../../core/services/dashboard.service';
 
 @Component({
