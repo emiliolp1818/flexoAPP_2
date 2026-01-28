@@ -1959,27 +1959,27 @@ $gray-900: #0f172a;
 
 
         &.status-sin_asignar {
-          color: #64748b !important;
+          color: #64748b !important; // Gris
         }
 
         &.status-preparando {
-          color: #ca8a04 !important;
+          color: #854d0e !important; // Amarillo oscuro
         }
 
         &.status-listo {
-          color: #15803d !important;
+          color: #065f46 !important; // Verde oscuro
         }
 
         &.status-suspendido {
-          color: #ea580c !important;
+          color: #9a3412 !important; // Naranja oscuro
         }
 
         &.status-corriendo {
-          color: #b91c1c !important;
+          color: #075985 !important; // Azul cielo oscuro
         }
 
         &.status-terminado {
-          color: #b91c1c !important;
+          color: #991b1b !important; // Rojo oscuro
         }
 
       }
@@ -3102,5 +3102,134 @@ $gray-900: #0f172a;
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+
+// ===== ESTILOS DE FILAS POR ESTADO =====
+
+// Fila con estado PREPARANDO - Amarillo (fondo y texto)
+.status-row-preparando {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important; // Gradiente amarillo claro
+  border-left: 4px solid #eab308 !important; // Borde izquierdo amarillo
+  
+  .excel-cell {
+    background: transparent !important; // Fondo transparente para que se vea el gradiente de la fila
+    color: #854d0e !important; // Texto amarillo oscuro para buen contraste
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%) !important; // Amarillo más intenso al hover
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3) !important; // Sombra amarilla
+    
+    .excel-cell {
+      background: transparent !important;
+      color: #713f12 !important; // Texto amarillo más oscuro en hover
+    }
+  }
+}
+
+// Fila con estado LISTO - Verde (fondo y texto)
+.status-row-listo {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important; // Gradiente verde claro
+  border-left: 4px solid #10b981 !important; // Borde izquierdo verde
+  
+  .excel-cell {
+    background: transparent !important;
+    color: #065f46 !important; // Texto verde oscuro para buen contraste
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%) !important; // Verde más intenso al hover
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important; // Sombra verde
+    
+    .excel-cell {
+      background: transparent !important;
+      color: #064e3b !important; // Texto verde más oscuro en hover
+    }
+  }
+}
+
+// Fila con estado SUSPENDIDO - Naranja (fondo y texto)
+.status-row-suspendido {
+  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%) !important; // Gradiente naranja claro
+  border-left: 4px solid #f97316 !important; // Borde izquierdo naranja
+  
+  .excel-cell {
+    background: transparent !important;
+    color: #9a3412 !important; // Texto naranja oscuro para buen contraste
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #fdba74 0%, #fb923c 100%) !important; // Naranja más intenso al hover
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3) !important; // Sombra naranja
+    
+    .excel-cell {
+      background: transparent !important;
+      color: #7c2d12 !important; // Texto naranja más oscuro en hover
+    }
+  }
+}
+
+// Fila con estado CORRIENDO - Azul cielo (fondo y texto)
+.status-row-corriendo {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important; // Gradiente azul cielo claro
+  border-left: 4px solid #0ea5e9 !important; // Borde izquierdo azul cielo intenso
+  
+  .excel-cell {
+    background: transparent !important;
+    color: #075985 !important; // Texto azul cielo oscuro para buen contraste
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%) !important; // Azul cielo más intenso al hover
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important; // Sombra azul cielo
+    
+    .excel-cell {
+      background: transparent !important;
+      color: #0c4a6e !important; // Texto azul cielo más oscuro en hover
+    }
+  }
+}
+
+// Fila con estado TERMINADO - Rojo (fondo y texto)
+.status-row-terminado {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important; // Gradiente rojo claro
+  border-left: 4px solid #ef4444 !important; // Borde izquierdo rojo
+  
+  .excel-cell {
+    background: transparent !important;
+    color: #991b1b !important; // Texto rojo oscuro para buen contraste
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%) !important; // Rojo más intenso al hover
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important; // Sombra roja
+    
+    .excel-cell {
+      background: transparent !important;
+      color: #7f1d1d !important; // Texto rojo más oscuro en hover
+    }
+  }
+}
+
+// Fila con estado SIN_ASIGNAR - Blanco/Gris muy claro
+.status-row-sin_asignar {
+  background: white !important; // Fondo blanco
+  border-left: 4px solid #cbd5e1 !important; // Borde izquierdo gris claro
+  
+  .excel-cell {
+    background: transparent !important;
+    color: #1f2937 !important; // Texto gris oscuro normal
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important; // Gris muy claro al hover
+    box-shadow: 0 4px 12px rgba(203, 213, 225, 0.3) !important;
+    
+    .excel-cell {
+      background: transparent !important;
+      color: #111827 !important; // Texto gris más oscuro en hover
+    }
   }
 }
