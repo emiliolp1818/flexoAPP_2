@@ -4,6 +4,8 @@ using FlexoAPP.API.Services;                       // Para acceder a los servici
 using FlexoAPP.API.Repositories;                   // Para acceder a los repositorios
 using flexoAPP.Repositories;                       // Para acceder a IMaquinaRepository
 using System.Linq;                                 // Para usar LINQ (consultas)
+using FlexoAPP.API.Data.Context;                   // Para acceder al DbContext
+using Microsoft.EntityFrameworkCore;               // Para usar LINQ con EF Core
 
 namespace FlexoAPP.API.Controllers
 {
@@ -20,6 +22,7 @@ namespace FlexoAPP.API.Controllers
         private readonly IUserRepository _userRepository;              // Repositorio de usuarios
         private readonly IDesignRepository _designRepository;          // Repositorio de diseños
         private readonly IMaquinaRepository _maquinaRepository;        // Repositorio de máquinas
+        private readonly FlexoAPPDbContext _context;                   // DbContext para consultas avanzadas
 
         /// <summary>
         /// Constructor con inyección de dependencias
@@ -27,11 +30,13 @@ namespace FlexoAPP.API.Controllers
         public DashboardController(
             IUserRepository userRepository,
             IDesignRepository designRepository,
-            IMaquinaRepository maquinaRepository)
+            IMaquinaRepository maquinaRepository,
+            FlexoAPPDbContext context)
         {
             _userRepository = userRepository;                          // Asignar repositorio de usuarios
             _designRepository = designRepository;                      // Asignar repositorio de diseños
             _maquinaRepository = maquinaRepository;                    // Asignar repositorio de máquinas
+            _context = context;                                        // Asignar DbContext
         }
 
         /// <summary>
@@ -102,30 +107,43 @@ namespace FlexoAPP.API.Controllers
                          m.Estado.Equals("LISTO", StringComparison.OrdinalIgnoreCase)) &&
                         m.UpdatedAt.Date == today);
                     
-                    // Calcular tiempo promedio de preparación (de CreatedAt a cuando cambió a Listo)
-                    // Asumimos que las máquinas en estado "Listo" pasaron por preparación
-                    var maquinasListas = allMaquinas.Where(m =>
-                        (m.Estado.Equals("Listo", StringComparison.OrdinalIgnoreCase) ||
-                         m.Estado.Equals("LISTO", StringComparison.OrdinalIgnoreCase)) &&
-                        m.CreatedAt != default &&
-                        m.UpdatedAt != default &&
-                        m.UpdatedAt > m.CreatedAt
-                    ).ToList();
-
-                    if (maquinasListas.Any())
-                    {
-                        averageSetupTime = maquinasListas.Average(m =>
-                            (m.UpdatedAt - m.CreatedAt).TotalMinutes);
-                    }
-
-                    totalSetupChanges = maquinasListas.Count;
-                    
-                    Console.WriteLine($"✅ Órdenes: {readyOrders} listas, {readyToday} hoy, {Math.Round(averageSetupTime, 1)}min promedio, {totalSetupChanges} cambios");
+                    Console.WriteLine($"✅ Órdenes: {readyOrders} listas, {readyToday} hoy");
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"⚠️ Error obteniendo máquinas: {ex.Message}");
-                    Console.WriteLine($"⚠️ Stack trace: {ex.StackTrace}");
+                }
+
+                // 4. TIEMPO PROMEDIO DE PREPARACIÓN (desde Activities con Duration)
+                try
+                {
+                    // Obtener actividades de máquinas con duración (PREPARANDO -> LISTO)
+                    var machineActivities = await _context.Activities
+                        .Where(a => 
+                            a.Module == "MACHINES" && 
+                            a.Action == "MACHINE_STATUS_CHANGED" &&
+                            a.Duration != null &&
+                            a.Duration.Value.TotalMinutes > 0 &&
+                            a.Description.Contains("PREPARANDO") &&
+                            a.Description.Contains("LISTO"))
+                        .ToListAsync();
+
+                    if (machineActivities.Any())
+                    {
+                        // Calcular promedio en minutos
+                        averageSetupTime = machineActivities.Average(a => a.Duration!.Value.TotalMinutes);
+                        totalSetupChanges = machineActivities.Count;
+                        
+                        Console.WriteLine($"✅ Tiempo promedio: {Math.Round(averageSetupTime, 1)} min de {totalSetupChanges} cambios");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"⚠️ No hay actividades con duración registradas");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠️ Error calculando tiempo promedio: {ex.Message}");
                 }
 
                 // Crear objeto con las estadísticas calculadas
@@ -161,6 +179,51 @@ namespace FlexoAPP.API.Controllers
                     averageSetupTime,
                     totalSetupChanges
                 });
+            }
+        }
+
+        /// <summary>
+        /// Obtener tiempo promedio de preparación por usuario
+        /// GET /api/dashboard/average-time-by-user
+        /// </summary>
+        [HttpGet("average-time-by-user")]
+        public async Task<IActionResult> GetAverageTimeByUser()
+        {
+            try
+            {
+                // Obtener actividades de máquinas con duración agrupadas por usuario
+                var userAverages = await _context.Activities
+                    .Include(a => a.User) // Incluir navegación a User
+                    .Where(a => 
+                        a.Module == "MACHINES" && 
+                        a.Action == "MACHINE_STATUS_CHANGED" &&
+                        a.Duration != null &&
+                        a.Duration.Value.TotalMinutes > 0 &&
+                        a.Description.Contains("PREPARANDO") &&
+                        a.Description.Contains("LISTO") &&
+                        a.UserId > 0)
+                    .GroupBy(a => new { a.UserId, a.UserCode })
+                    .Select(g => new
+                    {
+                        userId = g.Key.UserId,
+                        userCode = g.Key.UserCode,
+                        userName = g.First().User != null ? g.First().User.FirstName + " " + g.First().User.LastName : g.Key.UserCode,
+                        averageTime = g.Average(a => a.Duration!.Value.TotalMinutes),
+                        totalChanges = g.Count(),
+                        minTime = g.Min(a => a.Duration!.Value.TotalMinutes),
+                        maxTime = g.Max(a => a.Duration!.Value.TotalMinutes)
+                    })
+                    .OrderBy(u => u.averageTime)
+                    .ToListAsync();
+
+                Console.WriteLine($"📊 Tiempos promedio por usuario: {userAverages.Count} usuarios");
+
+                return Ok(userAverages);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error obteniendo tiempos por usuario: {ex.Message}");
+                return Ok(new List<object>());
             }
         }
     }

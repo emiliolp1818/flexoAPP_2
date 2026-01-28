@@ -12,7 +12,7 @@ import { HeaderComponent } from '../header/header';
 
 // Services
 import { AuthService } from '../../../core/services/auth.service';
-import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
+import { DashboardService, DashboardStats, UserAverageTime } from '../../../core/services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,6 +28,10 @@ import { DashboardService, DashboardStats } from '../../../core/services/dashboa
   styleUrls: ['./dashboard.scss']
 })
 export class DashboardComponent implements OnInit {
+  // Señales reactivas
+  currentUser = signal<User | null>(null);
+  isLoading = signal(true);
+  
   // Signal reactivo que almacena las estadísticas del sistema
   // Se actualiza cuando se cargan los datos desde el servicio
   systemStats = signal<DashboardStats>({
@@ -41,7 +45,8 @@ export class DashboardComponent implements OnInit {
     totalSetupChanges: 0        // Total de cambios de preparación realizados
   });
 
-  isLoading = signal(true);
+  // Signal para tiempos promedio por usuario
+  userAverageTimes = signal<UserAverageTime[]>([]);
 
   constructor(
     private router: Router,
@@ -52,6 +57,8 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     // Cargar estadísticas del sistema
     this.loadSystemStats();
+    // Cargar tiempos promedio por usuario
+    this.loadUserAverageTimes();
   }
 
   /**
@@ -85,6 +92,23 @@ export class DashboardComponent implements OnInit {
         
         // Desactivar el indicador de carga incluso si hay error
         this.isLoading.set(false);
+      }
+    });
+  }
+
+  /**
+   * Cargar tiempos promedio por usuario
+   */
+  private loadUserAverageTimes(): void {
+    console.log('⏱️ Cargando tiempos promedio por usuario...');
+    
+    this.dashboardService.getAverageTimeByUser().subscribe({
+      next: (times) => {
+        console.log('✅ Tiempos promedio cargados:', times);
+        this.userAverageTimes.set(times);
+      },
+      error: (error) => {
+        console.error('❌ Error cargando tiempos promedio:', error);
       }
     });
   }

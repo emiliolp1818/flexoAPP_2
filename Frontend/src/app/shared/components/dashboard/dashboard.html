@@ -89,6 +89,18 @@
             <p class="stat-label">Tiempo Promedio</p>
             <!-- Indicador de cambio: total de cambios realizados -->
             <span class="stat-change neutral">{{ systemStats().totalSetupChanges }} cambios</span>
+            
+            <!-- Lista de tiempos por usuario (si hay datos) -->
+            <div class="user-times-list" *ngIf="userAverageTimes().length > 0">
+              <div class="user-time-item" *ngFor="let userTime of userAverageTimes().slice(0, 3)">
+                <span class="user-name">{{ userTime.userName || userTime.userCode }}</span>
+                <span class="user-avg-time">{{ userTime.averageTime.toFixed(1) }} min</span>
+                <span class="user-changes">({{ userTime.totalChanges }})</span>
+              </div>
+              <div class="view-all" *ngIf="userAverageTimes().length > 3">
+                <small>+{{ userAverageTimes().length - 3 }} más</small>
+              </div>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>

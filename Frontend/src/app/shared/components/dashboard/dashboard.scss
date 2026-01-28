@@ -802,3 +802,67 @@
     }
   }
 }
+
+
+/* ===========================================
+   USER TIMES LIST - TIEMPO PROMEDIO POR USUARIO
+   =========================================== */
+/* Lista de tiempos promedio por usuario dentro de la tarjeta de estadísticas */
+.user-times-list {
+  margin-top: 16px;                                            /* Espacio superior de 16px */
+  padding-top: 12px;                                           /* Padding superior de 12px */
+  border-top: 1px solid rgba(148, 163, 184, 0.2);             /* Línea divisoria superior gris */
+  
+  /* Item individual de usuario */
+  .user-time-item {
+    display: flex;                                             /* Layout flexbox */
+    align-items: center;                                       /* Alinear verticalmente al centro */
+    justify-content: space-between;                            /* Distribuir espacio entre elementos */
+    padding: 6px 0;                                            /* Padding vertical de 6px */
+    font-size: 0.75rem;                                        /* Tamaño de fuente pequeño (12px) */
+    
+    /* Nombre del usuario */
+    .user-name {
+      color: #475569;                                          /* Color gris oscuro */
+      font-weight: 600;                                        /* Peso semi-bold */
+      flex: 1;                                                 /* Ocupar espacio disponible */
+      overflow: hidden;                                        /* Ocultar texto que se desborde */
+      text-overflow: ellipsis;                                 /* Mostrar "..." si es muy largo */
+      white-space: nowrap;                                     /* No permitir saltos de línea */
+    }
+    
+    /* Tiempo promedio */
+    .user-avg-time {
+      color: #f59e0b;                                          /* Color naranja (tema de la tarjeta) */
+      font-weight: 700;                                        /* Peso bold */
+      margin: 0 8px;                                           /* Margen horizontal de 8px */
+    }
+    
+    /* Número de cambios */
+    .user-changes {
+      color: #94a3b8;                                          /* Color gris claro */
+      font-size: 0.7rem;                                       /* Tamaño de fuente más pequeño */
+    }
+  }
+  
+  /* Enlace "ver todos" */
+  .view-all {
+    text-align: center;                                        /* Centrar texto */
+    margin-top: 8px;                                           /* Margen superior de 8px */
+    padding-top: 8px;                                          /* Padding superior de 8px */
+    border-top: 1px solid rgba(148, 163, 184, 0.1);           /* Línea divisoria superior muy sutil */
+    
+    small {
+      color: #94a3b8;                                          /* Color gris claro */
+      font-weight: 600;                                        /* Peso semi-bold */
+      font-size: 0.7rem;                                       /* Tamaño de fuente pequeño */
+    }
+  }
+}
+
+/* Responsive: Ocultar lista en móviles para ahorrar espacio */
+@media (max-width: 640px) {
+  .user-times-list {
+    display: none;                                             /* Ocultar en pantallas pequeñas */
+  }
+}

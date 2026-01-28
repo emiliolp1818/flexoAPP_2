@@ -19,6 +19,17 @@ export interface DashboardStats {
   totalSetupChanges: number;       // Número total de cambios de preparación realizados
 }
 
+// Interfaz para tiempo promedio por usuario
+export interface UserAverageTime {
+  userId: number;                  // ID del usuario
+  userCode: string;                // Código del usuario
+  userName: string;                // Nombre del usuario
+  averageTime: number;             // Tiempo promedio en minutos
+  totalChanges: number;            // Total de cambios realizados
+  minTime: number;                 // Tiempo mínimo registrado
+  maxTime: number;                 // Tiempo máximo registrado
+}
+
 // Interfaz para estadísticas detalladas de usuarios
 export interface UserStats {
   total: number;                   // Total de usuarios en el sistema
@@ -249,5 +260,19 @@ export class DashboardService {
    */
   updateStats(stats: DashboardStats): void {
     this.dashboardStats.set(stats);
+  }
+
+  /**
+   * Obtener tiempo promedio por usuario
+   * @returns Observable con el tiempo promedio de cada usuario
+   */
+  getAverageTimeByUser(): Observable<UserAverageTime[]> {
+    return this.http.get<UserAverageTime[]>(`${environment.apiUrl}/dashboard/average-time-by-user`)
+      .pipe(
+        catchError(() => {
+          // Devolver array vacío si falla
+          return of([]);
+        })
+      );
   }
 }
