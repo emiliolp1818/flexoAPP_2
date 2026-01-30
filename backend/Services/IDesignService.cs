@@ -77,5 +77,10 @@ namespace FlexoAPP.API.Services
         /// Clear cache
         /// </summary>
         Task<bool> ClearCacheAsync();
+        
+        /// <summary>
+        /// Obtener lista de colores únicos utilizados en todos los diseños
+        /// </summary>
+        Task<IEnumerable<string>> GetUniqueUsedColorsAsync();
     }
 }

@@ -1151,5 +1151,9 @@ namespace FlexoAPP.API.Services
                 throw;
             }
         }
+        public async Task<IEnumerable<string>> GetUniqueUsedColorsAsync()
+        {
+            return await _designRepository.GetUniqueUsedColorsAsync();
+        }
     }
 }

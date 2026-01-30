@@ -1,0 +1,185 @@
+[33mcommit d396bb81c51be9e4fc20acfb03915ade8fe49d52[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mrender[m[33m, [m[1;31morigin/render[m[33m)[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 22:56:46 2026 -0500
+
+    Colores por estado en modulo maquinas - Fondo y texto coordinados
+
+[33mcommit a65cffa10a8c7bb136e53075a2754ae01d482c67[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 21:26:36 2026 -0500
+
+    Fix: Agregar import User en dashboard.ts
+
+[33mcommit 11a887f573ce8b1879c2ba12e07165ddb75438c1[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 21:19:36 2026 -0500
+
+    Implementacion tiempo promedio por usuario en dashboard
+
+[33mcommit 99859d2fb132d5ebfe1d062e23620c2c27fe4a0d[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 21:11:13 2026 -0500
+
+    Optimizacion completa modulo diseños - Solucion congelamiento
+
+[33mcommit 1c7e66ed2e97d95e02887babf5deb55d360218f3[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 17:36:11 2026 -0500
+
+    feat: Sistema completo de auditoría y reportes de actividades
+    
+    - Implementado sistema de auditoría para todos los módulos
+    - AUTH: Login/Logout con IP y navegador
+    - PROFILE: Cambios de foto, nombre y contraseña
+    - MACHINES: Cambios de estado con cálculo automático de duración
+    - DESIGNS: Creación, modificación y eliminación
+    - REPORTS: Registro de consultas realizadas
+    - CONFIG: Cambios de configuración del sistema
+    
+    Archivos nuevos:
+    - AuditController.cs: 9 endpoints de consulta de auditoría
+    - ADD_AUDIT_COLUMNS_TO_ACTIVITIES.sql: Migración de BD
+    - README_AUDIT_SYSTEM.md: Documentación completa
+    - SISTEMA_AUDITORIA_IMPLEMENTADO.md: Guía de implementación
+    
+    Archivos modificados:
+    - Activity.cs: Nuevas columnas (EntityType, EntityId, Duration, OldValues, NewValues)
+    - ActivityLoggerService.cs: Método LogDetailedActivityAsync
+    - MaquinaService.cs: Logging con cálculo de duración
+    - SystemConfigController.cs: Logging de cambios de configuración
+    - AuthController.cs: Logging de login/logout/cambio contraseña
+    - DesignsController.cs: Logging de operaciones con diseños
+    - ReportsController.cs: Logging de consultas
+    - UsersController.cs: Logging de gestión de usuarios
+
+[33mcommit b8b8d3087697562980dd3e59792a4f6d3fb29d6b[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 17:21:17 2026 -0500
+
+    feat: Implementar sistema de reportes de actividades - Fase 1 (AuthController logging mejorado)
+
+[33mcommit e5b2474e520822b4702a731b499a6119f1bb982b[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 16:58:11 2026 -0500
+
+    feat: Cambiar color de fila TERMINADO a rojo (igual que CORRIENDO)
+
+[33mcommit 257b9377b37343a0493798e36a88be5a915944f1[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 16:33:06 2026 -0500
+
+    feat: Agregar tooltips a columnas Cliente y Referencia para mostrar texto completo al pasar el mouse
+
+[33mcommit c5fc43482e0724919b7a0301a648d0887008d422[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 16:29:39 2026 -0500
+
+    fix: Agregar atributo [Column] a PreparandoStartedAt para mapeo correcto con MySQL
+
+[33mcommit 55dd9f248f674d8b3419a721e4ea6d4135fd5d7c[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 16:17:25 2026 -0500
+
+    feat: Actualizar scripts de creación de tabla maquinas con columna preparando_started_at
+
+[33mcommit 58a6d1e874697cba2de1c19c31a018194b07f637[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 16:10:20 2026 -0500
+
+    docs: Agregar README para migración preparando_started_at
+
+[33mcommit 3214243af59e29ed49fb3478b73bfab0136a14be[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 16:09:21 2026 -0500
+
+    feat: Agregar campo preparandoStartedAt para persistir tiempo de preparación - el contador ya no se reinicia al recargar la página
+
+[33mcommit 5b641c3249003e12f80878f69f7fa0883966467e[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 15:59:34 2026 -0500
+
+    feat: Mejorar formato de tiempo transcurrido - mostrar horas si supera 60 minutos, minutos y segundos si supera 60 segundos
+
+[33mcommit ea2917aad357f2984c383a077bf5d87d5c5d9e8d[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 15:50:18 2026 -0500
+
+    feat: Agregar mensaje informativo con tiempo transcurrido cuando un programa pasa de PREPARANDO a LISTO
+
+[33mcommit e85bafa4b76dfcff0d563730f4296e3f3501e59a[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 15:44:12 2026 -0500
+
+    feat: Mejoras en componente de máquinas - scroll, botón corriendo/terminado con menú, tamaños de fuente aumentados y colores actualizados
+
+[33mcommit a4f5aa8b640d8c2192f7cb80c113f57c0e3b46c2[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 15:25:24 2026 -0500
+
+    fix: Eliminar tooltips negros de los botones de acciones en la tabla de programación
+
+[33mcommit 4f917bd7efce22b3c8f3f14dc442e63bbd30d172[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Tue Jan 27 15:18:47 2026 -0500
+
+    feat: Agregar scroll vertical al contenedor de máquinas para visualizar todas las máquinas (11-21) en diferentes tamaños de pantalla
+
+[33mcommit 1abfc5ac9577dab2829851098950d2a3dcea7ea8[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Mon Jan 26 22:34:40 2026 -0500
+
+    Fix: Agregar logs detallados y atributos únicos en tabla de máquinas para debugging
+    
+    - Agregados atributos data-ot-sap y data-articulo en cada fila para identificación única
+    - Logs detallados en cada botón de acción con emoji de color para fácil identificación
+    - Tooltips mejorados mostrando OT SAP y Artículo
+    - stopPropagation en todos los botones para evitar propagación de eventos
+    - Tabla funcionando correctamente: acciones se aplican al programa específico
+    - Indicadores LED de máquinas funcionando: verde (6+), naranja (3-5), rojo (0-2)
+
+[33mcommit d3caba78a75dcf7ee662277eddb0293a57fd6ba1[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Mon Jan 26 21:59:36 2026 -0500
+
+    Fix: Reconstruir tabla de máquinas desde cero - Solucionar problema de acciones aplicadas a programas incorrectos
+    
+    - Reconstruida tabla completa usando variable consistente 'element' en todas las celdas
+    - Eliminado trackBy que causaba confusión con artículos duplicados
+    - Agregado método handleAction() simple y directo
+    - Corregido selectedMachinePrograms() para no mutar array con sort
+    - Todas las columnas funcionando: OT SAP, Artículo, Cliente, Referencia, TD, Colores, Kilos, Fecha, Sustrato, Estado, Acciones
+    - Acciones ahora se aplican correctamente al programa específico por OT SAP único
+    - Mantenidos estilos CSS, iconos, tooltips y funcionalidad de dropdown de colores
+
+[33mcommit f9f824f7317d9f71a269a0b8c871bd738db7047c[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Mon Jan 26 20:03:02 2026 -0500
+
+    Fix: Corregir publishDir en render.yaml - Cambiar de dist/browser a dist/flexoapp/browser
+
+[33mcommit b3b0e64095faa8f00da86ab8cf82d562a3b3255a[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Mon Jan 26 19:29:38 2026 -0500
+
+    Fix: Mejorar botón de actualización de máquinas - Restaurar selección y forzar detección de cambios
+
+[33mcommit 1247bc9927842d59f2c5eb7059cb4a23846ca448[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Mon Jan 26 19:25:40 2026 -0500
+
+    Fix: Mejorar lógica de actualización de estado en máquinas - Actualización inmediata sin recargar
+
+[33mcommit 5153c58a4096be3a82a33fbb8dc9679f92e4cbe9[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Mon Jan 26 18:53:56 2026 -0500
+
+    Instalar dependencias jsPDF y compilar frontend exitosamente
+
+[33mcommit 8cb171d2506272334bf7346833ad4ea1930f730e[m
+Author: emiliolp1818 <emiliojlp18@hotmail.com>
+Date:   Sat Jan 17 03:29:13 2026 -0500
+
+    feat: Actualización completa de scripts de base de datos y estilos
+    
+    - Eliminados scripts obsoletos (00_MASTER_SETUP.sql, drop_pedidos_table.sql)
+    - C

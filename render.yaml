@@ -1,4 +1,4 @@
-services:
+ services:
   # Backend Service - FlexoAPP API
   - type: web
     name: flexoapp-backend

@@ -28,15 +28,14 @@
       <div class="header-actions">
         <!-- Botón Crear Diseño - Siempre visible para administradores -->
         <button mat-raised-button color="primary" (click)="createNewDesign()" class="create-design-btn"
-          [disabled]="loading()" 
-          matTooltip="Crear nuevo diseño flexográfico">
+          [disabled]="loading()" matTooltip="Crear nuevo diseño flexográfico">
           <mat-icon>add</mat-icon>
           Crear Diseño
         </button>
 
         <!-- Botón Carga Masiva Excel - Funcional -->
-        <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn"
-          [disabled]="uploading()" matTooltip="Subir diseños desde Excel">
+        <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn" [disabled]="uploading()"
+          matTooltip="Subir diseños desde Excel">
           <mat-icon>cloud_upload</mat-icon>
           <span *ngIf="!uploading()">Importar Excel</span>
           <span *ngIf="uploading()">{{uploadProgress()}}%</span>
@@ -50,8 +49,7 @@
         </button>
 
         <!-- Botón Actualizar/Refrescar - Solo icono -->
-        <button mat-icon-button (click)="refreshDesigns()" class="refresh-btn"
-          [disabled]="loading()"
+        <button mat-icon-button (click)="refreshDesigns()" class="refresh-btn" [disabled]="loading()"
           matTooltip="Actualizar lista de diseños">
           <mat-icon [class.spinning]="loading()">refresh</mat-icon>
         </button>
@@ -290,7 +288,8 @@
               <td mat-cell *matCellDef="let design" class="excel-cell print-type-cell">
                 <!-- Chip con color según el tipo de impresión (una cara, dorso, ambas caras) -->
                 <!-- Transformación de clase CSS para manejar guiones bajos en nombres -->
-                <mat-chip [class]="'print-chip print-' + (design.printType || 'unknown').toLowerCase().replace('_', '-')">
+                <mat-chip
+                  [class]="'print-chip print-' + (design.printType || 'unknown').toLowerCase().replace('_', '-')">
                   <!-- Reemplazo de guiones bajos por espacios para mejor legibilidad -->
                   {{ (design.printType || 'N/A').replace('_', ' ') }}
                 </mat-chip>
@@ -346,11 +345,10 @@
                       <div class="colors-badge">{{ design.colorCount }}</div>
                     </div>
                   </button>
-                  
+
                   <!-- Dropdown de colores con posición fija para evitar overflow -->
                   <!-- Clase condicional 'visible' controlada por función isColorsExpanded -->
-                  <div class="colors-dropdown" 
-                       [class.visible]="isColorsExpanded(design.id?.toString() || '')">
+                  <div class="colors-dropdown" [class.visible]="isColorsExpanded(design.id?.toString() || '')">
                     <!-- Contenido interno del dropdown -->
                     <div class="colors-dropdown-content">
                       <!-- Header del dropdown con información del diseño -->
@@ -369,11 +367,13 @@
                       <!-- Lista de colores con scroll interno -->
                       <div class="colors-dropdown-list">
                         <!-- Iteración sobre el array de colores con índice -->
-                        <div *ngFor="let color of design.colors; let i = index" class="color-item">
-                          <!-- Número del color (índice + 1) -->
+                        <div *ngFor="let colorName of design.colors; let i = index" class="color-item">
                           <span class="color-number">{{ i + 1 }}</span>
-                          <!-- Nombre del color formateado en mayúsculas -->
-                          <span class="color-name">{{ formatColorName(color) }}</span>
+                          <!-- Vista previa visual del color -->
+                          <div class="color-swatch-mini" [style.background-color]="getPantoneColor(colorName).hex"
+                            [title]="getPantoneColor(colorName).hex">
+                          </div>
+                          <span class="color-name">{{ formatColorName(colorName) }}</span>
                         </div>
                       </div>
                     </div>
@@ -418,35 +418,20 @@
                 <!-- Contenedor flexbox para los botones de acción -->
                 <div class="action-buttons">
                   <!-- Botón Editar: Abre el diálogo de edición del diseño -->
-                  <button 
-                    mat-icon-button 
-                    color="primary"
-                    (click)="editDesign(design)"
-                    [disabled]="loading()"
-                    matTooltip="Editar diseño flexográfico"
-                    class="action-btn edit-btn large-icon">
+                  <button mat-icon-button color="primary" (click)="editDesign(design)" [disabled]="loading()"
+                    matTooltip="Editar diseño flexográfico" class="action-btn edit-btn large-icon">
                     <mat-icon class="large-action-icon">edit</mat-icon>
                   </button>
 
                   <!-- Botón Duplicar: Crea una copia exacta del diseño para nuevo proyecto -->
-                  <button 
-                    mat-icon-button 
-                    color="accent"
-                    (click)="duplicateDesign(design)"
-                    [disabled]="loading()"
-                    matTooltip="Duplicar diseño para nuevo proyecto"
-                    class="action-btn duplicate-btn large-icon">
+                  <button mat-icon-button color="accent" (click)="duplicateDesign(design)" [disabled]="loading()"
+                    matTooltip="Duplicar diseño para nuevo proyecto" class="action-btn duplicate-btn large-icon">
                     <mat-icon class="large-action-icon">content_copy</mat-icon>
                   </button>
 
                   <!-- Botón Eliminar: Elimina el diseño de la base de datos -->
-                  <button 
-                    mat-icon-button 
-                    color="warn"
-                    (click)="deleteDesign(design)"
-                    [disabled]="loading()"
-                    matTooltip="Eliminar diseño de la base de datos"
-                    class="action-btn delete-btn large-icon">
+                  <button mat-icon-button color="warn" (click)="deleteDesign(design)" [disabled]="loading()"
+                    matTooltip="Eliminar diseño de la base de datos" class="action-btn delete-btn large-icon">
                     <mat-icon class="large-action-icon">delete</mat-icon>
                   </button>
                 </div>
@@ -493,6 +478,45 @@
 
         </div>
         <!-- Fin del contenedor de la tabla -->
+
+        <!-- ===== PAGINACIÓN REIMAGINADA ===== -->
+        <div class="pagination-controls" *ngIf="totalRecords() > 0">
+          <!-- Información de registros (Izquierda) -->
+          <div class="pagination-info">
+            Mostrando <b>{{ (currentPage() - 1) * pageSize() + 1 }} - {{ Math.min(currentPage() * pageSize(),
+              totalRecords())
+              }}</b> de <b>{{ totalRecords() }}</b> diseños
+          </div>
+
+          <!-- Controles de acción (Centro) -->
+          <div class="pagination-actions">
+            <button (click)="previousPage()" [disabled]="currentPage() === 1 || loading()" mat-ripple
+              class="nav-btn prev-btn">
+              <mat-icon>chevron_left</mat-icon>
+              Anterior
+            </button>
+
+            <div class="current-page-indicator">
+              Página <span>{{ currentPage() }}</span>
+            </div>
+
+            <button (click)="nextPage()" [disabled]="!hasMoreData() || loading()" mat-ripple class="nav-btn next-btn">
+              Siguiente
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+
+          <!-- Selector de tamaño (Derecha) -->
+          <div class="page-size-container">
+            <mat-form-field appearance="outline" class="page-size-select mini-select">
+              <mat-select [ngModel]="pageSize()" (selectionChange)="onPageSizeChange($event.value)">
+                <mat-option [value]="25">25 / pág</mat-option>
+                <mat-option [value]="50">50 / pág</mat-option>
+                <mat-option [value]="100">100 / pág</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
       </mat-card-content>
       <!-- Fin del contenido de la tarjeta -->
     </mat-card>
@@ -507,7 +531,7 @@
 <!-- Diálogo modal scrollable con todos los campos dinámicos -->
 <div class="dialog-overlay" *ngIf="showCreateForm()" (click)="cancelCreateDesign()">
   <div class="dialog-container" (click)="$event.stopPropagation()">
-    
+
     <!-- Header del diálogo -->
     <div class="dialog-header">
       <div class="dialog-title">
@@ -522,7 +546,7 @@
     <!-- Contenido scrollable del diálogo -->
     <div class="dialog-content">
       <form [formGroup]="createDesignForm" class="create-design-form">
-        
+
         <!-- Fila 1: Artículo F y Cliente -->
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
@@ -548,7 +572,7 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Descripción *</mat-label>
-            <textarea matInput formControlName="description" rows="3" 
+            <textarea matInput formControlName="description" rows="3"
               placeholder="Descripción detallada del diseño"></textarea>
             <mat-icon matSuffix>description</mat-icon>
             <mat-error *ngIf="createDesignForm.get('description')?.hasError('required')">
@@ -593,8 +617,7 @@
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Número de Colores *</mat-label>
-            <input matInput type="number" formControlName="colorCount" 
-              min="1" max="12" (change)="updateColors()">
+            <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateColors()">
             <mat-icon matSuffix>palette</mat-icon>
           </mat-form-field>
         </div>
@@ -615,12 +638,8 @@
           <div class="most-used-colors">
             <span class="section-label">Más utilizados:</span>
             <div class="color-chips">
-              <div 
-                *ngFor="let color of getMostUsedColors()" 
-                class="color-chip"
-                [style.background-color]="color.hex"
-                [title]="color.displayName + ' - ' + color.hex"
-                (click)="selectPantoneColor(0, color)">
+              <div *ngFor="let color of getMostUsedColors()" class="color-chip" [style.background-color]="color.hex"
+                [title]="color.displayName + ' - ' + color.hex" (click)="selectPantoneColor(0, color)">
                 <span class="color-code">{{ color.displayName }}</span>
               </div>
             </div>
@@ -628,32 +647,22 @@
 
           <!-- Selector de colores por posición -->
           <div class="color-selectors">
-            <div 
-              *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" 
-              class="color-selector">
+            <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
               <label class="color-label">Color {{ i + 1 }}:</label>
-              
+
               <mat-form-field appearance="outline" class="color-field">
                 <mat-label>Buscar Pantone</mat-label>
-                <input 
-                  matInput 
-                  [value]="color.displayName"
-                  (input)="searchPantoneColors($any($event.target).value)"
-                  [matAutocomplete]="colorAuto"
-                  placeholder="Ej: P 209, P Black">
+                <input matInput [value]="color.displayName"
+                  (input)="searchPantoneColors($any($event.target).value); updateColorManual(i, $any($event.target).value)"
+                  [matAutocomplete]="colorAuto" placeholder="Ej: 209, Black, Cyan">
                 <mat-icon matSuffix>search</mat-icon>
-                
-                <mat-autocomplete 
-                  #colorAuto="matAutocomplete"
+
+                <mat-autocomplete #colorAuto="matAutocomplete"
                   (optionSelected)="selectPantoneColor(i, $event.option.value)">
-                  <mat-option 
-                    *ngFor="let pantoneColor of availablePantoneColors()" 
-                    [value]="pantoneColor"
+                  <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
                     class="color-option">
                     <div class="color-option-content">
-                      <div 
-                        class="color-preview" 
-                        [style.background-color]="pantoneColor.hex">
+                      <div class="color-preview" [style.background-color]="pantoneColor.hex">
                       </div>
                       <div class="color-info">
                         <span class="color-name">{{ pantoneColor.displayName }}</span>
@@ -666,9 +675,7 @@
 
               <!-- Vista previa del color seleccionado -->
               <div class="selected-color-preview">
-                <div 
-                  class="color-swatch" 
-                  [style.background-color]="color.hex"
+                <div class="color-swatch" [style.background-color]="color.hex"
                   [title]="color.displayName + ' - ' + color.hex">
                 </div>
                 <div class="color-details">
@@ -701,7 +708,7 @@
         <mat-icon>cancel</mat-icon>
         Cancelar
       </button>
-      <button mat-raised-button color="primary" (click)="saveNewDesign()" 
+      <button mat-raised-button color="primary" (click)="saveNewDesign()"
         [disabled]="!createDesignForm.valid || loading()" class="save-btn">
         <mat-icon *ngIf="loading()">refresh</mat-icon>
         <mat-icon *ngIf="!loading()">save</mat-icon>
@@ -717,7 +724,7 @@
 <!-- Diálogo modal scrollable para editar diseño existente -->
 <div class="dialog-overlay" *ngIf="showEditForm()" (click)="cancelEditDesign()">
   <div class="dialog-container" (click)="$event.stopPropagation()">
-    
+
     <!-- Header del diálogo de edición -->
     <div class="dialog-header edit-header">
       <div class="dialog-title">
@@ -732,7 +739,7 @@
     <!-- Contenido scrollable del diálogo de edición -->
     <div class="dialog-content">
       <form [formGroup]="editDesignForm" class="create-design-form">
-        
+
         <!-- Fila 1: Artículo F y Cliente -->
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
@@ -756,7 +763,7 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Descripción *</mat-label>
-            <textarea matInput formControlName="description" rows="3" 
+            <textarea matInput formControlName="description" rows="3"
               placeholder="Descripción detallada del diseño"></textarea>
             <mat-icon matSuffix>description</mat-icon>
             <mat-error *ngIf="editDesignForm.get('description')?.hasError('required')">
@@ -801,8 +808,7 @@
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Número de Colores *</mat-label>
-            <input matInput type="number" formControlName="colorCount" 
-              min="1" max="12" (change)="updateEditColors()">
+            <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateEditColors()">
             <mat-icon matSuffix>palette</mat-icon>
           </mat-form-field>
         </div>
@@ -823,12 +829,8 @@
           <div class="most-used-colors">
             <span class="section-label">Más utilizados:</span>
             <div class="color-chips">
-              <div 
-                *ngFor="let color of getMostUsedColors()" 
-                class="color-chip"
-                [style.background-color]="color.hex"
-                [title]="color.displayName + ' - ' + color.hex"
-                (click)="selectPantoneColor(0, color)">
+              <div *ngFor="let color of getMostUsedColors()" class="color-chip" [style.background-color]="color.hex"
+                [title]="color.displayName + ' - ' + color.hex" (click)="selectPantoneColor(0, color)">
                 <span class="color-code">{{ color.displayName }}</span>
               </div>
             </div>
@@ -836,32 +838,22 @@
 
           <!-- Selector de colores por posición -->
           <div class="color-selectors">
-            <div 
-              *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" 
-              class="color-selector">
+            <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
               <label class="color-label">Color {{ i + 1 }}:</label>
-              
+
               <mat-form-field appearance="outline" class="color-field">
                 <mat-label>Buscar Pantone</mat-label>
-                <input 
-                  matInput 
-                  [value]="color.displayName"
-                  (input)="searchPantoneColors($any($event.target).value)"
-                  [matAutocomplete]="colorAutoEdit"
-                  placeholder="Ej: P 209, P Black">
+                <input matInput [value]="color.displayName"
+                  (input)="searchPantoneColors($any($event.target).value); updateColorManual(i, $any($event.target).value)"
+                  [matAutocomplete]="colorAutoEdit" placeholder="Ej: 209, Black, Magenta">
                 <mat-icon matSuffix>search</mat-icon>
-                
-                <mat-autocomplete 
-                  #colorAutoEdit="matAutocomplete"
+
+                <mat-autocomplete #colorAutoEdit="matAutocomplete"
                   (optionSelected)="selectPantoneColor(i, $event.option.value)">
-                  <mat-option 
-                    *ngFor="let pantoneColor of availablePantoneColors()" 
-                    [value]="pantoneColor"
+                  <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
                     class="color-option">
                     <div class="color-option-content">
-                      <div 
-                        class="color-preview" 
-                        [style.background-color]="pantoneColor.hex">
+                      <div class="color-preview" [style.background-color]="pantoneColor.hex">
                       </div>
                       <div class="color-info">
                         <span class="color-name">{{ pantoneColor.displayName }}</span>
@@ -874,9 +866,7 @@
 
               <!-- Vista previa del color seleccionado -->
               <div class="selected-color-preview">
-                <div 
-                  class="color-swatch" 
-                  [style.background-color]="color.hex"
+                <div class="color-swatch" [style.background-color]="color.hex"
                   [title]="color.displayName + ' - ' + color.hex">
                 </div>
                 <div class="color-details">
@@ -909,7 +899,7 @@
         <mat-icon>cancel</mat-icon>
         Cancelar
       </button>
-      <button mat-raised-button color="primary" (click)="saveEditedDesign()" 
+      <button mat-raised-button color="primary" (click)="saveEditedDesign()"
         [disabled]="!editDesignForm.valid || loading()" class="save-btn">
         <mat-icon *ngIf="loading()">refresh</mat-icon>
         <mat-icon *ngIf="!loading()">save</mat-icon>

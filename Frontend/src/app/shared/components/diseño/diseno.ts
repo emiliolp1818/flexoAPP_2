@@ -95,10 +95,10 @@ export class DesignComponent implements OnInit, OnDestroy {
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
   private pantoneService = inject(PantoneLiveService);
-  
+
   // Suscripción para actualización automática
   private updateSubscription: Subscription = new Subscription();
-  
+
   // Señales reactivas
   currentUser = signal<User | null>(null);
   loading = signal<boolean>(false);
@@ -111,30 +111,31 @@ export class DesignComponent implements OnInit, OnDestroy {
   showCreateForm = signal<boolean>(false);
   showEditForm = signal<boolean>(false);
   editingDesign = signal<FlexographicDesign | null>(null);
-  
+
   // Señales para optimización de carga
   currentPage = signal<number>(1);
-  pageSize = signal<number>(50); // ⚡ ULTRA OPTIMIZADO: Solo 50 por página
+  pageSize = signal<number>(50); // ⚡ OPTIMIZADO: 50 por página para evitar congelamiento de DOM
   totalRecords = signal<number>(0);
   hasMoreData = signal<boolean>(true);
   loadingMore = signal<boolean>(false);
   virtualScrollEnabled = signal<boolean>(true);
   cacheEnabled = signal<boolean>(true);
-  
+
   // Formulario para crear diseño
   createDesignForm: FormGroup;
-  
+
   // Formulario para editar diseño
   editDesignForm: FormGroup;
-  
-  // Colores Pantone
-  availablePantoneColors = signal<PantoneColor[]>([]);
-  selectedColors = signal<PantoneColor[]>([]);
-  colorSearchTerm = signal<string>('');
+
+  // Señales para gestión de colores
+  availablePantoneColors = signal<PantoneColor[]>([]); // Colores Pantone disponibles para autocompletado
+  databaseColors = signal<string[]>([]); // Colores únicos extraídos de la base de datos
+  selectedColors = signal<PantoneColor[]>([]); // Colores seleccionados para el diseño (máximo 10)
+  colorSearchTerm = signal<string>(''); // Término de búsqueda de colores
 
   // Configuración de tabla
   displayedColumns: string[] = [
-    'articleF', 'client', 'description', 'substrate', 'type', 
+    'articleF', 'client', 'description', 'substrate', 'type',
     'printType', 'colorCount', 'colors', 'status', 'actions'
   ];
 
@@ -181,12 +182,9 @@ export class DesignComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadCurrentUser();
     this.loadPantoneColors();
+    this.loadDatabaseColors();
     this.initializeOptimizations();
-    // Usar método optimizado para cargar datos
     this.loadDesigns();
-    
-    // ⚠️ DESACTIVADO: Actualización automática causa congelamiento
-    // this.startAutoUpdate();
   }
 
   ngOnDestroy() {
@@ -197,37 +195,34 @@ export class DesignComponent implements OnInit, OnDestroy {
    * Inicializar optimizaciones de rendimiento
    */
   private initializeOptimizations() {
-    console.log('⚡ Inicializando optimizaciones de rendimiento...');
-    
-    // Configurar tamaño de página basado en memoria disponible
     const memory = this.getMemoryUsage();
     if (memory) {
-      if (memory.limit < 1000) { // Menos de 1GB
-        this.pageSize.set(1000); // Reducido pero aún suficiente para la mayoría de casos
-        console.log('📄 Memoria limitada detectada - Página reducida a 1000');
-      } else if (memory.limit < 2000) { // Menos de 2GB
-        this.pageSize.set(5000);
-        console.log('📄 Memoria media detectada - Página establecida en 5000');
-      } else {
-        this.pageSize.set(10000);
-        console.log('📄 Memoria suficiente - Página establecida en 10000');
-      }
+      if (memory.limit < 1000) this.pageSize.set(25);
+      else if (memory.limit < 2000) this.pageSize.set(50);
+      else this.pageSize.set(100);
     }
-    
-    // Configurar virtual scrolling basado en el dispositivo
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      this.pageSize.set(Math.min(this.pageSize(), 500)); // Reducir en móviles pero mantener un número razonable
-      console.log('📱 Dispositivo móvil detectado - Optimizaciones aplicadas');
-    }
-    
+
     // Monitorear memoria cada 30 segundos
     setInterval(() => {
       if (this.needsOptimization()) {
-        console.log('⚠️ Optimización necesaria detectada');
         this.optimizePerformance();
       }
     }, 30000);
+  }
+
+  /**
+   * Cargar colores únicos utilizados en la base de datos
+   */
+  async loadDatabaseColors() {
+    try {
+      const colors = await this.http.get<string[]>(`${environment.apiUrl}/designs/unique-colors`).toPromise();
+      if (colors) {
+        this.databaseColors.set(colors);
+        console.log('📊 Colores únicos de BDD cargados:', colors.length);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando colores de BDD:', error);
+    }
   }
 
   /**
@@ -236,7 +231,6 @@ export class DesignComponent implements OnInit, OnDestroy {
   loadPantoneColors() {
     const colors = this.pantoneService.getAllColors();
     this.availablePantoneColors.set(colors);
-    console.log('🎨 Colores Pantone cargados:', colors.length);
   }
 
   /**
@@ -245,11 +239,11 @@ export class DesignComponent implements OnInit, OnDestroy {
   loadCurrentUser() {
     const user = this.authService.getCurrentUser();
     this.currentUser.set(user);
-    
+
     if (user) {
       console.log('👤 Usuario actual:', user);
       console.log('🔑 Rol del usuario:', user.role);
-      
+
       // Configurar permisos basados en los roles (soporta tanto mayúsculas como minúsculas)
       const userRole = user.role.toLowerCase(); // Normalizar a minúsculas
       const permissions: UserPermissions = {
@@ -263,7 +257,7 @@ export class DesignComponent implements OnInit, OnDestroy {
         bulk_upload: ['admin', 'supervisor'].includes(userRole),
         admin_clear_db: ['admin'].includes(userRole)
       };
-      
+
       console.log('🔐 Permisos configurados:', permissions);
       this.userPermissions.set(permissions);
     } else {
@@ -296,7 +290,7 @@ export class DesignComponent implements OnInit, OnDestroy {
    */
   startAutoUpdate() {
     this.stopAutoUpdate(); // Asegurar que no haya suscripciones duplicadas
-    
+
     // Actualizar cada 1000ms (1 segundo)
     this.updateSubscription = interval(1000).subscribe(() => {
       this.refreshDesignsSilent();
@@ -332,7 +326,7 @@ export class DesignComponent implements OnInit, OnDestroy {
           pageSize: this.pageSize().toString()
         }
       }).toPromise();
-      
+
       if (response) {
         const items = response.items || response;
         // Actualizar señales solo si hay datos
@@ -351,60 +345,7 @@ export class DesignComponent implements OnInit, OnDestroy {
    * Cargar diseños desde la base de datos (ULTRA OPTIMIZADO CON PAGINACIÓN)
    */
   async loadDesigns() {
-    this.loading.set(true);
-    try {
-      console.log('🚀 Cargando diseños con paginación optimizada...');
-      
-      // ⚡ USAR PAGINACIÓN EN LUGAR DE CARGAR TODO
-      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
-        params: {
-          page: this.currentPage().toString(),
-          pageSize: this.pageSize().toString()
-        }
-      }).toPromise();
-      
-      if (response && response.items) {
-        console.log(`✅ Cargados ${response.items.length} diseños de ${response.totalCount} totales`);
-        
-        // Procesar colores para cada diseño
-        const processedDesigns = response.items.map((design: FlexographicDesign) => ({
-          ...design,
-          colors: this.extractColorsFromDesign(design)
-        }));
-        
-        this.allDesigns.set(processedDesigns);
-        this.filteredDesigns.set(processedDesigns);
-        this.totalRecords.set(response.totalCount);
-        this.hasMoreData.set(response.page < response.totalPages);
-        
-        this.snackBar.open(
-          `${processedDesigns.length} diseños cargados (Página ${response.page} de ${response.totalPages})`, 
-          'Cerrar', 
-          { duration: 3000, panelClass: ['success-snackbar'] }
-        );
-        
-        return;
-      }
-      
-      // Fallback si no hay respuesta
-      console.warn('⚠️ No se recibió respuesta del servidor');
-      this.allDesigns.set([]);
-      this.filteredDesigns.set([]);
-      
-    } catch (error: any) {
-      console.error('❌ Error cargando diseños:', error);
-      this.snackBar.open(
-        'Error al cargar diseños. Por favor, intenta de nuevo.', 
-        'Cerrar', 
-        { duration: 5000, panelClass: ['error-snackbar'] }
-      );
-      
-      // Establecer arrays vacíos en caso de error
-      this.allDesigns.set([]);
-      this.filteredDesigns.set([]);
-    } finally {
-      this.loading.set(false);
-    }
+    await this.loadDesignsPaginated(this.currentPage(), this.pageSize(), this.searchTerm());
   }
 
   /**
@@ -414,34 +355,34 @@ export class DesignComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     try {
       console.log('🚀 Recargando diseños después de importación...');
-      
+
       // ⚡ USAR PAGINACIÓN - Resetear a página 1
       this.currentPage.set(1);
-      
+
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
           page: '1',
           pageSize: this.pageSize().toString()
         }
       }).toPromise();
-      
+
       if (response && response.items) {
         console.log(`✅ Cargados ${response.items.length} diseños de ${response.totalCount} totales`);
-        
+
         // Procesar colores para cada diseño
         const processedDesigns = response.items.map((design: FlexographicDesign) => ({
           ...design,
           colors: this.extractColorsFromDesign(design)
         }));
-        
+
         this.allDesigns.set(processedDesigns);
         this.filteredDesigns.set(processedDesigns);
         this.totalRecords.set(response.totalCount);
         this.hasMoreData.set(response.page < response.totalPages);
-        
+
         this.snackBar.open(
-          `Importación completada: ${response.totalCount} diseños en total`, 
-          'Cerrar', 
+          `Importación completada: ${response.totalCount} diseños en total`,
+          'Cerrar',
           { duration: 4000, panelClass: ['success-snackbar'] }
         );
       } else {
@@ -453,8 +394,8 @@ export class DesignComponent implements OnInit, OnDestroy {
     } catch (error: any) {
       console.error('❌ Error recargando diseños:', error);
       this.snackBar.open(
-        'Error al recargar diseños. Por favor, recarga la página.', 
-        'Cerrar', 
+        'Error al recargar diseños. Por favor, recarga la página.',
+        'Cerrar',
         { duration: 5000, panelClass: ['error-snackbar'] }
       );
     } finally {
@@ -468,7 +409,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   async loadDesignsWithVirtualScroll() {
     try {
       console.log('📊 Iniciando carga optimizada...');
-      
+
       // Usar endpoint paginado existente con parámetros optimizados
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
@@ -476,7 +417,7 @@ export class DesignComponent implements OnInit, OnDestroy {
           pageSize: this.pageSize().toString()
         }
       }).toPromise();
-      
+
       if (response) {
         // Adaptar respuesta al formato esperado
         const adaptedResponse = {
@@ -485,15 +426,15 @@ export class DesignComponent implements OnInit, OnDestroy {
           hasMore: response.hasMore || false,
           loadTime: response.loadTime || 0
         };
-        
+
         console.log(`⚡ Primera página cargada: ${adaptedResponse.items.length} diseños`);
-        
+
         this.allDesigns.set(adaptedResponse.items);
         this.filteredDesigns.set(adaptedResponse.items);
         this.totalRecords.set(adaptedResponse.total);
         this.hasMoreData.set(adaptedResponse.hasMore);
         this.currentPage.set(1);
-        
+
         this.snackBar.open(`${adaptedResponse.items.length} diseños cargados - Modo optimizado`, 'Cerrar', {
           duration: 3000,
           panelClass: ['success-snackbar']
@@ -510,41 +451,41 @@ export class DesignComponent implements OnInit, OnDestroy {
    */
   async loadMoreDesigns() {
     if (!this.hasMoreData() || this.loadingMore()) return;
-    
+
     this.loadingMore.set(true);
     try {
       const nextPage = this.currentPage() + 1;
       const term = this.searchTerm().toLowerCase().trim();
-      
+
       console.log(`📄 Cargando página ${nextPage} (Búsqueda: "${term}")...`);
-      
+
       let params: any = {
         page: nextPage.toString(),
         pageSize: this.pageSize().toString()
       };
-      
+
       if (term) {
         params.search = term;
       }
-      
+
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, { params }).toPromise();
-      
+
       if (response) {
         const adaptedResponse = {
           items: response.items || response,
           hasMore: response.hasMore || false
         };
-        
+
         if (adaptedResponse.items.length > 0) {
           // Agregar nuevos elementos a la lista existente
           const currentDesigns = this.allDesigns();
           const newDesigns = [...currentDesigns, ...adaptedResponse.items];
-          
+
           this.allDesigns.set(newDesigns);
           this.filteredDesigns.set(newDesigns);
           this.currentPage.set(nextPage);
           this.hasMoreData.set(adaptedResponse.hasMore);
-          
+
           console.log(`✅ Página ${nextPage} cargada: +${adaptedResponse.items.length} diseños (Total: ${newDesigns.length})`);
         } else {
           this.hasMoreData.set(false);
@@ -566,7 +507,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   async loadDesignsPaginatedOptimized() {
     try {
       console.log('📊 Carga paginada como fallback...');
-      
+
       // Usar endpoint paginado existente con parámetros optimizados
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
@@ -574,20 +515,20 @@ export class DesignComponent implements OnInit, OnDestroy {
           pageSize: '50' // Página más pequeña para carga rápida inicial
         }
       }).toPromise();
-      
+
       if (response) {
         const adaptedResponse = {
           items: response.items || response,
           total: response.total || response.length,
           loadTime: response.loadTime || 0
         };
-        
+
         console.log(`⚡ ${adaptedResponse.items.length} diseños cargados (fallback)`);
-        
+
         this.allDesigns.set(adaptedResponse.items);
         this.filteredDesigns.set(adaptedResponse.items);
         this.totalRecords.set(adaptedResponse.total);
-        
+
         this.snackBar.open(`${adaptedResponse.items.length} diseños cargados`, 'Cerrar', {
           duration: 3000,
           panelClass: ['success-snackbar']
@@ -607,21 +548,36 @@ export class DesignComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     try {
       console.log(`🚀 Cargando diseños paginados - Página: ${page}, Tamaño: ${pageSize}`);
-      
-      let url = `${environment.apiUrl}/designs/paginated?page=${page}&pageSize=${pageSize}`;
+
+      this.currentPage.set(page);
+
+      let params: any = {
+        page: page.toString(),
+        pageSize: pageSize.toString()
+      };
+
       if (search) {
-        url += `&search=${encodeURIComponent(search)}`;
+        params.search = search;
       }
-      
-      const response = await this.http.get<any>(url).toPromise();
-      
+
+      const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, { params }).toPromise();
+
       if (response) {
-        console.log(`✅ ${response.items.length} diseños cargados en ${response.loadTime}ms`);
-        this.allDesigns.set(response.items);
-        this.filteredDesigns.set(response.items);
-        
-        this.snackBar.open(`Página ${page}: ${response.items.length} diseños (${response.loadTime}ms)`, 'Cerrar', {
-          duration: 3000,
+        console.log(`✅ ${response.items.length} diseños cargados`);
+
+        // Procesar colores
+        const processedDesigns = response.items.map((design: FlexographicDesign) => ({
+          ...design,
+          colors: this.extractColorsFromDesign(design)
+        }));
+
+        this.allDesigns.set(processedDesigns);
+        this.filteredDesigns.set(processedDesigns);
+        this.totalRecords.set(response.totalCount);
+        this.hasMoreData.set(page < response.totalPages);
+
+        this.snackBar.open(`Página ${page} cargada`, 'Cerrar', {
+          duration: 2000,
           panelClass: ['success-snackbar']
         });
       }
@@ -634,20 +590,46 @@ export class DesignComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Navegar a la siguiente página
+   */
+  async nextPage() {
+    if (this.hasMoreData() && !this.loading()) {
+      await this.loadDesignsPaginated(this.currentPage() + 1, this.pageSize(), this.searchTerm());
+    }
+  }
+
+  /**
+   * Navegar a la página anterior
+   */
+  async previousPage() {
+    if (this.currentPage() > 1 && !this.loading()) {
+      await this.loadDesignsPaginated(this.currentPage() - 1, this.pageSize(), this.searchTerm());
+    }
+  }
+
+  /**
+   * Cambiar tamaño de página
+   */
+  async onPageSizeChange(newSize: number) {
+    this.pageSize.set(newSize);
+    await this.loadDesignsPaginated(1, newSize, this.searchTerm());
+  }
+
+  /**
    * Cargar diseños con lazy loading (OPTIMIZADO)
    */
   async loadDesignsLazy() {
     this.loading.set(true);
     try {
       console.log('🔄 Cargando diseños con lazy loading...');
-      
+
       const response = await this.http.get<any[]>(`${environment.apiUrl}/designs/lazy`).toPromise();
-      
+
       if (response) {
         console.log(`✅ ${response.length} diseños lazy cargados`);
         this.allDesigns.set(response);
         this.filteredDesigns.set(response);
-        
+
         this.snackBar.open(`${response.length} diseños cargados (lazy loading)`, 'Cerrar', {
           duration: 3000,
           panelClass: ['success-snackbar']
@@ -667,7 +649,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   async loadDesignsNormal() {
     try {
       console.log('🎨 Cargando diseños con paginación...');
-      
+
       // ⚡ USAR PAGINACIÓN EN LUGAR DE CARGAR TODO
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
@@ -675,23 +657,23 @@ export class DesignComponent implements OnInit, OnDestroy {
           pageSize: this.pageSize().toString()
         }
       }).toPromise();
-      
+
       if (response && response.items) {
         console.log(`✅ ${response.items.length} diseños cargados de ${response.totalCount} totales`);
-        
+
         const processedDesigns = response.items.map((design: FlexographicDesign) => ({
           ...design,
           colors: this.extractColorsFromDesign(design)
         }));
-        
+
         this.allDesigns.set(processedDesigns);
         this.filteredDesigns.set(processedDesigns);
         this.totalRecords.set(response.totalCount);
         this.hasMoreData.set(response.page < response.totalPages);
-        
+
         this.snackBar.open(
-          `${processedDesigns.length} diseños cargados`, 
-          'Cerrar', 
+          `${processedDesigns.length} diseños cargados`,
+          'Cerrar',
           { duration: 3000, panelClass: ['success-snackbar'] }
         );
       } else {
@@ -714,12 +696,12 @@ export class DesignComponent implements OnInit, OnDestroy {
     } else if (error.status === 0) {
       errorMessage = 'Error de conexión con el servidor';
     }
-    
+
     this.snackBar.open(errorMessage, 'Cerrar', {
       duration: 5000,
       panelClass: ['error-snackbar']
     });
-    
+
     this.allDesigns.set([]);
     this.filteredDesigns.set([]);
   }
@@ -789,16 +771,16 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     this.loading.set(true);
     try {
       console.log('🗑️ Eliminando todos los diseños de la base de datos...');
-      
+
       const response = await this.http.post<any>(`${environment.apiUrl}/designs/clear-all`, {}).toPromise();
-      
+
       if (response) {
         console.log(`✅ ${response.deletedCount} diseños eliminados de MySQL`);
-        
+
         // Limpiar datos localmente
         this.allDesigns.set([]);
         this.filteredDesigns.set([]);
-        
+
         this.snackBar.open(`${response.deletedCount} diseños eliminados de la base de datos`, 'Cerrar', {
           duration: 5000,
           panelClass: ['success-snackbar']
@@ -806,14 +788,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     } catch (error: any) {
       console.error('❌ Error eliminando diseños:', error);
-      
+
       let errorMessage = 'Error al eliminar los diseños';
       if (error.status === 401) {
         errorMessage = 'No tienes permisos para esta operación';
       } else if (error.status === 0) {
         errorMessage = 'Error de conexión con el servidor';
       }
-      
+
       this.snackBar.open(errorMessage, 'Cerrar', {
         duration: 5000,
         panelClass: ['error-snackbar']
@@ -832,7 +814,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     console.log('👤 Usuario:', user?.firstName, user?.lastName);
     console.log('🔑 Rol:', user?.role);
     console.log('🔐 Permisos actuales:', this.userPermissions());
-    
+
     // Administrador siempre tiene acceso completo
     if (this.isAdmin()) {
       console.log('👑 Usuario administrador - Acceso completo garantizado');
@@ -840,7 +822,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       this.resetCreateForm();
       return;
     }
-    
+
     // Verificar permisos para otros roles
     if (!this.hasPermission('canCreateDesign')) {
       console.log('❌ Sin permisos para crear diseño');
@@ -852,7 +834,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
 
     console.log('✅ Permisos verificados - Mostrando formulario de creación');
-    
+
     // Mostrar formulario de creación
     this.showCreateForm.set(true);
     this.resetCreateForm();
@@ -873,7 +855,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       colors: ['P Black'],
       status: 'ACTIVO'
     });
-    
+
     // Inicializar con color negro por defecto
     const defaultColor = this.pantoneService.getColorByCode('Black');
     if (defaultColor) {
@@ -910,11 +892,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       if (response) {
         console.log('✅ Diseño creado exitosamente:', response);
-        
-        // Agregar el nuevo diseño a la lista
-        const currentDesigns = this.allDesigns();
-        this.allDesigns.set([response, ...currentDesigns]);
-        this.filteredDesigns.set([response, ...currentDesigns]);
+
+        // Recargar diseños para actualizar lista y paginación
+        await this.loadDesigns();
 
         this.snackBar.open(`Diseño "${formData.articleF}" creado exitosamente`, 'Cerrar', {
           duration: 4000,
@@ -927,7 +907,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     } catch (error: any) {
       console.error('❌ Error creando diseño:', error);
-      
+
       let errorMessage = 'Error al crear el diseño';
       if (error.error?.message) {
         errorMessage = error.error.message;
@@ -947,62 +927,89 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
   /**
-   * Actualizar colores basado en el número de colores
+   * Actualizar dinámicamente la lista de colores (incluso manuales)
+   */
+  /**
+   * Actualizar dinámicamente la lista de colores (incluso manuales)
    */
   updateColors() {
-    const colorCount = this.createDesignForm.get('colorCount')?.value || 1;
+    const isEditing = this.showEditForm();
+    const form = isEditing ? this.editDesignForm : this.createDesignForm;
+    const colorCount = form.get('colorCount')?.value || 1;
     const currentSelectedColors = this.selectedColors();
-    
-    // Ajustar la lista de colores seleccionados
     const newSelectedColors = [...currentSelectedColors];
-    
-    // Si necesitamos más colores, agregar colores por defecto
+
     while (newSelectedColors.length < colorCount) {
-      const defaultColor = this.pantoneService.getColorByCode('Black');
-      if (defaultColor) {
-        newSelectedColors.push(defaultColor);
-      }
+      newSelectedColors.push(this.pantoneService.getOrCreateColor('BLACK'));
     }
-    
-    // Si hay demasiados colores, remover los últimos
+
     while (newSelectedColors.length > colorCount) {
       newSelectedColors.pop();
     }
-    
+
     this.selectedColors.set(newSelectedColors);
-    
-    // Actualizar el formulario con los códigos de los colores
     const colorCodes = newSelectedColors.map(color => color.displayName);
-    this.createDesignForm.patchValue({ colors: colorCodes });
+    form.get('colors')?.setValue(colorCodes, { emitEvent: false });
   }
 
   /**
-   * Buscar colores Pantone
+   * Manejar la entrada manual de un color
    */
-  searchPantoneColors(searchTerm: string) {
-    this.colorSearchTerm.set(searchTerm);
-    if (searchTerm.trim()) {
-      const filteredColors = this.pantoneService.searchByCode(searchTerm);
-      this.availablePantoneColors.set(filteredColors);
-    } else {
-      this.availablePantoneColors.set(this.pantoneService.getAllColors());
-    }
+  updateColorManual(index: number, value: string) {
+    const currentColors = [...this.selectedColors()];
+    const pantoneColor = this.pantoneService.getOrCreateColor(value);
+
+    currentColors[index] = pantoneColor;
+    this.selectedColors.set(currentColors);
+
+    const colorCodes = currentColors.map(c => c.displayName);
+    const form = this.showEditForm() ? this.editDesignForm : this.createDesignForm;
+    form.get('colors')?.setValue(colorCodes, { emitEvent: false });
   }
 
   /**
-   * Seleccionar color Pantone para una posición específica
+   * Seleccionar color Pantone para una posición específica desde el autocompletado
    */
   selectPantoneColor(colorIndex: number, color: PantoneColor) {
     const currentColors = [...this.selectedColors()];
     currentColors[colorIndex] = color;
     this.selectedColors.set(currentColors);
-    
-    // Actualizar formulario
+
     const colorCodes = currentColors.map(c => c.displayName);
-    this.createDesignForm.patchValue({ colors: colorCodes });
-    
-    console.log(`🎨 Color ${colorIndex + 1} seleccionado:`, color.displayName, color.hex);
+    const form = this.showEditForm() ? this.editDesignForm : this.createDesignForm;
+    form.get('colors')?.setValue(colorCodes);
   }
+
+
+  /**
+   * Buscar colores Pantone (Integra librería y base de datos)
+   */
+  searchPantoneColors(searchTerm: string) {
+    this.colorSearchTerm.set(searchTerm);
+    const term = searchTerm.trim().toUpperCase();
+
+    // 1. Obtener colores de la librería estándar
+    let results = searchTerm.trim()
+      ? this.pantoneService.searchByCode(searchTerm)
+      : this.pantoneService.getAllColors();
+
+    // 2. Integrar colores encontrados en la base de datos que coincidan
+    if (term) {
+      const dbMatches = this.databaseColors().filter(c => c.toUpperCase().includes(term));
+
+      dbMatches.forEach(dbColor => {
+        // Si el color de la BDD no está ya en los resultados de la librería, agregarlo
+        const alreadyInResults = results.some(r => r.displayName.toUpperCase() === dbColor.toUpperCase());
+        if (!alreadyInResults) {
+          results.push(this.pantoneService.getOrCreateColor(dbColor));
+        }
+      });
+    }
+
+    this.availablePantoneColors.set(results.slice(0, 50));
+  }
+
+
 
   /**
    * Obtener colores más utilizados
@@ -1024,13 +1031,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   async loadDataDirectly() {
     console.log('🔍 Cargando datos directamente...');
     this.loading.set(true);
-    
+
     try {
       // Primero verificar si hay datos en la BD
       console.log('1️⃣ Verificando conteo de datos...');
       const countResponse = await this.http.get<any>(`${environment.apiUrl}/designs/count`).toPromise();
       console.log('📊 Conteo de diseños:', countResponse);
-      
+
       if (countResponse.count === 0) {
         console.warn('⚠️ La base de datos está vacía');
         this.snackBar.open('Base de datos vacía - Importa un archivo Excel o crea datos de prueba', 'Cerrar', {
@@ -1042,18 +1049,18 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         this.totalRecords.set(0);
         return;
       }
-      
+
       // Si hay datos, intentar cargarlos
       console.log(`2️⃣ Hay ${countResponse.count} diseños, cargando...`);
       const response = await this.http.get<any>(`${environment.apiUrl}/designs`).toPromise();
       console.log('✅ Respuesta recibida:', response);
-      
+
       if (response && Array.isArray(response)) {
         console.log(`📊 ${response.length} diseños cargados exitosamente`);
         this.allDesigns.set(response);
         this.filteredDesigns.set(response);
         this.totalRecords.set(response.length);
-        
+
         this.snackBar.open(`${response.length} diseños cargados correctamente`, 'Cerrar', {
           duration: 4000,
           panelClass: ['success-snackbar']
@@ -1068,12 +1075,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     } catch (error: any) {
       console.error('❌ Error cargando datos directamente:', error);
       console.error('❌ Detalles del error:', error.error);
-      
+
       let errorMessage = `Error ${error.status}: ${error.message}`;
       if (error.error?.message) {
         errorMessage = error.error.message;
       }
-      
+
       this.snackBar.open(errorMessage, 'Cerrar', {
         duration: 8000,
         panelClass: ['error-snackbar']
@@ -1089,7 +1096,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    */
   async refreshDesigns() {
     console.log('🔄 Refrescando lista de diseños...');
-    
+
     // Mostrar mensaje de inicio
     this.snackBar.open('Actualizando lista de diseños...', '', {
       duration: 1500,
@@ -1098,7 +1105,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
     // Recargar los datos
     await this.loadDataDirectly();
-    
+
     console.log('✅ Lista de diseños actualizada');
   }
 
@@ -1107,7 +1114,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    */
   async testAllEndpoint() {
     console.log('🧪 Probando endpoint /all...');
-    
+
     // Probar controlador de prueba independiente
     try {
       console.log('🔍 Probando controlador de prueba independiente...');
@@ -1135,14 +1142,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('🔍 Probando endpoint sin dependencias /status...');
       const statusResponse = await this.http.get<any>(`${environment.apiUrl}/designs/status`).toPromise();
       console.log('✅ Endpoint status funciona:', statusResponse);
-      
+
       this.snackBar.open('✅ Controlador DesignsController funciona correctamente', 'Cerrar', {
         duration: 4000,
         panelClass: ['success-snackbar']
       });
     } catch (error: any) {
       console.error('❌ Error en endpoint status:', error);
-      
+
       if (error.status === 400) {
         console.log('🚨 Error 400 = Problema en el controlador DesignsController');
         this.snackBar.open('Error 400: Problema en DesignsController - Revisar inyección de dependencias', 'Cerrar', {
@@ -1157,7 +1164,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('🔍 Probando inyección de dependencias...');
       const depResponse = await this.http.get<any>(`${environment.apiUrl}/designs/check-dependencies`).toPromise();
       console.log('✅ Dependencias:', depResponse);
-      
+
       if (depResponse.designService === 'NULL' || depResponse.logger === 'NULL') {
         console.error('❌ PROBLEMA: Servicios no están inyectados correctamente');
         this.snackBar.open('Error: Servicios no configurados en el backend', 'Cerrar', {
@@ -1184,7 +1191,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('🔍 Probando endpoint de prueba de BD...');
       const dbTestResponse = await this.http.get<any>(`${environment.apiUrl}/designs/db-test`).toPromise();
       console.log('✅ Endpoint db-test funciona:', dbTestResponse);
-      
+
       if (dbTestResponse.isEmpty) {
         console.warn('⚠️ LA BASE DE DATOS ESTÁ VACÍA - No hay diseños');
         this.snackBar.open('⚠️ Base de datos vacía - Importa un archivo Excel primero', 'Cerrar', {
@@ -1224,7 +1231,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('🔍 Probando endpoint /count...');
       const countResponse = await this.http.get<any>(`${environment.apiUrl}/designs/count`).toPromise();
       console.log('✅ Endpoint count funciona:', countResponse);
-      
+
       if (countResponse.count > 0) {
         console.log(`📊 TOTAL DE DISEÑOS EN BD: ${countResponse.count}`);
         this.snackBar.open(`Total en BD: ${countResponse.count} diseños`, 'Cerrar', {
@@ -1241,7 +1248,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('🔍 Probando endpoint /all-safe...');
       const safeResponse = await this.http.get<any>(`${environment.apiUrl}/designs/all-safe`).toPromise();
       console.log('✅ Endpoint safe funciona:', safeResponse);
-      
+
       if (Array.isArray(safeResponse) && safeResponse.length > 0) {
         console.log(`📊 ENDPOINT SAFE CARGA: ${safeResponse.length} diseños`);
         this.snackBar.open(`Endpoint safe carga: ${safeResponse.length} diseños`, 'Cerrar', {
@@ -1258,7 +1265,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('🔍 Probando endpoint /all real...');
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/all`).toPromise();
       console.log('✅ Respuesta del endpoint /all:', response);
-      
+
       if (Array.isArray(response)) {
         console.log('📊 Cantidad de diseños:', response.length);
         this.snackBar.open(`Endpoint /all funciona: ${response.length} diseños`, 'Cerrar', {
@@ -1282,7 +1289,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('❌ Error en endpoint /all:', error);
       console.error('❌ Status:', error.status);
       console.error('❌ Error completo:', error);
-      
+
       this.snackBar.open(`Error en endpoint /all: ${error.status} - ${error.error?.message || error.message}`, 'Cerrar', {
         duration: 8000,
         panelClass: ['error-snackbar']
@@ -1299,15 +1306,15 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     this.loading.set(true);
     try {
       console.log('📊 Exportando diseños a Excel...');
-      
+
       const response = await this.http.get(`${environment.apiUrl}/designs/export/excel`, {
         responseType: 'blob'
       }).toPromise();
-      
+
       if (response) {
         // Crear enlace de descarga
-        const blob = new Blob([response], { 
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        const blob = new Blob([response], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -1315,7 +1322,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         link.download = `Diseños_FlexoAPP_${new Date().toISOString().split('T')[0]}.xlsx`;
         link.click();
         window.URL.revokeObjectURL(url);
-        
+
         this.snackBar.open('Archivo Excel descargado exitosamente', 'Cerrar', {
           duration: 3000,
           panelClass: ['success-snackbar']
@@ -1367,7 +1374,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         `Archivos grandes pueden tomar varios minutos en procesarse.\n` +
         `¿Deseas continuar con la importación?`
       );
-      
+
       if (!confirmLargeFile) {
         event.target.value = '';
         return;
@@ -1379,11 +1386,11 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
     try {
       console.log(`📁 Procesando archivo GRANDE: ${file.name} (${fileSizeMB.toFixed(2)} MB)`);
-      
+
       // Crear FormData para enviar el archivo
       const formData = new FormData();
       formData.append('file', file);
-      
+
       // Configurar opciones para procesamiento masivo
       formData.append('processAll', 'true');        // Procesar TODOS los registros
       formData.append('noLimit', 'true');           // Sin límite de registros
@@ -1391,14 +1398,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       formData.append('enableStreaming', 'true');   // Habilitar streaming
       formData.append('optimizeMemory', 'true');    // Optimizar memoria
       formData.append('validateStructure', 'true'); // Validar estructura de Excel
-      
+
       // Especificar estructura CORRECTA esperada del Excel
       formData.append('expectedColumns', JSON.stringify([
-        'articulo_f', 'cliente', 'descripcion', 'sustrato', 'tipo', 'tipo_de_impresion', 
-        'numero_de_colores', 'color1', 'color2', 'color3', 'color4', 'color5', 
+        'articulo_f', 'cliente', 'descripcion', 'sustrato', 'tipo', 'tipo_de_impresion',
+        'numero_de_colores', 'color1', 'color2', 'color3', 'color4', 'color5',
         'color6', 'color7', 'color8', 'color9', 'color10', 'estado'
       ]));
-      
+
       // Progreso más realista para archivos grandes
       let progressValue = 0;
       const progressInterval = setInterval(() => {
@@ -1437,21 +1444,21 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           }
         }
       ).toPromise();
-      
+
       clearInterval(progressInterval);
       this.uploadProgress.set(100);
 
       if (response) {
         console.log(`✅ Importación MASIVA completada: ${response.successCount} exitosos, ${response.errorCount} errores`);
         console.log(`⏱️ Tiempo de procesamiento: ${response.processingTime}ms`);
-        
+
         let message = `🎉 Archivo GRANDE procesado exitosamente!\n`;
         message += `✅ ${response.successCount} diseños importados`;
         if (response.errorCount > 0) {
           message += `\n⚠️ ${response.errorCount} errores encontrados`;
         }
         message += `\n⏱️ Tiempo: ${Math.round(response.processingTime / 1000)}s`;
-        
+
         this.snackBar.open(message, 'Cerrar', {
           duration: 8000,
           panelClass: ['success-snackbar']
@@ -1478,7 +1485,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     } catch (error: any) {
       console.error('❌ Error procesando archivo GRANDE:', error);
-      
+
       let errorMessage = 'Error al procesar el archivo Excel grande';
       if (error.status === 400) {
         errorMessage = 'Formato de archivo inválido o datos incorrectos';
@@ -1493,7 +1500,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       } else if (error.error?.message) {
         errorMessage = error.error.message;
       }
-      
+
       this.snackBar.open(errorMessage, 'Cerrar', {
         duration: 8000,
         panelClass: ['error-snackbar']
@@ -1501,7 +1508,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     } finally {
       this.uploading.set(false);
       this.uploadProgress.set(0);
-      
+
       // Limpiar el input file de forma segura
       if (event && event.target) {
         event.target.value = '';
@@ -1512,20 +1519,23 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   /**
    * Buscar diseños (OPTIMIZADO para bases de datos grandes)
    */
+  private searchTimeout: any;
   onSearch() {
-    const term = this.searchTerm().toLowerCase().trim();
-    
-    // Siempre usar búsqueda en servidor para garantizar consistencia y velocidad
-    // Reiniciar paginación al buscar
-    this.currentPage.set(1);
-    
-    if (!term) {
-      // Si no hay término, recargar la primera página de datos normales
-      this.loadDesignsWithVirtualScroll();
-      return;
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
     }
 
-    this.searchOnServer(term);
+    this.searchTimeout = setTimeout(() => {
+      const term = this.searchTerm().toLowerCase().trim();
+      this.currentPage.set(1);
+
+      if (!term) {
+        this.loadDesigns();
+        return;
+      }
+
+      this.searchOnServer(term);
+    }, 500); // 500ms debounce
   }
 
   /**
@@ -1533,7 +1543,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    */
   private searchLocally(term: string) {
     const startTime = performance.now();
-    
+
     const filtered = this.allDesigns().filter(design =>
       design.articleF.toLowerCase().includes(term) ||
       design.client.toLowerCase().includes(term) ||
@@ -1542,7 +1552,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     );
 
     this.filteredDesigns.set(filtered);
-    
+
     const endTime = performance.now();
     console.log(`🔍 Búsqueda local completada en ${(endTime - startTime).toFixed(2)}ms - ${filtered.length} resultados`);
   }
@@ -1554,7 +1564,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     this.loading.set(true);
     try {
       console.log(`🔍 Búsqueda optimizada para: "${term}"`);
-      
+
       // Usar endpoint PAGINADO correcto
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
@@ -1563,19 +1573,19 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           pageSize: this.pageSize().toString()
         }
       }).toPromise();
-      
+
       if (response) {
         // Adaptar respuesta paginada
         const items = response.items || [];
         const total = response.total || items.length;
-        
+
         console.log(`✅ Búsqueda completada: ${items.length} resultados (Total: ${total})`);
-        
+
         this.allDesigns.set(items); // Actualizar lista principal también para que el scroll funcione sobre estos resultados
         this.filteredDesigns.set(items);
         this.totalRecords.set(total);
         this.hasMoreData.set(response.hasMore || false);
-        
+
         this.snackBar.open(
           `${total} resultados encontrados`,
           'Cerrar',
@@ -1619,7 +1629,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     if (event) {
       event.stopPropagation();
     }
-    
+
     const expanded = new Set(this.expandedColors());
     if (expanded.has(id)) {
       expanded.delete(id);
@@ -1644,14 +1654,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   async loadColorsOnDemand(designId: number): Promise<string[]> {
     try {
       console.log(`🎨 Cargando colores bajo demanda para diseño ${designId}`);
-      
+
       const response = await this.http.get<string[]>(`${environment.apiUrl}/designs/${designId}/colors`).toPromise();
-      
+
       if (response) {
         console.log(`✅ ${response.length} colores cargados para diseño ${designId}`);
         return response;
       }
-      
+
       return [];
     } catch (error: any) {
       console.error(`❌ Error cargando colores para diseño ${designId}:`, error);
@@ -1665,14 +1675,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   async loadDetailsOnDemand(designId: number): Promise<any> {
     try {
       console.log(`📋 Cargando detalles completos para diseño ${designId}`);
-      
+
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/${designId}/details`).toPromise();
-      
+
       if (response) {
         console.log(`✅ Detalles completos cargados para diseño ${designId}`);
         return response;
       }
-      
+
       return null;
     } catch (error: any) {
       console.error(`❌ Error cargando detalles para diseño ${designId}:`, error);
@@ -1686,12 +1696,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   async getCacheInfo() {
     try {
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/cache/info`).toPromise();
-      
+
       if (response) {
         console.log('📊 Información de caché:', response);
         return response;
       }
-      
+
       return null;
     } catch (error: any) {
       console.error('❌ Error obteniendo información de caché:', error);
@@ -1705,18 +1715,18 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   async clearCache() {
     try {
       console.log('🧹 Limpiando caché y optimizando memoria...');
-      
+
       const response = await this.http.post<any>(`${environment.apiUrl}/designs/cache/clear`, {
         optimizeMemory: true,
         clearAll: true
       }).toPromise();
-      
+
       if (response) {
         console.log('✅ Caché limpiado y memoria optimizada');
-        
+
         // Limpiar también caché local
         this.clearLocalCache();
-        
+
         this.snackBar.open(
           `Caché limpiado - ${response.freedMemory} MB liberados`,
           'Cerrar',
@@ -1727,7 +1737,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         );
         return true;
       }
-      
+
       return false;
     } catch (error: any) {
       console.error('❌ Error limpiando caché:', error);
@@ -1752,14 +1762,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           keysToRemove.push(key);
         }
       }
-      
+
       keysToRemove.forEach(key => localStorage.removeItem(key));
-      
+
       // Forzar garbage collection si está disponible
       if ('gc' in window) {
         (window as any).gc();
       }
-      
+
       console.log(`🧹 Caché local limpiado: ${keysToRemove.length} elementos removidos`);
     } catch (error) {
       console.warn('⚠️ No se pudo limpiar completamente el caché local:', error);
@@ -1772,30 +1782,30 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   async optimizePerformance() {
     try {
       console.log('⚡ Optimizando rendimiento...');
-      
+
       // Limpiar caché local
       this.clearLocalCache();
-      
+
       // Reducir tamaño de página si hay muchos datos
       if (this.totalRecords() > 5000) {
         this.pageSize.set(50);
         console.log('📄 Tamaño de página reducido a 50 para mejor rendimiento');
       }
-      
+
       // Habilitar virtual scrolling para datasets grandes
       if (this.totalRecords() > 1000) {
         this.virtualScrollEnabled.set(true);
         console.log('📜 Virtual scrolling habilitado');
       }
-      
+
       // Optimización local (sin depender de endpoint específico)
       console.log('✅ Optimización local completada');
-      
+
       const optimizations = [];
       if (this.totalRecords() > 5000) optimizations.push('Paginación reducida');
       if (this.totalRecords() > 1000) optimizations.push('Virtual scrolling');
       optimizations.push('Cache limpiado');
-      
+
       this.snackBar.open(
         `Rendimiento optimizado - ${optimizations.join(', ')}`,
         'Cerrar',
@@ -1804,7 +1814,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           panelClass: ['success-snackbar']
         }
       );
-      
+
     } catch (error: any) {
       console.error('❌ Error optimizando rendimiento:', error);
     }
@@ -1838,10 +1848,22 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
   /**
-   * Formatear nombre de color
+   * Formatear nombre de color (Abreviado con P)
    */
   formatColorName(color: string): string {
-    return color.toUpperCase();
+    if (!color) return '';
+    const term = color.toUpperCase().trim();
+    if (term.startsWith('P ') || term.startsWith('PANTONE ')) {
+      return term.startsWith('PANTONE ') ? `P ${term.substring(8)}` : term;
+    }
+    return `P ${term}`;
+  }
+
+  /**
+   * Obtener objeto de color Pantone completo para visualización
+   */
+  getPantoneColor(colorName: string): PantoneColor {
+    return this.pantoneService.getOrCreateColor(colorName);
   }
 
   /**
@@ -1869,10 +1891,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    */
   editDesign(design: FlexographicDesign) {
     console.log('✏️ Editando diseño:', design.articleF);
-    
+
     // Guardar el diseño que se está editando
     this.editingDesign.set(design);
-    
+
     // Cargar los datos del diseño en el formulario de edición
     this.editDesignForm.patchValue({
       articleF: design.articleF,
@@ -1885,17 +1907,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       colors: design.colors,
       status: design.status
     });
-    
-    // Cargar los colores Pantone seleccionados
-    const pantoneColors: PantoneColor[] = [];
-    design.colors.forEach(colorName => {
-      const pantoneColor = this.pantoneService.searchColors(colorName)[0];
-      if (pantoneColor) {
-        pantoneColors.push(pantoneColor);
-      }
-    });
+
+    // Cargar los colores Pantone seleccionados (asegurando objetos válidos)
+    const pantoneColors: PantoneColor[] = design.colors.map(colorName =>
+      this.pantoneService.getOrCreateColor(colorName)
+    );
     this.selectedColors.set(pantoneColors);
-    
+
     // Mostrar el formulario de edición
     this.showEditForm.set(true);
   }
@@ -1954,13 +1972,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       // Usar el ArticleF original para la actualización (codificado para URL)
       const response = await this.http.put<FlexographicDesign>(
-        `${environment.apiUrl}/designs/${encodeURIComponent(editingDesign.articleF)}`, 
+        `${environment.apiUrl}/designs/${encodeURIComponent(editingDesign.articleF)}`,
         updateData
       ).toPromise();
 
       if (response) {
         console.log('✅ Diseño actualizado exitosamente:', response);
-        
+
         this.snackBar.open(`Diseño "${formData.articleF}" actualizado exitosamente`, 'Cerrar', {
           duration: 4000,
           panelClass: ['success-snackbar']
@@ -1979,13 +1997,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('   Status:', error.status);
       console.error('   Error completo:', error.error);
       console.error('   Mensaje:', error.message);
-      
+
       let errorMessage = 'Error al actualizar el diseño';
-      
+
       if (error.status === 400) {
         if (error.error?.errors) {
           console.error('   Errores de validación:', error.error.errors);
-          const validationErrors = Object.keys(error.error.errors).map(key => 
+          const validationErrors = Object.keys(error.error.errors).map(key =>
             `${key}: ${error.error.errors[key].join(', ')}`
           ).join('; ');
           errorMessage = `Error de validación: ${validationErrors}`;
@@ -2021,10 +2039,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   updateEditColors() {
     const colorCount = this.editDesignForm.get('colorCount')?.value || 1;
     const currentSelectedColors = this.selectedColors();
-    
+
     // Ajustar la lista de colores seleccionados
     const newSelectedColors = [...currentSelectedColors];
-    
+
     // Si necesitamos más colores, agregar colores por defecto
     while (newSelectedColors.length < colorCount) {
       const defaultColor = this.pantoneService.getColorByCode('Black');
@@ -2032,14 +2050,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         newSelectedColors.push(defaultColor);
       }
     }
-    
+
     // Si hay demasiados colores, remover los últimos
     while (newSelectedColors.length > colorCount) {
       newSelectedColors.pop();
     }
-    
+
     this.selectedColors.set(newSelectedColors);
-    
+
     // Actualizar el formulario con los códigos de los colores
     const colorCodes = newSelectedColors.map(color => color.displayName);
     this.editDesignForm.patchValue({ colors: colorCodes });
@@ -2092,7 +2110,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     this.loading.set(true);
     try {
       console.log(`🔄 Duplicando diseño: ${design.articleF} → ${newArticleF}`);
-      
+
       // Crear objeto con los datos del diseño duplicado
       const duplicatedDesign = {
         articleF: newArticleF.trim(),
@@ -2108,16 +2126,16 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       // Crear el nuevo diseño mediante POST
       const response = await this.http.post<FlexographicDesign>(
-        `${environment.apiUrl}/designs`, 
+        `${environment.apiUrl}/designs`,
         duplicatedDesign
       ).toPromise();
-      
+
       if (response) {
         console.log(`✅ Diseño duplicado exitosamente: ${response.articleF}`);
-        
+
         this.snackBar.open(
-          `Diseño duplicado exitosamente: ${design.articleF} → ${response.articleF}`, 
-          'Cerrar', 
+          `Diseño duplicado exitosamente: ${design.articleF} → ${response.articleF}`,
+          'Cerrar',
           {
             duration: 4000,
             panelClass: ['success-snackbar']
@@ -2129,12 +2147,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     } catch (error: any) {
       console.error('❌ Error duplicando diseño:', error);
-      
+
       let errorMessage = 'Error al duplicar el diseño';
-      
+
       if (error.status === 400) {
-        if (error.error?.message?.includes('already exists') || 
-            error.error?.message?.includes('ya existe')) {
+        if (error.error?.message?.includes('already exists') ||
+          error.error?.message?.includes('ya existe')) {
           errorMessage = `El código "${newArticleF}" ya existe. Por favor, use un código diferente.`;
         } else {
           errorMessage = 'Datos inválidos o código ya existe';
@@ -2146,7 +2164,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       } else if (error.status === 0) {
         errorMessage = 'Error de conexión con el servidor';
       }
-      
+
       this.snackBar.open(errorMessage, 'Cerrar', {
         duration: 5000,
         panelClass: ['error-snackbar']
@@ -2196,17 +2214,17 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       // Usar el ID numérico del diseño (no el ArticleF)
       const deleteUrl = `${environment.apiUrl}/designs/${design.id}`;
-      
+
       console.log(`🗑️ Eliminando diseño:`);
       console.log(`   ID: ${design.id}`);
       console.log(`   ArticleF: ${design.articleF}`);
       console.log(`   URL: ${deleteUrl}`);
-      
+
       // Usar ID numérico como identificador en la URL
       await this.http.delete(deleteUrl).toPromise();
-      
+
       console.log(`✅ Diseño eliminado exitosamente: ${design.articleF}`);
-      
+
       this.snackBar.open(`Diseño "${design.articleF}" eliminado exitosamente`, 'Cerrar', {
         duration: 4000,
         panelClass: ['success-snackbar']
@@ -2219,9 +2237,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('   Status:', error.status);
       console.error('   Error completo:', error.error);
       console.error('   Mensaje:', error.message);
-      
+
       let errorMessage = 'Error al eliminar el diseño';
-      
+
       if (error.status === 400) {
         // Error 400 - El backend no acepta la petición
         console.error('⚠️ Error 400: El backend no acepta la petición DELETE');
@@ -2229,11 +2247,11 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         console.error('   1. El endpoint DELETE no está implementado');
         console.error('   2. El backend espera un formato diferente');
         console.error('   3. Problema con la validación del ArticleF');
-        
+
         if (error.error?.message) {
           errorMessage = `Error 400: ${error.error.message}`;
         } else if (error.error?.errors) {
-          const validationErrors = Object.keys(error.error.errors).map(key => 
+          const validationErrors = Object.keys(error.error.errors).map(key =>
             `${key}: ${error.error.errors[key].join(', ')}`
           ).join('; ');
           errorMessage = `Error de validación: ${validationErrors}`;
@@ -2253,7 +2271,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       } else if (error.error?.message) {
         errorMessage = error.error.message;
       }
-      
+
       this.snackBar.open(errorMessage, 'Cerrar', {
         duration: 8000,
         panelClass: ['error-snackbar']
@@ -2268,7 +2286,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    */
   private extractColorsFromDesign(design: FlexographicDesign): string[] {
     const colors: string[] = [];
-    
+
     if (design.color1) colors.push(design.color1);
     if (design.color2) colors.push(design.color2);
     if (design.color3) colors.push(design.color3);
@@ -2279,7 +2297,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     if (design.color8) colors.push(design.color8);
     if (design.color9) colors.push(design.color9);
     if (design.color10) colors.push(design.color10);
-    
+
     return colors;
   }
 }

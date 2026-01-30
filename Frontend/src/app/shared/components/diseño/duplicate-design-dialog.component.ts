@@ -126,14 +126,13 @@ export interface DuplicateDesignDialogData {
     /* ===== HEADER DEL DIÁLOGO ===== */
     /* Barra superior con gradiente morado y contenido centrado */
     .dialog-header {
-      display: flex; /* Flexbox para layout horizontal */
-      align-items: center; /* Centrado vertical de elementos */
-      justify-content: space-between; /* Separar contenido: izquierda vs derecha */
-      padding: 12px 16px; /* Padding interno: 12px arriba/abajo, 16px izq/der */
-      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); /* Gradiente morado diagonal */
-      color: white; /* Texto blanco para contraste */
-      margin: -24px -24px 16px -24px; /* Margen negativo para extender hasta los bordes */
-      /* Margen inferior positivo (16px) para separar del contenido */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: white;
+      border-radius: 20px 20px 0 0;
     }
 
     /* ===== SECCIÓN IZQUIERDA DEL HEADER ===== */
@@ -196,11 +195,11 @@ export interface DuplicateDesignDialogData {
     /* ===== CONTENIDO PRINCIPAL DEL DIÁLOGO ===== */
     /* Área central con el flujo visual de duplicación */
     .dialog-content {
-      padding: 0 4px 16px 4px; /* Padding: 0 arriba, 4px laterales, 16px abajo */
+      padding: 16px 24px;
       display: flex; /* Flexbox para layout vertical */
       flex-direction: column; /* Dirección vertical: elementos apilados */
       align-items: center; /* Centrado horizontal de todos los elementos */
-      gap: 12px; /* Espaciado de 12px entre cada elemento hijo */
+      gap: 16px;
     }
 
     /* ===== BADGE DEL DISEÑO ORIGINAL ===== */
@@ -307,12 +306,13 @@ export interface DuplicateDesignDialogData {
     /* ===== FOOTER CON BOTONES DE ACCIÓN ===== */
     /* Barra inferior con botones de Cancelar y Duplicar */
     .dialog-actions {
-      display: flex; /* Flexbox para layout horizontal */
-      justify-content: flex-end; /* Alinear botones a la derecha */
-      gap: 8px; /* Espaciado de 8px entre botones */
-      padding: 12px 0 0 0; /* Padding: 12px arriba, 0 en otros lados */
-      border-top: 1px solid #e2e8f0; /* Borde superior gris claro de 1px */
-      margin-top: 4px; /* Margen superior de 4px para separar del contenido */
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 0 0 20px 20px;
     }
 
     /* ===== BOTÓN CANCELAR ===== */
@@ -386,8 +386,8 @@ export class DuplicateDesignDialogComponent {
   onConfirm(): void {
     // Validar que el nuevo código sea válido antes de cerrar el diálogo
     if (this.newArticleF && // Verificar que no sea null o undefined
-        this.newArticleF.trim() !== '' && // Verificar que no esté vacío (sin espacios)
-        this.newArticleF.trim() !== this.data.originalArticleF) { // Verificar que sea diferente al original
+      this.newArticleF.trim() !== '' && // Verificar que no esté vacío (sin espacios)
+      this.newArticleF.trim() !== this.data.originalArticleF) { // Verificar que sea diferente al original
       // Cerrar el diálogo y devolver el nuevo código (sin espacios al inicio/final)
       this.dialogRef.close(this.newArticleF.trim());
     }

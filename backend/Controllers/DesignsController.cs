@@ -888,5 +888,22 @@ namespace FlexoAPP.API.Controllers
                 });
             }
         }
+        /// <summary>
+        /// Get unique colors used in designs
+        /// </summary>
+        [HttpGet("unique-colors")]
+        public async Task<IActionResult> GetUniqueColors()
+        {
+            try
+            {
+                var colors = await _designService.GetUniqueUsedColorsAsync();
+                return Ok(colors);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting unique colors");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

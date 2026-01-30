@@ -83,8 +83,7 @@ export interface ConfirmDeleteData {
       padding: 20px 24px;
       background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
-      margin: -24px -24px 0 -24px;
-      border-radius: 4px 4px 0 0;
+      border-radius: 20px 20px 0 0; // Matriz con el contenedor
 
       .warning-icon {
         font-size: 32px;
@@ -191,8 +190,7 @@ export interface ConfirmDeleteData {
       gap: 12px;
       padding: 16px 24px;
       background: #f9fafb;
-      margin: 0 -24px -24px -24px;
-      border-radius: 0 0 4px 4px;
+      border-radius: 0 0 20px 20px;
 
       .cancel-btn {
         color: #6b7280;
@@ -220,7 +218,7 @@ export class ConfirmDeleteDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<ConfirmDeleteDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ConfirmDeleteData
-  ) {}
+  ) { }
 
   onCancel(): void {
     this.dialogRef.close(false);

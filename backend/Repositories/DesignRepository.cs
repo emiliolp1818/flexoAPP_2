@@ -523,5 +523,40 @@ namespace FlexoAPP.API.Repositories
                 throw new Exception($"Error getting design details: {ex.Message}", ex);
             }
         }
+        /// <summary>
+        /// Obtener todos los colores únicos usados en las columnas Color1-Color10
+        /// </summary>
+        public async Task<IEnumerable<string>> GetUniqueUsedColorsAsync()
+        {
+            try
+            {
+                // Unir todos los colores de todas las columnas en una sola consulta
+                var c1 = await _context.Designs.Where(d => d.Color1 != null).Select(d => d.Color1!).Distinct().ToListAsync();
+                var c2 = await _context.Designs.Where(d => d.Color2 != null).Select(d => d.Color2!).Distinct().ToListAsync();
+                var c3 = await _context.Designs.Where(d => d.Color3 != null).Select(d => d.Color3!).Distinct().ToListAsync();
+                var c4 = await _context.Designs.Where(d => d.Color4 != null).Select(d => d.Color4!).Distinct().ToListAsync();
+                var c5 = await _context.Designs.Where(d => d.Color5 != null).Select(d => d.Color5!).Distinct().ToListAsync();
+                var c6 = await _context.Designs.Where(d => d.Color6 != null).Select(d => d.Color6!).Distinct().ToListAsync();
+                var c7 = await _context.Designs.Where(d => d.Color7 != null).Select(d => d.Color7!).Distinct().ToListAsync();
+                var c8 = await _context.Designs.Where(d => d.Color8 != null).Select(d => d.Color8!).Distinct().ToListAsync();
+                var c9 = await _context.Designs.Where(d => d.Color9 != null).Select(d => d.Color9!).Distinct().ToListAsync();
+                var c10 = await _context.Designs.Where(d => d.Color10 != null).Select(d => d.Color10!).Distinct().ToListAsync();
+
+                // Combinar listas en memoria y obtener el set final de únicos
+                var allColors = c1.Concat(c2).Concat(c3).Concat(c4).Concat(c5)
+                                  .Concat(c6).Concat(c7).Concat(c8).Concat(c9).Concat(c10)
+                                  .Where(c => !string.IsNullOrWhiteSpace(c))
+                                  .Select(c => c.Trim().ToUpper())
+                                  .Distinct()
+                                  .OrderBy(c => c)
+                                  .ToList();
+
+                return allColors;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting unique used colors: {ex.Message}", ex);
+            }
+        }
     }
 }

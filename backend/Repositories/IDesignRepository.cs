@@ -63,5 +63,10 @@ namespace FlexoAPP.API.Repositories
         /// Get design with full details
         /// </summary>
         Task<Design?> GetDesignWithDetailsAsync(int designId);
+        
+        /// <summary>
+        /// Obtener todos los colores únicos usados en las columnas Color1-Color10
+        /// </summary>
+        Task<IEnumerable<string>> GetUniqueUsedColorsAsync();
     }
 }
