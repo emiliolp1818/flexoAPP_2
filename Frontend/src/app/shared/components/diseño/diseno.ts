@@ -2005,9 +2005,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       const formData = this.editDesignForm.value;
       console.log('💾 Guardando cambios del diseño:');
+      console.log('   ID del diseño:', editingDesign.id);
       console.log('   ArticleF original:', editingDesign.articleF);
       console.log('   Datos del formulario:', formData);
-      console.log('   URL:', `${environment.apiUrl}/designs/${encodeURIComponent(editingDesign.articleF)}`);
+      console.log('   URL:', `${environment.apiUrl}/designs/${editingDesign.id}`);
 
       // Preparar datos para enviar al backend
       const updateData = {
@@ -2024,9 +2025,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       console.log('   Datos a enviar:', updateData);
 
-      // Usar el ArticleF original para la actualización (codificado para URL)
+      // Usar el ID numérico para la actualización (NO el ArticleF)
       const response = await this.http.put<FlexographicDesign>(
-        `${environment.apiUrl}/designs/${encodeURIComponent(editingDesign.articleF)}`,
+        `${environment.apiUrl}/designs/${editingDesign.id}`,
         updateData
       ).toPromise();
 
@@ -2067,7 +2068,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           errorMessage = 'Datos inválidos';
         }
       } else if (error.status === 404) {
-        errorMessage = `Diseño no encontrado: ${this.editingDesign()?.articleF}`;
+        errorMessage = `Diseño no encontrado con ID: ${this.editingDesign()?.id}`;
       } else if (error.status === 405) {
         errorMessage = 'Método no permitido - El endpoint PUT no está disponible';
       } else if (error.status === 500) {
