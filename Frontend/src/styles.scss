@@ -114,6 +114,11 @@ router-outlet + * {
   }
 }
 
+// Excepción para el componente de información - sin margen superior
+router-outlet + .informacion-container {
+  margin-top: 0 !important;
+}
+
 // ========================================
 // COMPONENTES MATERIAL
 // ========================================

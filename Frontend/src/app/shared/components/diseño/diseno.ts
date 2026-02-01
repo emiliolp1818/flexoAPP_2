@@ -96,6 +96,9 @@ export class DesignComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private pantoneService = inject(PantoneLiveService);
 
+  // Make Math available in template
+  Math = Math;
+
   // Suscripción para actualización automática
   private updateSubscription: Subscription = new Subscription();
 
@@ -136,7 +139,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   // Configuración de tabla
   displayedColumns: string[] = [
     'articleF', 'client', 'description', 'substrate', 'type',
-    'printType', 'colorCount', 'colors', 'status', 'actions'
+    'printType', 'colors', 'status', 'actions'
   ];
 
   // Permisos del usuario
@@ -1057,11 +1060,18 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       if (response && Array.isArray(response)) {
         console.log(`📊 ${response.length} diseños cargados exitosamente`);
-        this.allDesigns.set(response);
-        this.filteredDesigns.set(response);
-        this.totalRecords.set(response.length);
+        
+        // Process colors for each design
+        const processedDesigns = response.map((design: FlexographicDesign) => ({
+          ...design,
+          colors: this.extractColorsFromDesign(design)
+        }));
+        
+        this.allDesigns.set(processedDesigns);
+        this.filteredDesigns.set(processedDesigns);
+        this.totalRecords.set(processedDesigns.length);
 
-        this.snackBar.open(`${response.length} diseños cargados correctamente`, 'Cerrar', {
+        this.snackBar.open(`${processedDesigns.length} diseños cargados correctamente`, 'Cerrar', {
           duration: 4000,
           panelClass: ['success-snackbar']
         });
@@ -1581,8 +1591,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
         console.log(`✅ Búsqueda completada: ${items.length} resultados (Total: ${total})`);
 
-        this.allDesigns.set(items); // Actualizar lista principal también para que el scroll funcione sobre estos resultados
-        this.filteredDesigns.set(items);
+        // Process colors for search results
+        const processedItems = items.map((design: FlexographicDesign) => ({
+          ...design,
+          colors: this.extractColorsFromDesign(design)
+        }));
+
+        this.allDesigns.set(processedItems); // Actualizar lista principal también para que el scroll funcione sobre estos resultados
+        this.filteredDesigns.set(processedItems);
         this.totalRecords.set(total);
         this.hasMoreData.set(response.hasMore || false);
 
@@ -1853,9 +1869,18 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   formatColorName(color: string): string {
     if (!color) return '';
     const term = color.toUpperCase().trim();
-    if (term.startsWith('P ') || term.startsWith('PANTONE ')) {
-      return term.startsWith('PANTONE ') ? `P ${term.substring(8)}` : term;
+    
+    // Si ya empieza con "P " o "P_" o "PANTONE", no agregar otra P
+    if (term.startsWith('P ') || term.startsWith('P_')) {
+      return term.replace('P_', 'P '); // Reemplazar P_ con P (espacio)
     }
+    
+    // Si empieza con PANTONE, reemplazar con P
+    if (term.startsWith('PANTONE ')) {
+      return `P ${term.substring(8)}`;
+    }
+    
+    // Si no tiene P, agregarla
     return `P ${term}`;
   }
 
@@ -1863,7 +1888,36 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    * Obtener objeto de color Pantone completo para visualización
    */
   getPantoneColor(colorName: string): PantoneColor {
-    return this.pantoneService.getOrCreateColor(colorName);
+    if (!colorName) {
+      // Return a default color if no color name is provided
+      return {
+        code: 'BLACK',
+        name: 'Black',
+        displayName: 'P BLACK',
+        hex: '#000000',
+        rgb: { r: 0, g: 0, b: 0 },
+        cmyk: { c: 0, m: 0, y: 0, k: 100 },
+        category: 'Basic'
+      };
+    }
+    
+    try {
+      const color = this.pantoneService.getOrCreateColor(colorName);
+      console.log('🎨 Color obtenido:', colorName, '→', color.hex);
+      return color;
+    } catch (error) {
+      console.warn('⚠️ Error getting Pantone color for:', colorName, error);
+      // Return a fallback color
+      return {
+        code: colorName.toUpperCase(),
+        name: colorName,
+        displayName: `P ${colorName.toUpperCase()}`,
+        hex: '#808080', // Gray fallback
+        rgb: { r: 128, g: 128, b: 128 },
+        cmyk: { c: 0, m: 0, y: 0, k: 50 },
+        category: 'Custom'
+      };
+    }
   }
 
   /**
@@ -2287,6 +2341,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   private extractColorsFromDesign(design: FlexographicDesign): string[] {
     const colors: string[] = [];
 
+    // Extract colors from color1 to color10 properties
     if (design.color1) colors.push(design.color1);
     if (design.color2) colors.push(design.color2);
     if (design.color3) colors.push(design.color3);
@@ -2298,6 +2353,22 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     if (design.color9) colors.push(design.color9);
     if (design.color10) colors.push(design.color10);
 
-    return colors;
+    // If no colors found in individual properties, check if colors array exists
+    if (colors.length === 0 && design.colors && Array.isArray(design.colors)) {
+      return design.colors.filter(color => color && color.trim() !== '');
+    }
+
+    // Filter out empty or null colors
+    return colors.filter(color => color && color.trim() !== '');
+  }
+
+  /**
+   * Obtiene el tooltip para mostrar los colores de un diseño
+   */
+  getColorsTooltip(design: FlexographicDesign): string {
+    if (!design.colors || design.colors.length === 0) {
+      return 'Sin colores';
+    }
+    return `${design.colors.length} colores: ${design.colors.join(', ')}`;
   }
 }

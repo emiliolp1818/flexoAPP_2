@@ -52,6 +52,11 @@ interface MachineProgram {
   preparandoStartedAt?: Date; // Fecha cuando se marcó como PREPARANDO (opcional)
   // Campos adicionales para compatibilidad con el sistema existente
   machineNumber: number; // Alias para numeroMaquina para compatibilidad
+  // Campos para sistema de mensajes persistentes
+  adminMessage?: string; // Mensaje del administrador/supervisor
+  messageTimestamp?: Date; // Fecha del mensaje
+  messageSender?: string; // Quien envió el mensaje
+  messageRead?: boolean; // Si el mensaje ha sido leído
 }
 
 // Interfaz que define los permisos del usuario en el módulo
@@ -60,6 +65,7 @@ interface UserPermissions {
   canDownloadTemplate: boolean; // Permiso para descargar plantillas
   canViewFF459: boolean; // Permiso para ver formato FF459
   canClearPrograms: boolean; // Permiso para limpiar programación
+  canSendMessages: boolean; // Permiso para enviar mensajes (solo admin y supervisor)
 }
 
 // Interfaz que define las estadísticas de una máquina
@@ -121,32 +127,41 @@ export class MachinesComponent implements OnInit {
   // Variable para el menú de corriendo/terminado
   currentProgramForMenu: MachineProgram | null = null; // Programa seleccionado para el menú de acciones
   
+  // Variables para el sistema de mensajes de administrador
+  showMessageDialog = false; // Controla la visibilidad del diálogo de mensajes
+  currentMessage = ''; // Mensaje actual del administrador
+  messageProgram: MachineProgram | null = null; // Programa asociado al mensaje
+  programMessages = signal<Map<string, {message: string, timestamp: Date, sender: string, read: boolean}>>(new Map()); // Mapa de mensajes por OT SAP
+  messageTimeout: any = null; // Timeout para auto-cerrar el mensaje
+  isEditingMessage = false; // Si se está editando un mensaje existente
+  private readonly MESSAGES_STORAGE_KEY = 'flexoapp_program_messages'; // Clave para localStorage
+  
   // Configuración estática del componente
   machineNumbers = Array.from({ length: 11 }, (_, i) => i + 11); // Genera array [11, 12, 13, ..., 21]
   
-  // Columnas completas para la tabla reconstruida
+  // Columnas completas para la tabla reconstruida - NUEVO ORDEN
   simpleColumns = [
-    'otSap',
-    'articulo', 
-    'cliente',
-    'referencia',
-    'td',
-    'numeroColores',
-    'kilos',
-    'fechaTintaEnMaquina',
-    'sustrato',
-    'estado',
-    'acciones'
+    'articulo',              // Código del artículo - CAMPO REDUCIDO
+    'otSap',                // Orden de trabajo SAP - CAMPO REDUCIDO  
+    'cliente',              // Nombre del cliente
+    'referencia',           // Referencia del producto - CAMPO AMPLIADO
+    'td',                   // Código TD (Tipo de Diseño)
+    'numeroColores',        // Número de colores
+    'kilos',                // Cantidad en kilogramos - FORMATO ORIGINAL
+    'fechaTintaEnMaquina',  // Fecha de tinta en máquina
+    'sustrato',             // Tipo de sustrato/material
+    'estado',               // Estado actual del programa
+    'acciones'              // Botones de acción
   ];
   
-  programDisplayedColumns = [ // Columnas que se muestran en la tabla de programación según especificaciones
-    'articulo',               // Código del artículo (ej: F204567)
-    'otSap',                 // Orden de trabajo SAP
+  programDisplayedColumns = [ // Columnas que se muestran en la tabla de programación según especificaciones - NUEVO ORDEN
+    'articulo',               // Código del artículo (ej: F204567) - CAMPO REDUCIDO
+    'otSap',                 // Orden de trabajo SAP - CAMPO REDUCIDO
     'cliente',               // Nombre del cliente
-    'referencia',            // Referencia del producto
+    'referencia',            // Referencia del producto - CAMPO AMPLIADO con espacio de artículo y otSap
     'td',                    // Código TD (Tipo de Diseño)
     'numeroColores',         // Número de colores con botón desplegable para ver paleta
-    'kilos',                 // Cantidad en kilogramos
+    'kilos',                 // Cantidad en kilogramos - FORMATO ORIGINAL DEL EXCEL
     'fechaTintaEnMaquina',   // Fecha de tinta en máquina (dd/mm/aaaa: hora)
     'sustrato',              // Tipo de sustrato/material
     'estado',                // Estado actual del programa
@@ -154,12 +169,18 @@ export class MachinesComponent implements OnInit {
   ];
 
   // Permisos del usuario calculados reactivamente
-  userPermissions = computed((): UserPermissions => ({
-    canLoadExcel: true, // Permitir carga de Excel
-    canDownloadTemplate: false, // No permitir descarga de plantilla
-    canViewFF459: false, // No permitir ver formato FF459
-    canClearPrograms: false // No permitir limpiar programación
-  }));
+  userPermissions = computed((): UserPermissions => {
+    const user = this.authService.getCurrentUser();
+    const userRole = user?.role?.toLowerCase() || '';
+    
+    return {
+      canLoadExcel: true, // Permitir carga de Excel
+      canDownloadTemplate: false, // No permitir descarga de plantilla
+      canViewFF459: false, // No permitir ver formato FF459
+      canClearPrograms: false, // No permitir limpiar programación
+      canSendMessages: ['admin', 'supervisor'].includes(userRole) // Solo admin y supervisor pueden enviar mensajes
+    };
+  });
   
   // Propiedades computadas - Se recalculan automáticamente cuando cambian las dependencias
   
@@ -204,6 +225,19 @@ export class MachinesComponent implements OnInit {
   ngOnInit() {
     console.log('🚀 Inicializando módulo de máquinas...'); // Log de inicio
     console.log('🏭 Máquinas disponibles:', this.machineNumbers); // Log de máquinas disponibles
+    
+    // Cargar mensajes persistentes desde localStorage ANTES de cargar programas
+    console.log('📱 Cargando mensajes desde localStorage...');
+    this.loadMessagesFromStorage();
+    
+    // Verificar que los mensajes se cargaron correctamente
+    setTimeout(() => {
+      const loadedMessages = this.programMessages();
+      console.log('🔍 Mensajes después de cargar:', loadedMessages.size, 'mensajes');
+      if (loadedMessages.size > 0) {
+        console.log('📋 Mensajes cargados:', Array.from(loadedMessages.entries()));
+      }
+    }, 100);
     
     // Cargar programas desde la base de datos al inicializar
     this.loadPrograms();
@@ -1425,6 +1459,10 @@ export class MachinesComponent implements OnInit {
         // IMPORTANTE: Después de subir el Excel, recargar todos los datos desde la base de datos
         // Esto asegura que se muestren los datos guardados con la información de la tabla de diseño
         console.log('🔄 Recargando datos desde la base de datos...');
+        
+        // Limpiar mensajes al cargar nueva programación
+        this.clearAllMessages();
+        
         await this.loadPrograms();
         
         // ===== LOG DE ÉXITO DETALLADO =====
@@ -2014,6 +2052,328 @@ export class MachinesComponent implements OnInit {
     
     // Eliminar ceros innecesarios al final y el punto decimal si no hay decimales
     return formatted.replace(/\.?0+$/, '') || '0';
+  }
+
+  // ===== MÉTODOS PARA PERSISTENCIA DE MENSAJES =====
+  
+  /**
+   * Cargar mensajes desde localStorage
+   */
+  private loadMessagesFromStorage() {
+    try {
+      console.log('🔍 Intentando cargar mensajes desde localStorage...');
+      const storedMessages = localStorage.getItem(this.MESSAGES_STORAGE_KEY);
+      console.log('📦 Datos en localStorage:', storedMessages);
+      
+      if (storedMessages) {
+        const parsedMessages = JSON.parse(storedMessages);
+        console.log('📋 Mensajes parseados:', parsedMessages);
+        
+        const messagesMap = new Map<string, {message: string, timestamp: Date, sender: string, read: boolean}>();
+        
+        // Convertir el objeto almacenado de vuelta a Map con fechas correctas
+        Object.entries(parsedMessages).forEach(([otSap, messageData]: [string, any]) => {
+          messagesMap.set(otSap, {
+            ...messageData,
+            timestamp: new Date(messageData.timestamp) // Convertir string de fecha de vuelta a Date
+          });
+        });
+        
+        this.programMessages.set(messagesMap);
+        console.log('💾 Mensajes cargados desde localStorage:', messagesMap.size, 'mensajes');
+        console.log('📝 Contenido del Map:', Array.from(messagesMap.entries()));
+      } else {
+        console.log('📭 No hay mensajes almacenados en localStorage');
+        this.programMessages.set(new Map());
+      }
+    } catch (error) {
+      console.error('❌ Error cargando mensajes desde localStorage:', error);
+      // Si hay error, inicializar con Map vacío
+      this.programMessages.set(new Map());
+    }
+  }
+
+  /**
+   * Guardar mensajes en localStorage
+   */
+  private saveMessagesToStorage() {
+    try {
+      const messagesMap = this.programMessages();
+      console.log('💾 Guardando mensajes en localStorage:', messagesMap.size, 'mensajes');
+      console.log('📝 Contenido a guardar:', Array.from(messagesMap.entries()));
+      
+      // Convertir Map a objeto para poder serializarlo
+      const messagesObject: any = {};
+      messagesMap.forEach((messageData, otSap) => {
+        messagesObject[otSap] = {
+          ...messageData,
+          timestamp: messageData.timestamp.toISOString() // Convertir Date a string para serialización
+        };
+      });
+      
+      const jsonString = JSON.stringify(messagesObject);
+      console.log('📦 JSON a almacenar:', jsonString);
+      
+      localStorage.setItem(this.MESSAGES_STORAGE_KEY, jsonString);
+      console.log('✅ Mensajes guardados exitosamente en localStorage');
+      
+      // Verificar que se guardó correctamente
+      const verification = localStorage.getItem(this.MESSAGES_STORAGE_KEY);
+      console.log('🔍 Verificación - datos guardados:', verification);
+      
+    } catch (error) {
+      console.error('❌ Error guardando mensajes en localStorage:', error);
+    }
+  }
+
+  // ===== MÉTODOS PARA SISTEMA DE MENSAJES DE ADMINISTRADOR =====
+  
+  /**
+   * Abrir diálogo para enviar/editar mensaje a un programa específico
+   * Solo disponible para administradores y supervisores
+   */
+  openMessageDialog(program: MachineProgram) {
+    console.log('💬 Abriendo diálogo de mensaje para programa:', program.articulo);
+    
+    // Verificar permisos
+    if (!this.userPermissions().canSendMessages) {
+      this.snackBar.open('No tienes permisos para enviar mensajes', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    
+    this.messageProgram = program;
+    
+    // Verificar si ya existe un mensaje para este programa
+    const existingMessage = this.programMessages().get(program.otSap);
+    if (existingMessage) {
+      this.currentMessage = existingMessage.message;
+      this.isEditingMessage = true;
+    } else {
+      this.currentMessage = '';
+      this.isEditingMessage = false;
+    }
+    
+    this.showMessageDialog = true;
+  }
+
+  /**
+   * Cerrar diálogo de mensajes
+   */
+  closeMessageDialog() {
+    this.showMessageDialog = false;
+    this.messageProgram = null;
+    this.currentMessage = '';
+    this.isEditingMessage = false;
+    
+    // Limpiar timeout si existe
+    if (this.messageTimeout) {
+      clearTimeout(this.messageTimeout);
+      this.messageTimeout = null;
+    }
+  }
+
+  /**
+   * Enviar/actualizar mensaje al programa seleccionado
+   */
+  async sendMessage() {
+    if (!this.messageProgram || !this.currentMessage.trim()) {
+      return;
+    }
+
+    try {
+      this.loading.set(true);
+      
+      const currentUser = this.authService.getCurrentUser();
+      const messageData = {
+        message: this.currentMessage.trim(),
+        timestamp: new Date(),
+        sender: `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'Administrador',
+        read: false
+      };
+
+      console.log('📤 Enviando/actualizando mensaje:', messageData);
+
+      // Actualizar el mapa de mensajes
+      const messages = new Map(this.programMessages());
+      messages.set(this.messageProgram.otSap, messageData);
+      this.programMessages.set(messages);
+
+      // Guardar en localStorage para persistencia
+      this.saveMessagesToStorage();
+
+      // Aquí podrías enviar el mensaje al backend si es necesario
+      // const response = await this.http.post(`${environment.apiUrl}/maquinas/${this.messageProgram.otSap}/message`, messageData).toPromise();
+
+      const actionText = this.isEditingMessage ? 'actualizado' : 'enviado';
+      this.snackBar.open(`Mensaje ${actionText} exitosamente`, 'Cerrar', { duration: 3000 });
+      this.closeMessageDialog();
+
+    } catch (error: any) {
+      console.error('❌ Error enviando mensaje:', error);
+      this.snackBar.open('Error al enviar mensaje', 'Cerrar', { duration: 3000 });
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Mostrar mensaje para un programa específico
+   */
+  showMessage(program: MachineProgram) {
+    console.log('👁️ Mostrando mensaje para programa:', program.articulo);
+    
+    const messageData = this.programMessages().get(program.otSap);
+    if (!messageData) {
+      this.snackBar.open('No hay mensajes para este programa', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    
+    this.currentMessage = messageData.message;
+    this.messageProgram = program;
+    this.showMessageDialog = true;
+
+    // Marcar como leído
+    const messages = new Map(this.programMessages());
+    const updatedMessage = { ...messageData, read: true };
+    messages.set(program.otSap, updatedMessage);
+    this.programMessages.set(messages);
+
+    // Guardar en localStorage
+    this.saveMessagesToStorage();
+
+    // Auto-cerrar después de 20 segundos
+    this.messageTimeout = setTimeout(() => {
+      this.closeMessageDialog();
+    }, 20000);
+  }
+
+  /**
+   * Eliminar mensaje de un programa (solo cuando está TERMINADO)
+   */
+  deleteMessage(program: MachineProgram) {
+    if (program.estado !== 'TERMINADO') {
+      this.snackBar.open('Solo se pueden eliminar mensajes de programas TERMINADOS', 'Cerrar', { duration: 4000 });
+      return;
+    }
+
+    if (!this.userPermissions().canSendMessages) {
+      this.snackBar.open('No tienes permisos para eliminar mensajes', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    const messages = new Map(this.programMessages());
+    messages.delete(program.otSap);
+    this.programMessages.set(messages);
+
+    // Guardar en localStorage
+    this.saveMessagesToStorage();
+
+    this.snackBar.open('Mensaje eliminado exitosamente', 'Cerrar', { duration: 3000 });
+    this.closeMessageDialog();
+  }
+
+  /**
+   * Verificar si un programa tiene mensajes no leídos
+   */
+  hasUnreadMessages(program: MachineProgram): boolean {
+    const messageData = this.programMessages().get(program.otSap);
+    return messageData ? !messageData.read : false;
+  }
+
+  /**
+   * Verificar si un programa tiene mensajes (leídos o no leídos)
+   */
+  hasMessages(program: MachineProgram): boolean {
+    return this.programMessages().has(program.otSap);
+  }
+
+  /**
+   * Verificar si el usuario puede enviar mensajes
+   */
+  canSendMessages(): boolean {
+    return this.userPermissions().canSendMessages;
+  }
+
+  /**
+   * Método de prueba para verificar localStorage (solo para debugging)
+   * Puede ser llamado desde la consola del navegador
+   */
+  testLocalStorage() {
+    console.log('🧪 === PRUEBA DE LOCALSTORAGE ===');
+    
+    // Verificar si localStorage está disponible
+    if (typeof Storage !== "undefined") {
+      console.log('✅ localStorage está disponible');
+    } else {
+      console.log('❌ localStorage NO está disponible');
+      return;
+    }
+    
+    // Crear mensaje de prueba
+    const testMessage = {
+      message: 'Mensaje de prueba',
+      timestamp: new Date(),
+      sender: 'Test User',
+      read: false
+    };
+    
+    // Guardar mensaje de prueba
+    const testMap = new Map();
+    testMap.set('TEST123', testMessage);
+    this.programMessages.set(testMap);
+    this.saveMessagesToStorage();
+    
+    // Limpiar y recargar
+    this.programMessages.set(new Map());
+    this.loadMessagesFromStorage();
+    
+    // Verificar resultado
+    const reloadedMessages = this.programMessages();
+    if (reloadedMessages.has('TEST123')) {
+      console.log('✅ Prueba exitosa: mensaje persistió correctamente');
+      console.log('📝 Mensaje recuperado:', reloadedMessages.get('TEST123'));
+    } else {
+      console.log('❌ Prueba fallida: mensaje no persistió');
+    }
+    
+    // Limpiar mensaje de prueba
+    const cleanMap = new Map(reloadedMessages);
+    cleanMap.delete('TEST123');
+    this.programMessages.set(cleanMap);
+    this.saveMessagesToStorage();
+    
+    console.log('🧪 === FIN DE PRUEBA ===');
+  }
+
+  /**
+   * Limpiar mensajes al cargar nueva programación
+   */
+  clearAllMessages() {
+    this.programMessages.set(new Map());
+    
+    // Limpiar también de localStorage
+    try {
+      localStorage.removeItem(this.MESSAGES_STORAGE_KEY);
+      console.log('🧹 Todos los mensajes han sido limpiados (memoria y localStorage)');
+    } catch (error) {
+      console.error('❌ Error limpiando mensajes de localStorage:', error);
+    }
+  }
+
+  /**
+   * Método para cambiar estado con validación de preparando -> listo
+   */
+  async handleActionWithValidation(program: MachineProgram, newStatus: MachineProgram['estado']) {
+    console.log('🎯 handleActionWithValidation:', program.articulo, 'de', program.estado, 'a', newStatus);
+    
+    // Validación especial: LISTO solo disponible si está en PREPARANDO
+    if (newStatus === 'LISTO' && program.estado !== 'PREPARANDO') {
+      this.snackBar.open('El programa debe estar en PREPARANDO antes de marcarlo como LISTO', 'Cerrar', { duration: 4000 });
+      return;
+    }
+    
+    // Llamar al método original
+    await this.handleAction(program, newStatus);
   }
 
 }

@@ -237,31 +237,49 @@
 
   <body>
 <style>
-/* ===== ESTILOS DE IMPRESIÓN OPTIMIZADOS PARA MÁXIMO ESPACIO ===== */
+/* ===== ESTILOS DE IMPRESIÓN OPTIMIZADOS CON MÁRGENES DE 4MM ===== */
 @page { 
-  margin: 0.1in 0.1in 0.1in 0.1in; /* Márgenes mínimos para evitar corte */
+  margin: 4mm 4mm 4mm 4mm; /* Márgenes de 4mm en todos los lados */
   size: A4 landscape; /* Formato A4 horizontal */
 }
 
 @media print {
   body { 
     margin: 0 !important;
-    padding: 2px !important; /* Padding mínimo */
+    padding: 0 !important;
     width: 100% !important;
-    transform-origin: top left;
-    zoom: 1.0; /* Tamaño completo sin reducción */
+    font-family: 'Times New Roman', serif !important;
+    font-size: 10pt !important;
+    line-height: 1.1 !important;
   }
   
   table.sheet0 {
     margin: 0 auto !important; /* Centrar la tabla horizontalmente */
-    width: 99% !important; /* Usar casi todo el ancho disponible */
+    width: 100% !important; /* Usar todo el ancho disponible */
     max-width: none !important;
     page-break-inside: avoid;
+    table-layout: fixed !important; /* Estructura fija para evitar deformación */
+    border-collapse: collapse !important;
   }
   
   /* Evitar saltos de página dentro de filas importantes */
   tr.row0, tr.row1, tr.row2, tr.row3, tr.row4, tr.row5 {
     page-break-inside: avoid;
+  }
+  
+  /* Asegurar que las celdas mantengan su estructura */
+  td, th {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 0 !important; /* Forzar truncado si es necesario */
+  }
+  
+  /* Todos los campos dinámicos en una sola línea */
+  .dynamic-field {
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
   }
 }
 
@@ -270,13 +288,40 @@
   body {
     padding: 10px;
     background-color: #f5f5f5;
+    font-family: 'Times New Roman', serif;
   }
   
   table.sheet0 {
     margin: 0 auto;
     background-color: white;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    table-layout: fixed; /* Estructura fija también en pantalla */
   }
+  
+  /* Truncar texto largo en vista previa también */
+  td, th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Todos los campos dinámicos en una sola línea también en pantalla */
+  .dynamic-field {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
+/* Estilos específicos para campos dinámicos */
+.dynamic-field {
+  font-family: 'Times New Roman', serif !important;
+  font-size: 9pt !important;
+  font-weight: normal !important;
+  color: #000000 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 </style>
     <table border="0" cellpadding="0" cellspacing="0" id="sheet0" class="sheet0 gridlines">

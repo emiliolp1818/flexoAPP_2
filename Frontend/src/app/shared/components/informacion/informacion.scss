@@ -27,50 +27,44 @@ $gray-800: #1e293b;
 $gray-900: #0f172a;
 
 // ===== CONTENEDOR PRINCIPAL =====
-// Contenedor raíz que ocupa toda la ventana sin scroll - VENTANA FIJA
+// Contenedor raíz que ocupa toda la ventana
 .informacion-container {
-  display: flex; // Contenedor flexible para organizar elementos
-  flex-direction: column; // Organiza los elementos en columna (vertical)
-  width: 100vw; // Ancho completo del viewport (100% de la ventana)
-  height: 100vh; // Altura completa del viewport (100% de la ventana)
-  margin: 0; // Sin márgenes externos
-  padding: 0; // Sin relleno interno
-  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente de fondo gris claro
-  position: fixed; // FIJO - No se mueve con el scroll
-  top: 0; // Pegado al borde superior
-  left: 0; // Pegado al borde izquierdo
-  overflow: hidden; // SIN SCROLL - Contenido fijo sin desplazamiento
-  box-sizing: border-box; // Incluir padding y border en el cálculo del ancho
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+  overflow: hidden;
+  box-sizing: border-box;
+  margin-top: 0 !important;
 }
 
 // ===== HEADER FIJO =====
 // Header principal que permanece fijo en la parte superior
 .informacion-header {
-  position: fixed; // Posicionamiento fijo para que no se mueva con el scroll
-  top: 80px; // Posicionado 80px desde arriba (debajo del header principal)
-  left: 0; // Alineado al borde izquierdo
-  right: 0; // Alineado al borde derecho
-  background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
-  backdrop-filter: blur(20px); // Efecto de desenfoque del fondo (glassmorphism)
-  border-radius: 16px; // Bordes redondeados de 16px
-  padding: 20px; // Relleno interno uniforme de 20px
-  margin: 0 20px; // Margen: 0 arriba/abajo, 20px laterales
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); // Sombra suave para efecto de elevación
-  border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
-  flex-shrink: 0; // No se reduce - Mantiene su tamaño fijo
-  z-index: 100; // Apilamiento alto para mantener el header sobre otros elementos
-  width: calc(100% - 40px); // Ancho completo menos los márgenes laterales (20px * 2)
-  box-sizing: border-box; // Incluir padding y border en el cálculo del ancho
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin: 0 12px 0 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  z-index: 100;
+  margin-top: -8px !important;
   
-  // Barra decorativa superior azul
   &::before {
-    content: ''; // Pseudo-elemento vacío para la barra superior
-    position: absolute; // Posicionamiento absoluto respecto al header
-    top: 0; // Alineado al borde superior
-    left: 0; // Alineado al borde izquierdo
-    right: 0; // Alineado al borde derecho
-    height: 4px; // Altura de 4px para la barra decorativa
-    background: $primary-blue; // Color azul primario para la barra
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $primary-blue;
   }
 
   // Contenido del header
@@ -155,16 +149,15 @@ $gray-900: #0f172a;
 }
 
 // ===== CONTENIDO PRINCIPAL =====
-// Área de contenido que ocupa todo el espacio restante SIN SCROLL - VENTANA FIJA
+// Área de contenido que ocupa todo el espacio restante
 .informacion-content {
-  flex: 1; // Crece para ocupar todo el espacio disponible verticalmente
-  display: flex; // Contenedor flexible
-  flex-direction: column; // Organiza elementos en columna
-  padding: 0 20px 20px 20px; // Relleno: sin superior, 20px en los demás lados
-  margin-top: 200px; // Margen superior para compensar el header fijo (80px top + altura del header ~120px)
-  overflow: hidden; // SIN SCROLL - Contenido fijo sin desplazamiento
-  min-height: 0; // Permite que flex funcione correctamente con overflow
-  box-sizing: border-box; // Incluir padding en el cálculo del ancho
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px 20px 20px;
+  overflow: hidden;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 // ===== INDICADOR DE CARGA =====
@@ -186,38 +179,37 @@ $gray-900: #0f172a;
 }
 
 // ===== GRID DE TARJETAS DE INFORMACIÓN =====
-// Grid responsive que organiza las tarjetas en columnas (4 tarjetas en una fila, licencia debajo)
+// Grid responsive que organiza las tarjetas
 .info-grid {
-  display: grid; // Layout de cuadrícula
-  grid-template-columns: repeat(4, 1fr); // 4 columnas de igual tamaño por fila
-  gap: 16px; // Espacio de 16px entre tarjetas (reducido para diseño más compacto)
-  margin-bottom: 20px; // Margen inferior de 20px
-  width: 100%; // Ancho completo del contenedor
-  box-sizing: border-box; // Incluir padding en el cálculo del ancho
-  height: 100%; // Altura completa del contenedor
-  overflow-y: auto; // Scroll vertical cuando el contenido excede la altura
-  padding-right: 4px; // Espacio para el scrollbar
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+  align-content: start;
+  margin-top: 12px;
 
-  // Responsive: pantallas menores a 1200px (tablets grandes)
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(2, 1fr); // 2 columnas en tablets grandes
-    gap: 14px; // Espacio reducido de 14px
-    
-    // En tablets, la licencia ocupa las 2 columnas completas
-    .license-card {
-      grid-column: span 2; // Ocupa ambas columnas en tablets
-    }
+  // Responsive: pantallas grandes (más de 1400px)
+  @media (min-width: 1400px) {
+    grid-template-columns: repeat(4, 1fr);
   }
 
-  // Responsive: pantallas menores a 768px (móviles)
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr; // Una sola columna en móviles
-    gap: 12px; // Espacio reducido de 12px
-    
-    // En móviles, la licencia ocupa 1 columna (toda la fila)
-    .license-card {
-      grid-column: span 1; // Ocupa 1 columna en móviles
-    }
+  // Responsive: pantallas medianas (1000px - 1399px)
+  @media (min-width: 1000px) and (max-width: 1399px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  // Responsive: pantallas pequeñas (700px - 999px)
+  @media (min-width: 700px) and (max-width: 999px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  // Responsive: móviles (menos de 700px)
+  @media (max-width: 699px) {
+    grid-template-columns: 1fr;
   }
 
   // Estilos personalizados del scrollbar (WebKit)
@@ -240,32 +232,32 @@ $gray-900: #0f172a;
 // ===== TARJETAS DE INFORMACIÓN =====
 // Estilos base para todas las tarjetas de información
 .info-card {
-  background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
-  backdrop-filter: blur(20px); // Efecto de desenfoque del fondo
-  border-radius: 16px; // Bordes redondeados de 16px
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); // Sombra suave
-  border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); // Transición suave con curva de aceleración
-  overflow: visible; // Permitir que el contenido se vea completamente
-  position: relative; // Posición relativa para pseudo-elementos
-  min-height: 220px; // Altura mínima para mostrar más contenido
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
 
-  // Barra decorativa superior
   &::before {
-    content: ''; // Pseudo-elemento vacío
-    position: absolute; // Posicionamiento absoluto
-    top: 0; // Pegado al borde superior
-    left: 0; // Pegado al borde izquierdo
-    right: 0; // Pegado al borde derecho
-    height: 4px; // Altura de 4px
-    background: linear-gradient(90deg, $primary-blue, $primary-blue-light); // Gradiente azul horizontal
-    z-index: 1; // Capa superior
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $primary-blue, $primary-blue-light);
+    z-index: 1;
   }
 
-  // Efecto hover - eleva la tarjeta
   &:hover {
-    transform: translateY(-4px); // Eleva 4px hacia arriba
-    box-shadow: 0 12px 40px rgba($primary-blue, 0.18), 0 4px 16px rgba(0, 0, 0, 0.12); // Sombras más pronunciadas
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba($primary-blue, 0.18), 0 4px 16px rgba(0, 0, 0, 0.12);
   }
 
   // Header de la tarjeta
@@ -432,32 +424,31 @@ $gray-900: #0f172a;
 
 
 // ===== TARJETA DE LICENCIA =====
-// Tarjeta de licencia que ocupa 4 columnas en el grid (toda la fila debajo de las 4 tarjetas)
+// Tarjeta de licencia que ocupa el ancho completo
 .license-card {
-  background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
-  backdrop-filter: blur(20px); // Efecto de desenfoque del fondo
-  border-radius: 16px; // Bordes redondeados de 16px
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); // Sombra suave
-  border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
-  overflow: hidden; // Ocultar contenido que se desborde
-  position: relative; // Posición relativa para pseudo-elementos
-  grid-column: span 4 !important; // Ocupa 4 columnas en el grid (toda la fila) - FORZADO
-  display: flex; // Contenedor flexible
-  flex-direction: column; // Organiza header y contenido en columna
-  min-height: 0; // Permite que flex funcione correctamente con overflow
-  max-height: 500px; // Altura máxima aumentada para mostrar más contenido
-  margin-top: 8px; // Margen superior para separar de las tarjetas superiores
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  position: relative;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 400px;
+  margin-top: 8px;
 
-  // Barra decorativa superior (AZUL como el resto)
   &::before {
-    content: ''; // Pseudo-elemento vacío
-    position: absolute; // Posicionamiento absoluto
-    top: 0; // Pegado al borde superior
-    left: 0; // Pegado al borde izquierdo
-    right: 0; // Pegado al borde derecho
-    height: 4px; // Altura de 4px
-    background: linear-gradient(90deg, $primary-blue, $primary-blue-light); // Gradiente AZUL (igual que las demás tarjetas)
-    z-index: 1; // Capa superior
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $primary-blue, $primary-blue-light);
+    z-index: 1;
   }
 
   // Header de la tarjeta de licencia
@@ -542,42 +533,36 @@ $gray-900: #0f172a;
 // ===== RESPONSIVE DESIGN =====
 // Ajustes para pantallas pequeñas (móviles)
 @media (max-width: 768px) {
-  // Ajustar el contenido en móviles
-  .informacion-content {
-    margin-top: 180px; // Margen superior reducido para móviles
-  }
-
   // Ajustar el header en móviles
   .informacion-header {
-    top: 60px; // Posición superior ajustada para móviles
-    padding: 12px; // Relleno reducido
-    margin: 0 12px; // Márgenes laterales reducidos
-    width: calc(100% - 24px); // Ancho ajustado para los márgenes reducidos
+    padding: 12px;
+    margin: 8px 12px 0 12px;
+    margin-top: 60px;
 
     .header-content {
       .header-info {
         .page-title {
-          font-size: 1.25rem; // Tamaño de fuente reducido
+          font-size: 1.25rem;
 
           mat-icon {
-            font-size: 20px; // Tamaño del icono reducido
+            font-size: 20px;
             width: 20px;
             height: 20px;
           }
         }
 
         .page-subtitle {
-          font-size: 0.8rem; // Tamaño de fuente reducido
+          font-size: 0.8rem;
         }
       }
 
       .header-actions {
         button {
-          padding: 6px 12px; // Relleno reducido
-          font-size: 0.8rem; // Tamaño de fuente reducido
+          padding: 6px 12px;
+          font-size: 0.8rem;
 
           mat-icon {
-            font-size: 18px; // Tamaño del icono reducido
+            font-size: 18px;
             width: 18px;
             height: 18px;
           }

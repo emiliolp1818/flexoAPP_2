@@ -2,7 +2,7 @@
 
 // Archivo de estilos principal para el componente de gestión de máquinas
 
-
+@use 'sass:color';
 
 // ===== VARIABLES DE COLORES =====
 
@@ -1070,11 +1070,11 @@ $gray-900: #0f172a;
 
           font-weight: 700; // Peso de fuente bold (negrita)
 
-          font-size: 12px; // Tamaño de fuente de 12px
+          font-size: 10px; // Tamaño de fuente reducido a 10px para consistencia
 
           text-transform: uppercase; // Texto en mayúsculas para el header
 
-          padding: 14px 12px; // Relleno: 14px vertical, 12px horizontal
+          padding: 8px 8px; // Relleno reducido: 8px vertical, 8px horizontal (antes era 14px 12px)
 
           border-bottom: 2px solid $primary-blue; // Borde inferior azul de 2px
 
@@ -1101,14 +1101,14 @@ $gray-900: #0f172a;
 
 
             mat-icon {
-              font-size: 13px;
-              width: 13px;
-              height: 13px;
+              font-size: 12px; // Reducido de 13px a 12px
+              width: 12px;
+              height: 12px;
               color: $primary-blue;
             }
 
             span {
-              font-size: 10px;
+              font-size: 10px; // Mantenido en 10px para consistencia
               font-weight: 700;
             }
 
@@ -1123,7 +1123,7 @@ $gray-900: #0f172a;
           border-bottom: 1px solid #e2e8f0;
           border-right: 1px solid #f1f5f9;
           background: white;
-          font-size: 11px !important; // Texto ligeramente más pequeño
+          font-size: 10px !important; // Tamaño de fuente uniforme de 10px para toda la tabla
           vertical-align: middle;
           transition: all 0.2s ease;
           min-height: 40px;
@@ -1165,40 +1165,47 @@ $gray-900: #0f172a;
 
 
 
-// ===== ESTILOS ESPECÍFICOS POR COLUMNA =====
+// ===== ESTILOS ESPECÍFICOS POR COLUMNA - TAMAÑO DE FUENTE UNIFORME 10PX =====
 
+// ===== COLUMNA ARTÍCULO - CAMPO MÁS REDUCIDO =====
 .article-cell {
-  width: 90px;
+  width: 55px; // Reducido de 70px a 55px para ganar más espacio
+  min-width: 55px;
 
   .article-code {
     color: $primary-blue;
     font-weight: 700;
-    padding: 3px 6px;
+    padding: 2px 4px; // Padding reducido
     border-radius: 4px;
-    font-size: 10.5px;
+    font-size: 10px; // Tamaño uniforme de 10px
     display: block;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
-
-
+// ===== COLUMNA OT SAP - CAMPO REDUCIDO =====
 .otsap-cell {
-  width: 90px;
+  width: 70px; // Mantener 70px
+  min-width: 70px;
 
   .otsap-code {
     color: $primary-blue;
     font-weight: 700;
     padding: 3px 6px;
     border-radius: 4px;
-    font-size: 10.5px;
+    font-size: 10px; // Tamaño uniforme de 10px
     display: block;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
-
-
+// ===== COLUMNA CLIENTE =====
 .client-cell {
   max-width: 140px;
 
@@ -1209,34 +1216,14 @@ $gray-900: #0f172a;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 10.5px;
+    font-size: 10px; // Tamaño uniforme de 10px
   }
 }
 
-
-
-.kilos-cell {
-  width: 70px;
-
-  .kilos-info {
-    .kilos-number {
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .kilos-unit {
-      font-size: 9px;
-    }
-  }
-}
-
-
-
-
-// ===== COLUMNA REFERENCIA =====
-
+// ===== COLUMNA REFERENCIA - CAMPO MÁS AMPLIADO CON ESPACIO ADICIONAL =====
 .referencia-cell {
-  max-width: 120px;
+  max-width: 195px; // Ampliado de 180px a 195px con los 15px adicionales ganados del artículo
+  min-width: 175px;
 
   .referencia-text {
     color: $gray-700;
@@ -1245,7 +1232,30 @@ $gray-900: #0f172a;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 10.5px;
+    font-size: 10px; // Tamaño uniforme de 10px
+  }
+}
+
+// ===== COLUMNA KILOS - SIN FORMATO NUMÉRICO =====
+.kilos-cell {
+  width: 70px;
+
+  .kilos-info {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    
+    .kilos-number {
+      font-size: 10px; // Tamaño uniforme de 10px
+      font-weight: 700;
+      color: $gray-800;
+      // Sin formato numérico - se muestra tal como viene del Excel
+    }
+
+    .kilos-unit {
+      font-size: 10px; // Tamaño uniforme de 10px
+      color: $gray-600;
+    }
   }
 }
 
@@ -1264,7 +1274,7 @@ $gray-900: #0f172a;
     border-radius: 4px;
     border: 1px solid $primary-blue-200;
     display: block;
-    font-size: 10px;
+    font-size: 10px; // Tamaño uniforme de 10px
     text-transform: uppercase;
     text-align: center;
     transition: all 0.2s ease;
@@ -1298,7 +1308,7 @@ $gray-900: #0f172a;
     color: #1f2937;
     border: 2px solid #e5e7eb;
     border-radius: 16px;
-    font-size: 11px;
+    font-size: 10px; // Tamaño uniforme de 10px
     font-weight: 600;
     transition: all 0.3s ease;
     cursor: pointer;
@@ -1324,7 +1334,7 @@ $gray-900: #0f172a;
 
     .numero-colores-text {
       font-weight: 700;
-      font-size: 12px;
+      font-size: 10px; // Tamaño uniforme de 10px
       color: #1f2937;
     }
   }
@@ -1855,12 +1865,12 @@ $gray-900: #0f172a;
 
   .fecha-tinta-info {
     .fecha-tinta-date {
-      font-size: 10.5px;
+      font-size: 10px; // Tamaño uniforme de 10px
       font-weight: 600;
     }
 
     .fecha-tinta-time {
-      font-size: 9.5px;
+      font-size: 10px; // Tamaño uniforme de 10px
       color: $gray-500;
     }
   }
@@ -1897,7 +1907,7 @@ $gray-900: #0f172a;
     border-radius: 6px;
     border: 1px solid $gray-200;
     display: block;
-    font-size: 10.5px;
+    font-size: 10px; // Tamaño uniforme de 10px
     text-transform: uppercase;
     letter-spacing: 0.3px;
     white-space: nowrap;
@@ -1948,7 +1958,7 @@ $gray-900: #0f172a;
 
         display: inline-block; // Elemento inline-block para ajustar al contenido
 
-        font-size: 11px; // Tamaño de fuente de 11px para uniformidad con operario
+        font-size: 10px; // Tamaño uniforme de 10px para uniformidad con operario
 
         font-weight: 700; // Peso de fuente bold (negrita) para destacar el estado
 
@@ -1989,14 +1999,14 @@ $gray-900: #0f172a;
 
 
     .operario-info {
-      font-size: 12px;
+      font-size: 10px; // Tamaño uniforme de 10px
       color: $gray-600;
       font-weight: 500;
       line-height: 1;
     }
 
     .motivo-suspendido {
-      font-size: 12px;
+      font-size: 10px; // Tamaño uniforme de 10px
       line-height: 1;
     }
 
@@ -2012,7 +2022,7 @@ $gray-900: #0f172a;
 
     color: #dc2626; // Color rojo para el motivo de suspensión
 
-    font-size: 12px; // Tamaño de fuente de 12px para mejor visibilidad
+    font-size: 10px; // Tamaño uniforme de 10px para mejor visibilidad
 
     font-weight: 500; // Peso de fuente medio para mejor visibilidad
 
@@ -3230,6 +3240,322 @@ $gray-900: #0f172a;
     .excel-cell {
       background: transparent !important;
       color: #111827 !important; // Texto gris más oscuro en hover
+    }
+  }
+}
+
+// ===== ESTILOS PARA BOTONES DE ACCIÓN UNIFICADOS =====
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+
+  .action-btn {
+    min-width: 32px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    &.play-btn {
+      background-color: $success-emerald !important;
+      color: white !important;
+      
+      &:hover:not(:disabled) {
+        background-color: color.adjust($success-emerald, $lightness: -10%) !important;
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:disabled {
+        background-color: $gray-300 !important;
+        color: $gray-500 !important;
+        box-shadow: none;
+      }
+    }
+
+    &.stop-btn {
+      background-color: $error-red !important;
+      color: white !important;
+      
+      &:hover:not(:disabled) {
+        background-color: color.adjust($error-red, $lightness: -10%) !important;
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:disabled {
+        background-color: $gray-300 !important;
+        color: $gray-500 !important;
+        box-shadow: none;
+      }
+    }
+
+    &.suspendido-btn {
+      background-color: $warning-amber !important;
+      color: white !important;
+      
+      &:hover:not(:disabled) {
+        background-color: color.adjust($warning-amber, $lightness: -10%) !important;
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:disabled {
+        background-color: $gray-300 !important;
+        color: $gray-500 !important;
+        box-shadow: none;
+      }
+    }
+
+    &.message-btn {
+      background-color: $primary-blue !important;
+      color: white !important;
+      position: relative;
+      
+      &:hover {
+        background-color: $primary-blue-dark !important;
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      &.has-message {
+        background-color: #ff6b35 !important;
+        animation: pulse 1.5s infinite;
+      }
+
+      .blinking {
+        animation: blink 1s infinite;
+      }
+    }
+
+    &.imprimir-btn {
+      background-color: $gray-600 !important;
+      color: white !important;
+      
+      &:hover {
+        background-color: $gray-700 !important;
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    // Asegurar que los iconos siempre sean visibles
+    mat-icon {
+      color: inherit !important;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+// ===== ANIMACIONES PARA BOTÓN DE MENSAJES =====
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 107, 53, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0);
+  }
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0.3;
+  }
+}
+
+// ===== ESTILOS PARA DIÁLOGO DE MENSAJES =====
+
+.message-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.message-dialog {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+
+  .message-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid $gray-200;
+    background: $gray-50;
+
+    .dialog-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: $gray-800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-icon {
+        color: $primary-blue;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    .close-btn {
+      color: $gray-500;
+      
+      &:hover {
+        color: $gray-700;
+        background-color: $gray-200;
+      }
+    }
+  }
+
+  .message-dialog-content {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+
+    .program-info {
+      background: $gray-50;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+
+      .info-item {
+        display: flex;
+        margin-bottom: 8px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .info-label {
+          font-weight: 600;
+          color: $gray-700;
+          min-width: 80px;
+        }
+
+        .info-value {
+          color: $gray-900;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .message-section {
+      .full-width {
+        width: 100%;
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+    }
+  }
+
+  .message-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px 20px;
+    border-top: 1px solid $gray-200;
+    background: $gray-50;
+
+    .cancel-btn {
+      color: $gray-600;
+      border-color: $gray-300;
+
+      &:hover {
+        background-color: $gray-100;
+        border-color: $gray-400;
+      }
+    }
+
+    .send-message-btn {
+      background-color: $primary-blue;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background-color: $primary-blue-dark;
+      }
+
+      &:disabled {
+        background-color: $gray-300;
+        color: $gray-500;
+      }
+    }
+
+    .delete-message-btn {
+      color: $error-red;
+      border-color: $error-red;
+
+      &:hover {
+        background-color: rgba($error-red, 0.1);
+        border-color: color.adjust($error-red, $lightness: -10%);
+      }
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ===== ESTILOS PARA MENÚS DESPLEGABLES =====
+
+.mat-mdc-menu-panel {
+  .mat-mdc-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 }

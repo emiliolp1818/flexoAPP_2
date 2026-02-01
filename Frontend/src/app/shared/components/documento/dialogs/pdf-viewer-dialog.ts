@@ -18,6 +18,8 @@ export interface PdfViewerData {
   documentoId: number;
   fileName: string;
   pdfUrl: string;
+  originalFileUrl?: string; // URL del archivo original para descarga
+  fileType?: string; // Tipo de archivo para mostrar en el badge
 }
 
 @Component({
@@ -38,7 +40,7 @@ export interface PdfViewerData {
           <mat-icon class="file-icon">picture_as_pdf</mat-icon>
           <div class="header-info">
             <h2 class="file-name">{{ data.fileName }}</h2>
-            <span class="file-badge">Vista Previa PDF</span>
+            <span class="file-badge">{{ data.fileType || 'Vista Previa' }}</span>
           </div>
         </div>
         <button mat-icon-button class="close-btn" (click)="onClose()">
@@ -285,8 +287,16 @@ export class PdfViewerDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Sanitizar la URL del PDF para que Angular la acepte en el iframe
-    this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.data.pdfUrl);
+    // Determinar qué URL usar según el tipo de archivo
+    let urlToShow = this.data.pdfUrl; // Por defecto usar el PDF convertido
+    
+    // Si el archivo original es PDF, usarlo directamente para mejor calidad
+    if (this.data.fileType?.toLowerCase().includes('pdf') && this.data.originalFileUrl) {
+      urlToShow = this.data.originalFileUrl;
+    }
+    
+    // Sanitizar la URL para que Angular la acepte en el iframe
+    this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(urlToShow);
   }
 
   onPdfLoad(): void {
@@ -303,11 +313,15 @@ export class PdfViewerDialogComponent implements OnInit {
   }
 
   onDownload(): void {
-    // Descargar el PDF
+    // Descargar el archivo original (no el PDF convertido)
+    const downloadUrl = this.data.originalFileUrl || this.data.pdfUrl;
+    
     const link = document.createElement('a');
-    link.href = this.data.pdfUrl;
+    link.href = downloadUrl;
     link.download = this.data.fileName || 'documento.pdf';
     link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

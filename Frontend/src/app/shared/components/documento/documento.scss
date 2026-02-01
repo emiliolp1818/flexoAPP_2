@@ -68,9 +68,8 @@ $gray-900: #0f172a;
   background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
   backdrop-filter: blur(20px); // Efecto de desenfoque del fondo (glassmorphism)
   border-radius: 16px; // Bordes redondeados de 16px
-  padding: 16px; // Relleno interno de 16px en todos los lados
-  margin: 12px; // Margen externo de 12px
-  margin-bottom: 12px; // Margen inferior específico de 12px
+  padding: 10px 16px; // Relleno interno reducido a 10px vertical
+  margin: 8px 12px 0 12px; // Margen: 8px arriba, 12px lados, 0 abajo
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); // Sombra suave para efecto de elevación
   border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
   flex-shrink: 0; // ✅ NO SE REDUCE - Mantiene su tamaño fijo
@@ -92,7 +91,7 @@ $gray-900: #0f172a;
     justify-content: space-between; // Distribuye elementos con espacio entre ellos
     align-items: center; // Alinea verticalmente al centro
     width: 100%; // Ancho completo del header
-    min-height: 60px; // Altura mínima de 60px para el contenido
+    min-height: 50px; // Altura mínima reducida a 50px
 
     @media (max-width: 768px) { // Responsive: pantallas menores a 768px
       flex-direction: column; // Cambia a disposición vertical en móviles
@@ -113,21 +112,21 @@ $gray-900: #0f172a;
     gap: 8px; // Espacio de 8px entre icono y texto
     margin: 0; // Sin márgenes externos
     color: #1f2937; // Color gris oscuro para el texto del título
-    font-size: 1.5rem; // Tamaño de fuente de 1.5rem (24px aprox)
+    font-size: 1.3rem; // Tamaño de fuente reducido a 1.3rem
     font-weight: 700; // Peso de fuente bold (negrita)
 
     mat-icon {
-      font-size: 24px; // Tamaño del icono de 24px
-      width: 24px; // Ancho del icono de 24px
-      height: 24px; // Altura del icono de 24px
+      font-size: 22px; // Tamaño del icono reducido a 22px
+      width: 22px; // Ancho del icono de 22px
+      height: 22px; // Altura del icono de 22px
       color: $primary-blue; // Color azul primario para el icono
     }
   }
 
   .page-subtitle {
-    margin: 4px 0 0 0; // Margen superior de 4px, resto en 0
+    margin: 2px 0 0 0; // Margen superior reducido a 2px
     color: #4b5563; // Color gris medio para el subtítulo
-    font-size: 0.9rem; // Tamaño de fuente de 0.9rem (14.4px aprox)
+    font-size: 0.85rem; // Tamaño de fuente reducido a 0.85rem
     font-weight: 500; // Peso de fuente medio
   }
 
@@ -161,142 +160,375 @@ $gray-900: #0f172a;
 // Permanece fija en la parte superior (no hace scroll)
 .search-area-compact {
   padding: 0 12px; // Relleno horizontal de 12px
-  margin-bottom: 8px; // Margen inferior reducido a 8px
+  margin-bottom: 0; // Sin margen inferior
+  margin-top: 6px; // Margen superior de 6px
   flex-shrink: 0; // ✅ NO SE REDUCE - Mantiene su tamaño fijo
 
   .search-container-compact {
-    display: flex; // Contenedor flexible para campo, filtros y badge
-    align-items: center; // Alinea verticalmente al centro
-    gap: 12px; // Espacio de 12px entre elementos
-    background: rgba(255, 255, 255, 0.95); // Fondo blanco semi-transparente
-    backdrop-filter: blur(20px); // Efecto de desenfoque del fondo
-    border-radius: 12px; // Bordes redondeados de 12px
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); // Sombra más sutil
-    border: 1px solid rgba(255, 255, 255, 0.3); // Borde blanco semi-transparente
-    padding: 8px 12px; // Relleno reducido: 8px vertical, 12px horizontal
-
-    // Campo de búsqueda compacto
-    .search-field-compact {
-      flex: 1; // Ocupa el espacio disponible
-      margin: 0; // Sin márgenes externos
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    padding: 6px 12px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    // Efecto de borde animado
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        #3b82f6 25%, 
+        #60a5fa 50%, 
+        #3b82f6 75%, 
+        transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    &:hover {
+      box-shadow: 0 6px 28px rgba(37, 99, 235, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+      border-color: rgba(147, 197, 253, 0.8);
+      transform: translateY(-1px);
       
-      // Reducir tamaño del mat-form-field
+      &::before {
+        opacity: 1;
+      }
+    }
+    
+    &:focus-within {
+      box-shadow: 0 8px 32px rgba(37, 99, 235, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 1);
+      border-color: rgba(96, 165, 250, 0.9);
+      
+      &::before {
+        opacity: 1;
+        animation: borderGlow 2s ease-in-out infinite;
+      }
+    }
+    
+    @keyframes borderGlow {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+    
+    // Botón de limpiar filtros
+    .clear-filters-btn {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 2px solid #fbbf24;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeInSlide 0.4s ease-out;
+      
+      @keyframes fadeInSlide {
+        0% { opacity: 0; transform: translateX(20px); }
+        100% { opacity: 1; transform: translateX(0); }
+      }
+      
+      mat-icon {
+        color: #b45309;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+        transform: scale(1.1) rotate(15deg);
+        box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+        border-color: #f59e0b;
+        
+        mat-icon {
+          animation: shake 0.5s ease-in-out;
+        }
+      }
+      
+      @keyframes shake {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-10deg); }
+        75% { transform: rotate(10deg); }
+      }
+      
+      &:active {
+        transform: scale(1.05) rotate(0deg);
+      }
+    }
+
+    // Campo de búsqueda compacto mejorado con diseño moderno
+    .search-field-compact {
+      flex: 1;
+      margin: 0;
+      
       ::ng-deep {
         .mat-mdc-form-field-wrapper {
-          padding-bottom: 0; // Sin padding inferior
-          margin-bottom: 0; // Sin margen inferior
+          padding-bottom: 0;
+          margin-bottom: 0;
         }
 
         .mat-mdc-text-field-wrapper {
-          padding: 0; // Sin padding interno
-        }
-
-        .mat-mdc-form-field-infix {
-          padding: 8px 0; // Padding reducido: 8px vertical
-          min-height: 36px; // Altura mínima reducida a 36px
-        }
-
-        .mat-mdc-form-field-subscript-wrapper {
-          display: none; // Ocultar área de hints/errores para ahorrar espacio
-        }
-
-        // Icono de búsqueda compacto
-        .search-icon-compact {
-          font-size: 18px; // Tamaño reducido a 18px
-          width: 18px; // Ancho reducido
-          height: 18px; // Altura reducida
-          color: $gray-500; // Color gris medio
-        }
-
-        // Botón de limpiar compacto
-        .clear-btn-compact {
-          width: 28px; // Ancho reducido a 28px
-          height: 28px; // Altura reducida a 28px
-          padding: 0; // Sin padding interno
+          padding: 0;
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+          border: 2px solid #e2e8f0 !important;
+          border-radius: 16px !important;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          position: relative;
+          overflow: hidden;
           
-          mat-icon {
-            font-size: 16px; // Icono más pequeño: 16px
-            width: 16px; // Ancho reducido
-            height: 16px; // Altura reducida
-            color: $gray-500; // Color gris medio
+          // Efecto de brillo sutil
+          &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
           }
-
+          
           &:hover {
-            background: $primary-blue-50; // Fondo azul claro al hover
+            border-color: #3b82f6 !important;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.18), inset 0 1px 2px rgba(255, 255, 255, 0.9) !important;
+            transform: translateY(-2px);
             
-            mat-icon {
-              color: $primary-blue; // Icono azul al hover
+            &::before {
+              left: 100%;
             }
           }
         }
 
-        // Input de texto compacto
-        input {
-          font-size: 0.9rem; // Tamaño de fuente reducido a 0.9rem
-          padding: 0 8px; // Padding horizontal de 8px
-        }
-
-        // Label compacto
-        .mat-mdc-floating-label {
-          font-size: 0.85rem; // Tamaño de fuente reducido a 0.85rem
-        }
-      }
-    }
-
-    // Filtros compactos (categoría y estado)
-    .filter-field-compact {
-      flex-shrink: 0; // Evita que los filtros se reduzcan
-      min-width: 150px; // Ancho mínimo de 150px
-      margin: 0; // Sin márgenes externos
-
-      ::ng-deep {
-        .mat-mdc-form-field-wrapper {
-          padding-bottom: 0; // Sin padding inferior
-          margin-bottom: 0; // Sin margen inferior
-        }
-
-        .mat-mdc-text-field-wrapper {
-          padding: 0; // Sin padding interno
-        }
-
         .mat-mdc-form-field-infix {
-          padding: 8px 0; // Padding reducido: 8px vertical
-          min-height: 36px; // Altura mínima reducida a 36px
+          padding: 8px 12px;
+          min-height: 36px;
         }
 
         .mat-mdc-form-field-subscript-wrapper {
-          display: none; // Ocultar área de hints/errores
+          display: none;
         }
 
-        // Label del filtro
+        .search-icon-compact {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+          color: #3b82f6;
+          margin-right: 4px;
+          animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+
+        .clear-btn-compact {
+          width: 32px;
+          height: 32px;
+          padding: 0;
+          border-radius: 10px;
+          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+          margin-left: 4px;
+          
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: #64748b;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          &:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-radius: 50%;
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+            
+            mat-icon {
+              color: white;
+              transform: rotate(90deg);
+            }
+          }
+          
+          &:active {
+            transform: scale(1.05) rotate(90deg);
+          }
+        }
+
+        input {
+          font-size: 0.95rem;
+          padding: 0 10px;
+          font-weight: 500;
+          color: #1e293b;
+          letter-spacing: 0.01em;
+          
+          &::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+            font-style: italic;
+          }
+          
+          &:focus {
+            outline: none;
+          }
+        }
+
         .mat-mdc-floating-label {
-          font-size: 0.85rem; // Tamaño de fuente reducido
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: #64748b;
         }
 
-        // Select del filtro
-        .mat-mdc-select {
-          font-size: 0.9rem; // Tamaño de fuente reducido
+        &.mat-focused .mat-mdc-text-field-wrapper {
+          border-color: #3b82f6 !important;
+          background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%) !important;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), 0 6px 20px rgba(37, 99, 235, 0.25) !important;
+          transform: translateY(-2px);
+        }
+        
+        &.mat-form-field-invalid .mat-mdc-text-field-wrapper {
+          border-color: #ef4444 !important;
+          box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
         }
       }
     }
 
-    // Badge de resultados compacto
+    // Filtros compactos mejorados (categoría y estado)
+    .filter-field-compact {
+      flex-shrink: 0;
+      min-width: 160px;
+      margin: 0;
+
+      ::ng-deep {
+        .mat-mdc-form-field-wrapper {
+          padding-bottom: 0;
+          margin-bottom: 0;
+        }
+
+        .mat-mdc-text-field-wrapper {
+          padding: 0;
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+          border: 2px solid #e2e8f0 !important;
+          border-radius: 14px !important;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          
+          &:hover {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15) !important;
+            transform: translateY(-1px);
+          }
+        }
+
+        .mat-mdc-form-field-infix {
+          padding: 8px 10px;
+          min-height: 36px;
+        }
+
+        .mat-mdc-form-field-subscript-wrapper {
+          display: none;
+        }
+
+        .mat-mdc-floating-label {
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: #64748b;
+        }
+
+        .mat-mdc-select {
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #1e293b;
+        }
+        
+        .mat-mdc-select-arrow {
+          color: #3b82f6;
+        }
+        
+        &.mat-focused .mat-mdc-text-field-wrapper {
+          border-color: #3b82f6 !important;
+          background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%) !important;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), 0 6px 18px rgba(37, 99, 235, 0.2) !important;
+          transform: translateY(-1px);
+        }
+      }
+    }
+
+    // Badge de resultados mejorado con animación e icono
     .results-badge {
-      flex-shrink: 0; // Evita que el badge se reduzca
-      background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%); // Gradiente azul claro
-      color: $primary-blue-700; // Color azul oscuro para el texto
-      font-size: 0.75rem; // Tamaño de fuente pequeño: 0.75rem (12px)
-      font-weight: 700; // Peso de fuente bold
-      padding: 4px 10px; // Padding compacto: 4px vertical, 10px horizontal
-      border-radius: 12px; // Bordes muy redondeados para efecto pill
-      border: 1px solid $primary-blue-200; // Borde azul claro
-      white-space: nowrap; // Evita que el texto se divida en líneas
-      box-shadow: 0 2px 4px rgba($primary-blue, 0.1); // Sombra azul sutil
-      transition: all 0.2s ease; // Transición suave de 0.2s
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      color: #1e40af;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 18px;
+      border: 2px solid #93c5fd;
+      white-space: nowrap;
+      box-shadow: 0 3px 8px rgba(37, 99, 235, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.02em;
+      cursor: help;
+      
+      mat-icon {
+        animation: bounce 2s ease-in-out infinite;
+      }
+      
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+      }
+      
+      // Efecto de brillo animado
+      &::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+        animation: shimmer 3s ease-in-out infinite;
+      }
+      
+      @keyframes shimmer {
+        0%, 100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        50% { transform: translate(0%, 0%) scale(1); opacity: 1; }
+      }
       
       &:hover {
-        background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%); // Gradiente más oscuro al hover
-        transform: scale(1.05); // Agranda ligeramente al hover
+        background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+        transform: scale(1.08) translateY(-2px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25), inset 0 1px 3px rgba(255, 255, 255, 0.6);
+        border-color: #60a5fa;
+        
+        mat-icon {
+          animation: spin 0.6s ease-in-out;
+        }
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      &:active {
+        transform: scale(1.02) translateY(0);
       }
     }
   }
@@ -308,7 +540,7 @@ $gray-900: #0f172a;
   flex: 1; // ✅ CRECE - Ocupa todo el espacio disponible verticalmente
   display: flex; // Contenedor flexible para que el card hijo también crezca
   flex-direction: column; // Organiza elementos en columna
-  padding: 0 12px 12px 12px; // Relleno: sin superior, 12px en los demás lados
+  padding: 6px 12px 12px 12px; // Relleno: 6px arriba, 12px en los demás lados
   overflow: hidden; // ✅ SIN SCROLL - El card hijo maneja el scroll
   min-height: 0; // ✅ IMPORTANTE - Permite que flex funcione correctamente con overflow
 
@@ -327,7 +559,7 @@ $gray-900: #0f172a;
       flex: 1; // ✅ CRECE - Ocupa todo el espacio disponible del card
       display: flex; // Contenedor flexible para la tabla
       flex-direction: column; // Organiza elementos en columna
-      padding: 16px; // Relleno interno de 16px
+      padding: 10px; // Relleno interno de 10px
       overflow: hidden; // ✅ SIN SCROLL - El table-container maneja el scroll
       min-height: 0; // ✅ IMPORTANTE - Permite que flex funcione correctamente
     }
@@ -336,28 +568,28 @@ $gray-900: #0f172a;
   mat-card-header {
     background: rgba(255, 255, 255, 0.9); // Fondo blanco semi-transparente
     border-bottom: 1px solid rgba($gray-200, 0.3); // Borde inferior gris claro
-    padding: 12px 16px; // Relleno: 12px vertical, 16px horizontal
+    padding: 8px 14px; // Relleno: 8px vertical, 14px horizontal
     flex-shrink: 0; // ✅ NO SE REDUCE - Mantiene su tamaño fijo (no hace scroll)
 
     mat-card-title {
       display: flex; // Contenedor flexible para icono y texto
       align-items: center; // Alinea verticalmente al centro
-      gap: 12px; // Espacio de 12px entre elementos
+      gap: 10px; // Espacio de 10px entre elementos
       margin: 0; // Sin márgenes externos
       color: #1f2937; // Color gris oscuro para el texto
-      font-size: 1.3rem; // Tamaño de fuente de 1.3rem
+      font-size: 1.2rem; // Tamaño de fuente reducido a 1.2rem
       font-weight: 700; // Peso de fuente bold
 
       mat-icon {
-        font-size: 24px; // Tamaño del icono de 24px
-        width: 24px; // Ancho del icono de 24px
-        height: 24px; // Altura del icono de 24px
+        font-size: 22px; // Tamaño del icono reducido a 22px
+        width: 22px; // Ancho del icono de 22px
+        height: 22px; // Altura del icono de 22px
         color: $primary-blue; // Color azul primario para el icono
       }
 
       span {
         color: #4b5563; // Color gris medio para el contador
-        font-size: 0.8rem; // Tamaño de fuente de 0.8rem
+        font-size: 0.75rem; // Tamaño de fuente reducido a 0.75rem
         font-weight: 500; // Peso de fuente medio
       }
     }
@@ -709,31 +941,70 @@ $gray-900: #0f172a;
     }
   }
 
-  // Mensaje sin datos
+  // Mensaje sin datos mejorado
   .no-data {
-    display: flex; // Contenedor flexible
-    flex-direction: column; // Organiza elementos en columna
-    align-items: center; // Centra horizontalmente
-    justify-content: center; // Centra verticalmente
-    padding: 60px 20px; // Relleno: 60px vertical, 20px horizontal
-    gap: 16px; // Espacio de 16px entre elementos
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    gap: 20px;
+    background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+    border-radius: 16px;
+    margin: 20px;
 
     mat-icon {
-      font-size: 64px; // Tamaño del icono de 64px
-      width: 64px; // Ancho del icono de 64px
-      height: 64px; // Altura del icono de 64px
-      color: $gray-400; // Color gris claro para el icono
+      font-size: 80px;
+      width: 80px;
+      height: 80px;
+      color: $gray-400;
+      animation: fadeInScale 0.6s ease-out;
+    }
+    
+    @keyframes fadeInScale {
+      0% { opacity: 0; transform: scale(0.5); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     p {
-      color: $gray-600; // Color gris para el texto
-      font-size: 1.1rem; // Tamaño de fuente de 1.1rem
-      font-weight: 500; // Peso de fuente medio
-      margin: 0; // Sin márgenes externos
+      color: $gray-600;
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin: 0;
+      text-align: center;
+      animation: fadeIn 0.8s ease-out 0.2s both;
     }
-
-    button {
-      margin-top: 8px; // Margen superior de 8px
+    
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    .no-data-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      animation: fadeIn 1s ease-out 0.4s both;
+      
+      button {
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+          margin-right: 8px;
+          animation: none;
+        }
+      }
     }
   }
 }

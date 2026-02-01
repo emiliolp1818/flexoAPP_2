@@ -63,12 +63,12 @@
       <!-- appearance="outline" - Estilo con borde -->
       <mat-form-field appearance="outline" class="search-field-compact">
         <!-- Etiqueta flotante del campo -->
-        <mat-label>Buscar documento</mat-label>
+        <mat-label>🔍 Buscar documento</mat-label>
         <!-- Input de texto vinculado al signal searchTerm -->
         <!-- [value] - Binding unidireccional desde el signal -->
         <!-- (input) - Evento que se dispara al escribir -->
         <input matInput [value]="searchTerm()" (input)="onSearchChange($event)"
-          placeholder="Ej: Manual de Usuario">
+          placeholder="Escribe el nombre o tipo de documento...">
         <!-- Icono de búsqueda al inicio del campo (matPrefix) -->
         <mat-icon matPrefix class="search-icon-compact">search</mat-icon>
         <!-- Botón limpiar integrado al final del campo (matSuffix) -->
@@ -115,13 +115,25 @@
         </mat-select>
       </mat-form-field>
       
-      <!-- Contador de resultados compacto - Badge con número de documentos filtrados -->
-      <!-- Clase: results-badge - Badge azul con gradiente -->
-      <span class="results-badge">
+      <!-- Contador de resultados mejorado - Badge con número de documentos filtrados -->
+      <!-- Clase: results-badge - Badge azul con gradiente y animación -->
+      <span class="results-badge" [matTooltip]="'Mostrando ' + filteredDocuments().length + ' de ' + documents().length + ' documentos'">
+        <!-- Icono de documento -->
+        <mat-icon style="font-size: 16px; width: 16px; height: 16px; margin-right: 4px;">description</mat-icon>
         <!-- Interpolación que muestra el número de documentos filtrados -->
         <!-- filteredDocuments() - Computed signal que se recalcula automáticamente -->
-        {{ filteredDocuments().length }} documento(s)
+        {{ filteredDocuments().length }} / {{ documents().length }}
       </span>
+      
+      <!-- Botón para limpiar filtros (solo visible cuando hay filtros activos) -->
+      <button mat-icon-button 
+        *ngIf="searchTerm() || selectedCategory() !== 'all' || selectedStatus() !== 'all'"
+        (click)="clearFilters()"
+        class="clear-filters-btn"
+        matTooltip="Limpiar todos los filtros"
+        color="accent">
+        <mat-icon>filter_alt_off</mat-icon>
+      </button>
     </div>
   </div>""
 
@@ -293,6 +305,17 @@
                       <!-- Icono de impresora -->
                       <mat-icon>print</mat-icon>
                     </button>
+                    <!-- Botón Descargar - Descarga el documento -->
+                    <!-- (click) - Llama a downloadDocument() pasando el documento -->
+                    <!-- $event.stopPropagation() - Evita que el evento se propague a otros elementos -->
+                    <!-- style inline - Color verde para el icono de descarga -->
+                    <button mat-icon-button (click)="$event.stopPropagation(); downloadDocument(doc)"
+                      class="action-btn download-btn"
+                      matTooltip="Descargar documento"
+                      style="color: #10b981;">
+                      <!-- Icono de descarga -->
+                      <mat-icon>download</mat-icon>
+                    </button>
                     <!-- Botón Editar - Abre diálogo de edición -->
                     <!-- (click) - Llama a editDocument() pasando el documento -->
                     <!-- $event.stopPropagation() - Evita que el evento se propague a otros elementos -->
@@ -322,18 +345,29 @@
         <!-- Mensaje cuando no hay documentos - Estado vacío -->
         <!-- *ngIf - Solo se muestra si no hay documentos filtrados -->
         <div *ngIf="filteredDocuments().length === 0" class="no-data">
-          <!-- Icono grande de documento -->
-          <mat-icon>description</mat-icon>
-          <!-- Mensaje informativo -->
-          <p>No se encontraron documentos</p>
-          <!-- Botón para subir el primer documento -->
-          <!-- (click) - Abre el diálogo de subida de archivos -->
-          <button mat-raised-button color="primary" (click)="uploadDocument()">
-            <!-- Icono de subir archivo -->
-            <mat-icon>upload_file</mat-icon>
-            <!-- Texto del botón -->
-            Subir Primer Documento
-          </button>
+          <!-- Icono grande de búsqueda si hay filtros activos, documento si no hay -->
+          <mat-icon *ngIf="searchTerm() || selectedCategory() !== 'all' || selectedStatus() !== 'all'">search_off</mat-icon>
+          <mat-icon *ngIf="!searchTerm() && selectedCategory() === 'all' && selectedStatus() === 'all'">description</mat-icon>
+          <!-- Mensaje informativo dinámico -->
+          <p *ngIf="searchTerm() || selectedCategory() !== 'all' || selectedStatus() !== 'all'">
+            No se encontraron documentos con los filtros aplicados
+          </p>
+          <p *ngIf="!searchTerm() && selectedCategory() === 'all' && selectedStatus() === 'all'">
+            No hay documentos disponibles
+          </p>
+          <!-- Sugerencia para limpiar filtros o subir documento -->
+          <div class="no-data-actions">
+            <button mat-raised-button color="accent" 
+              *ngIf="searchTerm() || selectedCategory() !== 'all' || selectedStatus() !== 'all'"
+              (click)="clearFilters()">
+              <mat-icon>filter_alt_off</mat-icon>
+              Limpiar Filtros
+            </button>
+            <button mat-raised-button color="primary" (click)="uploadDocument()">
+              <mat-icon>upload_file</mat-icon>
+              Subir Primer Documento
+            </button>
+          </div>
         </div>
 
       </mat-card-content>

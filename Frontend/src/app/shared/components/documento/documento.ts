@@ -73,6 +73,7 @@ export class DocumentoComponent implements OnInit {
   searchTerm = signal<string>('');                 // Término de búsqueda ingresado por el usuario
   selectedCategory = signal<string>('all');        // Categoría seleccionada en el filtro
   selectedStatus = signal<string>('all');          // Estado seleccionado en el filtro
+  isSearching = signal<boolean>(false);            // Indica si hay una búsqueda activa
 
   // ===== COMPUTED SIGNALS =====
   // Se recalculan automáticamente cuando cambian sus dependencias
@@ -175,6 +176,7 @@ export class DocumentoComponent implements OnInit {
   onSearchChange(event: Event): void {
     const input = event.target as HTMLInputElement; // Obtener el elemento input
     this.searchTerm.set(input.value);              // Actualizar el signal con el nuevo valor
+    this.isSearching.set(input.value.length > 0);  // Activar indicador de búsqueda activa
   }
 
   // Cambiar categoría seleccionada en el filtro
@@ -185,6 +187,15 @@ export class DocumentoComponent implements OnInit {
   // Cambiar estado seleccionado en el filtro
   onStatusChange(status: string): void {
     this.selectedStatus.set(status);               // Actualizar el signal de estado
+  }
+
+  // Limpiar todos los filtros
+  clearFilters(): void {
+    this.searchTerm.set('');                       // Limpiar término de búsqueda
+    this.selectedCategory.set('all');              // Resetear categoría a "todas"
+    this.selectedStatus.set('all');                // Resetear estado a "todos"
+    this.isSearching.set(false);                   // Desactivar indicador de búsqueda
+    this.showMessage('✓ Filtros limpiados');       // Mostrar mensaje de confirmación
   }
 
   // ===== MÉTODOS DE ACCIONES =====
@@ -336,7 +347,7 @@ export class DocumentoComponent implements OnInit {
       // Construir URL del endpoint de conversión a PDF
       const pdfUrl = `${environment.apiUrl}/documentos/${document.documentoID}/pdf`;
       
-      // Abrir diálogo elegante con el visor PDF
+      // Abrir diálogo elegante con el visor PDF (reutilizar fileUrl ya calculado arriba)
       this.dialog.open(PdfViewerDialogComponent, {
         width: '95vw',
         maxWidth: '1600px',
@@ -349,7 +360,9 @@ export class DocumentoComponent implements OnInit {
         data: {
           documentoId: document.documentoID,
           fileName: document.nombre,
-          pdfUrl: pdfUrl
+          pdfUrl: pdfUrl,
+          originalFileUrl: fileUrl, // Usar fileUrl ya calculado arriba
+          fileType: document.tipo // Pasar el tipo de archivo
         }
       });
       
@@ -593,121 +606,62 @@ export class DocumentoComponent implements OnInit {
    * @param doc - Documento a descargar
    */
   downloadDocument(doc: Documento): void {
-    // Si el documento tiene URL, iniciar descarga
-    if (doc.rutaArchivo) {
-      // Validar que la ruta no sea base64
-      if (doc.rutaArchivo.includes('base64')) {
-        // Log solo en modo desarrollo
-        if (!environment.production) {
-          console.error('❌ Error: La ruta del archivo contiene base64');
-        }
-        // Mostrar mensaje personalizado al usuario
-        this.showMessage('✗ Error: El documento no tiene una URL válida');
-        return;
-      }
+    if (!doc.rutaArchivo) {
+      this.showMessage(`✗ El documento "${doc.nombre}" no tiene URL asociada`);
+      return;
+    }
 
-      // Construir URL completa del archivo usando la configuración del environment
-      const backendUrl = environment.apiUrl.replace('/api', '');
-      const fileUrl = doc.rutaArchivo.startsWith('http') 
-        ? doc.rutaArchivo 
-        : `${backendUrl}${doc.rutaArchivo}`;
-      
-      // Log para debugging (solo en modo desarrollo)
-      if (!environment.production) {
-        console.log('⬇️ Descargando documento:', {
-          nombre: doc.nombre,
-          tipo: doc.tipo,
-          urlCompleta: fileUrl
-        });
-      }
+    if (doc.rutaArchivo.includes('base64')) {
+      this.showMessage('✗ Error: El documento no tiene una URL válida');
+      return;
+    }
 
-      // Validar que la URL es válida
-      try {
-        new URL(fileUrl);
-      } catch (error) {
-        // Log solo en modo desarrollo
-        if (!environment.production) {
-          console.error('❌ URL inválida:', fileUrl);
-        }
-        // Mostrar mensaje personalizado al usuario
-        this.showMessage('✗ Error: URL del documento inválida');
-        return;
-      }
-      
-      // Método 1: Intentar descarga directa con fetch
-      fetch(fileUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.blob();
-      })
-      .then(blob => {
-        // Crear URL temporal del blob
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        // Crear elemento <a> temporal para descargar
-        const link = window.document.createElement('a');
-        link.href = blobUrl;
-        link.download = doc.nombreArchivo || doc.nombre || 'documento';
-        
-        // Agregar al DOM, hacer clic y remover
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Liberar el objeto URL después de un tiempo
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-        
-        // Log solo en modo desarrollo
-        if (!environment.production) {
-          console.log('✓ Descarga iniciada correctamente');
-        }
-        // Mostrar mensaje personalizado al usuario
-        this.showMessage(`⬇️ Descargando: ${doc.nombre}`);
-      })
-      .catch(error => {
-        // Log solo en modo desarrollo
-        if (!environment.production) {
-          console.error('✗ Error al descargar:', error);
-          console.log('🔄 Intentando método alternativo...');
-        }
-        
-        // Método 2: Fallback - abrir en nueva pestaña
-        window.open(fileUrl, '_blank');
-        // Mostrar mensaje personalizado al usuario
-        this.showMessage(`📂 Abriendo documento: ${doc.nombre}`);
+    const backendUrl = environment.apiUrl.replace('/api', '');
+    const fileUrl = doc.rutaArchivo.startsWith('http') 
+      ? doc.rutaArchivo 
+      : `${backendUrl}${doc.rutaArchivo}`;
+    
+    if (!environment.production) {
+      console.log('⬇️ Descargando documento:', {
+        nombre: doc.nombre,
+        tipo: doc.tipo,
+        urlCompleta: fileUrl
       });
-      
-      // Incrementar contador de descargas en la base de datos
-      if (doc.documentoID) {
-        this.documentoService.incrementDownloads(doc.documentoID).subscribe({
-          // Callback cuando se incrementa exitosamente
-          next: () => {
-            // Log solo en modo desarrollo
-            if (!environment.production) {
-              console.log('✓ Descarga registrada correctamente');
-            }
-            // Recargar lista para actualizar el contador de descargas
-            this.loadDocuments();
-          },
-          // Callback cuando ocurre un error (no crítico, no mostrar al usuario)
-          error: (error) => {
-            // Log solo en modo desarrollo
-            if (!environment.production) {
-              console.error('✗ Error al registrar descarga:', error);
-            }
+    }
+
+    try {
+      new URL(fileUrl);
+    } catch (error) {
+      this.showMessage('✗ Error: URL del documento inválida');
+      return;
+    }
+    
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = doc.nombreArchivo || doc.nombre || 'documento';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.showMessage(`⬇️ Descargando: ${doc.nombre}`);
+    
+    if (doc.documentoID) {
+      this.documentoService.incrementDownloads(doc.documentoID).subscribe({
+        next: () => {
+          if (!environment.production) {
+            console.log('✓ Descarga registrada correctamente');
           }
-        });
-      }
-    } else {
-      // Si no tiene URL, mostrar mensaje de error personalizado
-      this.showMessage(`✗ El documento "${doc.nombre}" no está disponible para descarga`);
+          this.loadDocuments();
+        },
+        error: (error) => {
+          if (!environment.production) {
+            console.error('✗ Error al registrar descarga:', error);
+          }
+        }
+      });
     }
   }
 

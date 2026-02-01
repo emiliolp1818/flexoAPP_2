@@ -204,20 +204,7 @@
                 
                 <table mat-table [dataSource]="selectedMachinePrograms()" class="excel-table programs-table-modern">
                   
-                  <!-- COLUMNA: OT SAP -->
-                  <ng-container matColumnDef="otSap">
-                    <th mat-header-cell *matHeaderCellDef class="excel-header">
-                      <div class="header-content">
-                        <mat-icon>assignment</mat-icon>
-                        <span>OT SAP</span>
-                      </div>
-                    </th>
-                    <td mat-cell *matCellDef="let element" class="excel-cell otsap-cell">
-                      <span class="otsap-code">{{ element.otSap }}</span>
-                    </td>
-                  </ng-container>
-                  
-                  <!-- COLUMNA: Artículo -->
+                  <!-- COLUMNA: Artículo - CAMPO REDUCIDO -->
                   <ng-container matColumnDef="articulo">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -227,6 +214,19 @@
                     </th>
                     <td mat-cell *matCellDef="let element" class="excel-cell article-cell">
                       <span class="article-code">{{ element.articulo }}</span>
+                    </td>
+                  </ng-container>
+                  
+                  <!-- COLUMNA: OT SAP - CAMPO REDUCIDO -->
+                  <ng-container matColumnDef="otSap">
+                    <th mat-header-cell *matHeaderCellDef class="excel-header">
+                      <div class="header-content">
+                        <mat-icon>assignment</mat-icon>
+                        <span>OT SAP</span>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let element" class="excel-cell otsap-cell">
+                      <span class="otsap-code">{{ element.otSap }}</span>
                     </td>
                   </ng-container>
                   
@@ -243,7 +243,7 @@
                     </td>
                   </ng-container>
                   
-                  <!-- COLUMNA: Referencia -->
+                  <!-- COLUMNA: Referencia - CAMPO AMPLIADO -->
                   <ng-container matColumnDef="referencia">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -300,7 +300,7 @@
                     </td>
                   </ng-container>
                   
-                  <!-- COLUMNA: Kilos -->
+                  <!-- COLUMNA: Kilos - FORMATO ORIGINAL DEL EXCEL -->
                   <ng-container matColumnDef="kilos">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -310,7 +310,7 @@
                     </th>
                     <td mat-cell *matCellDef="let element" class="excel-cell kilos-cell">
                       <div class="kilos-info">
-                        <span class="kilos-number">{{ element.kilos | number:'1.0-3' }}</span>
+                        <span class="kilos-number">{{ element.kilos }}</span>
                         <span class="kilos-unit">kg</span>
                       </div>
                     </td>
@@ -380,36 +380,40 @@
                     </th>
                     <td mat-cell *matCellDef="let element" class="excel-cell actions-cell">
                       <div class="action-buttons">
-                        <button mat-icon-button 
-                          class="action-btn preparando-btn"
-                          (click)="$event.stopPropagation(); console.log('🔵 CLICK PREPARANDO - OT:', element.otSap, 'Art:', element.articulo); handleAction(element, 'PREPARANDO')"
-                          [disabled]="element.estado === 'PREPARANDO'">
-                          <mat-icon>schedule</mat-icon>
-                        </button>
                         
+                        <!-- Botón unificado de PLAY con menú desplegable para PREPARANDO/LISTO -->
                         <button mat-icon-button 
-                          class="action-btn listo-btn"
-                          (click)="$event.stopPropagation(); console.log('🟢 CLICK LISTO - OT:', element.otSap, 'Art:', element.articulo); handleAction(element, 'LISTO')"
-                          [disabled]="element.estado === 'LISTO'">
-                          <mat-icon>check_circle</mat-icon>
-                        </button>
-                        
-                        <button mat-icon-button 
-                          class="action-btn suspendido-btn"
-                          (click)="$event.stopPropagation(); console.log('🟠 CLICK SUSPENDIDO - OT:', element.otSap, 'Art:', element.articulo); suspendProgram(element)"
-                          [disabled]="element.estado === 'SUSPENDIDO'">
-                          <mat-icon>pause_circle</mat-icon>
-                        </button>
-                        
-                        <button mat-icon-button 
-                          class="action-btn corriendo-btn"
-                          [matMenuTriggerFor]="corriendoMenu"
+                          class="action-btn play-btn"
+                          [matMenuTriggerFor]="playMenu"
                           (click)="$event.stopPropagation(); setCurrentProgramForMenu(element)"
                           [disabled]="element.estado === 'CORRIENDO' || element.estado === 'TERMINADO'">
-                          <mat-icon>stop_circle</mat-icon>
+                          <mat-icon>play_arrow</mat-icon>
                         </button>
                         
-                        <mat-menu #corriendoMenu="matMenu">
+                        <mat-menu #playMenu="matMenu">
+                          <button mat-menu-item 
+                            (click)="handleActionWithValidation(currentProgramForMenu!, 'PREPARANDO')"
+                            [disabled]="currentProgramForMenu?.estado === 'PREPARANDO'">
+                            <mat-icon>schedule</mat-icon>
+                            <span>Preparando</span>
+                          </button>
+                          <button mat-menu-item 
+                            (click)="handleActionWithValidation(currentProgramForMenu!, 'LISTO')"
+                            [disabled]="currentProgramForMenu?.estado === 'LISTO' || currentProgramForMenu?.estado !== 'PREPARANDO'">
+                            <mat-icon>check_circle</mat-icon>
+                            <span>Listo</span>
+                          </button>
+                        </mat-menu>
+                        
+                        <!-- Botón de STOP con menú desplegable para CORRIENDO/TERMINADO -->
+                        <button mat-icon-button 
+                          class="action-btn stop-btn"
+                          [matMenuTriggerFor]="stopMenu"
+                          (click)="$event.stopPropagation(); setCurrentProgramForMenu(element)">
+                          <mat-icon>stop</mat-icon>
+                        </button>
+                        
+                        <mat-menu #stopMenu="matMenu">
                           <button mat-menu-item (click)="handleAction(currentProgramForMenu!, 'CORRIENDO')">
                             <mat-icon>play_circle</mat-icon>
                             <span>Corriendo</span>
@@ -420,11 +424,31 @@
                           </button>
                         </mat-menu>
                         
+                        <!-- Botón de SUSPENDER -->
+                        <button mat-icon-button 
+                          class="action-btn suspendido-btn"
+                          (click)="$event.stopPropagation(); suspendProgram(element)"
+                          [disabled]="element.estado === 'SUSPENDIDO'">
+                          <mat-icon>pause_circle</mat-icon>
+                        </button>
+                        
+                        <!-- Botón de MENSAJES (solo para admin y supervisor) - SIEMPRE PARPADEANTE CUANDO HAY MENSAJE -->
+                        <button mat-icon-button 
+                          class="action-btn message-btn"
+                          [class.has-message]="hasMessages(element)"
+                          (click)="$event.stopPropagation(); canSendMessages() ? openMessageDialog(element) : showMessage(element)"
+                          *ngIf="canSendMessages() || hasMessages(element)"
+                          matTooltip="{{canSendMessages() ? (hasMessages(element) ? 'Editar mensaje' : 'Enviar mensaje') : 'Ver mensaje'}}">
+                          <mat-icon [class.blinking]="hasMessages(element)">campaign</mat-icon>
+                        </button>
+                        
+                        <!-- Botón de IMPRIMIR -->
                         <button mat-icon-button 
                           class="action-btn imprimir-btn"
-                          (click)="$event.stopPropagation(); console.log('🖨️ CLICK IMPRIMIR - OT:', element.otSap, 'Art:', element.articulo); printFF459(element)">
+                          (click)="$event.stopPropagation(); printFF459(element)">
                           <mat-icon>print</mat-icon>
                         </button>
+                        
                       </div>
                     </td>
                   </ng-container>
@@ -584,6 +608,93 @@
               class="confirm-suspend-btn">
         <mat-icon>pause_circle</mat-icon> <!-- Icono de pausa -->
         Suspender <!-- Texto del botón -->
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Diálogo modal de mensajes - Solo visible cuando showMessageDialog es true -->
+<div *ngIf="showMessageDialog" class="message-dialog-overlay">
+  <!-- Contenedor principal del diálogo con fondo semi-transparente -->
+  <div class="message-dialog">
+    
+    <!-- Encabezado del diálogo con título y botón de cerrar -->
+    <div class="message-dialog-header">
+      <!-- Título del diálogo con icono -->
+      <h3 class="dialog-title">
+        <mat-icon>campaign</mat-icon> <!-- Icono de mensaje -->
+        {{ canSendMessages() ? (isEditingMessage ? 'Editar Mensaje' : 'Enviar Mensaje') : 'Mensaje del Administrador' }} <!-- Texto del título -->
+      </h3>
+      <!-- Botón para cerrar el diálogo -->
+      <button mat-icon-button 
+              (click)="closeMessageDialog()" 
+              class="close-btn">
+        <mat-icon>close</mat-icon> <!-- Icono de cerrar (X) -->
+      </button>
+    </div>
+
+    <!-- Contenido principal del diálogo -->
+    <div class="message-dialog-content">
+      
+      <!-- Sección de información del programa -->
+      <div class="program-info">
+        <!-- Elemento de información: Programa -->
+        <div class="info-item">
+          <span class="info-label">Programa:</span> <!-- Etiqueta -->
+          <!-- Valor dinámico del artículo del programa seleccionado -->
+          <span class="info-value">{{ messageProgram?.articulo }}</span>
+        </div>
+        <!-- Elemento de información: Cliente -->
+        <div class="info-item">
+          <span class="info-label">Cliente:</span> <!-- Etiqueta -->
+          <!-- Valor dinámico del cliente del programa seleccionado -->
+          <span class="info-value">{{ messageProgram?.cliente }}</span>
+        </div>
+      </div>
+
+      <!-- Sección del mensaje -->
+      <div class="message-section">
+        <!-- Campo de texto para el mensaje -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ canSendMessages() ? 'Mensaje para el operario' : 'Mensaje' }}</mat-label> <!-- Etiqueta del campo -->
+          <!-- Textarea vinculado bidireccional con la variable currentMessage -->
+          <textarea matInput 
+                    [(ngModel)]="currentMessage" 
+                    [placeholder]="canSendMessages() ? 'Escribe el mensaje para el operario...' : ''"
+                    [readonly]="!canSendMessages()"
+                    rows="4"
+                    [required]="canSendMessages()"></textarea> <!-- Campo requerido solo para envío -->
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Sección de acciones del diálogo -->
+    <div class="message-dialog-actions">
+      <!-- Botón para cerrar -->
+      <button mat-stroked-button 
+              (click)="closeMessageDialog()"
+              class="cancel-btn">
+        <mat-icon>close</mat-icon> <!-- Icono de cerrar -->
+        Cerrar <!-- Texto del botón -->
+      </button>
+      
+      <!-- Botón para eliminar mensaje (solo para admin/supervisor y programas TERMINADOS) -->
+      <button *ngIf="canSendMessages() && hasMessages(messageProgram!) && messageProgram?.estado === 'TERMINADO'" 
+              mat-stroked-button 
+              (click)="deleteMessage(messageProgram!)" 
+              class="delete-message-btn">
+        <mat-icon>delete</mat-icon> <!-- Icono de eliminar -->
+        Eliminar Mensaje <!-- Texto del botón -->
+      </button>
+      
+      <!-- Botón para enviar/actualizar mensaje (solo para admin/supervisor) -->
+      <button *ngIf="canSendMessages()" 
+              mat-raised-button 
+              (click)="sendMessage()" 
+              [disabled]="!currentMessage.trim()"
+              class="send-message-btn">
+        <mat-icon>{{ isEditingMessage ? 'edit' : 'send' }}</mat-icon> <!-- Icono de enviar o editar -->
+        {{ isEditingMessage ? 'Actualizar Mensaje' : 'Enviar Mensaje' }} <!-- Texto del botón -->
       </button>
     </div>
   </div>

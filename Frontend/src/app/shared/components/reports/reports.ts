@@ -122,7 +122,7 @@ export const MY_DATE_FORMATS = {
     { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
   ],
   templateUrl: './reports.html',
-  styleUrls: ['./reports.scss']
+  styleUrls: ['./reports.scss', './reports-fix.scss']
 })
 export class ReportsComponent implements OnInit {
   // ============================================================================
