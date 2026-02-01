@@ -151,18 +151,30 @@ export class LoginComponent implements OnInit, OnDestroy {
             });
             
             let errorMsg = 'Error de conexión';
+            let errorDetails = '';
             
             if (error.status === 401) {
               errorMsg = 'Usuario o contraseña incorrectos';
             } else if (error.status === 0) {
               errorMsg = 'No se puede conectar al servidor';
+              errorDetails = `Intentando conectar a: ${error.url || 'URL desconocida'}. Verifica que el backend esté corriendo y que CORS esté configurado correctamente.`;
             } else if (error.status === 404) {
               errorMsg = 'Endpoint de login no encontrado';
+              errorDetails = `URL: ${error.url}`;
             } else if (error.error?.message) {
               errorMsg = error.error.message;
+            } else if (error.message) {
+              errorMsg = error.message;
             }
             
-            this.errorMessage.set(errorMsg);
+            // Mostrar error detallado en consola para debugging móvil
+            console.error('🔴 ERROR DE LOGIN:', errorMsg);
+            if (errorDetails) {
+              console.error('📋 Detalles:', errorDetails);
+            }
+            
+            // Mostrar en UI
+            this.errorMessage.set(errorMsg + (errorDetails ? '\n\n' + errorDetails : ''));
           }
         });
     }

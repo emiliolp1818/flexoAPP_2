@@ -87,7 +87,7 @@ try
             .AllowCredentials();
         });
         
-        // Política para producción en Render
+        // Política para producción en Render y desarrollo local
         options.AddPolicy("RenderProduction", policy =>
         {
             policy.SetIsOriginAllowed(origin =>
@@ -98,6 +98,10 @@ try
                 
                 // Permitir localhost para desarrollo
                 if (origin.Contains("localhost") || origin.Contains("127.0.0.1"))
+                    return true;
+                
+                // Permitir IPs de red local (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+                if (System.Text.RegularExpressions.Regex.IsMatch(origin, @"https?://(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)\d{1,3}\.\d{1,3}(:\d+)?"))
                     return true;
                 
                 return false;

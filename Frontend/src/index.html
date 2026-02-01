@@ -61,6 +61,25 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <!-- Eruda - Consola de debugging para móviles (solo en desarrollo) -->
+  <script>
+    // Solo cargar Eruda si estamos en desarrollo o si hay un parámetro ?debug=true en la URL
+    if (window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1' || 
+        window.location.search.includes('debug=true') ||
+        window.location.hostname.match(/^192\.168\./)) {
+      (function() {
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+        document.body.appendChild(script);
+        script.onload = function() {
+          eruda.init();
+          console.log('🔍 Eruda debugging console loaded');
+        };
+      })();
+    }
+  </script>
 </head>
 <body>
   <app-root>
