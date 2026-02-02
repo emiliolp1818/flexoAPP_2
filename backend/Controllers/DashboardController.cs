@@ -118,21 +118,26 @@ namespace FlexoAPP.API.Controllers
                 try
                 {
                     // Obtener actividades de máquinas con duración (PREPARANDO -> LISTO)
+                    // Primero traer los datos a memoria, luego filtrar por TotalMinutes
                     var machineActivities = await _context.Activities
                         .Where(a => 
                             a.Module == "MACHINES" && 
                             a.Action == "MACHINE_STATUS_CHANGED" &&
                             a.Duration != null &&
-                            a.Duration.Value.TotalMinutes > 0 &&
                             a.Description.Contains("PREPARANDO") &&
                             a.Description.Contains("LISTO"))
                         .ToListAsync();
 
-                    if (machineActivities.Any())
+                    // Filtrar en memoria por TotalMinutes > 0
+                    var validActivities = machineActivities
+                        .Where(a => a.Duration!.Value.TotalMinutes > 0)
+                        .ToList();
+
+                    if (validActivities.Any())
                     {
                         // Calcular promedio en minutos
-                        averageSetupTime = machineActivities.Average(a => a.Duration!.Value.TotalMinutes);
-                        totalSetupChanges = machineActivities.Count;
+                        averageSetupTime = validActivities.Average(a => a.Duration!.Value.TotalMinutes);
+                        totalSetupChanges = validActivities.Count;
                         
                         Console.WriteLine($"✅ Tiempo promedio: {Math.Round(averageSetupTime, 1)} min de {totalSetupChanges} cambios");
                     }
@@ -191,30 +196,35 @@ namespace FlexoAPP.API.Controllers
         {
             try
             {
-                // Obtener actividades de máquinas con duración agrupadas por usuario
-                var userAverages = await _context.Activities
+                // Obtener actividades de máquinas con duración
+                // Primero traer los datos a memoria, luego procesar
+                var activities = await _context.Activities
                     .Include(a => a.User) // Incluir navegación a User
                     .Where(a => 
                         a.Module == "MACHINES" && 
                         a.Action == "MACHINE_STATUS_CHANGED" &&
                         a.Duration != null &&
-                        a.Duration.Value.TotalMinutes > 0 &&
                         a.Description.Contains("PREPARANDO") &&
                         a.Description.Contains("LISTO") &&
                         a.UserId > 0)
-                    .GroupBy(a => new { a.UserId, a.UserCode })
+                    .ToListAsync();
+
+                // Filtrar y agrupar en memoria
+                var userAverages = activities
+                    .Where(a => a.Duration!.Value.TotalMinutes > 0)
+                    .GroupBy(a => new { a.UserId, a.UserCode, a.User })
                     .Select(g => new
                     {
                         userId = g.Key.UserId,
                         userCode = g.Key.UserCode,
-                        userName = g.First().User != null ? g.First().User.FirstName + " " + g.First().User.LastName : g.Key.UserCode,
-                        averageTime = g.Average(a => a.Duration!.Value.TotalMinutes),
+                        userName = g.Key.User != null ? g.Key.User.FirstName + " " + g.Key.User.LastName : g.Key.UserCode,
+                        averageTime = Math.Round(g.Average(a => a.Duration!.Value.TotalMinutes), 1),
                         totalChanges = g.Count(),
-                        minTime = g.Min(a => a.Duration!.Value.TotalMinutes),
-                        maxTime = g.Max(a => a.Duration!.Value.TotalMinutes)
+                        minTime = Math.Round(g.Min(a => a.Duration!.Value.TotalMinutes), 1),
+                        maxTime = Math.Round(g.Max(a => a.Duration!.Value.TotalMinutes), 1)
                     })
                     .OrderBy(u => u.averageTime)
-                    .ToListAsync();
+                    .ToList();
 
                 Console.WriteLine($"📊 Tiempos promedio por usuario: {userAverages.Count} usuarios");
 
