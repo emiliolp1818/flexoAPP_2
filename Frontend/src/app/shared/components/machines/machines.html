@@ -432,10 +432,11 @@
                           <mat-icon>pause_circle</mat-icon>
                         </button>
                         
-                        <!-- Botón de MENSAJES (solo para admin y supervisor) - SIEMPRE PARPADEANTE CUANDO HAY MENSAJE -->
+                        <!-- Botón de MENSAJES - VISIBLE SIEMPRE: Admin/Supervisor pueden enviar, Operarios solo ven -->
                         <button mat-icon-button 
                           class="action-btn message-btn"
                           [class.has-message]="hasMessages(element)"
+                          [class.visible-always]="hasMessages(element)"
                           (click)="$event.stopPropagation(); canSendMessages() ? openMessageDialog(element) : showMessage(element)"
                           *ngIf="canSendMessages() || hasMessages(element)"
                           matTooltip="{{canSendMessages() ? (hasMessages(element) ? 'Editar mensaje' : 'Enviar mensaje') : 'Ver mensaje'}}">

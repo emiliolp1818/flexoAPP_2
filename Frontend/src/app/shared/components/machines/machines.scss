@@ -3321,6 +3321,23 @@ $gray-900: #0f172a;
                         width: 18px !important;
                         height: 18px !important;
                       }
+                      
+                      // Asegurar que el botón de mensajes sea visible en móvil
+                      &.message-btn {
+                        display: inline-flex !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        
+                        &.has-message,
+                        &.visible-always {
+                          background-color: #ff6b35 !important;
+                          animation: pulse 1.5s infinite !important;
+                          
+                          mat-icon {
+                            animation: blink 1s infinite !important;
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -3509,6 +3526,23 @@ $gray-900: #0f172a;
                         font-size: 14px;
                         width: 14px;
                         height: 14px;
+                      }
+                      
+                      // Asegurar que el botón de mensajes sea visible en móviles pequeños
+                      &.message-btn {
+                        display: inline-flex !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        
+                        &.has-message,
+                        &.visible-always {
+                          background-color: #ff6b35 !important;
+                          animation: pulse 1.5s infinite !important;
+                          
+                          mat-icon {
+                            animation: blink 1s infinite !important;
+                          }
+                        }
                       }
                     }
                   }
