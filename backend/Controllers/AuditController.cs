@@ -44,6 +44,9 @@ namespace FlexoAPP.API.Controllers
         {
             try
             {
+                // Log de parámetros recibidos
+                _logger.LogInformation($"🔍 GetActivities llamado con parámetros: userId={userId}, module={module}, action={action}, startDate={startDate}, endDate={endDate}");
+                
                 // Registrar consulta de auditoría
                 await _activityLogger.LogActivityAsync(
                     "VIEW_AUDIT",
@@ -58,25 +61,41 @@ namespace FlexoAPP.API.Controllers
 
                 // Aplicar filtros
                 if (userId.HasValue)
+                {
+                    _logger.LogInformation($"✅ Aplicando filtro de userId: {userId.Value}");
                     query = query.Where(a => a.UserId == userId.Value);
+                }
 
                 if (!string.IsNullOrEmpty(module))
+                {
+                    _logger.LogInformation($"✅ Aplicando filtro de module: {module}");
                     query = query.Where(a => a.Module == module);
+                }
 
                 if (!string.IsNullOrEmpty(action))
+                {
+                    _logger.LogInformation($"✅ Aplicando filtro de action: {action}");
                     query = query.Where(a => a.Action == action);
+                }
 
                 if (startDate.HasValue)
+                {
+                    _logger.LogInformation($"✅ Aplicando filtro de startDate: {startDate.Value}");
                     query = query.Where(a => a.Timestamp >= startDate.Value);
+                }
 
                 if (endDate.HasValue)
+                {
+                    _logger.LogInformation($"✅ Aplicando filtro de endDate: {endDate.Value}");
                     query = query.Where(a => a.Timestamp <= endDate.Value);
+                }
 
                 // Ordenar por fecha descendente
                 query = query.OrderByDescending(a => a.Timestamp);
 
                 // Contar total de registros
                 var totalRecords = await query.CountAsync();
+                _logger.LogInformation($"📊 Total de registros después de filtros: {totalRecords}");
 
                 // Aplicar paginación
                 var activities = await query
@@ -109,6 +128,26 @@ namespace FlexoAPP.API.Controllers
                         } : null
                     })
                     .ToListAsync();
+
+                _logger.LogInformation($"📤 Enviando {activities.Count} actividades al frontend");
+                
+                // Verificar si todas las actividades son del usuario correcto
+                if (userId.HasValue && activities.Any())
+                {
+                    var wrongUserActivities = activities.Where(a => a.UserId != userId.Value).ToList();
+                    if (wrongUserActivities.Any())
+                    {
+                        _logger.LogError($"❌ ERROR: Se encontraron {wrongUserActivities.Count} actividades de otros usuarios!");
+                        foreach (var wrongActivity in wrongUserActivities.Take(3))
+                        {
+                            _logger.LogError($"   - Actividad ID: {wrongActivity.Id}, UserId: {wrongActivity.UserId}, UserCode: {wrongActivity.UserCode}");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"✅ Todas las actividades son del usuario {userId.Value}");
+                    }
+                }
 
                 return Ok(new
                 {

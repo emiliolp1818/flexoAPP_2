@@ -1,12 +1,9 @@
 // ============================================================================
-// IMPORTS - Módulos y servicios necesarios
+// REPORTE DE AUDITORÍA COMPLETO DEL SISTEMA
 // ============================================================================
 
-// Angular Core
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-// Angular Material
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -14,92 +11,60 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-
-// Formularios Reactivos
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-
-// Servicios
-import { User } from '../../../core/services/auth.service';
+import { MatTableModule } from '@angular/material/table';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { TimeFormatService } from '../../../core/services/time-format.service';
-
-// jsPDF para generación de PDFs
+import { AuthService } from '../../../core/services/auth.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 // ============================================================================
-// INTERFACES - Definición de tipos de datos para el componente
+// INTERFACES
 // ============================================================================
 
-/**
- * UserAction - Representa una acción realizada por un usuario en el sistema
- * Utilizada para rastrear y auditar actividades de usuarios
- */
-interface UserAction {
-  id: string;                    // Identificador único de la acción
-  userId: string;                // ID del usuario que realizó la acción
-  userCode: string;              // Código de usuario (ej: admin, operator01)
-  action: string;                // Tipo de acción realizada (ej: LOGIN, CREATE, UPDATE, DELETE)
-  description: string;           // Descripción detallada de la acción
-  module: string;                // Módulo donde se realizó la acción (AUTH, MACHINES, DESIGN, etc.)
-  component: string;             // Componente específico donde ocurrió la acción
-  timestamp: Date;               // Fecha y hora exacta de la acción
-  expiryDate: Date;              // Fecha de expiración del registro (para limpieza automática)
-  daysRemaining: number;         // Días restantes antes de que expire el registro
-  isExpiringSoon: boolean;       // Flag que indica si el registro está próximo a expirar
-  metadata?: any;                // Datos adicionales opcionales (IP, navegador, dispositivo, etc.)
+interface AuditActivity {
+  id: number;
+  action: string;
+  description: string;
+  timestamp: Date;
+  module: string;
+  details: string;
+  userId: number;
+  userCode: string;
+  ipAddress?: string;
+  entityType?: string;
+  entityId?: number;
+  entityName?: string;
+  duration?: number;
+  oldValues?: string;
+  newValues?: string;
+  expanded?: boolean; // Para controlar el estado de expansión
+  user?: {
+    id: number;
+    userCode: string;
+    firstName: string;
+    lastName: string;
+    fullName: string;
+  };
 }
 
-/**
- * UserReport - Reporte completo de actividades de un usuario
- * Agrupa todas las actividades y estadísticas de un usuario en un período específico
- */
-interface UserReport {
-  user: User;                                      // Información completa del usuario (nombre, código, rol, etc.)
-  activities: UserAction[];                        // Array con todas las actividades del usuario en el período
-  totalActivities: number;                         // Contador total de actividades realizadas
-  moduleBreakdown: { [key: string]: number };      // Desglose de actividades por módulo (ej: {AUTH: 5, MACHINES: 10})
-  dateRange: { start: Date; end: Date };           // Rango de fechas del reporte (fecha inicio y fecha fin)
+interface AuditFilters {
+  userId?: number;
+  module?: string;
+  action?: string;
+  startDate?: Date;
+  endDate?: Date;
 }
 
-// Interfaces de máquinas eliminadas - Solo se mantiene reporte de actividades de usuario
-
-// ============================================================================
-// FORMATO DE FECHA PERSONALIZADO - dd/mm/aaaa
-// ============================================================================
-export const MY_DATE_FORMATS = {
-  parse: {
-    dateInput: 'DD/MM/YYYY',
-  },
-  display: {
-    dateInput: 'DD/MM/YYYY',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD/MM/YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  },
-};
-
-// ============================================================================
-// COMPONENTE PRINCIPAL - ReportsComponent
-// ============================================================================
-
-/**
- * ReportsComponent - Componente de reportes y análisis de actividades
- * 
- * Funcionalidades principales:
- * - Consulta de actividades de usuarios por código y rango de fechas
- * - Exportación de reportes a PDF
- * - Visualización de estadísticas y métricas
- * - Filtrado por módulo y rango de fechas
- * 
- * El componente muestra:
- * - Actividades de Usuario: Todas las acciones realizadas por un usuario en el sistema
- */
 @Component({
   selector: 'app-reports',
   standalone: true,
@@ -115,601 +80,721 @@ export const MY_DATE_FORMATS = {
     MatNativeDateModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    ReactiveFormsModule
-  ],
-  providers: [
-    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
-    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
+    MatTableModule,
+    MatExpansionModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatAutocompleteModule,
+    ReactiveFormsModule,
+    FormsModule
   ],
   templateUrl: './reports.html',
-  styleUrls: ['./reports.scss', './reports-fix.scss']
+  styleUrls: ['./reports.scss'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({ height: '0px', minHeight: '0', opacity: 0 })),
+      state('expanded', style({ height: '*', opacity: 1 })),
+      transition('expanded <=> collapsed', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
+    ])
+  ]
 })
 export class ReportsComponent implements OnInit {
-  // ============================================================================
-  // PROPIEDADES - Estado del componente
-  // ============================================================================
-
-  loading = signal<boolean>(false);                    // Indicador de carga
-  searchResults = signal<UserReport | null>(null);     // Resultados de búsqueda
-  searchForm: FormGroup;                               // Formulario de búsqueda
-
-  // Opciones de módulos para el filtro
-  moduleOptions = [
-    { value: 'ALL', label: 'Todos los módulos' },
+  // Señales reactivas
+  loading = signal(false);
+  activities = signal<AuditActivity[]>([]);
+  filteredActivities = signal<AuditActivity[]>([]);
+  users = signal<any[]>([]);
+  filteredUsers = signal<any[]>([]); // Para el filtro de búsqueda de usuarios
+  
+  // Variables para búsqueda de usuario
+  userSearchText: string = '';
+  showUserDropdown: boolean = false;
+  
+  // Formulario de filtros
+  filterForm: FormGroup;
+  
+  // Función para mostrar el valor en el autocomplete
+  displayUserFn(user: any): string {
+    return user ? `${user.userCode} - ${user.firstName} ${user.lastName}` : '';
+  }
+  
+  // Módulos disponibles
+  modules = [
     { value: 'AUTH', label: 'Autenticación' },
-    { value: 'PROFILE', label: 'Perfil' },
     { value: 'MACHINES', label: 'Máquinas' },
-    { value: 'DESIGN', label: 'Diseño' },
+    { value: 'DESIGNS', label: 'Diseños' },
+    { value: 'DOCUMENTS', label: 'Documentos' },
     { value: 'REPORTS', label: 'Reportes' },
-    { value: 'SETTINGS', label: 'Configuraciones' }
+    { value: 'CONFIG', label: 'Configuración' },
+    { value: 'SETTINGS', label: 'Ajustes' },
+    { value: 'PROFILE', label: 'Perfil' },
+    { value: 'CONDICION_UNICA', label: 'Condición Única' }
   ];
-
-  // ============================================================================
-  // CONSTRUCTOR
-  // ============================================================================
-
+  
+  // Columnas de la tabla
+  displayedColumns = ['timestamp', 'user', 'module', 'action', 'description', 'details'];
+  
   constructor(
+    private http: HttpClient,
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
-    private http: HttpClient,
-    public timeFormatService: TimeFormatService
+    private authService: AuthService
   ) {
-    // Inicializar formulario de búsqueda
-    this.searchForm = this.fb.group({
-      userCode: ['', [Validators.required]],  // Código de usuario (requerido)
-      startDate: [''],                        // Fecha inicio (opcional)
-      endDate: [''],                          // Fecha fin (opcional)
-      module: ['ALL']                         // Módulo (por defecto: todos)
+    this.filterForm = this.fb.group({
+      userId: [null],
+      module: [null],
+      startDate: [null],
+      endDate: [null]
     });
   }
-
-  // ============================================================================
-  // LIFECYCLE HOOKS
-  // ============================================================================
 
   ngOnInit() {
-    // No se requiere inicialización adicional
-  }
-
-  // ============================================================================
-  // MÉTODOS DE BÚSQUEDA - Consulta de actividades y reportes
-  // ============================================================================
-
-  /**
-   * searchUserActivities - Buscar actividades por código de usuario
-   * 
-   * Realiza una búsqueda de todas las actividades realizadas por un usuario específico
-   * en un rango de fechas y opcionalmente filtradas por módulo.
-   * 
-   * Flujo de ejecución:
-   * 1. Valida que el formulario sea válido (código de usuario requerido)
-   * 2. Realiza petición HTTP GET al backend con los parámetros de búsqueda
-   * 3. Procesa la respuesta y construye el objeto UserReport
-   * 4. Actualiza la señal searchResults con los datos obtenidos
-   * 5. Muestra notificación de éxito o error al usuario
-   * 
-   * En caso de error del backend, genera datos simulados para demostración
-   */
-  searchUserActivities() {
-    // Validación del formulario - Verificar que todos los campos requeridos estén completos
-    if (this.searchForm.invalid) {
-      // Mostrar notificación de error si el formulario es inválido
-      this.snackBar.open('Por favor ingresa un código de usuario válido', 'Cerrar', {
-        duration: 3000,                    // Duración de 3 segundos
-        panelClass: ['error-snackbar']     // Clase CSS para estilo de error (rojo)
-      });
-      return;  // Salir de la función sin realizar la búsqueda
-    }
-
-    this.loading.set(true);                          // Activar indicador de carga
-    const formValue = this.searchForm.value;         // Obtener valores del formulario
-    const searchUserCode = formValue.userCode.trim(); // Limpiar espacios en blanco del código de usuario
-
-    // ===== PRIMERO: BUSCAR INFORMACIÓN DEL USUARIO EN LA BD =====
-    // Hacer una llamada a la API para obtener la información completa del usuario
-    // Esto valida que el usuario existe y obtiene sus datos completos (nombre, foto, email, etc.)
-    console.log('🔍 Buscando información del usuario:', searchUserCode);
-
-    // Llamada a la API para obtener el usuario por código
-    // GET /api/users/code/{userCode} - Endpoint que busca usuario por código
-    this.http.get<User>(`${environment.apiUrl}/users/code/${searchUserCode}`).subscribe({
-      // next: Se ejecuta cuando la petición es exitosa
-      next: (user) => {
-        // Usuario encontrado exitosamente en la base de datos
-        console.log('✅ Usuario encontrado en la BD:', user);
-
-        // Continuar con la búsqueda de actividades usando los datos reales del usuario
-        this.fetchUserActivities(user, formValue);
-      },
-      // error: Se ejecuta cuando hay un error (usuario no existe, error de red, etc.)
-      error: (error) => {
-        // Desactivar indicador de carga
-        this.loading.set(false);
-
-        // Determinar el mensaje de error según el código de estado HTTP
-        let errorMessage = `Usuario "${searchUserCode}" no encontrado`;
-
-        // Si el error es 404, el usuario no existe
-        if (error.status === 404) {
-          errorMessage = `Usuario "${searchUserCode}" no existe en la base de datos`;
-        }
-        // Si el error es 500, hay un problema en el servidor
-        else if (error.status === 500) {
-          errorMessage = 'Error del servidor al buscar el usuario';
-        }
-        // Otros errores (401, 403, etc.)
-        else if (error.status) {
-          errorMessage = `Error ${error.status}: ${error.statusText}`;
-        }
-
-        // Mostrar notificación de error al usuario
-        this.snackBar.open(errorMessage, 'Cerrar', { duration: 5000 });
-
-        // Registrar error en consola para debugging
-        console.error('❌ Error buscando usuario:', error);
-      }
-    });
-  }  // Fin del método searchUserActivities
-
-
-
-  // ============================================================================
-  // MÉTODOS DE PROCESAMIENTO DE DATOS - Cálculos y transformaciones
-  // ============================================================================
-
-  /**
-   * calculateModuleBreakdown - Calcular desglose de actividades por módulo
-   * 
-   * Analiza un array de actividades y cuenta cuántas actividades se realizaron
-   * en cada módulo del sistema. Útil para generar estadísticas y gráficos.
-   * 
-   * @param activities - Array de actividades de usuario a analizar
-   * @returns Objeto con el conteo de actividades por módulo
-   *          Ejemplo: { AUTH: 5, MACHINES: 10, DESIGN: 3 }
-   * 
-   * @private - Método privado, solo usado internamente en el componente
-   */
-  private calculateModuleBreakdown(activities: UserAction[]): { [key: string]: number } {
-    const breakdown: { [key: string]: number } = {};  // Objeto para almacenar el conteo por módulo
-
-    // Iterar sobre cada actividad y contar por módulo
-    activities.forEach(activity => {
-      // Si el módulo ya existe en breakdown, incrementar su contador
-      // Si no existe, inicializarlo en 0 y luego incrementar a 1
-      breakdown[activity.module] = (breakdown[activity.module] || 0) + 1;
-    });
-
-    return breakdown;  // Retornar objeto con el desglose completo
-  }
-
-  /**
-   * fetchUserActivities - Buscar actividades del usuario en la API
-   * 
-   * Método auxiliar que realiza la búsqueda de actividades una vez que
-   * se ha validado que el usuario existe en la base de datos.
-   * 
-   * @param user - Objeto User con la información completa del usuario
-   * @param formValue - Valores del formulario (fechas, módulo, etc.)
-   */
-  private fetchUserActivities(user: User, formValue: any) {
-    // Construir los parámetros de la petición HTTP
-    // startDate: Fecha de inicio del rango de búsqueda (formato ISO)
-    // endDate: Fecha de fin del rango de búsqueda (formato ISO)
-    // module: Módulo específico a filtrar (opcional)
-    const params: any = {};
-
-    // Si hay fecha de inicio, agregarla a los parámetros
-    if (formValue.startDate) {
-      params.startDate = formValue.startDate.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
-    }
-
-    // Si hay fecha de fin, agregarla a los parámetros
-    if (formValue.endDate) {
-      params.endDate = formValue.endDate.toISOString().split('T')[0]; // Formato: YYYY-MM-DD
-    }
-
-    // Si hay módulo seleccionado y no es 'ALL', agregarlo a los parámetros
-    if (formValue.module && formValue.module !== 'ALL') {
-      params.module = formValue.module;
-    }
-
-    // Registrar en consola los parámetros de búsqueda
-    console.log('📊 Parámetros de búsqueda:', params);
-
-    // Llamada a la API para obtener las actividades del usuario
-    // GET /api/reports/user-activities/{userCode}?startDate=...&endDate=...&module=...
-    this.http.get<any>(`${environment.apiUrl}/reports/user-activities/${user.userCode}`, { params }).subscribe({
-      // next: Se ejecuta cuando la petición es exitosa
-      next: (response) => {
-        // Registrar respuesta en consola
-        console.log('📦 Actividades recibidas:', response);
-
-        // Extraer las actividades de la respuesta
-        // La respuesta puede ser un array directo o un objeto con propiedad 'data'
-        const activities = Array.isArray(response) ? response : (response.data || []);
-
-        // Registrar cantidad de actividades encontradas
-        console.log('✅ Total de actividades:', activities.length);
-
-        // Construir objeto UserReport con los datos reales
-        const report: UserReport = {
-          user,                                              // Usuario encontrado en la BD
-          activities,                                        // Array de actividades REALES
-          totalActivities: activities.length,                // Total de actividades encontradas
-          moduleBreakdown: this.calculateModuleBreakdown(activities),  // Desglose por módulo
-          dateRange: {  // Rango de fechas del reporte
-            start: formValue.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),  // Fecha inicio
-            end: formValue.endDate || new Date()            // Fecha fin
-          }
-        };
-
-        // Actualizar señal con el reporte completo
-        this.searchResults.set(report);
-
-        // Desactivar indicador de carga
-        this.loading.set(false);
-
-        // Mostrar notificación de éxito
-        this.snackBar.open(
-          `Se encontraron ${activities.length} actividades para ${user.userCode}`,
-          'Cerrar',
-          { duration: 3000, panelClass: ['success-snackbar'] }
-        );
-      },
-      // error: Se ejecuta cuando hay un error al buscar actividades
-      error: (error) => {
-        // Desactivar indicador de carga
-        this.loading.set(false);
-
-        // Mostrar notificación de error
-        this.snackBar.open(
-          'Error al buscar actividades del usuario',
-          'Cerrar',
-          { duration: 5000 }
-        );
-
-        // Registrar error en consola
-        console.error('❌ Error buscando actividades:', error);
-      }
+    console.log('🚀 Componente de reportes inicializado');
+    this.loadUsers();
+    // NO cargar actividades al inicio - esperar a que el usuario haga clic en Buscar
+    
+    // Escuchar cambios en el formulario
+    this.filterForm.valueChanges.subscribe(() => {
+      const filters = this.filterForm.value;
+      console.log('🔄 Cambio en formulario detectado:', filters);
+      // NO aplicar filtros automáticamente - esperar a que el usuario haga clic en Buscar
     });
   }
 
-  // ============================================================================
-  // MÉTODOS DE EXPORTACIÓN - Generación de archivos descargables
-  // ============================================================================
-
-  /**
-   * exportToPDF - Exportar reporte de actividades a archivo PDF optimizado y compacto
-   * 
-   * Genera un archivo PDF profesional con el reporte completo de actividades del usuario
-   * usando la librería jsPDF y jspdf-autotable para tablas formateadas.
-   * 
-   * Optimizaciones aplicadas:
-   * - Diseño compacto con márgenes reducidos
-   * - Información del usuario y estadísticas en dos columnas
-   * - Tabla de actividades con más filas por página
-   * - Fuentes más pequeñas pero legibles
-   * - Distribución uniforme del espacio
-   */
-  exportToPDF() {
-    const report = this.searchResults();
-    if (!report) return;
-
-    this.loading.set(true);
-
+  async loadUsers() {
+    console.log('👥 Cargando usuarios...');
     try {
-      // Crear nuevo documento PDF en formato A4
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 15; // Margen reducido de 15mm
-      const contentWidth = pageWidth - (margin * 2);
-      let yPosition = margin;
-
-      // ===== ENCABEZADO COMPACTO =====
-      doc.setFontSize(16); // Tamaño reducido
-      doc.setTextColor(37, 99, 235);
-      doc.setFont('helvetica', 'bold');
-      doc.text('REPORTE DE ACTIVIDADES DE USUARIO', pageWidth / 2, yPosition, { align: 'center' });
+      const response: any = await this.http.get(`${environment.apiUrl}/users`).toPromise();
+      console.log('📦 Respuesta de /users:', response);
+      console.log('📦 Tipo de respuesta:', typeof response);
+      console.log('📦 Es array?:', Array.isArray(response));
       
-      yPosition += 6; // Espacio reducido
+      let usersData: any[] = [];
       
-      // Línea decorativa más delgada
-      doc.setDrawColor(37, 99, 235);
-      doc.setLineWidth(0.3);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      
-      yPosition += 8; // Espacio reducido
-
-      // ===== INFORMACIÓN EN DOS COLUMNAS (Usuario + Período) =====
-      const col1X = margin;
-      const col2X = pageWidth / 2 + 5;
-      const startY = yPosition;
-
-      // COLUMNA 1: Información del Usuario
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Información del Usuario', col1X, yPosition);
-      
-      yPosition += 5;
-      
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.text(`Nombre: ${report.user.firstName} ${report.user.lastName}`, col1X, yPosition);
-      yPosition += 4;
-      doc.text(`Código: ${report.user.userCode}`, col1X, yPosition);
-      yPosition += 4;
-      doc.text(`Email: ${report.user.email}`, col1X, yPosition);
-      yPosition += 4;
-      
-      // Agregar teléfono si existe
-      if (report.user.phone) {
-        doc.text(`Teléfono: ${report.user.phone}`, col1X, yPosition);
-        yPosition += 4;
+      // El backend puede devolver directamente un array o un objeto con { success, data }
+      if (Array.isArray(response)) {
+        // Respuesta directa como array
+        usersData = response;
+        console.log('✅ Respuesta es un array directo');
+      } else if (response && response.success && Array.isArray(response.data)) {
+        // Respuesta con formato { success: true, data: [...] }
+        usersData = response.data;
+        console.log('✅ Respuesta tiene formato { success, data }');
+      } else if (response && Array.isArray(response.users)) {
+        // Respuesta con formato { users: [...] }
+        usersData = response.users;
+        console.log('✅ Respuesta tiene formato { users }');
+      } else {
+        console.warn('⚠️ Formato de respuesta no reconocido:', response);
       }
       
-      doc.text(`Rol: ${this.getRoleDisplayName(report.user.role || '')}`, col1X, yPosition);
+      console.log('✅ Usuarios cargados exitosamente:', usersData.length);
+      console.log('📋 Primer usuario:', usersData[0]);
+      
+      this.users.set(usersData);
+      this.filteredUsers.set(usersData);
+      
+      console.log('📋 users() signal:', this.users().length);
+      console.log('📋 filteredUsers() signal:', this.filteredUsers().length);
+    } catch (error) {
+      console.error('❌ Error cargando usuarios:', error);
+      this.users.set([]);
+      this.filteredUsers.set([]);
+    }
+  }
 
-      // COLUMNA 2: Período y Estadísticas (resetear yPosition)
-      yPosition = startY;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text('Período del Reporte', col2X, yPosition);
+  async loadActivities() {
+    this.loading.set(true);
+    try {
+      const filters = this.filterForm.value;
       
-      yPosition += 5;
+      console.log('🔍 Filtros del formulario:', filters);
+      console.log('🔍 userSearchText:', this.userSearchText);
       
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.text(`Desde: ${this.timeFormatService.formatDate(report.dateRange.start)}`, col2X, yPosition);
-      yPosition += 4;
-      doc.text(`Hasta: ${this.timeFormatService.formatDate(report.dateRange.end)}`, col2X, yPosition);
-      yPosition += 4;
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Total: ${report.totalActivities} actividades`, col2X, yPosition);
+      // CRÍTICO: Si hay texto en userSearchText pero no hay userId, intentar buscar el usuario por código
+      if (this.userSearchText && this.userSearchText.trim() !== '' && !filters.userId) {
+        console.log('⚠️ Hay texto de búsqueda pero no userId seleccionado');
+        console.log('🔍 Intentando buscar usuario por código:', this.userSearchText);
+        
+        // Buscar usuario por código exacto
+        const searchTerm = this.userSearchText.trim();
+        const foundUser = this.users().find(user => 
+          user.userCode.toLowerCase() === searchTerm.toLowerCase() ||
+          user.userCode === searchTerm
+        );
+        
+        if (foundUser) {
+          console.log('✅ Usuario encontrado por código:', foundUser);
+          // Establecer el userId automáticamente
+          filters.userId = foundUser.id;
+          this.filterForm.patchValue({ userId: foundUser.id }, { emitEvent: false });
+          console.log('✅ userId establecido automáticamente:', foundUser.id);
+        } else {
+          console.warn('⚠️ No se encontró usuario con código:', searchTerm);
+          this.snackBar.open(`No se encontró usuario con código: ${searchTerm}`, 'Cerrar', { duration: 3000 });
+          this.loading.set(false);
+          return;
+        }
+      }
       
-      // Ajustar yPosition al máximo de ambas columnas (considerando si hay teléfono o no)
-      yPosition = startY + (report.user.phone ? 25 : 21);
-
-      // ===== DESGLOSE POR MÓDULO EN LÍNEA HORIZONTAL =====
-      yPosition += 5;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.text('Distribución por Módulo:', margin, yPosition);
+      const params: any = {
+        page: 1,
+        pageSize: 1000
+      };
       
-      yPosition += 4;
+      // CRÍTICO: Solo agregar parámetros si tienen valor válido
+      if (filters.userId && filters.userId > 0) {
+        params.userId = filters.userId;
+        console.log('🔍 Filtrando por userId:', filters.userId);
+      }
+      // Módulo es OPCIONAL - solo filtrar si se selecciona un módulo específico (no "Todos")
+      if (filters.module && filters.module.trim() !== '') {
+        params.module = filters.module;
+        console.log('🔍 Filtrando por módulo:', filters.module);
+      } else {
+        console.log('📋 Sin filtro de módulo - mostrando todos los módulos');
+      }
       
-      // Crear texto compacto con todos los módulos en una línea
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      const moduleText = Object.entries(report.moduleBreakdown)
-        .map(([module, count]) => `${this.getModuleLabel(module)}: ${count}`)
-        .join('  •  ');
+      // NUEVO: Si no se ingresaron fechas, usar el día actual
+      if (!filters.startDate && !filters.endDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        params.startDate = today.toISOString();
+        params.endDate = endOfDay.toISOString();
+        console.log('📅 Sin fechas ingresadas - usando día actual:', today.toLocaleDateString());
+      } else {
+        // Si se ingresaron fechas, usarlas
+        if (filters.startDate) {
+          params.startDate = filters.startDate.toISOString();
+          console.log('🔍 Filtrando por fecha inicio:', filters.startDate);
+        }
+        if (filters.endDate) {
+          params.endDate = filters.endDate.toISOString();
+          console.log('🔍 Filtrando por fecha fin:', filters.endDate);
+        }
+      }
       
-      // Dividir en múltiples líneas si es muy largo
-      const splitText = doc.splitTextToSize(moduleText, contentWidth);
-      doc.text(splitText, margin, yPosition);
-      yPosition += (splitText.length * 3) + 3;
-
-      // ===== TABLA DE ACTIVIDADES OPTIMIZADA =====
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text('Detalle de Actividades', margin, yPosition);
+      // Si no hay ningún parámetro, significa que el usuario quiere ver TODAS las actividades
+      if (Object.keys(params).length === 2) {
+        console.log('📋 Sin filtros específicos - cargando TODAS las actividades');
+      }
       
-      yPosition += 4;
-
-      // Preparar datos para la tabla con descripciones más largas
-      const tableData = report.activities.map((activity, index) => [
-        (index + 1).toString(),
-        this.timeFormatService.formatDate(new Date(activity.timestamp)) + '\n' + 
-        this.timeFormatService.formatTime(new Date(activity.timestamp)),
-        this.getModuleLabel(activity.module),
-        activity.action,
-        activity.description.length > 60 ? activity.description.substring(0, 57) + '...' : activity.description
-      ]);
-
-      // Generar tabla compacta con autoTable
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['#', 'Fecha/Hora', 'Módulo', 'Acción', 'Descripción']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [37, 99, 235],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 8,
-          cellPadding: 2
-        },
-        bodyStyles: {
-          fontSize: 7,
-          cellPadding: 2,
-          lineColor: [220, 220, 220],
-          lineWidth: 0.1
-        },
-        alternateRowStyles: {
-          fillColor: [248, 250, 252]
-        },
-        columnStyles: {
-          0: { cellWidth: 8, halign: 'center' },
-          1: { cellWidth: 28, fontSize: 6.5 },
-          2: { cellWidth: 22, fontSize: 7 },
-          3: { cellWidth: 30, fontSize: 7 },
-          4: { cellWidth: 82, fontSize: 7 }
-        },
-        margin: { left: margin, right: margin },
-        rowPageBreak: 'avoid',
-        didDrawPage: (data: any) => {
-          // Encabezado en cada página (excepto la primera)
-          if (data.pageNumber > 1) {
-            doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-            doc.setFont('helvetica', 'italic');
-            doc.text(
-              `Reporte de ${report.user.userCode} - Continuación`,
-              margin,
-              10
-            );
-          }
-
-          // Pie de página en cada página
-          const pageCount = (doc as any).internal.getNumberOfPages();
-          doc.setFontSize(7);
-          doc.setTextColor(128, 128, 128);
-          doc.setFont('helvetica', 'normal');
+      console.log('📤 Parámetros enviados al backend:', params);
+      
+      const response: any = await this.http.get(`${environment.apiUrl}/audit/activities`, { params }).toPromise();
+      
+      console.log('📊 Respuesta completa del backend:', response);
+      console.log('📊 Total de actividades recibidas:', response?.activities?.length || 0);
+      
+      if (response && response.activities) {
+        let activities = response.activities.map((a: any) => ({
+          ...a,
+          timestamp: new Date(a.timestamp),
+          expanded: false
+        }));
+        
+        console.log('📋 Actividades antes de filtrar en frontend:', activities.length);
+        if (activities.length > 0) {
+          console.log('📋 Primera actividad:', activities[0]);
+          console.log('📋 userCode de primera actividad:', activities[0].userCode);
+          console.log('📋 user.userCode de primera actividad:', activities[0].user?.userCode);
+        }
+        
+        // FILTRO OBLIGATORIO: Si hay userId, SIEMPRE filtrar en el frontend
+        if (filters.userId && filters.userId > 0) {
+          console.log('🔧 Aplicando filtro OBLIGATORIO de userId en frontend:', filters.userId);
           
-          // Número de página
-          doc.text(
-            `Página ${data.pageNumber} de ${pageCount}`,
-            pageWidth / 2,
-            pageHeight - 8,
-            { align: 'center' }
-          );
+          const filterUserId = Number(filters.userId);
+          const beforeFilter = activities.length;
           
-          // Fecha de generación (solo en la primera página)
-          if (data.pageNumber === 1) {
-            doc.setFontSize(6);
-            doc.text(
-              `Generado: ${this.timeFormatService.formatDate(new Date())} ${this.timeFormatService.formatTime(new Date())}`,
-              pageWidth - margin,
-              pageHeight - 8,
-              { align: 'right' }
-            );
+          activities = activities.filter((a: any) => {
+            const activityUserId = Number(a.userId);
+            return activityUserId === filterUserId;
+          });
+          
+          console.log(`✅ Actividades después del filtro de userId: ${activities.length} (filtradas: ${beforeFilter - activities.length})`);
+          
+          if (activities.length === 0) {
+            console.warn('⚠️ No se encontraron actividades para el usuario:', filters.userId);
+            this.snackBar.open('No se encontraron actividades para este usuario', 'Cerrar', { duration: 3000 });
           }
         }
-      });
-
-      // ===== PIE DE PÁGINA FINAL (solo en última página) =====
-      const finalY = (doc as any).lastAutoTable.finalY + 5;
-      if (finalY < pageHeight - 20) {
-        doc.setFontSize(7);
-        doc.setTextColor(100, 100, 100);
-        doc.setFont('helvetica', 'italic');
-        doc.text('Sistema FlexoAPP - Gestión Flexográfica', pageWidth / 2, finalY, { align: 'center' });
+        
+        // FILTRO OPCIONAL: Si hay módulo específico, filtrar en el frontend
+        if (filters.module && filters.module.trim() !== '') {
+          console.log('🔧 Aplicando filtro OPCIONAL de módulo en frontend:', filters.module);
+          const beforeFilter = activities.length;
+          
+          activities = activities.filter((a: any) => a.module === filters.module);
+          
+          console.log(`✅ Actividades después del filtro de módulo: ${activities.length} (filtradas: ${beforeFilter - activities.length})`);
+        } else {
+          console.log('📋 Sin filtro de módulo - mostrando actividades de todos los módulos');
+        }
+        
+        console.log('📊 Total final de actividades a mostrar:', activities.length);
+        
+        this.activities.set(activities);
+        this.filteredActivities.set(activities);
+        
+        if (activities.length === 0) {
+          this.snackBar.open('No se encontraron actividades con los filtros seleccionados', 'Cerrar', { duration: 3000 });
+        }
+      } else {
+        console.warn('⚠️ No se recibieron actividades del backend');
+        this.activities.set([]);
+        this.filteredActivities.set([]);
+        this.snackBar.open('No se encontraron actividades', 'Cerrar', { duration: 3000 });
       }
-
-      // ===== GUARDAR PDF =====
-      const fileName = `reporte_${report.user.userCode}_${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-
-      this.loading.set(false);
-      this.snackBar.open(`✅ PDF generado: ${fileName}`, 'Cerrar', {
-        duration: 4000,
-        panelClass: ['success-snackbar']
-      });
     } catch (error) {
-      console.error('Error generando PDF:', error);
+      console.error('❌ Error cargando actividades:', error);
+      this.snackBar.open('Error al cargar actividades', 'Cerrar', { duration: 3000 });
+      this.activities.set([]);
+      this.filteredActivities.set([]);
+    } finally {
       this.loading.set(false);
-      this.snackBar.open('❌ Error al generar el PDF', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
     }
   }
 
-  // ============================================================================
-  // MÉTODOS DE UTILIDAD
-  // ============================================================================
-
-  /**
-   * clearResults - Limpiar resultados y resetear formulario
-   */
-  clearResults() {
-    this.searchResults.set(null);
-    this.searchForm.reset();
-    this.searchForm.patchValue({ module: 'ALL' });
+  applyFilters() {
+    this.loadActivities();
   }
 
-  /**
-   * getModuleLabel - Obtener etiqueta legible del módulo
-   */
-  getModuleLabel(moduleValue: string): string {
-    const module = this.moduleOptions.find(m => m.value === moduleValue);
-    return module ? module.label : moduleValue;
+  clearFilters() {
+    console.log('🧹 Limpiando todos los filtros');
+    this.filterForm.reset();
+    this.userSearchText = '';
+    this.showUserDropdown = false;
+    this.filteredUsers.set(this.users());
+    
+    // Limpiar las actividades mostradas
+    this.activities.set([]);
+    this.filteredActivities.set([]);
+    
+    // Mostrar mensaje al usuario
+    this.snackBar.open('Filtros limpiados. Selecciona un usuario para ver actividades.', 'Cerrar', { duration: 3000 });
   }
 
-  /**
-   * getModuleIcon - Obtener icono de Material Design para el módulo
-   */
-  getModuleIcon(module: string): string {
-    const icons: { [key: string]: string } = {
-      'ALL': 'apps',
-      'AUTH': 'login',
-      'PROFILE': 'person',
-      'MACHINES': 'precision_manufacturing',
-      'DESIGN': 'design_services',
-      'REPORTS': 'assessment',
-      'SETTINGS': 'settings'
-    };
-    return icons[module] || 'info';
-  }
-
-  /**
-   * getDefaultStartDate - Fecha de inicio por defecto (30 días atrás)
-   */
-  getDefaultStartDate(): Date {
-    return new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  }
-
-  /**
-   * getDefaultEndDate - Fecha de fin por defecto (hoy)
-   */
-  getDefaultEndDate(): Date {
-    return new Date();
-  }
-
-  /**
-   * onDateChange - Manejar cambio de fecha en el datepicker
-   */
-  onDateChange(type: 'start' | 'end', event: MatDatepickerInputEvent<Date>) {
-    if (event.value) {
-      console.log(`Fecha ${type} seleccionada:`, event.value);
+  // Búsqueda de usuario
+  onUserSearch() {
+    const searchTerm = this.userSearchText.toLowerCase().trim();
+    
+    console.log('🔍 onUserSearch() ejecutado');
+    console.log('🔍 Término de búsqueda:', searchTerm);
+    console.log('📋 Total de usuarios disponibles:', this.users().length);
+    
+    if (!searchTerm) {
+      this.filteredUsers.set(this.users());
+      console.log('✅ Mostrando todos los usuarios:', this.users().length);
+      return;
     }
+    
+    const filtered = this.users().filter(user => 
+      user.userCode.toLowerCase().includes(searchTerm) ||
+      user.firstName.toLowerCase().includes(searchTerm) ||
+      user.lastName.toLowerCase().includes(searchTerm) ||
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm)
+    );
+    
+    console.log('✅ Usuarios filtrados:', filtered.length);
+    console.log('📋 Usuarios encontrados:', filtered.map(u => `${u.userCode} - ${u.firstName} ${u.lastName}`));
+    
+    this.filteredUsers.set(filtered);
   }
 
-  /**
-   * getRoleDisplayName - Obtener nombre legible del rol
-   */
-  getRoleDisplayName(role: string): string {
-    const roleMap: { [key: string]: string } = {
-      'admin': 'Administrador',
-      'manager': 'Gerente',
-      'designer': 'Diseñador',
-      'operator': 'Operario',
-      'viewer': 'Visualizador',
-      'user': 'Usuario'
+  // Cuando se selecciona un usuario del autocomplete
+  onUserSelected(event: MatAutocompleteSelectedEvent) {
+    const user = event.option.value;
+    console.log('👤 Usuario seleccionado desde autocomplete:', user);
+    
+    this.userSearchText = `${user.userCode} - ${user.firstName} ${user.lastName}`;
+    
+    // Establecer el userId en el formulario
+    this.filterForm.patchValue({ userId: user.id }, { emitEvent: true });
+    
+    console.log('📝 userId establecido en el formulario:', user.id);
+    console.log('📝 Valor completo del formulario:', this.filterForm.value);
+  }
+
+  // Seleccionar usuario del dropdown (método legacy, ya no se usa con autocomplete)
+  selectUser(user: any) {
+    console.log('👤 Usuario seleccionado:', user);
+    this.userSearchText = `${user.userCode} - ${user.firstName} ${user.lastName}`;
+    this.showUserDropdown = false;
+    
+    // Establecer el userId en el formulario - emitEvent: true para disparar valueChanges
+    this.filterForm.patchValue({ userId: user.id }, { emitEvent: true });
+    
+    // Verificar que el userId se estableció correctamente
+    setTimeout(() => {
+      console.log('📝 Valor del formulario después de seleccionar usuario:', this.filterForm.value);
+    }, 100);
+  }
+
+  // Limpiar búsqueda de usuario
+  clearUserSearch() {
+    console.log('🧹 Limpiando búsqueda de usuario');
+    this.userSearchText = '';
+    this.filteredUsers.set(this.users());
+    
+    // Limpiar el userId del formulario - esto disparará valueChanges automáticamente
+    this.filterForm.patchValue({ userId: null });
+  }
+
+  // Cerrar dropdown al hacer clic fuera (ya no necesario con autocomplete, pero lo dejamos por compatibilidad)
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    // Ya no necesitamos esto con mat-autocomplete, pero lo dejamos por si acaso
+  }
+
+  getModuleLabel(module: string): string {
+    const found = this.modules.find(m => m.value === module);
+    return found ? found.label : module;
+  }
+
+  getModuleColor(module: string): string {
+    const colors: any = {
+      'AUTH': 'primary',
+      'MACHINES': 'accent',
+      'DESIGNS': 'warn',
+      'DOCUMENTS': 'primary',
+      'REPORTS': 'accent',
+      'CONFIG': 'warn',
+      'SETTINGS': 'primary',
+      'PROFILE': 'accent',
+      'CONDICION_UNICA': 'warn'
     };
-    return roleMap[role] || role || 'Sin rol';
+    return colors[module] || 'primary';
   }
 
-  /**
-   * getUserProfileImage - Obtener URL completa de la imagen de perfil
-   */
-  getUserProfileImage(profileImage?: string): string | null {
-    if (!profileImage || profileImage === 'large_image_available') {
+  formatDuration(seconds: number | undefined): string {
+    if (!seconds || isNaN(seconds) || seconds === 0) return '-';
+    
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    }
+    return `${secs}s`;
+  }
+
+  // Extraer duración de la actividad (desde duration o desde la descripción)
+  getDuration(activity: AuditActivity): string {
+    // 1. Si existe duration y es válido, usarlo
+    if (activity.duration && !isNaN(activity.duration) && activity.duration > 0) {
+      return this.formatDuration(activity.duration);
+    }
+    
+    // 2. Intentar extraer de la descripción (formato: "Duración: X,XX min" o "Duración: X.XX min")
+    if (activity.description) {
+      const durationMatch = activity.description.match(/Duración:\s*(\d+)[,.](\d+)\s*min/i);
+      if (durationMatch) {
+        const minutes = parseInt(durationMatch[1]);
+        const decimals = parseInt(durationMatch[2]);
+        const totalSeconds = (minutes * 60) + Math.round((decimals / 100) * 60);
+        return this.formatDuration(totalSeconds);
+      }
+      
+      // Formato alternativo: "X min Y s"
+      const altMatch = activity.description.match(/(\d+)\s*min\s*(\d+)\s*s/i);
+      if (altMatch) {
+        const minutes = parseInt(altMatch[1]);
+        const seconds = parseInt(altMatch[2]);
+        const totalSeconds = (minutes * 60) + seconds;
+        return this.formatDuration(totalSeconds);
+      }
+    }
+    
+    // 3. Intentar extraer de details
+    if (activity.details) {
+      try {
+        const details = JSON.parse(activity.details);
+        if (details.duration || details.Duration || details.duracion || details.Duracion) {
+          const dur = details.duration || details.Duration || details.duracion || details.Duracion;
+          if (typeof dur === 'number' && !isNaN(dur) && dur > 0) {
+            return this.formatDuration(dur);
+          }
+        }
+      } catch (e) {
+        // Ignorar error
+      }
+    }
+    
+    return '-';
+  }
+
+  parseDetails(details: string): any {
+    try {
+      return JSON.parse(details);
+    } catch {
       return null;
     }
-
-    if (profileImage.startsWith('http://') || profileImage.startsWith('https://')) {
-      return profileImage;
-    }
-
-    if (profileImage.startsWith('data:image/')) {
-      return profileImage;
-    }
-
-    const cleanPath = profileImage.startsWith('/api/') ? profileImage.substring(4) : profileImage;
-    const separator = cleanPath.startsWith('/') ? '' : '/';
-
-    return `${environment.apiUrl}${separator}${cleanPath}`;
   }
 
-  /**
-   * handleImageError - Manejar error al cargar imagen de perfil
-   */
-  handleImageError(event: Event): void {
-    const imgElement = event.target as HTMLImageElement;
-    imgElement.style.display = 'none';
-    console.warn('Error al cargar imagen de perfil, mostrando icono por defecto');
+  parseValues(values: string): any {
+    try {
+      return JSON.parse(values);
+    } catch {
+      return null;
+    }
+  }
+
+  formatJSON(jsonString: string): string {
+    try {
+      const obj = JSON.parse(jsonString);
+      return JSON.stringify(obj, null, 2);
+    } catch {
+      return jsonString;
+    }
+  }
+
+  // Método para hacer toggle del estado expandido
+  toggleExpanded(activity: AuditActivity, event: Event) {
+    event.stopPropagation();
+    activity.expanded = !activity.expanded;
+    console.log('🔄 Toggle expandido:', {
+      id: activity.id,
+      expanded: activity.expanded,
+      hasDetails: !!activity.details,
+      hasOldValues: !!activity.oldValues,
+      hasNewValues: !!activity.newValues
+    });
+    
+    // Forzar actualización de la tabla
+    const currentActivities = this.filteredActivities();
+    this.filteredActivities.set([...currentActivities]);
+  }
+
+  // Extraer solo el número de máquina
+  getNumeroMaquina(activity: AuditActivity): string | null {
+    try {
+      let numeroMaquina: string | null = null;
+      
+      // 1. Intentar extraer de details primero (más específico)
+      if (activity.details) {
+        try {
+          const details = JSON.parse(activity.details);
+          numeroMaquina = details.numeroMaquina || details.NumeroMaquina || details.machineNumber || details.MachineNumber || 
+                         details.numero_maquina || details.maquinaId || details.MaquinaId || details.machineId || 
+                         details.MachineId || details.maquina || details.Maquina || details.machine || details.Machine;
+          if (numeroMaquina) {
+            console.log('🔢 Número de máquina desde details:', numeroMaquina);
+            return numeroMaquina.toString();
+          }
+        } catch (e) {
+          // Ignorar error
+        }
+      }
+      
+      // 2. Intentar extraer de newValues
+      if (activity.newValues) {
+        try {
+          const newVals = JSON.parse(activity.newValues);
+          numeroMaquina = newVals.numeroMaquina || newVals.NumeroMaquina || newVals.machineNumber || newVals.MachineNumber || 
+                         newVals.numero_maquina || newVals.maquinaId || newVals.MaquinaId || newVals.machineId || 
+                         newVals.MachineId || newVals.maquina || newVals.Maquina || newVals.machine || newVals.Machine;
+          if (numeroMaquina) {
+            console.log('🔢 Número de máquina desde newValues:', numeroMaquina);
+            return numeroMaquina.toString();
+          }
+        } catch (e) {
+          // Ignorar error
+        }
+      }
+      
+      // 3. Intentar extraer de oldValues
+      if (activity.oldValues) {
+        try {
+          const oldVals = JSON.parse(activity.oldValues);
+          numeroMaquina = oldVals.numeroMaquina || oldVals.NumeroMaquina || oldVals.machineNumber || oldVals.MachineNumber || 
+                         oldVals.numero_maquina || oldVals.maquinaId || oldVals.MaquinaId || oldVals.machineId || 
+                         oldVals.MachineId || oldVals.maquina || oldVals.Maquina || oldVals.machine || oldVals.Machine;
+          if (numeroMaquina) {
+            console.log('🔢 Número de máquina desde oldValues:', numeroMaquina);
+            return numeroMaquina.toString();
+          }
+        } catch (e) {
+          // Ignorar error
+        }
+      }
+      
+      // 4. Si el módulo es MACHINES y entityType es Maquina, usar entityId
+      if (activity.module === 'MACHINES' && activity.entityType && 
+          (activity.entityType.toLowerCase().includes('machine') || activity.entityType.toLowerCase().includes('maquina'))) {
+        if (activity.entityId) {
+          console.log('🔢 Número de máquina desde entityId (módulo MACHINES):', activity.entityId);
+          return activity.entityId.toString();
+        }
+      }
+      
+      console.log('❌ No se encontró número de máquina para actividad:', activity.id, {
+        module: activity.module,
+        entityType: activity.entityType,
+        entityId: activity.entityId,
+        entityName: activity.entityName
+      });
+      return null;
+    } catch (error) {
+      console.error('Error en getNumeroMaquina:', error);
+      return null;
+    }
+  }
+
+  // Extraer información de máquinas de los detalles
+  getMachineInfo(activity: AuditActivity): any {
+    try {
+      let machineInfo: any = {
+        articulo: null,
+        otSap: null,
+        descripcion: null,
+        numeroMaquina: null
+      };
+      
+      let hasData = false;
+      
+      // Si el entityType es Machine o Maquina, usar entityName como número de máquina
+      if (activity.entityType && (activity.entityType.toLowerCase().includes('machine') || activity.entityType.toLowerCase().includes('maquina'))) {
+        if (activity.entityName) {
+          machineInfo.numeroMaquina = activity.entityName;
+          hasData = true;
+        }
+      }
+      
+      // Intentar parsear los detalles si existen
+      if (activity.details) {
+        try {
+          const details = JSON.parse(activity.details);
+          console.log('📦 Details parseados:', details);
+          
+          machineInfo.articulo = details.articulo || details.Articulo || details.article || details.Article || machineInfo.articulo;
+          machineInfo.otSap = details.otSap || details.OtSap || details.ot_sap || details.OT_SAP || details.orderNumber || details.OrderNumber || machineInfo.otSap;
+          machineInfo.descripcion = details.descripcion || details.Descripcion || details.referencia || details.Referencia || details.description || details.Description || machineInfo.descripcion;
+          machineInfo.numeroMaquina = machineInfo.numeroMaquina || details.numeroMaquina || details.NumeroMaquina || details.machineNumber || details.MachineNumber || details.numero_maquina || details.maquinaId || details.MaquinaId || details.machineId || details.MachineId;
+          
+          if (machineInfo.articulo || machineInfo.otSap || machineInfo.descripcion || machineInfo.numeroMaquina) {
+            hasData = true;
+          }
+        } catch (e) {
+          console.warn('Error parseando details:', e);
+        }
+      }
+      
+      // Si no hay detalles, intentar extraer de newValues
+      if (activity.newValues) {
+        try {
+          const newVals = JSON.parse(activity.newValues);
+          console.log('📦 NewValues parseados:', newVals);
+          
+          machineInfo.articulo = machineInfo.articulo || newVals.articulo || newVals.Articulo || newVals.article || newVals.Article;
+          machineInfo.otSap = machineInfo.otSap || newVals.otSap || newVals.OtSap || newVals.ot_sap || newVals.OT_SAP || newVals.orderNumber || newVals.OrderNumber;
+          machineInfo.descripcion = machineInfo.descripcion || newVals.descripcion || newVals.Descripcion || newVals.referencia || newVals.Referencia || newVals.description || newVals.Description;
+          machineInfo.numeroMaquina = machineInfo.numeroMaquina || newVals.numeroMaquina || newVals.NumeroMaquina || newVals.machineNumber || newVals.MachineNumber || newVals.numero_maquina || newVals.maquinaId || newVals.MaquinaId || newVals.machineId || newVals.MachineId;
+          
+          if (machineInfo.articulo || machineInfo.otSap || machineInfo.descripcion || machineInfo.numeroMaquina) {
+            hasData = true;
+          }
+        } catch (e) {
+          console.warn('Error parseando newValues:', e);
+        }
+      }
+      
+      // Si no hay detalles ni newValues, intentar oldValues
+      if (activity.oldValues) {
+        try {
+          const oldVals = JSON.parse(activity.oldValues);
+          console.log('📦 OldValues parseados:', oldVals);
+          
+          machineInfo.articulo = machineInfo.articulo || oldVals.articulo || oldVals.Articulo || oldVals.article || oldVals.Article;
+          machineInfo.otSap = machineInfo.otSap || oldVals.otSap || oldVals.OtSap || oldVals.ot_sap || oldVals.OT_SAP || oldVals.orderNumber || oldVals.OrderNumber;
+          machineInfo.descripcion = machineInfo.descripcion || oldVals.descripcion || oldVals.Descripcion || oldVals.referencia || oldVals.Referencia || oldVals.description || oldVals.Description;
+          machineInfo.numeroMaquina = machineInfo.numeroMaquina || oldVals.numeroMaquina || oldVals.NumeroMaquina || oldVals.machineNumber || oldVals.MachineNumber || oldVals.numero_maquina || oldVals.maquinaId || oldVals.MaquinaId || oldVals.machineId || oldVals.MachineId;
+          
+          if (machineInfo.articulo || machineInfo.otSap || machineInfo.descripcion || machineInfo.numeroMaquina) {
+            hasData = true;
+          }
+        } catch (e) {
+          console.warn('Error parseando oldValues:', e);
+        }
+      }
+      
+      console.log('🔍 Machine info extraída:', machineInfo, 'hasData:', hasData);
+      
+      return hasData ? machineInfo : null;
+    } catch (error) {
+      console.error('Error en getMachineInfo:', error);
+      return null;
+    }
+  }
+
+  // Predicate function to determine which rows should show the expanded detail
+  isExpandedRow = (index: number, row: AuditActivity) => row.expanded === true;
+
+  exportToPDF() {
+    const doc = new jsPDF();
+    const activities = this.filteredActivities();
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text('Reporte de Auditoría del Sistema', 14, 20);
+    
+    // Fecha del reporte
+    doc.setFontSize(10);
+    doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 28);
+    doc.text(`Total de registros: ${activities.length}`, 14, 34);
+    
+    // Tabla
+    const tableData = activities.map(a => [
+      new Date(a.timestamp).toLocaleString(),
+      a.user?.fullName || a.userCode,
+      this.getModuleLabel(a.module),
+      a.action,
+      a.description
+    ]);
+    
+    autoTable(doc, {
+      startY: 40,
+      head: [['Fecha/Hora', 'Usuario', 'Módulo', 'Acción', 'Descripción']],
+      body: tableData,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [63, 81, 181] }
+    });
+    
+    doc.save(`auditoria_${new Date().getTime()}.pdf`);
+    this.snackBar.open('PDF generado exitosamente', 'Cerrar', { duration: 3000 });
+  }
+
+  exportToExcel() {
+    const activities = this.filteredActivities();
+    const data = activities.map(a => ({
+      'Fecha/Hora': new Date(a.timestamp).toLocaleString(),
+      'Usuario': a.user?.fullName || a.userCode,
+      'Código Usuario': a.userCode,
+      'Módulo': this.getModuleLabel(a.module),
+      'Acción': a.action,
+      'Descripción': a.description,
+      'IP': a.ipAddress || '-',
+      'Entidad': a.entityName || '-',
+      'Duración': this.formatDuration(a.duration)
+    }));
+    
+    // Convertir a CSV
+    const headers = Object.keys(data[0]);
+    const csv = [
+      headers.join(','),
+      ...data.map(row => headers.map(h => `"${(row as any)[h]}"`).join(','))
+    ].join('\n');
+    
+    // Descargar
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `auditoria_${new Date().getTime()}.csv`;
+    link.click();
+    
+    this.snackBar.open('Excel generado exitosamente', 'Cerrar', { duration: 3000 });
   }
 }

@@ -337,12 +337,28 @@ export class MachinesComponent implements OnInit {
             // Convertir fecha de última acción de string ISO a objeto Date
             // Se obtiene de la columna updated_at de la tabla machine_programs
             lastActionAt: program.updatedAt ? new Date(program.updatedAt) : 
-                         program.lastActionAt ? new Date(program.lastActionAt) : new Date()
+                         program.lastActionAt ? new Date(program.lastActionAt) : new Date(),
+            // Convertir fecha de inicio de preparación de string ISO a objeto Date
+            // Se obtiene de la columna preparando_started_at de la tabla machine_programs
+            preparandoStartedAt: program.preparandoStartedAt ? new Date(program.preparandoStartedAt) : undefined
           };
         });
         
         // ===== LOG DE ÉXITO Y ACTUALIZACIÓN DE ESTADO =====
         console.log(`✅ ${programs.length} programas cargados exitosamente desde la base de datos`);
+        
+        // ===== LOG DE PREPARANDO_STARTED_AT =====
+        const programsWithPreparandoStartedAt = programs.filter(p => p.preparandoStartedAt);
+        if (programsWithPreparandoStartedAt.length > 0) {
+          console.log(`⏱️ ${programsWithPreparandoStartedAt.length} programas con preparandoStartedAt:`, 
+            programsWithPreparandoStartedAt.map(p => ({
+              otSap: p.otSap,
+              articulo: p.articulo,
+              estado: p.estado,
+              preparandoStartedAt: p.preparandoStartedAt
+            }))
+          );
+        }
         
         // ===== VERIFICACIÓN DE IDs =====
         // Verificar que todos los programas tengan OT SAP válido
@@ -463,9 +479,6 @@ export class MachinesComponent implements OnInit {
       // 0 a 2 programas listos: Estado CRÍTICO
       statusClass = 'machine-status-critical'; // Clase para LED rojo
     }
-    
-    // Log para debugging: muestra el número de máquina, cantidad de programas listos y clase CSS aplicada
-    console.log(`🚦 Máquina ${machineNumber}: ${readyCount} programas listos → ${statusClass}`);
     
     // Retornar la clase CSS determinada
     return statusClass;
@@ -929,29 +942,11 @@ export class MachinesComponent implements OnInit {
           console.log('   - Mismo número de programas:', otSapsBeforeUpdate.length === otSapsAfterUpdate.length);
           
           console.log('📊 Actualizando signal con nuevos programas...');
-          // Actualizar la señal reactiva con el nuevo array (esto dispara la detección de cambios)
+          // Actualizar la señal reactiva con el nuevo array (esto dispara la detección de cambios automáticamente)
           this.programs.set(updatedPrograms);
           console.log('📊 Signal actualizado');
           console.log('📊 Estado del signal después de actualizar:', this.programs().length, 'programas');
           console.log('📊 Programas filtrados (selectedMachinePrograms):', this.selectedMachinePrograms().length, 'programas');
-          
-          console.log('🔄 Forzando detección de cambios...');
-          // Forzar detección de cambios para actualizar la vista inmediatamente
-          this.cdr.detectChanges();
-          console.log('🔄 Detección de cambios completada');
-          
-          // Forzar actualización adicional después de un tick para asegurar que Angular Material Table se actualice
-          setTimeout(() => {
-            console.log('🔄 Forzando segunda detección de cambios (tick)...');
-            this.cdr.detectChanges();
-            console.log('🔄 Segunda detección completada');
-            console.log('📊 Verificación final - Programas en tabla:', this.selectedMachinePrograms().map(p => ({ 
-              otSap: p.otSap, 
-              articulo: p.articulo,
-              maquina: p.machineNumber,
-              estado: p.estado 
-            })));
-          }, 0);
           
           console.log('✅ Estado actualizado localmente:', {
             programaOtSap: normalizedOtSap,
@@ -991,17 +986,46 @@ export class MachinesComponent implements OnInit {
         
         // Si el programa pasó de PREPARANDO a LISTO, calcular el tiempo transcurrido
         if (program.estado === 'PREPARANDO' && newStatus === 'LISTO') {
-          // Obtener el programa ANTES de actualizar para tener la fecha de cuando se marcó como PREPARANDO
-          const programaAnterior = programs[programIndex];
+          console.log('⏱️ Detectado cambio de PREPARANDO a LISTO');
           
-          if (programaAnterior && programaAnterior.preparandoStartedAt) {
-            // Calcular tiempo transcurrido desde que se marcó como PREPARANDO hasta ahora
-            const tiempoInicio = new Date(programaAnterior.preparandoStartedAt);
-            const tiempoFin = new Date();
+          // IMPORTANTE: Usar preparandoStartedAt del RESPONSE del servidor, no del programa anterior
+          // El backend preserva este campo cuando cambia de PREPARANDO a LISTO
+          const preparandoStartedAtFromServer = response.data?.preparandoStartedAt;
+          
+          console.log('📋 Datos del servidor:', {
+            otSap: response.data?.otSap,
+            estado: response.data?.estado,
+            preparandoStartedAt: preparandoStartedAtFromServer,
+            tienePreparandoStartedAt: !!preparandoStartedAtFromServer
+          });
+          
+          if (preparandoStartedAtFromServer) {
+            // IMPORTANTE: El backend guarda en UTC pero MySQL no preserva la zona horaria
+            // La fecha viene sin 'Z' al final, así que JavaScript la interpreta como hora local
+            // Solución: Agregar 'Z' al final para indicar que es UTC
+            const fechaUTC = preparandoStartedAtFromServer.endsWith('Z') 
+              ? preparandoStartedAtFromServer 
+              : preparandoStartedAtFromServer + 'Z';
+            
+            const tiempoInicio = new Date(fechaUTC);
+            const tiempoFin = new Date(); // Hora actual del navegador en UTC
+            
+            // Calcular diferencia en milisegundos
             const diferenciaMs = tiempoFin.getTime() - tiempoInicio.getTime();
             
+            console.log('⏱️ DEBUG - Cálculo de tiempo:', {
+              preparandoStartedAtFromServer: preparandoStartedAtFromServer,
+              fechaUTCCorregida: fechaUTC,
+              tiempoInicioISO: tiempoInicio.toISOString(),
+              tiempoFinISO: tiempoFin.toISOString(),
+              tiempoInicioLocal: tiempoInicio.toLocaleString(),
+              tiempoFinLocal: tiempoFin.toLocaleString(),
+              diferenciaMs: diferenciaMs,
+              diferenciaMinutos: diferenciaMs / 1000 / 60
+            });
+            
             // Convertir a horas, minutos y segundos
-            const totalSegundos = Math.floor(diferenciaMs / 1000);
+            const totalSegundos = Math.floor(Math.abs(diferenciaMs) / 1000);
             const horas = Math.floor(totalSegundos / 3600);
             const minutos = Math.floor((totalSegundos % 3600) / 60);
             const segundos = totalSegundos % 60;
@@ -1025,8 +1049,13 @@ export class MachinesComponent implements OnInit {
               minutos: minutos,
               segundos: segundos,
               totalSegundos: totalSegundos,
-              totalMs: diferenciaMs
+              totalMs: diferenciaMs,
+              mensaje: successMessage
             });
+          } else {
+            console.warn('⚠️ No se pudo calcular el tiempo: preparandoStartedAt no está disponible en la respuesta del servidor');
+            console.warn('⚠️ Respuesta completa del servidor:', response.data);
+            successMessage = '✅ Programa marcado como PREPARADO';
           }
         }
         
@@ -2347,16 +2376,42 @@ export class MachinesComponent implements OnInit {
 
   /**
    * Limpiar mensajes al cargar nueva programación
+   * IMPORTANTE: Solo limpia mensajes de programas que NO están SUSPENDIDOS
+   * Los mensajes de programas suspendidos se mantienen para preservar la información
    */
   clearAllMessages() {
-    this.programMessages.set(new Map());
-    
-    // Limpiar también de localStorage
     try {
-      localStorage.removeItem(this.MESSAGES_STORAGE_KEY);
-      console.log('🧹 Todos los mensajes han sido limpiados (memoria y localStorage)');
+      // Obtener programas actuales
+      const currentPrograms = this.programs();
+      
+      // Obtener mensajes actuales
+      const currentMessages = this.programMessages();
+      
+      // Crear nuevo Map solo con mensajes de programas SUSPENDIDOS
+      const messagesToKeep = new Map();
+      
+      currentMessages.forEach((messageData, otSap) => {
+        // Buscar el programa correspondiente
+        const program = currentPrograms.find(p => p.otSap === otSap);
+        
+        // Si el programa existe y está SUSPENDIDO, mantener el mensaje
+        if (program && program.estado === 'SUSPENDIDO') {
+          messagesToKeep.set(otSap, messageData);
+          console.log(`💾 Manteniendo mensaje de programa suspendido: ${otSap}`);
+        } else {
+          console.log(`🧹 Eliminando mensaje de programa no suspendido: ${otSap}`);
+        }
+      });
+      
+      // Actualizar el Map de mensajes
+      this.programMessages.set(messagesToKeep);
+      
+      // Guardar en localStorage
+      this.saveMessagesToStorage();
+      
+      console.log(`🧹 Mensajes limpiados. Mantenidos: ${messagesToKeep.size}, Eliminados: ${currentMessages.size - messagesToKeep.size}`);
     } catch (error) {
-      console.error('❌ Error limpiando mensajes de localStorage:', error);
+      console.error('❌ Error limpiando mensajes:', error);
     }
   }
 

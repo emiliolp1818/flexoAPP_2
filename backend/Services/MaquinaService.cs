@@ -405,12 +405,23 @@ namespace flexoAPP.Services
             {
                 duration = DateTime.UtcNow - existing.PreparandoStartedAt.Value;
                 _logger.LogInformation("⏱️ Duración PREPARANDO->LISTO para OT={OtSap}: {Duration}", otSap, duration);
+                
+                // NO limpiar PreparandoStartedAt cuando cambia a LISTO
+                // Mantenerlo para que el frontend pueda calcular el tiempo
+                // Solo se limpiará cuando cambie a CORRIENDO, SUSPENDIDO o TERMINADO
             }
             
-            // Limpiar PreparandoStartedAt cuando cambia a otro estado desde PREPARANDO
-            if (existing.Estado == "PREPARANDO" && estadoUpper != "PREPARANDO")
+            // Limpiar PreparandoStartedAt cuando cambia a CORRIENDO, SUSPENDIDO o TERMINADO
+            if (existing.Estado == "PREPARANDO" && (estadoUpper == "CORRIENDO" || estadoUpper == "SUSPENDIDO" || estadoUpper == "TERMINADO"))
             {
                 _logger.LogInformation("⏱️ Limpiando PreparandoStartedAt para OT={OtSap} (cambio de PREPARANDO a {Estado})", otSap, estadoUpper);
+                existing.PreparandoStartedAt = null;
+            }
+            
+            // También limpiar cuando cambia de LISTO a otro estado
+            if (existing.Estado == "LISTO" && estadoUpper != "LISTO" && estadoUpper != "PREPARANDO")
+            {
+                _logger.LogInformation("⏱️ Limpiando PreparandoStartedAt para OT={OtSap} (cambio de LISTO a {Estado})", otSap, estadoUpper);
                 existing.PreparandoStartedAt = null;
             }
 

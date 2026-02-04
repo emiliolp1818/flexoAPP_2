@@ -256,6 +256,13 @@ namespace FlexoAPP.API.Data.Context
                 // MySQL timestamp - usando TIMESTAMP para compatibilidad
                 entity.Property(e => e.Timestamp).IsRequired().HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
                 
+                // Configurar Duration para convertir TimeSpan a BIGINT (ticks)
+                entity.Property(e => e.Duration)
+                    .HasConversion(
+                        v => v.HasValue ? v.Value.Ticks : (long?)null,
+                        v => v.HasValue ? TimeSpan.FromTicks(v.Value) : (TimeSpan?)null
+                    );
+                
                 entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
                 
                 entity.HasIndex(e => e.UserId);

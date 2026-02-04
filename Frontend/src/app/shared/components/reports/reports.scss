@@ -1,262 +1,270 @@
 // ============================================================================
-// VARIABLES DE COLOR - Paleta consistente con el sistema
+// ESTILOS DEL REPORTE DE AUDITORÍA - DISEÑO UNIFICADO
 // ============================================================================
 
-// Azules principales - Colores primarios del sistema
-$primary-blue: #2563eb;         // Azul principal para elementos destacados
-$primary-blue-light: #3b82f6;   // Azul claro para hover y estados activos
-$primary-blue-dark: #1d4ed8;    // Azul oscuro para gradientes y sombras
-$primary-blue-50: #eff6ff;      // Azul muy claro para fondos sutiles
-$primary-blue-100: #dbeafe;     // Azul claro para elementos suaves
-$primary-blue-200: #bfdbfe;     // Azul medio-claro para bordes
-$primary-blue-300: #93c5fd;     // Azul medio para elementos secundarios
-$primary-blue-400: #60a5fa;     // Azul medio-intenso para iconos
-$primary-blue-500: #3b82f6;     // Azul intenso para botones
-$primary-blue-600: #2563eb;     // Azul vibrante para elementos principales
-$primary-blue-700: #1d4ed8;     // Azul profundo para texto sobre fondos claros
-$primary-blue-800: #1e40af;     // Azul muy profundo para contraste alto
-$primary-blue-900: #1e3a8a;     // Azul empresarial para elementos formales
+// Variables de colores
+$primary-blue: #2563eb;
+$primary-blue-light: #3b82f6;
+$primary-blue-dark: #1d4ed8;
+$primary-blue-50: #eff6ff;
+$primary-blue-100: #dbeafe;
+$primary-blue-200: #bfdbfe;
+$primary-blue-300: #93c5fd;
+$primary-blue-400: #60a5fa;
+$primary-blue-500: #3b82f6;
 
-// Colores complementarios - Para estados y alertas
-$accent-gray: #6b7280;          // Gris para contraste y texto secundario
-$accent-slate: #4b5563;         // Pizarra para elementos secundarios
-$success-emerald: #10b981;      // Verde esmeralda para éxito y confirmaciones
-$warning-amber: #f59e0b;        // Ámbar para advertencias
-$error-red: #ef4444;            // Rojo para errores y alertas críticas
+$gray-50: #f8fafc;
+$gray-100: #f1f5f9;
+$gray-200: #e2e8f0;
+$gray-300: #cbd5e1;
+$gray-400: #94a3b8;
+$gray-500: #64748b;
+$gray-600: #475569;
+$gray-700: #334155;
+$gray-800: #1e293b;
+$gray-900: #0f172a;
 
-// Escala de grises - Para fondos, bordes y texto
-$gray-50: #f8fafc;   // Gris muy claro para fondos principales
-$gray-100: #f1f5f9;  // Gris claro para fondos secundarios
-$gray-200: #e2e8f0;  // Gris medio-claro para bordes sutiles
-$gray-300: #cbd5e1;  // Gris medio para bordes estándar
-$gray-400: #94a3b8;  // Gris medio-oscuro para iconos deshabilitados
-$gray-500: #64748b;  // Gris balanceado para texto secundario
-$gray-600: #475569;  // Gris oscuro para texto normal
-$gray-700: #334155;  // Gris muy oscuro para texto importante
-$gray-800: #1e293b;  // Gris profundo para títulos
-$gray-900: #0f172a;  // Gris máximo para texto de alto contraste
+:host {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+  overflow: auto;
+}
 
-// ============================================================================
-// ESTILOS GLOBALES CRÍTICOS - Centrado de labels con iconos (MÁXIMA PRIORIDAD)
-// ============================================================================
-:host ::ng-deep {
-  .mat-mdc-form-field-label {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    line-height: 1.2 !important;
-    
-    mat-icon {
-      display: inline-flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      flex-shrink: 0 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      line-height: 1 !important;
+.reports-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 16px 0 0 0;
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+// ===== HEADER FIJO =====
+.reports-header {
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin: 6px 12px;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  overflow: visible;
+  z-index: 100;
+  margin-top: 50px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $primary-blue;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: none;
+    margin: 0px;
+    position: relative;
+    z-index: 2;
+    min-height: 60px;
+    width: 100%;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 12px;
+      min-height: 80px;
     }
   }
-  
-  .mat-mdc-form-field-flex {
-    align-items: center !important;
-  }
-  
-  .mat-mdc-form-field-infix {
-    display: flex !important;
-    align-items: center !important;
-  }
-}
 
-// ============================================================================
-// HOST PRINCIPAL - Contenedor raíz del componente
-// ============================================================================
-:host {
-  display: block;                                                    // Mostrar como bloque para ocupar todo el ancho
-  width: 100vw;                                                      // Ancho del 100% del viewport
-  height: 100vh;                                                     // Alto del 100% del viewport
-  margin: 0;                                                         // Sin margen externo
-  padding: 0;                                                        // Sin padding interno
-  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente de fondo gris suave
-  overflow: auto;                                                    // Permitir scroll si el contenido excede
-}
-
-// ============================================================================
-// CONTENEDOR PRINCIPAL - Layout principal del módulo
-// ============================================================================
-.reports-container {
-  display: flex;                                                     // Usar flexbox para layout vertical
-  flex-direction: column;                                            // Dirección vertical (header arriba, contenido abajo)
-  width: 100%;                                                       // Ancho completo del contenedor padre
-  height: 100vh;                                                     // Alto del 100% del viewport
-  margin: 0;                                                         // Sin margen externo
-  padding: 0;                                                        // Sin padding interno
-  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%); // Gradiente de fondo consistente
-  overflow: visible;                                                 // Permitir que el contenido sea visible
-  position: relative;                                                // Posición relativa para elementos absolutos internos
-}
-
-// ============================================================================
-// HEADER FIJO - Encabezado sticky del módulo
-// ============================================================================
-.reports-header {
-  position: sticky;                                    // Sticky para mantenerse visible al hacer scroll
-  top: 0;                                              // Pegado a la parte superior
-  background: rgba(255, 255, 255, 0.95);               // Fondo blanco semi-transparente
-  backdrop-filter: blur(20px);                         // Efecto de desenfoque del fondo
-  border-radius: 16px;                                 // Bordes redondeados
-  padding: 16px 16px;                                  // Padding: 16px vertical, 16px horizontal
-  margin: 8px 12px 0 12px;                             // Margen: 8px arriba, 12px lados, 0 abajo
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);           // Sombra suave para elevación
-  border: 1px solid rgba(255, 255, 255, 0.3);          // Borde blanco semi-transparente
-  flex-shrink: 0;                                      // No permitir que se encoja
-  overflow: visible;                                   // Permitir que el contenido sea visible
-  z-index: 100;                                        // Z-index alto para estar sobre otros elementos
-  display: block;                                      // Mostrar como bloque
-  margin-top: 55px;                                    // Margen superior para separar del navbar
-
-  // Borde superior azul decorativo
-  &::before {
-    content: '';                                       // Contenido vacío para el pseudo-elemento
-    position: absolute;                                // Posición absoluta dentro del header
-    top: 0;                                            // Pegado arriba
-    left: 0;                                           // Pegado a la izquierda
-    right: 0;                                          // Pegado a la derecha
-    height: 4px;                                       // Altura de 4px
-    background: $primary-blue;                         // Color azul principal
+  .header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
   }
 
-  // Contenido del header
-  .header-content {
-    display: flex;                                     // Flexbox para layout horizontal
-    justify-content: space-between;                    // Espacio entre elementos (izquierda y derecha)
-    align-items: center;                               // Centrar verticalmente
-    max-width: none;                                   // Sin ancho máximo
-    margin: 0;                                         // Sin margen
-    position: relative;                                // Posición relativa
-    z-index: 2;                                        // Z-index para estar sobre el pseudo-elemento
-    min-height: 60px;                                  // Altura mínima de 60px
-    width: 100%;                                       // Ancho completo
+  .page-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    overflow: visible;
 
-    // Información del header (título y subtítulo)
-    .header-info {
-      display: flex;                                   // Flexbox para layout vertical
-      flex-direction: column;                          // Dirección vertical
-      gap: 6px;                                        // Espacio de 6px entre elementos
-      flex: 1;                                         // Ocupar espacio disponible
-      min-width: 0;                                    // Permitir que el texto se trunque
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      color: $primary-blue;
+      flex-shrink: 0;
+    }
+  }
 
-      // Título principal de la página
-      .page-title {
-        display: flex;                                 // Flexbox para alinear icono y texto
-        align-items: center;                           // Centrar verticalmente
-        gap: 8px;                                      // Espacio de 8px entre icono y texto
-        margin: 0;                                     // Sin margen
-        color: #1f2937;                                // Color gris oscuro
-        font-size: 1.3rem;                             // Tamaño reducido a 1.3rem
-        font-weight: 700;                              // Texto negrita
-        letter-spacing: -0.3px;                        // Espaciado negativo entre letras
-        white-space: nowrap;                           // No permitir saltos de línea
-        overflow: visible;                             // Permitir que sea visible
+  .page-subtitle {
+    margin: 4px 0 0 0;
+    color: #4b5563;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.3;
+  }
 
-        // Icono del título
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+
+    button {
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        transform: translateY(-1px);
+      }
+    }
+
+    .refresh-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba($primary-blue, 0.1) 0%, rgba($primary-blue, 0.15) 100%);
+      border: 2px solid rgba($primary-blue, 0.3);
+      color: $primary-blue;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba($primary-blue, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.3s ease, height 0.3s ease;
+      }
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, rgba($primary-blue, 0.2) 0%, rgba($primary-blue, 0.3) 100%);
+        border-color: $primary-blue;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba($primary-blue, 0.4);
+
+        &::before {
+          width: 100%;
+          height: 100%;
+        }
+
         mat-icon {
-          font-size: 22px;                             // Tamaño reducido a 22px
-          width: 22px;                                 // Ancho fijo
-          height: 22px;                                // Alto fijo
-          color: $primary-blue;                        // Color azul principal
-          flex-shrink: 0;                              // No permitir que se encoja
+          transform: rotate(180deg);
         }
       }
 
-      // Subtítulo descriptivo
-      .page-subtitle {
-        margin: 2px 0 0 0;                             // Margen superior reducido a 2px
-        color: #4b5563;                                // Color gris medio
-        font-size: 0.85rem;                            // Tamaño reducido a 0.85rem
-        font-weight: 500;                              // Peso de fuente medio
-        line-height: 1.3;                              // Altura de línea ajustada
+      &:active:not(:disabled) {
+        transform: translateY(0) scale(0.95);
+        box-shadow: 0 2px 8px rgba($primary-blue, 0.3);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: rgba($gray-300, 0.1);
+        border-color: rgba($gray-300, 0.3);
+
+        mat-icon {
+          color: $gray-400;
+        }
+      }
+
+      mat-icon.spinning {
+        animation: spin 1s linear infinite;
       }
     }
   }
 }
 
-// ============================================================================
-// CONTENIDO PRINCIPAL - Área de contenido del módulo
-// ============================================================================
-.reports-content {
-  flex: 1;                                             // Ocupar todo el espacio vertical disponible
-  padding: 6px 20px 0 20px;                            // Padding reducido: 6px arriba
-  overflow: hidden;                                    // Ocultar overflow
-  display: flex;                                       // Flexbox para layout vertical
-  flex-direction: column;                              // Dirección vertical
-  min-height: 0;                                       // Altura mínima 0 para permitir scroll interno
-
-  // Tarjeta principal de reportes
-  .reports-card {
-    flex: 1;                                           // Ocupar todo el espacio disponible
-    display: flex;                                     // Flexbox para layout vertical
-    flex-direction: column;                            // Dirección vertical
-    background: rgba(255, 255, 255, 0.95);             // Fondo blanco semi-transparente
-    backdrop-filter: blur(20px);                       // Efecto de desenfoque
-    border-radius: 20px 20px 0 0;                      // Bordes redondeados solo arriba
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);         // Sombra para elevación
-    border: 1px solid rgba(255, 255, 255, 0.3);        // Borde blanco semi-transparente
-    border-bottom: none;                               // Sin borde inferior
-    overflow: hidden;                                  // Ocultar overflow
-    height: 100%;                                      // Altura completa
-    position: relative;                                // Posición relativa
-    min-height: 0;                                     // Altura mínima 0
-
-    // Borde superior azul decorativo
-    &::before {
-      content: '';                                     // Contenido vacío
-      position: absolute;                              // Posición absoluta
-      top: 0;                                          // Pegado arriba
-      left: 0;                                         // Pegado a la izquierda
-      right: 0;                                        // Pegado a la derecha
-      height: 4px;                                     // Altura de 4px
-      background: $primary-blue;                       // Color azul principal
-      z-index: 1;                                      // Z-index para estar sobre el fondo
-    }
-
-    // Contenido de la tarjeta
-    mat-card-content {
-      flex: 1;                                         // Ocupar espacio disponible
-      padding: 0;                                      // Sin padding (se maneja en tab-content)
-      overflow: hidden;                                // Ocultar overflow
-      display: flex;                                   // Flexbox para layout vertical
-      flex-direction: column;                          // Dirección vertical
-      position: relative;                              // Posición relativa
-      min-height: 0;                                   // Altura mínima 0
-    }
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
-// ============================================================================
-// CONTENIDO DE PESTAÑAS - Área de contenido dentro de las tabs
-// ============================================================================
-.tab-content {
-  padding: 8px 20px 20px 20px;                         // Padding reducido: 8px arriba
-  height: 100%;                                        // Altura completa
-  overflow: auto;                                      // Permitir scroll si es necesario
+// ===== ÁREA DE CONTENIDO SCROLLABLE =====
+.scrollable-content-area {
+  flex: 1;
+  padding: 0 12px 12px 12px; // Volver a tener padding lateral para la tabla
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 12px;
 }
 
-// ============================================================================
-// TARJETA DE BÚSQUEDA - Contenedor del formulario de búsqueda ULTRA COMPACTO
-// ============================================================================
-.search-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
-  backdrop-filter: blur(24px) saturate(180%);
-  border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.8);
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  margin-bottom: 6px;
-  padding: 8px 16px;                                   // Padding muy reducido
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+// Tarjeta de filtros compacta
+.filters-card-compact {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 0; // Sin bordes redondeados para ocupar todo el ancho
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: none; // Sin borde lateral
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   position: relative;
-  overflow: visible;
+  padding: 0;
+  margin: 0 !important; // Sin márgenes laterales para ocupar todo el ancho
+  overflow: visible !important; // CRÍTICO: Permitir que los dropdowns se muestren
 
-  // Efecto de borde animado superior
   &::before {
     content: '';
     position: absolute;
@@ -264,1399 +272,717 @@ $gray-900: #0f172a;  // Gris máximo para texto de alto contraste
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, 
-      transparent 0%, 
-      #3b82f6 20%, 
-      #60a5fa 50%, 
-      #3b82f6 80%, 
-      transparent 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    border-radius: 18px 18px 0 0;
+    background: $primary-blue;
+    border-radius: 0; // Sin bordes redondeados
   }
 
-  // Efecto hover
-  &:hover {
-    box-shadow: 0 6px 28px rgba(37, 99, 235, 0.18), 0 2px 6px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(255, 255, 255, 0.9);
-    border-color: rgba(96, 165, 250, 0.6);
-    transform: translateY(-2px);
-    
-    &::before {
-      opacity: 1;
-    }
-  }
-  
-  &:focus-within {
-    box-shadow: 0 8px 32px rgba(37, 99, 235, 0.25), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 1);
-    border-color: rgba(59, 130, 246, 0.8);
-    transform: translateY(-2px);
-    
-    &::before {
-      opacity: 1;
-      animation: borderGlow 2s ease-in-out infinite;
-    }
-  }
-  
-  @keyframes borderGlow {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
-  }
-
-  // Header de la tarjeta - OCULTO para máxima compactación
-  mat-card-header {
-    display: none;                                     // Ocultar header completamente
-  }
-
-  // Contenido de la tarjeta
   mat-card-content {
-    padding: 0;
+    padding: 16px !important; // Aumentado de 12px a 16px para más espacio vertical
+    overflow: visible !important; // CRÍTICO: Permitir que los dropdowns se muestren
   }
 }
 
-// ============================================================================
-// FORMULARIO DE BÚSQUEDA ULTRA COMPACTO - Todo en una línea horizontal
-// ============================================================================
-.search-form-compact {
-  width: 100%;
+// Mensaje informativo de filtros
+.filter-info-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: rgba($primary-blue, 0.08);
+  border-left: 3px solid $primary-blue;
+  border-radius: 4px;
+  font-size: 13px;
+  color: $gray-700;
 
-  // Fila de búsqueda - Contenedor horizontal de todos los campos
-  .search-row-compact {
-    display: flex;
-    align-items: center;                               // Centrar verticalmente
-    gap: 10px;                                         // Espacio reducido a 10px
-    width: 100%;
-    flex-wrap: nowrap;
-
-    // ========================================================================
-    // CAMPOS ULTRA COMPACTOS - Estilos base para todos los form fields
-    // ========================================================================
-    .field-compact {
-      flex-shrink: 0;
-      display: flex;                                   // Flexbox para alineación
-      align-items: center;                             // Centrar verticalmente
-
-      // Ajustar el wrapper del form field para altura exacta
-      ::ng-deep .mat-mdc-text-field-wrapper {
-        padding-top: 0;
-        padding-bottom: 0;
-        height: 42px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
-        border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;                                 // Flexbox para centrado
-        align-items: center;                           // Centrar verticalmente
-        
-        &:hover {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(239, 246, 255, 0.9) 100%);
-          transform: translateY(-1px);
-        }
-      }
-
-      // Ajustar el infix para centrado perfecto
-      ::ng-deep .mat-mdc-form-field-infix {
-        padding-top: 0;                                // Sin padding superior
-        padding-bottom: 0;                             // Sin padding inferior
-        min-height: 42px;
-        height: 42px;
-        display: flex;
-        align-items: center;                           // Centrar verticalmente el contenido
-        justify-content: flex-start;                   // Alinear a la izquierda
-      }
-
-      // Label flotante centrado verticalmente
-      ::ng-deep .mat-mdc-form-field-label {
-        display: flex !important;
-        align-items: center !important;
-        gap: 4px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: visible;
-        color: $gray-600;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        left: 0;
-        padding: 0 8px;
-        background: transparent;
-        transition: all 0.2s ease;
-        line-height: 1.2 !important;
-        height: auto !important;
-
-        mat-icon {
-          font-size: 13px !important;
-          width: 13px !important;
-          height: 13px !important;
-          line-height: 13px !important;
-          color: $primary-blue;
-          flex-shrink: 0;
-          vertical-align: middle !important;
-          display: inline-flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          margin-top: 0 !important;
-          margin-bottom: 0 !important;
-        }
-
-        // Asegurar que el texto también esté centrado
-        .mat-mdc-form-field-required-marker {
-          vertical-align: middle;
-          line-height: 1.2;
-        }
-      }
-
-      // Label cuando está flotando
-      ::ng-deep .mat-mdc-form-field-label.mdc-floating-label--float-above {
-        top: -7px !important;
-        transform: scale(0.8) translateY(0) !important; // Sin translateY cuando flota
-        left: 0;
-        padding: 0 5px;
-        background: white;
-        color: $primary-blue;
-        font-weight: 700;
-      }
-
-      // Ajustar el notch
-      ::ng-deep .mat-mdc-notched-outline-notch {
-        padding: 0 8px;
-        border-right-style: hidden;
-        border-left-style: hidden;
-      }
-
-      // Inputs y selects ultra compactos con texto centrado
-      .input-compact,
-      .select-compact {
-        font-size: 0.8rem;
-        padding: 0 12px;
-        line-height: 42px;                             // Altura de línea igual a la altura del campo
-        height: 42px;
-        text-align: left;
-        background: transparent;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        font-weight: 500;
-        color: $gray-800;
-        vertical-align: middle;                        // Alineación vertical
-
-        &:hover {
-          background: rgba($primary-blue, 0.03);
-        }
-
-        &:focus {
-          background: rgba($primary-blue, 0.05);
-        }
-      }
-
-      // Ocultar hints y errores para máxima compactación
-      ::ng-deep .mat-mdc-form-field-hint-wrapper,
-      ::ng-deep .mat-mdc-form-field-error-wrapper,
-      ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-        display: none;
-      }
-
-      // Borde azul cuando el campo está enfocado
-      &.mat-focused {
-        ::ng-deep .mat-mdc-form-field-outline {
-          border-color: $primary-blue !important;
-          border-width: 2px !important;
-        }
-      }
-
-      // Outline (borde) con bordes redondeados y colores modernos
-      ::ng-deep .mat-mdc-notched-outline {
-        .mat-mdc-notched-outline-leading {
-          border-width: 1.5px;
-          border-radius: 12px 0 0 12px;
-          border-color: rgba($primary-blue, 0.25);
-          transition: all 0.3s ease;
-        }
-
-        .mat-mdc-notched-outline-notch {
-          border-width: 1.5px;
-          border-color: rgba($primary-blue, 0.25);
-          transition: all 0.3s ease;
-        }
-
-        .mat-mdc-notched-outline-trailing {
-          border-width: 1.5px;
-          border-radius: 0 12px 12px 0;
-          border-color: rgba($primary-blue, 0.25);
-          transition: all 0.3s ease;
-        }
-      }
-      
-      // Efecto hover en el outline
-      &:hover {
-        ::ng-deep .mat-mdc-notched-outline {
-          .mat-mdc-notched-outline-leading,
-          .mat-mdc-notched-outline-notch,
-          .mat-mdc-notched-outline-trailing {
-            border-color: rgba($primary-blue, 0.5);
-          }
-        }
-      }
-    }
-
-    // ========================================================================
-    // ANCHOS ESPECÍFICOS DE CAMPOS - MÁS COMPACTOS
-    // ========================================================================
-
-    // Campo de usuario
-    .field-user {
-      width: 200px;
-      min-width: 200px;
-      flex: 1;
-      max-width: 250px;
-    }
-
-    // Campo de módulo
-    .field-module {
-      width: 180px;
-      min-width: 180px;
-    }
-
-    // Campos de fecha
-    .field-date {
-      width: 145px;
-      min-width: 145px;
-
-      ::ng-deep .mat-datepicker-toggle {
-        margin-right: -6px;
-      }
-
-      ::ng-deep .mat-datepicker-toggle-default-icon {
-        width: 16px;
-        height: 16px;
-        color: $primary-blue;
-      }
-      
-      ::ng-deep .mat-datepicker-toggle-button {
-        width: 36px;
-        height: 36px;
-      }
-    }
-
-    // ========================================================================
-    // CONTENEDOR DE BOTONES DE ACCIÓN - ULTRA COMPACTO
-    // ========================================================================
-    .actions-compact {
-      display: flex;
-      gap: 8px;
-      align-items: center;                             // Centrar verticalmente
-      margin-left: auto;                               // Empujar a la derecha
-
-      // Estilos base para todos los botones
-      .btn-compact {
-        height: 42px;                                  // Altura igual a los inputs
-        min-width: 100px;
-        padding: 0 18px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        text-transform: none;
-        letter-spacing: 0.3px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        position: relative;
-        overflow: hidden;
-        
-        // Efecto de brillo
-        &::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-          transition: left 0.5s ease;
-        }
-        
-        &:hover::before {
-          left: 100%;
-        }
-
-        mat-icon {
-          font-size: 17px;
-          width: 17px;
-          height: 17px;
-        }
-
-        mat-spinner {
-          margin-right: 0;
-        }
-      }
-
-      // Botón de búsqueda - Gradiente azul vibrante
-      .btn-search-compact {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
-        color: white;
-        border: none;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-
-        &:hover:not(:disabled) {
-          background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
-        }
-
-        &:active:not(:disabled) {
-          transform: translateY(0);
-          box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4);
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          background: linear-gradient(135deg, $gray-400 0%, $gray-500 100%);
-          box-shadow: none;
-        }
-      }
-
-      // Botón de limpiar - Gradiente naranja vibrante
-      .btn-clear-compact {
-        background: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ea580c 100%);
-        color: white;
-        border: none;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-        min-width: 100px;
-
-        &:hover:not(:disabled) {
-          background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #f97316 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(245, 158, 11, 0.5);
-        }
-
-        &:active:not(:disabled) {
-          transform: translateY(0);
-          box-shadow: 0 3px 10px rgba(245, 158, 11, 0.4);
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          background: linear-gradient(135deg, $gray-400 0%, $gray-500 100%);
-          box-shadow: none;
-        }
-      }
-    }
-  }
-}
-
-// ============================================================================
-// ESTILOS PARA OPCIONES DE SELECT
-// ============================================================================
-::ng-deep {
-  .mat-mdc-option {
-    // Opciones compactas con icono y texto
-    .option-compact {
-      display: flex;                                   // Flexbox para alinear icono y texto
-      align-items: center;                             // Centrar verticalmente
-      gap: 8px;                                        // Espacio de 8px entre icono y texto
-      font-size: 0.85rem;                              // Tamaño de fuente de 0.85rem
-
-      // Iconos dentro de las opciones
-      mat-icon {
-        font-size: 16px;                               // Tamaño de icono de 16px
-        width: 16px;                                   // Ancho de 16px
-        height: 16px;                                  // Alto de 16px
-        color: $primary-blue;                          // Color azul principal
-        flex-shrink: 0;                                // No permitir que se encoja
-      }
-
-      // Texto de la opción
-      span {
-        white-space: nowrap;                           // No permitir saltos de línea
-        overflow: hidden;                              // Ocultar texto que sobresalga
-        text-overflow: ellipsis;                       // Mostrar puntos suspensivos
-      }
-    }
-  }
-
-  // Ajustes globales para form fields compactos
-  .field-compact {
-    // Label wrapper con overflow visible
-    .mat-mdc-form-field-label-wrapper {
-      padding-top: 0;                                  // Sin padding superior
-      overflow: visible;                               // Permitir que sea visible
-    }
-
-    // Subscript wrapper (hints y errors)
-    .mat-mdc-form-field-subscript-wrapper {
-      height: auto;                                    // Altura automática
-      min-height: 14px;                                // Altura mínima de 14px
-      margin-top: 2px;                                 // Margen superior de 2px
-      overflow: visible;                               // Permitir que sea visible
-    }
-
-    // Flex para mejor alineación
-    .mat-mdc-form-field-flex {
-      align-items: center;                             // Centrar elementos verticalmente
-    }
-  }
-}
-
-// ============================================================================
-// SECCIÓN DE RESULTADOS - Área donde se muestran los resultados de búsqueda
-// ============================================================================
-.results-section-modern {
-  margin-top: 2px;                                     // Margen superior de 2px (mínimo espacio con el buscador)
-  display: flex;                                       // Flexbox para layout vertical
-  flex-direction: column;                              // Dirección vertical
-  gap: 8px;                                            // Espacio de 8px entre elementos (reducido para compactar)
-}
-
-// ============================================================================
-// HEADER DEL REPORTE SIMPLIFICADO - Información del usuario y estadísticas + Distribución por módulo
-// ============================================================================
-.report-header-simple {
-  display: flex;                                       // Flexbox para layout vertical
-  flex-direction: column;                              // Dirección vertical para incluir distribución
-  gap: 12px;                                           // Espacio de 12px entre secciones
-  padding: 16px 20px;                                  // Padding: 16px vertical, 20px horizontal
-  background: white;                                   // Fondo blanco sólido
-  border-radius: 12px;                                 // Bordes redondeados de 12px
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);           // Sombra suave
-  border: 1px solid $gray-200;                        // Borde gris claro
-  margin-bottom: 8px;                                  // Margen inferior de 8px (espacio con el contenido siguiente)
-  margin-top: -20px;                                     // Margen superior de 2px (mínimo espacio con el buscador)
-
-  // Fila superior: Información del usuario + Estadísticas
-  .header-top-row {
-    display: flex;                                     // Flexbox para layout horizontal
-    align-items: center;                               // Centrar verticalmente
-    justify-content: space-between;                    // Espacio entre elementos
-    gap: 24px;                                         // Espacio de 24px entre secciones
-    flex-wrap: wrap;                                   // Permitir que los elementos se envuelvan
-  }
-
-  // Información del usuario - Avatar + Datos
-  .user-info-simple {
-    display: flex;                                     // Flexbox para layout horizontal
-    align-items: center;                               // Centrar verticalmente
-    gap: 12px;                                         // Espacio de 12px entre avatar y datos
-    flex: 1;                                           // Ocupar espacio disponible
-    min-width: 300px;                                  // Ancho mínimo de 300px
-
-    // Avatar pequeño del usuario
-    .user-avatar-simple {
-      width: 48px;                                     // Ancho de 48px
-      height: 48px;                                    // Alto de 48px
-      border-radius: 50%;                              // Forma circular
-      overflow: hidden;                                // Ocultar contenido que sobresalga
-      background: linear-gradient(135deg, $primary-blue-100 0%, $primary-blue-200 100%); // Gradiente azul
-      display: flex;                                   // Flexbox para centrar icono
-      align-items: center;                             // Centrar verticalmente
-      justify-content: center;                         // Centrar horizontalmente
-      flex-shrink: 0;                                  // No permitir que se encoja
-      border: 2px solid $primary-blue;                // Borde azul
-
-      // Imagen del avatar
-      .avatar-img-simple {
-        width: 100%;                                   // Ancho completo
-        height: 100%;                                  // Alto completo
-        object-fit: cover;                             // Cubrir todo el espacio
-      }
-
-      // Icono por defecto cuando no hay imagen
-      mat-icon {
-        font-size: 32px;                               // Tamaño de icono de 32px
-        width: 32px;                                   // Ancho de 32px
-        height: 32px;                                  // Alto de 32px
-        color: $primary-blue;                         // Color azul principal
-      }
-    }
-
-    // Datos del usuario (nombre, código, rol, email)
-    .user-data-simple {
-      display: flex;                                   // Flexbox para layout vertical
-      flex-direction: column;                          // Dirección vertical
-      gap: 4px;                                        // Espacio de 4px entre elementos
-      min-width: 0;                                    // Permitir que el texto se trunque
-
-      // Nombre del usuario con código
-      .user-name-simple {
-        margin: 0;                                     // Sin margen
-        font-size: 1.1rem;                             // Tamaño de fuente de 1.1rem
-        font-weight: 600;                              // Texto semi-negrita
-        color: $gray-800;                             // Color gris oscuro
-        display: flex;                                 // Flexbox para alinear nombre y código
-        align-items: center;                           // Centrar verticalmente
-        gap: 8px;                                      // Espacio de 8px entre nombre y código
-        line-height: 1.2;                              // Altura de línea ajustada
-
-        // Código del usuario (badge)
-        .user-code-simple {
-          font-size: 0.9rem;                           // Tamaño de fuente de 0.9rem
-          font-weight: 500;                            // Peso de fuente medio
-          color: $primary-blue;                       // Color azul principal
-          background: rgba($primary-blue, 0.1);       // Fondo azul muy sutil
-          padding: 2px 8px;                            // Padding: 2px vertical, 8px horizontal
-          border-radius: 6px;                          // Bordes redondeados de 6px
-        }
-      }
-
-      // Detalles del usuario (rol y email)
-      .user-details-simple {
-        display: flex;                                 // Flexbox para layout horizontal
-        align-items: center;                           // Centrar verticalmente
-        gap: 8px;                                      // Espacio de 8px entre elementos
-        font-size: 0.85rem;                            // Tamaño de fuente de 0.85rem
-        color: $gray-600;                             // Color gris medio
-        flex-wrap: wrap;                               // Permitir que se envuelvan
-
-        // Item de detalle (rol o email)
-        .detail-item-simple {
-          display: flex;                               // Flexbox para alinear icono y texto
-          align-items: center;                         // Centrar verticalmente
-          gap: 4px;                                    // Espacio de 4px entre icono y texto
-
-          // Icono del detalle
-          mat-icon {
-            font-size: 14px;                           // Tamaño de icono de 14px
-            width: 14px;                               // Ancho de 14px
-            height: 14px;                              // Alto de 14px
-            color: $primary-blue;                     // Color azul principal
-          }
-        }
-
-        // Separador entre detalles
-        .detail-separator {
-          color: $gray-400;                           // Color gris claro
-        }
-      }
-    }
-  }
-
-  // Estadísticas compactas en línea
-  .stats-simple {
-    display: flex;                                     // Flexbox para layout horizontal
-    gap: 16px;                                         // Espacio de 16px entre estadísticas
-    align-items: center;                               // Centrar verticalmente
-
-    // Estadística individual
-    .stat-simple {
-      display: flex;                                   // Flexbox para alinear icono y contenido
-      align-items: center;                             // Centrar verticalmente
-      gap: 8px;                                        // Espacio de 8px entre icono y contenido
-      padding: 8px 12px;                               // Padding: 8px vertical, 12px horizontal
-      background: $gray-50;                           // Fondo gris muy claro
-      border-radius: 8px;                              // Bordes redondeados de 8px
-      border: 1px solid $gray-200;                    // Borde gris claro
-
-      // Icono de la estadística
-      mat-icon {
-        font-size: 20px;                               // Tamaño de icono de 20px
-        width: 20px;                                   // Ancho de 20px
-        height: 20px;                                  // Alto de 20px
-        color: $primary-blue;                         // Color azul principal
-      }
-
-      // Contenido de la estadística (número y label)
-      .stat-content-simple {
-        display: flex;                                 // Flexbox para layout vertical
-        flex-direction: column;                        // Dirección vertical
-        gap: 2px;                                      // Espacio de 2px entre número y label
-
-        // Número de la estadística
-        .stat-number-simple {
-          font-size: 1rem;                             // Tamaño de fuente de 1rem
-          font-weight: 700;                            // Texto negrita
-          color: $gray-800;                           // Color gris oscuro
-          line-height: 1;                              // Altura de línea ajustada
-        }
-
-        // Label de la estadística
-        .stat-label-simple {
-          font-size: 0.7rem;                           // Tamaño de fuente de 0.7rem
-          color: $gray-600;                           // Color gris medio
-          text-transform: uppercase;                   // Texto en mayúsculas
-          letter-spacing: 0.5px;                       // Espaciado entre letras
-          line-height: 1;                              // Altura de línea ajustada
-        }
-      }
-
-      // Variante primaria (azul)
-      &.stat-primary-simple {
-        background: rgba($primary-blue, 0.1);         // Fondo azul sutil
-        border-color: $primary-blue;                  // Borde azul
-
-        mat-icon {
-          color: $primary-blue;                       // Icono azul
-        }
-
-        .stat-number-simple {
-          color: $primary-blue;                       // Número azul
-        }
-      }
-
-      // Variante info (cyan)
-      &.stat-info-simple {
-        background: rgba(#06b6d4, 0.1);                // Fondo cyan sutil
-        border-color: #06b6d4;                         // Borde cyan
-
-        mat-icon {
-          color: #06b6d4;                              // Icono cyan
-        }
-      }
-
-      // Variante success (verde)
-      &.stat-success-simple {
-        background: rgba($success-emerald, 0.1);      // Fondo verde sutil
-        border-color: $success-emerald;               // Borde verde
-
-        mat-icon {
-          color: $success-emerald;                    // Icono verde
-        }
-      }
-    }
-  }
-
-  // Botón de exportar PDF
-  .export-action-simple {
-    .btn-export-simple {
-      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%); // Gradiente azul
-      color: white;                                    // Texto blanco
-      border: none;                                    // Sin borde
-      border-radius: 8px;                              // Bordes redondeados de 8px
-      font-weight: 500;                                // Peso de fuente medio
-      padding: 0 20px;                                 // Padding horizontal de 20px
-      height: 40px;                                    // Altura de 40px
-      box-shadow: 0 2px 8px rgba($primary-blue, 0.3); // Sombra azul suave
-      transition: all 0.3s ease;                       // Transición suave
-      display: flex;                                   // Flexbox para alinear contenido
-      align-items: center;                             // Centrar verticalmente
-      gap: 8px;                                        // Espacio de 8px entre icono y texto
-
-      // Icono del botón
-      mat-icon {
-        font-size: 20px;                               // Tamaño de icono de 20px
-        width: 20px;                                   // Ancho de 20px
-        height: 20px;                                  // Alto de 20px
-      }
-
-      // Efecto hover
-      &:hover:not(:disabled) {
-        background: linear-gradient(135deg, $primary-blue-light 0%, $primary-blue 100%); // Gradiente más claro
-        transform: translateY(-1px);                   // Elevar 1px
-        box-shadow: 0 4px 12px rgba($primary-blue, 0.4); // Sombra más pronunciada
-      }
-
-      // Estado deshabilitado
-      &:disabled {
-        opacity: 0.6;                                  // Opacidad del 60%
-        cursor: not-allowed;                           // Cursor de no permitido
-      }
-    }
-  }
-
-  // ========================================================================
-  // DISTRIBUCIÓN POR MÓDULO INTEGRADA - Compacta en una línea
-  // ========================================================================
-  .module-distribution-inline {
-    padding-top: 12px;                                 // Padding superior de 12px para separar de la fila superior
-    border-top: 1px solid $gray-200;                  // Borde superior gris claro para separar visualmente
-    display: flex;                                     // Flexbox para layout horizontal
-    align-items: center;                               // Centrar verticalmente
-    gap: 16px;                                         // Espacio de 16px entre título y barras
-    flex-wrap: wrap;                                   // Permitir wrap si no cabe
-
-    // Título de la sección
-    .distribution-title {
-      font-size: 0.75rem;                              // Tamaño de fuente pequeño (0.75rem)
-      font-weight: 600;                                // Texto semi-negrita
-      color: $gray-600;                                // Color gris medio
-      text-transform: uppercase;                       // Texto en mayúsculas
-      letter-spacing: 0.5px;                           // Espaciado entre letras
-      display: flex;                                   // Flexbox para alinear icono y texto
-      align-items: center;                             // Centrar verticalmente
-      gap: 6px;                                        // Espacio de 6px entre icono y texto
-      flex-shrink: 0;                                  // No permitir que se encoja
-
-      // Icono del título
-      mat-icon {
-        font-size: 16px;                               // Tamaño de icono de 16px
-        width: 16px;                                   // Ancho de 16px
-        height: 16px;                                  // Alto de 16px
-        color: $primary-blue;                          // Color azul principal
-      }
-    }
-
-    // Contenedor de módulos en línea
-    .modules-inline {
-      display: flex;                                   // Flexbox para layout horizontal
-      gap: 12px;                                       // Espacio de 12px entre módulos
-      align-items: center;                             // Centrar verticalmente
-      flex-wrap: wrap;                                 // Permitir wrap si no cabe
-      flex: 1;                                         // Ocupar espacio disponible
-
-      // Item individual de módulo
-      .module-item-inline {
-        display: flex;                                 // Flexbox para layout horizontal
-        align-items: center;                           // Centrar verticalmente
-        gap: 6px;                                      // Espacio de 6px entre elementos
-        padding: 4px 10px;                             // Padding: 4px vertical, 10px horizontal
-        background: $gray-50;                          // Fondo gris muy claro
-        border-radius: 8px;                            // Bordes redondeados de 8px
-        border: 1px solid $gray-200;                   // Borde gris claro
-        flex-shrink: 0;                                // No permitir que se encoja
-
-        // Icono del módulo
-        .module-icon-inline {
-          font-size: 14px;                             // Tamaño de icono de 14px
-          width: 14px;                                 // Ancho de 14px
-          height: 14px;                                // Alto de 14px
-          color: $primary-blue-500;                    // Color azul intenso
-        }
-
-        // Nombre del módulo
-        .module-name-inline {
-          font-size: 0.75rem;                          // Tamaño de fuente de 0.75rem
-          font-weight: 500;                            // Peso de fuente medio
-          color: $gray-700;                            // Color gris oscuro
-          white-space: nowrap;                         // No permitir saltos de línea
-        }
-
-        // Badge con contador
-        .module-count-inline {
-          font-weight: 700;                            // Texto negrita
-          font-size: 0.7rem;                           // Tamaño de fuente pequeño (0.7rem)
-          color: white;                                // Texto blanco
-          background: $primary-blue;                   // Fondo azul principal
-          padding: 2px 6px;                            // Padding: 2px vertical, 6px horizontal
-          border-radius: 10px;                         // Bordes muy redondeados (píldora)
-          min-width: 18px;                             // Ancho mínimo de 18px
-          text-align: center;                          // Centrar texto
-        }
-
-        // Barra de progreso mini
-        .module-bar-inline {
-          width: 50px;                                 // Ancho fijo de 50px (muy compacto)
-          height: 4px;                                 // Altura de 4px (muy compacta)
-          background: $gray-200;                       // Fondo gris claro
-          border-radius: 2px;                          // Bordes redondeados de 2px
-          overflow: hidden;                            // Ocultar contenido que sobresalga
-          position: relative;                          // Posición relativa para el fill
-
-          // Relleno de la barra
-          .module-bar-fill-inline {
-            height: 100%;                              // Altura completa
-            border-radius: 2px;                        // Bordes redondeados de 2px
-            transition: width 0.6s ease;               // Transición suave del ancho
-            position: absolute;                        // Posición absoluta
-            left: 0;                                   // Alinear a la izquierda
-            top: 0;                                    // Alinear arriba
-
-            // Colores por módulo
-            &.module-auth {
-              background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%); // Gradiente azul
-            }
-
-            &.module-profile {
-              background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%); // Gradiente morado
-            }
-
-            &.module-machines {
-              background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%); // Gradiente naranja
-            }
-
-            &.module-design {
-              background: linear-gradient(90deg, #ec4899 0%, #f472b6 100%); // Gradiente rosa
-            }
-
-            &.module-reports {
-              background: linear-gradient(90deg, #10b981 0%, #34d399 100%); // Gradiente verde
-            }
-
-            &.module-settings {
-              background: linear-gradient(90deg, #6366f1 0%, #818cf8 100%); // Gradiente índigo
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-// ============================================================================
-// DISTRIBUCIÓN POR MÓDULO - OCULTO (Ahora está integrado en report-header-simple)
-// ============================================================================
-.module-breakdown-card {
-  display: none !important;                            // Ocultar completamente - Ahora está integrado en report-header-simple
-}
-
-// ============================================================================
-// TABLA DE ACTIVIDADES - Tabla con scroll para visualizar actividades
-// ============================================================================
-.activities-table-card {
-  background: white;                                   // Fondo blanco sólido
-  border-radius: 12px;                                 // Bordes redondeados de 12px
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);           // Sombra suave para elevación
-
-  // Header de la tarjeta
-  mat-card-header {
-    padding: 16px 20px;                                // Padding: 16px vertical, 20px horizontal
-    border-bottom: 2px solid $gray-100;                // Borde inferior gris claro
-
-    // Título de la tarjeta
-    mat-card-title {
-      font-size: 1.1rem;                               // Tamaño de fuente de 1.1rem
-      font-weight: 600;                                // Texto semi-negrita
-      display: flex;                                   // Flexbox para alinear icono y texto
-      align-items: center;                             // Centrar verticalmente
-      gap: 10px;                                       // Espacio de 10px entre icono y texto
-      color: $gray-800;                                // Color gris oscuro
-
-      // Icono del título
-      mat-icon {
-        font-size: 22px;                               // Tamaño de icono de 22px
-        width: 22px;                                   // Ancho de 22px
-        height: 22px;                                  // Alto de 22px
-        color: $primary-blue;                          // Color azul principal
-      }
-    }
-  }
-
-  // Contenido de la tarjeta
-  mat-card-content {
-    padding: 0;                                        // Sin padding (se maneja en el contenedor de tabla)
-  }
-
-  // Contenedor con scroll para la tabla
-  .table-container {
-    max-height: 500px;                                 // Altura máxima de 500px para activar scroll
-    overflow-y: auto;                                  // Scroll vertical automático
-    overflow-x: auto;                                  // Scroll horizontal automático si es necesario
-    position: relative;                                // Posición relativa para el header sticky
-
-    // Estilos personalizados para la barra de scroll
-    &::-webkit-scrollbar {
-      width: 8px;                                      // Ancho de la barra de scroll vertical
-      height: 8px;                                     // Alto de la barra de scroll horizontal
-    }
-
-    &::-webkit-scrollbar-track {
-      background: $gray-100;                           // Fondo de la pista del scroll
-      border-radius: 4px;                              // Bordes redondeados
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: $gray-300;                           // Color del thumb del scroll
-      border-radius: 4px;                              // Bordes redondeados
-      transition: background 0.3s ease;                // Transición suave
-
-      // Efecto hover en el thumb
-      &:hover {
-        background: $gray-400;                         // Color más oscuro en hover
-      }
-    }
-  }
-
-  // Tabla de actividades
-  .activities-table {
-    width: 100%;                                       // Ancho completo
-    border-collapse: separate;                         // Separar bordes para border-radius
-    border-spacing: 0;                                 // Sin espacio entre celdas
-    font-size: 0.85rem;                                // Tamaño de fuente de 0.85rem
-    border: 1px solid rgba($primary-blue, 0.15);       // Borde exterior sutil azul
-
-    // Encabezado de la tabla (thead)
-    thead {
-      position: sticky;                                // Sticky para mantener visible al hacer scroll
-      top: 0;                                          // Pegado arriba
-      z-index: 10;                                     // Z-index alto para estar sobre las filas
-      background: linear-gradient(135deg, $primary-blue-600 0%, $primary-blue-500 100%); // Gradiente azul
-
-      // Fila del encabezado
-      tr {
-        // Celdas del encabezado (th)
-        th {
-          padding: 14px 16px;                          // Padding: 14px vertical, 16px horizontal
-          text-align: left;                            // Alinear texto a la izquierda
-          font-weight: 600;                            // Texto semi-negrita
-          font-size: 0.85rem;                          // Tamaño de fuente de 0.85rem
-          color: white;                                // Texto blanco
-          text-transform: uppercase;                   // Texto en mayúsculas
-          letter-spacing: 0.5px;                       // Espaciado entre letras
-          white-space: nowrap;                         // No permitir saltos de línea
-          border-bottom: 2px solid $primary-blue-700;  // Borde inferior azul oscuro
-          border-right: 1px solid rgba(255, 255, 255, 0.1); // Borde derecho sutil blanco
-
-          // Primera celda (esquina superior izquierda)
-          &:first-child {
-            border-top-left-radius: 0;                 // Sin redondeo (ya está en la tarjeta)
-          }
-
-          // Última celda (esquina superior derecha)
-          &:last-child {
-            border-top-right-radius: 0;                // Sin redondeo (ya está en la tarjeta)
-            border-right: none;                        // Sin borde derecho en última celda
-          }
-        }
-      }
-    }
-
-    // Cuerpo de la tabla (tbody)
-    tbody {
-      // Filas de actividades
-      .activity-row {
-        transition: all 0.2s ease;                     // Transición suave para efectos
-        border-bottom: 1px solid rgba($primary-blue, 0.08); // Borde inferior azul muy sutil
-
-        // Efecto hover en la fila
-        &:hover {
-          background: rgba($primary-blue, 0.03);       // Fondo azul muy sutil
-          transform: scale(1.001);                     // Escala ligeramente mayor
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);   // Sombra suave
-        }
-
-        // Última fila sin borde inferior
-        &:last-child {
-          border-bottom: none;                         // Sin borde inferior
-        }
-
-        // Celdas de datos (td)
-        td {
-          padding: 12px 16px;                          // Padding: 12px vertical, 16px horizontal
-          vertical-align: middle;                      // Alinear verticalmente al centro
-          color: $gray-700;                            // Color gris oscuro
-          line-height: 1.5;                            // Altura de línea de 1.5
-          border-right: 1px solid rgba($primary-blue, 0.06); // Borde derecho sutil azul
-          
-          // Última celda sin borde derecho
-          &:last-child {
-            border-right: none;                        // Sin borde derecho en última celda
-          }
-        }
-
-        // Columna de módulo
-        .col-module {
-          width: 150px;                                // Ancho fijo de 150px
-          min-width: 150px;                            // Ancho mínimo de 150px
-
-          // Badge del módulo con icono
-          .module-badge {
-            display: inline-flex;                      // Inline-flex para alinear icono y texto
-            align-items: center;                       // Centrar verticalmente
-            gap: 6px;                                  // Espacio de 6px entre icono y texto
-            padding: 6px 12px;                         // Padding: 6px vertical, 12px horizontal
-            border-radius: 20px;                       // Bordes muy redondeados (píldora)
-            font-size: 0.8rem;                         // Tamaño de fuente de 0.8rem
-            font-weight: 600;                          // Texto semi-negrita
-            white-space: nowrap;                       // No permitir saltos de línea
-
-            // Icono del módulo
-            mat-icon {
-              font-size: 16px;                         // Tamaño de icono de 16px
-              width: 16px;                             // Ancho de 16px
-              height: 16px;                            // Alto de 16px
-            }
-
-            // Colores por módulo
-            &.badge-auth {
-              background: rgba(#3b82f6, 0.1);          // Fondo azul sutil
-              color: #1d4ed8;                          // Texto azul oscuro
-              border: 1px solid rgba(#3b82f6, 0.3);    // Borde azul
-
-              mat-icon {
-                color: #3b82f6;                        // Icono azul
-              }
-            }
-
-            &.badge-profile {
-              background: rgba(#8b5cf6, 0.1);          // Fondo morado sutil
-              color: #6d28d9;                          // Texto morado oscuro
-              border: 1px solid rgba(#8b5cf6, 0.3);    // Borde morado
-
-              mat-icon {
-                color: #8b5cf6;                        // Icono morado
-              }
-            }
-
-            &.badge-machines {
-              background: rgba(#f59e0b, 0.1);          // Fondo naranja sutil
-              color: #d97706;                          // Texto naranja oscuro
-              border: 1px solid rgba(#f59e0b, 0.3);    // Borde naranja
-
-              mat-icon {
-                color: #f59e0b;                        // Icono naranja
-              }
-            }
-
-            &.badge-design {
-              background: rgba(#ec4899, 0.1);          // Fondo rosa sutil
-              color: #db2777;                          // Texto rosa oscuro
-              border: 1px solid rgba(#ec4899, 0.3);    // Borde rosa
-
-              mat-icon {
-                color: #ec4899;                        // Icono rosa
-              }
-            }
-
-            &.badge-reports {
-              background: rgba(#10b981, 0.1);          // Fondo verde sutil
-              color: #059669;                          // Texto verde oscuro
-              border: 1px solid rgba(#10b981, 0.3);    // Borde verde
-
-              mat-icon {
-                color: #10b981;                        // Icono verde
-              }
-            }
-
-            &.badge-settings {
-              background: rgba(#6366f1, 0.1);          // Fondo índigo sutil
-              color: #4f46e5;                          // Texto índigo oscuro
-              border: 1px solid rgba(#6366f1, 0.3);    // Borde índigo
-
-              mat-icon {
-                color: #6366f1;                        // Icono índigo
-              }
-            }
-          }
-        }
-
-        // Columna de acción
-        .col-action {
-          width: 200px;                                // Ancho fijo de 200px
-          min-width: 200px;                            // Ancho mínimo de 200px
-
-          // Texto de la acción
-          .action-text {
-            font-weight: 600;                          // Texto semi-negrita
-            color: $gray-800;                          // Color gris oscuro
-            display: block;                            // Mostrar como bloque
-            white-space: nowrap;                       // No permitir saltos de línea
-            overflow: hidden;                          // Ocultar texto que sobresalga
-            text-overflow: ellipsis;                   // Mostrar puntos suspensivos
-          }
-        }
-
-        // Columna de descripción
-        .col-description {
-          min-width: 250px;                            // Ancho mínimo de 250px
-          max-width: 400px;                            // Ancho máximo de 400px
-
-          // Texto de la descripción
-          .description-text {
-            display: block;                            // Mostrar como bloque
-            color: $gray-600;                          // Color gris medio
-            line-height: 1.4;                          // Altura de línea de 1.4
-            max-height: 2.8em;                         // Altura máxima de 2 líneas
-            overflow: hidden;                          // Ocultar texto que sobresalga
-            text-overflow: ellipsis;                   // Mostrar puntos suspensivos
-            display: -webkit-box;                      // Display webkit-box para truncado
-            -webkit-line-clamp: 2;                     // Limitar a 2 líneas
-            -webkit-box-orient: vertical;              // Orientación vertical
-          }
-        }
-
-        // Columna de fecha y hora
-        .col-timestamp {
-          width: 160px;                                // Ancho fijo de 160px
-          min-width: 160px;                            // Ancho mínimo de 160px
-
-          // Texto de la fecha y hora
-          .timestamp-text {
-            font-family: 'Courier New', monospace;     // Fuente monoespaciada
-            font-size: 0.8rem;                         // Tamaño de fuente de 0.8rem
-            color: $gray-600;                          // Color gris medio
-            white-space: nowrap;                       // No permitir saltos de línea
-          }
-        }
-
-        // Columna de metadata
-        .col-metadata {
-          min-width: 200px;                            // Ancho mínimo de 200px
-
-          // Contenedor de metadata
-          .metadata-container {
-            display: flex;                             // Flexbox para layout horizontal
-            flex-wrap: wrap;                           // Permitir que se envuelvan
-            gap: 6px;                                  // Espacio de 6px entre badges
-
-            // Badge de metadata
-            .metadata-badge {
-              display: inline-flex;                    // Inline-flex para alinear icono y texto
-              align-items: center;                     // Centrar verticalmente
-              gap: 4px;                                // Espacio de 4px entre icono y texto
-              padding: 4px 8px;                        // Padding: 4px vertical, 8px horizontal
-              background: $gray-50;                    // Fondo gris muy claro
-              border: 1px solid $gray-200;             // Borde gris claro
-              border-radius: 6px;                      // Bordes redondeados de 6px
-              font-size: 0.75rem;                      // Tamaño de fuente de 0.75rem
-              color: $gray-600;                        // Color gris medio
-              white-space: nowrap;                     // No permitir saltos de línea
-
-              // Icono del metadata
-              mat-icon {
-                font-size: 14px;                       // Tamaño de icono de 14px
-                width: 14px;                           // Ancho de 14px
-                height: 14px;                          // Alto de 14px
-                color: $primary-blue;                  // Color azul principal
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Mensaje cuando no hay actividades
-  .no-activities-message {
-    text-align: center;                                // Centrar texto
-    padding: 60px 20px;                                // Padding: 60px vertical, 20px horizontal
-    color: $gray-500;                                  // Color gris medio
-
-    // Icono del mensaje
-    mat-icon {
-      font-size: 64px;                                 // Tamaño de icono de 64px
-      width: 64px;                                     // Ancho de 64px
-      height: 64px;                                    // Alto de 64px
-      margin-bottom: 16px;                             // Margen inferior de 16px
-      opacity: 0.4;                                    // Opacidad del 40%
-      color: $gray-400;                                // Color gris claro
-    }
-
-    // Texto del mensaje
-    p {
-      margin: 0;                                       // Sin margen
-      font-size: 1rem;                                 // Tamaño de fuente de 1rem
-      font-weight: 500;                                // Peso de fuente medio
-    }
-  }
-}
-
-// ============================================================================
-// ESTADO SIN RESULTADOS - Mensaje cuando no hay resultados de búsqueda
-// ============================================================================
-.no-results {
-  display: flex;                                       // Flexbox para layout vertical
-  flex-direction: column;                              // Dirección vertical
-  align-items: center;                                 // Centrar horizontalmente
-  justify-content: center;                             // Centrar verticalmente
-  padding: 80px 20px;                                  // Padding: 80px vertical, 20px horizontal
-  text-align: center;                                  // Centrar texto
-  color: #6b7280;                                      // Color gris medio
-
-  // Icono del mensaje
   mat-icon {
-    font-size: 64px;                                   // Tamaño de icono de 64px
-    width: 64px;                                       // Ancho de 64px
-    height: 64px;                                      // Alto de 64px
-    color: #d1d5db;                                    // Color gris claro
-    margin-bottom: 16px;                               // Margen inferior de 16px
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $primary-blue;
   }
 
-  // Título del mensaje
-  h3 {
-    font-size: 1.5rem;                                 // Tamaño de fuente de 1.5rem
-    font-weight: 600;                                  // Texto semi-negrita
-    margin: 0 0 8px 0;                                 // Margen: 0 arriba/laterales, 8px abajo
-    color: #4b5563;                                    // Color gris oscuro
-  }
-
-  // Descripción del mensaje
-  p {
-    font-size: 1rem;                                   // Tamaño de fuente de 1rem
-    margin: 0;                                         // Sin margen
-    color: #64748b;                                    // Color gris medio
+  span {
+    flex: 1;
+    line-height: 1.4;
   }
 }
 
-// ============================================================================
-// RESPONSIVE - Adaptación para diferentes tamaños de pantalla
-// ============================================================================
+.filters-form-compact {
+  .filter-row-compact {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    overflow: visible !important; // CRÍTICO: Permitir que los dropdowns se muestren
 
-// Tablets (768px - 1200px)
-@media (max-width: 1200px) {
-  .search-form-compact .search-row-compact {
-    flex-wrap: wrap;                                   // Permitir que los elementos se envuelvan
+    .filter-field-compact {
+      flex: 1 1 auto;
+      min-width: 140px;
+      max-width: 200px;
+      overflow: visible !important; // CRÍTICO: Permitir que los dropdowns se muestren
 
-    // Campos flexibles en tablets
-    .field-user,
-    .field-module,
-    .field-date {
-      flex: 1;                                         // Ocupar espacio disponible
-      min-width: 150px;                                // Ancho mínimo de 150px
-    }
-
-    // Botones ocupan todo el ancho
-    .actions-compact {
-      width: 100%;                                     // Ancho completo
-      justify-content: flex-start;                     // Alinear al inicio
-    }
-  }
-}
-
-// Móviles (<768px)
-@media (max-width: 768px) {
-  // Header responsive
-  .reports-header .header-content {
-    flex-direction: column;                            // Cambiar a layout vertical
-    gap: 12px;                                         // Espacio de 12px entre elementos
-    min-height: 80px;                                  // Altura mínima de 80px
-  }
-
-  // Contenido responsive
-  .reports-content {
-    padding: 16px;                                     // Padding uniforme de 16px
-  }
-
-  // Formulario responsive
-  .search-form-compact .search-row-compact {
-    flex-direction: column;                            // Cambiar a layout vertical
-
-    // Todos los elementos ocupan todo el ancho
-    .field-compact,
-    .actions-compact {
-      width: 100%;                                     // Ancho completo
-    }
-
-    // Campos ocupan todo el ancho
-    .field-user,
-    .field-module,
-    .field-date {
-      width: 100%;                                     // Ancho completo
-      min-width: 100%;                                 // Ancho mínimo completo
-    }
-
-    // Botones en fila horizontal
-    .actions-compact {
-      flex-direction: row;                             // Layout horizontal
-
-      // Botón de búsqueda ocupa la mayor parte
-      .btn-compact {
-        flex: 1;                                       // Ocupar espacio disponible
+      &.filter-date {
+        min-width: 120px;
+        max-width: 140px;
       }
 
-      // Botón de limpiar mantiene su tamaño
-      .btn-clear-compact {
-        flex: 0 0 auto;                                // No crecer ni encoger
-      }
-    }
-  }
+      ::ng-deep {
+        .mat-mdc-text-field-wrapper {
+          height: 40px !important;
+        }
 
-  // Header del reporte responsive
-  .report-header-simple {
-    flex-direction: column;                            // Cambiar a layout vertical
-    align-items: stretch;                              // Estirar elementos
+        .mat-mdc-form-field-flex {
+          height: 40px !important;
+          align-items: center !important;
+        }
 
-    .user-info-simple {
-      min-width: 100%;                                 // Ancho completo
-    }
+        .mat-mdc-form-field-infix {
+          padding-top: 8px !important;
+          padding-bottom: 8px !important;
+          min-height: auto !important;
+        }
 
-    .stats-simple {
-      width: 100%;                                     // Ancho completo
-      justify-content: space-between;                  // Espacio entre estadísticas
+        .mat-mdc-floating-label {
+          top: 20px !important;
+        }
 
-      .stat-simple {
-        flex: 1;                                       // Ocupar espacio disponible
-        min-width: 0;                                  // Permitir que se encoja
+        .mat-mdc-form-field-subscript-wrapper {
+          display: none !important;
+        }
+
+        input {
+          font-size: 0.85rem !important;
+        }
+
+        .mat-mdc-select {
+          font-size: 0.85rem !important;
+        }
+
+        .mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
       }
     }
 
-    .export-action-simple {
-      width: 100%;                                     // Ancho completo
+    button[mat-mini-fab] {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
 
-      .btn-export-simple {
-        width: 100%;                                   // Ancho completo
-        justify-content: center;                       // Centrar contenido
-      }
-    }
-  }
-
-  // Tabla responsive - Ajustes para móviles
-  .activities-table-card {
-    // En móviles, permitir scroll horizontal
-    .table-container {
-      max-height: 400px;                               // Altura máxima reducida en móviles
-    }
-
-    // Ajustar tamaños de columnas en móviles
-    .activities-table {
-      min-width: 800px;                                // Ancho mínimo para activar scroll horizontal
-
-      thead th {
-        padding: 10px 12px;                            // Padding reducido
-        font-size: 0.75rem;                            // Fuente más pequeña
-      }
-
-      tbody td {
-        padding: 10px 12px;                            // Padding reducido
-        font-size: 0.8rem;                             // Fuente más pequeña
-      }
-    }
-  }
-}
-
-
-// ============================================================================
-// FIX GLOBAL: CENTRADO DE LABELS CON ICONOS - Forzar alineación correcta
-// ============================================================================
-::ng-deep {
-  // Aplicar a todos los form fields dentro del componente de reportes
-  .reports-container,
-  .search-form-compact {
-    
-    // Label con icono - Forzar centrado vertical perfecto
-    .mat-mdc-form-field-label {
-      display: flex !important;
-      align-items: center !important;
-      gap: 4px !important;
-      line-height: 1.2 !important;
-      height: auto !important;
-      vertical-align: middle !important;
-      
-      // Icono dentro del label
       mat-icon {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        vertical-align: middle !important;
-        line-height: 1 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        flex-shrink: 0 !important;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
       }
-      
-      // Texto del label (tanto en span como texto directo)
+    }
+  }
+}
+
+// Spinner de carga
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  flex: 1;
+
+  .loading-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: $primary-blue;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+// Tarjeta de actividades
+.activities-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $primary-blue;
+    border-radius: 20px 20px 0 0;
+  }
+
+  mat-card-header {
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid rgba($gray-200, 0.3);
+    padding: 12px 16px;
+    flex-shrink: 0;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+      color: #1f2937;
+      font-size: 1.3rem;
+      font-weight: 700;
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        color: $primary-blue;
+      }
+
       span {
-        display: inline-flex !important;
-        align-items: center !important;
-        line-height: 1.2 !important;
-        vertical-align: middle !important;
+        color: #4b5563;
+        font-size: 0.8rem;
+        font-weight: 500;
       }
     }
-    
-    // Asegurar que el flex del form field también esté centrado
-    .mat-mdc-form-field-flex {
-      align-items: center !important;
+  }
+
+  mat-card-content {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+}
+
+.table-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+  min-height: 0;
+
+  &::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(241, 245, 249, 0.8);
+    border-radius: 8px;
+    margin: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, $primary-blue-300, $primary-blue-500);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, $primary-blue-400, $primary-blue);
+  }
+}
+
+// Tabla estilo Excel
+.excel-table {
+  width: 100%;
+  background: white;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 2px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e2e8f0;
+  border-top: 3px solid $primary-blue;
+
+  .excel-header {
+    background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%);
+    color: $gray-700;
+    font-family: Arial, sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    padding: 8px 8px;
+    border-bottom: 2px solid $primary-blue;
+    border-right: 1px solid $gray-300;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    backdrop-filter: blur(10px);
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      mat-icon {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        color: $primary-blue;
+      }
+
+      span {
+        font-size: 10px;
+        font-weight: 700;
+      }
     }
-    
-    // Infix centrado
-    .mat-mdc-form-field-infix {
-      display: flex !important;
-      align-items: center !important;
+  }
+
+  .excel-cell {
+    padding: 8px 6px;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    background: white;
+    font-size: 10px !important;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+    min-height: 40px;
+  }
+
+  .excel-row {
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba($primary-blue, 0.15);
+      transform: translateY(-1px);
+
+      .excel-cell {
+        background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+      }
     }
-    
-    // Label wrapper para asegurar centrado
-    .mat-mdc-form-field-label-wrapper {
-      display: flex !important;
-      align-items: center !important;
+
+    &.expanded-row {
+      border-bottom: none;
     }
+  }
+}
+
+// Celdas específicas
+.timestamp-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .date {
+    font-weight: 600;
+    color: $gray-800;
+    font-size: 10px;
+  }
+
+  .time {
+    font-size: 9px;
+    color: $gray-500;
+  }
+}
+
+.user-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .user-name {
+    font-weight: 600;
+    color: $gray-800;
+    font-size: 10px;
+  }
+
+  .user-code {
+    font-size: 9px;
+    color: $gray-500;
+  }
+}
+
+.action-text {
+  font-weight: 600;
+  color: $gray-800;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+}
+
+.description-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: $gray-700;
+
+  .duration-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 9px;
+    font-weight: 600;
+
+    mat-icon {
+      font-size: 12px;
+      width: 12px;
+      height: 12px;
+    }
+  }
+}
+
+// Mensaje sin datos
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: #999;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  p {
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .reports-container {
+    padding: 12px;
+  }
+
+  .filters-form-compact {
+    .filter-row-compact {
+      flex-direction: column;
+      align-items: stretch;
+
+      .filter-field-compact {
+        max-width: 100%;
+        width: 100%;
+
+        &.filter-date {
+          max-width: 100%;
+        }
+      }
+
+      button[mat-mini-fab] {
+        width: 100%;
+        border-radius: 8px;
+      }
+    }
+  }
+
+  .excel-table {
+    font-size: 9px;
+
+    .excel-header,
+    .excel-cell {
+      padding: 6px 4px;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .filters-form-compact {
+    .filter-row-compact {
+      .filter-field-compact {
+        min-width: 120px;
+        max-width: 160px;
+
+        &.filter-date {
+          min-width: 100px;
+          max-width: 120px;
+        }
+      }
+    }
+  }
+}
+
+// ===== ESTILOS GLOBALES PARA PANELES DE ANGULAR MATERIAL =====
+// Asegurar que los paneles de select y autocomplete se muestren correctamente
+::ng-deep {
+  .cdk-overlay-container {
+    z-index: 10000 !important;
   }
   
-  // Estilos adicionales para campos de fecha específicamente
-  .field-date {
-    .mat-mdc-form-field-label {
-      mat-icon {
-        margin-top: -1px !important; // Ajuste fino para iconos de calendario
-      }
+  .cdk-overlay-pane {
+    z-index: 10000 !important;
+  }
+  
+  .mat-mdc-select-panel {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+  }
+  
+  .mat-mdc-autocomplete-panel {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+  }
+}
+
+
+// Estilos para el input de búsqueda dentro del select
+::ng-deep {
+  .user-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid $gray-300;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin: 4px 0;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary-blue;
+      box-shadow: 0 0 0 2px rgba($primary-blue, 0.1);
     }
   }
+
+  .mat-mdc-option.mat-mdc-option-active {
+    background-color: transparent !important;
+  }
+}
+
+// Dropdown personalizado para búsqueda de usuarios
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  background: white;
+  border: 2px solid $primary-blue;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 9999 !important;
+  margin-top: 0;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $gray-100;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $gray-400;
+    border-radius: 4px;
+    
+    &:hover {
+      background: $gray-500;
+    }
+  }
+
+  .user-option {
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: $gray-700;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid $gray-100;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
+      color: $primary-blue;
+      font-weight: 500;
+    }
+
+    &:active {
+      background: $primary-blue-200;
+    }
+  }
+}
+
+// Asegurar que el mat-form-field tenga position relative para el dropdown
+.filter-field-compact {
+  position: relative;
+}
+
+// Contenedor para el campo de búsqueda de usuario
+.user-search-container {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 140px;
+  max-width: 200px;
+  z-index: 10;
+  
+  // Asegurar que el dropdown sea visible
+  .mat-mdc-form-field {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// ===== DETALLES EXPANDIBLES =====
+.detail-row {
+  height: 0;
+  overflow: hidden;
+
+  td {
+    border: none !important;
+    padding: 0 !important;
+  }
+}
+
+.expanded-detail-cell {
+  padding: 0 !important;
+  border: none !important;
+}
+
+.detail-expansion {
+  overflow: hidden;
+  background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
+  border-top: 2px solid $primary-blue-200;
+  border-bottom: 2px solid $primary-blue-200;
+}
+
+.detail-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-section {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid $gray-200;
+
+  h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px 0;
+    color: $gray-800;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding-bottom: 8px;
+    border-bottom: 2px solid $primary-blue-100;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      color: $primary-blue;
+    }
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: $gray-50;
+  border-radius: 8px;
+  border-left: 3px solid $primary-blue;
+
+  .detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $gray-600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .detail-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: $gray-800;
+    word-break: break-word;
+  }
+
+  &.detail-item-full {
+    grid-column: 1 / -1;
+  }
+}
+
+.json-display {
+  background: $gray-900;
+  color: #a5d6ff;
+  padding: 16px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 0;
+  border: 1px solid $gray-700;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $gray-800;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $gray-600;
+    border-radius: 4px;
+    
+    &:hover {
+      background: $gray-500;
+    }
+  }
+
+  &.old-values {
+    background: #2d1f1f;
+    color: #ffb3b3;
+    border-color: #8b0000;
+  }
+
+  &.new-values {
+    background: #1f2d1f;
+    color: #b3ffb3;
+    border-color: #006400;
+  }
+}
+
+.description-text {
+  margin: 0;
+  padding: 12px;
+  background: $gray-50;
+  border-radius: 8px;
+  color: $gray-800;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border-left: 3px solid $primary-blue;
 }
