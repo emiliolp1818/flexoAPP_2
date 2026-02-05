@@ -757,16 +757,6 @@ export class MachinesComponent implements OnInit {
       } else {
         console.log('⚠️ No se encontró información de diseño en BD, usando datos actuales');
       }
-      
-      // Auto-cerrar después de 3 segundos
-      setTimeout(() => {
-        const currentExpanded = new Set(this.expandedColors());
-        if (currentExpanded.has(programId)) {
-          currentExpanded.delete(programId);
-          this.expandedColors.set(currentExpanded);
-          console.log(`⏱️ Auto-cerrado dropdown después de 3 segundos: ${programId}`);
-        }
-      }, 3000);
     }
     
     // Actualizar el estado de expansión
