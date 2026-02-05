@@ -18,7 +18,7 @@ namespace backend.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous] // Temporal para pruebas
+    [Authorize] // Requiere autenticación para registrar actividades
     public class MaquinasController : ControllerBase
     {
         private readonly FlexoAPPDbContext _context;

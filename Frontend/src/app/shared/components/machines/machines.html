@@ -357,11 +357,17 @@
                       <div class="estado-container">
                         <div class="status-main">
                           <span class="status-text-display" [class]="'status-' + element.estado.toLowerCase()">
-                            <span class="status-text">{{ element.estado === 'LISTO' ? 'PREPARADO' : element.estado.replace('_', ' ') }}</span>
+                            <span class="status-text">{{ getEstadoDisplay(element.estado) }}</span>
+                            <!-- DEBUG: Mostrar estado raw -->
+                            <small style="display: block; font-size: 8px; color: #999;">DEBUG: {{ element.estado }}</small>
                           </span>
                         </div>
                         <div class="operario-info">
                           <small>{{ element.lastActionBy || 'Sistema' }}</small>
+                          <!-- Mostrar fecha de última acción si existe -->
+                          <small *ngIf="element.lastActionAt" style="display: block; color: #999; font-size: 9px;">
+                            {{ element.lastActionAt | date:'dd/MM/yyyy HH:mm' }}
+                          </small>
                         </div>
                         <div *ngIf="element.estado === 'SUSPENDIDO' && element.observaciones" class="motivo-suspendido">
                           <small>{{ element.observaciones }}</small>

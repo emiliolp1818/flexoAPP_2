@@ -1654,6 +1654,33 @@ export class MachinesComponent implements OnInit {
     return icons[estado as keyof typeof icons] || 'help';
   }
 
+  /**
+   * Obtiene el texto a mostrar para cada estado de programa
+   * Convierte los estados internos a texto legible para el usuario
+   */
+  getEstadoDisplay(estado: string): string {
+    console.log('🔍 getEstadoDisplay llamado con estado:', estado, 'tipo:', typeof estado);
+    
+    // Normalizar el estado: trim y uppercase para manejar cualquier formato
+    const estadoNormalizado = (estado || '').toString().trim().toUpperCase();
+    console.log('🔍 Estado normalizado:', estadoNormalizado);
+    
+    const displayTexts: Record<string, string> = {
+      'SIN_ASIGNAR': 'SIN ASIGNAR',
+      'PREPARANDO': 'PREPARANDO',
+      'LISTO': 'PREPARADO',        // LISTO se muestra como PREPARADO
+      'SUSPENDIDO': 'SUSPENDIDO',
+      'CORRIENDO': 'CORRIENDO',
+      'TERMINADO': 'TERMINADO'
+    };
+    
+    const result = displayTexts[estadoNormalizado] || estado.replace('_', ' ');
+    console.log('🔍 getEstadoDisplay retorna:', result);
+    
+    // Retorna el texto correspondiente o el estado original si no se encuentra
+    return result;
+  }
+
   // ===== MÉTODO PARA CALCULAR Y FORMATEAR TIEMPO TRANSCURRIDO =====
   // Calcula la diferencia entre dos fechas y la formatea en horas y minutos
   // Útil para mostrar duración de procesos o tiempo desde última acción

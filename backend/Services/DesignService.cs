@@ -1155,5 +1155,10 @@ namespace FlexoAPP.API.Services
         {
             return await _designRepository.GetUniqueUsedColorsAsync();
         }
+
+        public async Task<List<string>> GetPantoneColorsByArticleAsync(string articleF)
+        {
+            return await _designRepository.GetPantoneColorsByArticleAsync(articleF);
+        }
     }
 }

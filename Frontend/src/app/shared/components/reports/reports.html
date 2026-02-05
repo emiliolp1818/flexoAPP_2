@@ -13,17 +13,20 @@
         </h1>
         <p class="page-subtitle">Registro completo de todas las actividades realizadas en la aplicación</p>
       </div>
-      
+
       <div class="header-actions">
-        <button mat-raised-button color="accent" (click)="exportToPDF()" [disabled]="loading() || filteredActivities().length === 0">
+        <button mat-raised-button color="accent" (click)="exportToPDF()"
+          [disabled]="loading() || filteredActivities().length === 0">
           <mat-icon>picture_as_pdf</mat-icon>
           Exportar PDF
         </button>
-        <button mat-raised-button color="accent" (click)="exportToExcel()" [disabled]="loading() || filteredActivities().length === 0">
+        <button mat-raised-button color="accent" (click)="exportToExcel()"
+          [disabled]="loading() || filteredActivities().length === 0">
           <mat-icon>table_chart</mat-icon>
           Exportar Excel
         </button>
-        <button mat-icon-button (click)="loadActivities()" [disabled]="loading()" class="refresh-btn" matTooltip="Actualizar actividades">
+        <button mat-icon-button (click)="loadActivities()" [disabled]="loading()" class="refresh-btn"
+          matTooltip="Actualizar actividades">
           <mat-icon [class.spinning]="loading()">refresh</mat-icon>
         </button>
       </div>
@@ -37,21 +40,17 @@
       <mat-card-content>
         <div class="filter-info-message">
           <mat-icon>info</mat-icon>
-          <span>Por defecto se muestran las actividades del día actual. Ingresa fechas específicas para ver otros períodos.</span>
+          <span>Haz clic en "Buscar" para ver todas las actividades. Los filtros de usuario y fechas son
+            opcionales.</span>
         </div>
         <form [formGroup]="filterForm" class="filters-form-compact">
           <!-- Fila única de filtros -->
           <div class="filter-row-compact">
             <!-- Usuario - Autocomplete de Angular Material -->
             <mat-form-field appearance="outline" class="filter-field-compact">
-              <mat-label>Usuario</mat-label>
-              <input type="text"
-                     matInput
-                     [(ngModel)]="userSearchText"
-                     [ngModelOptions]="{standalone: true}"
-                     [matAutocomplete]="autoUser"
-                     (input)="onUserSearch()"
-                     placeholder="Código o nombre">
+              <mat-label>Usuario (Opcional)</mat-label>
+              <input type="text" matInput [(ngModel)]="userSearchText" [ngModelOptions]="{standalone: true}"
+                [matAutocomplete]="autoUser" (input)="onUserSearch()" placeholder="Dejar vacío para ver todos">
               <mat-icon matPrefix>person</mat-icon>
               <button matSuffix mat-icon-button (click)="clearUserSearch()" *ngIf="userSearchText">
                 <mat-icon>clear</mat-icon>
@@ -61,18 +60,6 @@
                   {{ user.userCode }} - {{ user.firstName }} {{ user.lastName }}
                 </mat-option>
               </mat-autocomplete>
-            </mat-form-field>
-
-            <!-- Módulo (Opcional) -->
-            <mat-form-field appearance="outline" class="filter-field-compact">
-              <mat-label>Módulo</mat-label>
-              <mat-select formControlName="module">
-                <mat-option [value]="null">Todos</mat-option>
-                <mat-option *ngFor="let module of modules" [value]="module.value">
-                  {{ module.label }}
-                </mat-option>
-              </mat-select>
-              <mat-icon matPrefix>apps</mat-icon>
             </mat-form-field>
 
             <!-- Fecha Inicio -->
@@ -109,212 +96,234 @@
       <p>Cargando actividades...</p>
     </div>
 
-    <!-- Tabla de Actividades -->
-    <mat-card *ngIf="!loading()" class="activities-card">
-      <mat-card-header>
-        <mat-card-title>
-          <mat-icon>table_view</mat-icon>
-          Registro de Actividades
-          <span *ngIf="!loading()">
-            ({{ filteredActivities().length }} registros)
-          </span>
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="table-container">
-          <table mat-table [dataSource]="filteredActivities()" class="excel-table activities-table">
-            
-            <!-- Columna: Fecha/Hora -->
-            <ng-container matColumnDef="timestamp">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
+    <!-- Vista por Módulos (Ítems Separados) -->
+    <div *ngIf="!loading() && filteredActivities().length > 0" class="modules-container">
+      <!-- Iterar sobre cada módulo -->
+      <mat-card *ngFor="let module of modules" class="module-card">
+        <mat-card-header (click)="selectModule(selectedModule() === module.value ? null : module.value)"
+          class="module-header">
+          <div class="module-header-content">
+            <div class="module-info">
+              <mat-icon class="module-icon">{{ module.icon }}</mat-icon>
+              <h3 class="module-title">{{ module.label }}</h3>
+              <span class="module-count">({{ getModuleCount(module.value) }} actividades)</span>
+            </div>
+            <mat-icon class="expand-icon">
+              {{ selectedModule() === module.value ? 'expand_less' : 'expand_more' }}
+            </mat-icon>
+          </div>
+        </mat-card-header>
+
+        <!-- Contenido expandible del módulo -->
+        <mat-card-content *ngIf="selectedModule() === module.value && getModuleCount(module.value) > 0"
+          class="module-content">
+
+          <!-- Estadísticas especiales para MÁQUINAS -->
+          <div *ngIf="module.value === 'MACHINES'" class="machine-stats">
+            <ng-container *ngIf="getMachineStats(getActivitiesByModule(module.value)) as stats">
+              <!-- DEBUG: Mostrar valores raw de stats -->
+              <div class="stats-summary">
+                <div class="stat-item">
+                  <mat-icon>assignment_turned_in</mat-icon>
+                  <div class="stat-info">
+                    <span class="stat-label">Pedidos Completados</span>
+                    <span class="stat-value">{{ stats.totalOrders }}</span>
+                  </div>
+                </div>
+                <div class="stat-item">
                   <mat-icon>schedule</mat-icon>
-                  <span>Fecha/Hora</span>
+                  <div class="stat-info">
+                    <span class="stat-label">Tiempo Total</span>
+                    <span class="stat-value">{{ formatDuration(stats.totalDuration) }}</span>
+                  </div>
                 </div>
-              </th>
-              <td mat-cell *matCellDef="let activity" class="excel-cell">
-                <div class="timestamp-cell">
-                  <div class="date">{{ activity.timestamp | date:'dd/MM/yyyy' }}</div>
-                  <div class="time">{{ activity.timestamp | date:'HH:mm:ss' }}</div>
+                <div class="stat-item">
+                  <mat-icon>avg_pace</mat-icon>
+                  <div class="stat-info">
+                    <span class="stat-label">Tiempo Promedio</span>
+                    <span class="stat-value">{{ formatDuration(stats.avgDuration) }}</span>
+                  </div>
                 </div>
-              </td>
-            </ng-container>
+                <div class="stat-item">
+                  <mat-icon>palette</mat-icon>
+                  <div class="stat-info">
+                    <span class="stat-label">Promedio de Colores</span>
+                    <span class="stat-value">{{ stats.avgColores ? (stats.avgColores | number:'1.0-1') : '-' }}</span>
+                  </div>
+                </div>
+              </div>
 
-            <!-- Columna: Usuario -->
-            <ng-container matColumnDef="user">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>person</mat-icon>
-                  <span>Usuario</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let activity" class="excel-cell">
-                <div class="user-cell">
-                  <div class="user-name">{{ activity.user?.fullName || 'Sistema' }}</div>
-                  <div class="user-code">{{ activity.user?.userCode || activity.userCode || '-' }}</div>
-                </div>
-              </td>
-            </ng-container>
+              <!-- Lista de Pedidos Completados -->
+              <div class="orders-list" *ngIf="stats.orderDetails && stats.orderDetails.length > 0">
+                <h4 class="orders-title">
+                  <mat-icon>list</mat-icon>
+                  Detalle de Pedidos Completados
+                </h4>
+                <div class="order-item" *ngFor="let order of stats.orderDetails; let i = index">
+                  <div class="order-number">Pedido #{{ i + 1 }}</div>
+                  <div class="order-details">
+                    <div class="order-field">
+                      <span class="field-label">Artículo:</span>
+                      <span class="field-value">{{ order.articulo }}</span>
+                    </div>
+                    <div class="order-field">
+                      <span class="field-label">OT SAP:</span>
+                      <span class="field-value">{{ order.otSap }}</span>
+                    </div>
+                    <div class="order-field">
+                      <span class="field-label">Descripción:</span>
+                      <span class="field-value">{{ order.descripcion }}</span>
+                    </div>
+                    <div class="order-field">
+                      <span class="field-label">Número de Máquina:</span>
+                      <span class="field-value">{{ order.numeroMaquina }}</span>
+                    </div>
+                    <div class="order-field">
+                      <span class="field-label">Duración Total:</span>
+                      <span class="field-value">
+                        {{ formatDuration(order.duration) }}
+                        <small style="color: #999; margin-left: 8px;">({{ order.duration | number:'1.0-0' }}
+                          seg)</small>
+                      </span>
+                    </div>
+                    <div class="order-field">
+                      <span class="field-label">Número de Colores:</span>
+                      <span class="field-value">{{ order.numeroColores || '-' }}</span>
+                    </div>
 
-            <!-- Columna: Módulo -->
-            <ng-container matColumnDef="module">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>apps</mat-icon>
-                  <span>Módulo</span>
+                    <!-- Historial de Estados -->
+                    <div class="order-field"
+                      style="margin-top: 12px; border-top: 1px solid #e0e0e0; padding-top: 12px;">
+                      <span class="field-label" style="font-weight: bold; margin-bottom: 8px; display: block;">Historial
+                        de Estados:</span>
+                      <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <div *ngFor="let estado of order.historialEstados"
+                          style="display: flex; flex-direction: column; gap: 4px; padding: 6px 10px; background: #f5f5f5; border-radius: 4px;">
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: #666; font-size: 12px; min-width: 130px;">
+                              {{ estado.timestamp | date:'dd/MM/yyyy HH:mm' }}
+                            </span>
+                            <span style="font-weight: bold; font-size: 13px;" [style.color]="
+                                estado.estado === 'PREPARANDO' ? '#f97316' :
+                                estado.estado === 'LISTO' ? '#16a34a' :
+                                estado.estado === 'CORRIENDO' ? '#2196f3' :
+                                estado.estado === 'SUSPENDIDO' ? '#dc2626' :
+                                estado.estado === 'TERMINADO' ? '#64748b' : '#64748b'">
+                              {{ estado.estado }}
+                            </span>
+                            <span *ngIf="estado.duration > 0" style="color: #999; font-size: 11px; margin-left: auto;">
+                              ({{ formatDuration(estado.duration) }})
+                            </span>
+                          </div>
+                          <!-- Mostrar motivo de suspensión si existe -->
+                          <div *ngIf="estado.estado === 'SUSPENDIDO' && estado.observaciones" 
+                               style="padding-left: 138px; color: #dc2626; font-size: 12px; font-style: italic;">
+                            Motivo: {{ estado.observaciones }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </th>
-              <td mat-cell *matCellDef="let activity" class="excel-cell">
-                <mat-chip [color]="getModuleColor(activity.module)" selected>
-                  {{ getModuleLabel(activity.module) }}
-                </mat-chip>
-              </td>
+              </div>
             </ng-container>
+          </div>
 
-            <!-- Columna: Acción -->
-            <ng-container matColumnDef="action">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>bolt</mat-icon>
-                  <span>Acción</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let activity" class="excel-cell">
-                <span class="action-text">{{ activity.action }}</span>
-              </td>
-            </ng-container>
+          <!-- Tabla de actividades del módulo (SOLO para módulos que NO son MACHINES) -->
+          <div *ngIf="module.value !== 'MACHINES'" class="module-activities-table">
+            <table mat-table [dataSource]="getActivitiesByModule(module.value)" class="activities-table">
 
-            <!-- Columna: Descripción -->
-            <ng-container matColumnDef="description">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>description</mat-icon>
-                  <span>Descripción</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let activity" class="excel-cell">
-                <div class="description-cell">
-                  {{ activity.description }}
-                  <span *ngIf="getDuration(activity) !== '-'" class="duration-badge">
-                    <mat-icon>timer</mat-icon>
-                    {{ getDuration(activity) }}
-                  </span>
-                </div>
-              </td>
-            </ng-container>
+              <!-- Columna: Fecha/Hora -->
+              <ng-container matColumnDef="timestamp">
+                <th mat-header-cell *matHeaderCellDef>Fecha/Hora</th>
+                <td mat-cell *matCellDef="let activity">
+                  <div class="timestamp-cell">
+                    <div class="date">{{ activity.timestamp | date:'dd/MM/yyyy' }}</div>
+                    <div class="time">{{ activity.timestamp | date:'HH:mm:ss' }}</div>
+                  </div>
+                </td>
+              </ng-container>
 
-            <!-- Columna: Detalles (Expandible) -->
-            <ng-container matColumnDef="details">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>info</mat-icon>
-                  <span>Detalles</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let activity" class="excel-cell">
-                <button mat-icon-button 
-                        [matTooltip]="'Ver detalles completos'"
-                        (click)="toggleExpanded(activity, $event)">
-                  <mat-icon>{{ activity.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-                </button>
-              </td>
-            </ng-container>
+              <!-- Columna: Usuario -->
+              <ng-container matColumnDef="user">
+                <th mat-header-cell *matHeaderCellDef>Usuario</th>
+                <td mat-cell *matCellDef="let activity">
+                  <div class="user-cell">
+                    <div class="user-name">{{ activity.user?.fullName || 'Sistema' }}</div>
+                    <div class="user-code">{{ activity.user?.userCode || activity.userCode || '-' }}</div>
+                  </div>
+                </td>
+              </ng-container>
 
-            <!-- Columna: Detalles Expandibles (Contenido completo) -->
-            <ng-container matColumnDef="expandedDetail">
-              <td mat-cell *matCellDef="let activity" [attr.colspan]="displayedColumns.length" class="expanded-detail-cell">
-                <div class="detail-expansion" [@detailExpand]="activity.expanded ? 'expanded' : 'collapsed'">
-                  <div class="detail-content">
-                    <!-- Información General Unificada -->
-                    <div class="detail-section">
-                      <h4><mat-icon>info</mat-icon> Información General</h4>
+              <!-- Columna: Acción -->
+              <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Acción</th>
+                <td mat-cell *matCellDef="let activity">{{ activity.action }}</td>
+              </ng-container>
+
+              <!-- Columna: Descripción -->
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Descripción</th>
+                <td mat-cell *matCellDef="let activity">{{ activity.description }}</td>
+              </ng-container>
+
+              <!-- Columna: Detalles -->
+              <ng-container matColumnDef="details">
+                <th mat-header-cell *matHeaderCellDef>Detalles</th>
+                <td mat-cell *matCellDef="let activity">
+                  <button mat-icon-button (click)="toggleExpanded(activity, $event)">
+                    <mat-icon>{{ activity.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <!-- Fila expandible con detalles -->
+              <ng-container matColumnDef="expandedDetail">
+                <td mat-cell *matCellDef="let activity" [attr.colspan]="5">
+                  <div class="detail-expansion" [@detailExpand]="activity.expanded ? 'expanded' : 'collapsed'">
+                    <div class="detail-content">
                       <div class="detail-grid">
-                        <!-- Información básica -->
                         <div class="detail-item">
                           <span class="detail-label">Fecha y Hora:</span>
                           <span class="detail-value">{{ activity.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
                         </div>
                         <div class="detail-item">
                           <span class="detail-label">Usuario:</span>
-                          <span class="detail-value">{{ activity.user?.fullName || activity.userCode || 'Sistema' }}</span>
+                          <span class="detail-value">{{ activity.user?.fullName || 'Sistema' }}</span>
                         </div>
                         <div class="detail-item">
                           <span class="detail-label">Código Usuario:</span>
                           <span class="detail-value">{{ activity.user?.userCode || activity.userCode || '-' }}</span>
                         </div>
                         <div class="detail-item" *ngIf="activity.ipAddress">
-                          <span class="detail-label">Dirección IP:</span>
+                          <span class="detail-label">IP:</span>
                           <span class="detail-value">{{ activity.ipAddress }}</span>
                         </div>
-                        
-                        <!-- Información de entidad -->
-                        <div class="detail-item" *ngIf="activity.entityType">
-                          <span class="detail-label">Tipo de Entidad:</span>
-                          <span class="detail-value">{{ activity.entityType }}</span>
-                        </div>
-                        <div class="detail-item" *ngIf="activity.entityId">
-                          <span class="detail-label">ID de Entidad:</span>
-                          <span class="detail-value">{{ activity.entityId }}</span>
-                        </div>
-                        <div class="detail-item" *ngIf="activity.entityName">
-                          <span class="detail-label">Nombre de Entidad:</span>
-                          <span class="detail-value">{{ activity.entityName }}</span>
-                        </div>
-                        
-                        <!-- Número de Máquina - Siempre mostrar si existe -->
-                        <div class="detail-item" *ngIf="getNumeroMaquina(activity) as numeroMaquina">
-                          <span class="detail-label">Número de Máquina:</span>
-                          <span class="detail-value">{{ numeroMaquina }}</span>
-                        </div>
-                        
                         <div class="detail-item" *ngIf="getDuration(activity) !== '-'">
                           <span class="detail-label">Duración:</span>
                           <span class="detail-value">{{ getDuration(activity) }}</span>
                         </div>
-                        
-                        <!-- Información de máquina adicional (si existe) -->
-                        <ng-container *ngIf="getMachineInfo(activity) as machineInfo">
-                          <div class="detail-item" *ngIf="machineInfo.articulo">
-                            <span class="detail-label">Artículo:</span>
-                            <span class="detail-value">{{ machineInfo.articulo }}</span>
-                          </div>
-                          <div class="detail-item" *ngIf="machineInfo.otSap">
-                            <span class="detail-label">OT SAP:</span>
-                            <span class="detail-value">{{ machineInfo.otSap }}</span>
-                          </div>
-                          <div class="detail-item" *ngIf="machineInfo.descripcion">
-                            <span class="detail-label">Referencia:</span>
-                            <span class="detail-value">{{ machineInfo.descripcion }}</span>
-                          </div>
-                        </ng-container>
-                        
-                        <!-- Descripción completa -->
-                        <div class="detail-item detail-item-full">
-                          <span class="detail-label">Descripción Completa:</span>
-                          <span class="detail-value">{{ activity.description }}</span>
-                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </td>
-            </ng-container>
+                </td>
+              </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
-                class="excel-row"
+              <tr mat-header-row *matHeaderRowDef="['timestamp', 'user', 'action', 'description', 'details']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['timestamp', 'user', 'action', 'description', 'details'];"
                 [class.expanded-row]="row.expanded"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isExpandedRow" 
-                class="detail-row"></tr>
-          </table>
-
-          <!-- Mensaje cuando no hay datos -->
-          <div *ngIf="filteredActivities().length === 0" class="no-data">
-            <mat-icon>inbox</mat-icon>
-            <p>No se encontraron actividades con los filtros seleccionados</p>
+              <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isExpandedRow" class="detail-row">
+              </tr>
+            </table>
           </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Mensaje cuando no hay datos -->
+    <div *ngIf="!loading() && filteredActivities().length === 0" class="no-data">
+      <mat-icon>inbox</mat-icon>
+      <p>No se encontraron actividades con los filtros seleccionados</p>
+    </div>
   </div>
 </div>

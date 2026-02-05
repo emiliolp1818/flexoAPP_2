@@ -41,7 +41,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   hidePassword = signal(true);
   isLoading = signal(false);
   errorMessage = signal('');
-  loadingMessage = signal('Conectando...');
 
   
   // Clock signals
@@ -116,7 +115,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.loginForm.valid && !this.isLoading()) {
       this.isLoading.set(true);
       this.errorMessage.set('');
-      this.loadingMessage.set('Conectando con el servidor...');
       
       const credentials: LoginRequest = {
         userCode: this.loginForm.value.userCode,
@@ -128,26 +126,10 @@ export class LoginComponent implements OnInit, OnDestroy {
         apiUrl: environment.apiUrl 
       });
 
-      // Actualizar mensaje después de 3 segundos si aún está cargando
-      const messageTimeout = setTimeout(() => {
-        if (this.isLoading()) {
-          this.loadingMessage.set('Despertando servidor (esto puede tomar hasta 30 segundos)...');
-        }
-      }, 3000);
-
-      // Actualizar mensaje después de 15 segundos
-      const messageTimeout2 = setTimeout(() => {
-        if (this.isLoading()) {
-          this.loadingMessage.set('Casi listo, por favor espera...');
-        }
-      }, 15000);
-
       this.authService.login(credentials)
         .pipe(
           finalize(() => {
             this.isLoading.set(false);
-            clearTimeout(messageTimeout);
-            clearTimeout(messageTimeout2);
           })
         )
         .subscribe({
@@ -156,7 +138,6 @@ export class LoginComponent implements OnInit, OnDestroy {
             // Si tenemos token y user, el login fue exitoso
             if (response.token && response.user) {
               console.log('✅ Login exitoso:', response.user);
-              this.loadingMessage.set('¡Conectado! Redirigiendo...');
               this.router.navigate(['/dashboard']);
             } else {
               this.errorMessage.set('Error de autenticación: respuesta inválida del servidor');

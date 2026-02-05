@@ -558,5 +558,50 @@ namespace FlexoAPP.API.Repositories
                 throw new Exception($"Error getting unique used colors: {ex.Message}", ex);
             }
         }
+
+        /// <summary>
+        /// Obtener colores Pantone (que empiezan con P-) de un artículo específico
+        /// </summary>
+        public async Task<List<string>> GetPantoneColorsByArticleAsync(string articleF)
+        {
+            try
+            {
+                var design = await _context.Designs
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(d => d.ArticleF == articleF);
+
+                if (design == null)
+                {
+                    return new List<string>();
+                }
+
+                var pantoneColors = new List<string>();
+                
+                // Revisar cada columna de color y agregar solo los que empiezan con "P-"
+                var colors = new[] { 
+                    design.Color1, design.Color2, design.Color3, design.Color4, design.Color5,
+                    design.Color6, design.Color7, design.Color8, design.Color9, design.Color10 
+                };
+
+                foreach (var color in colors)
+                {
+                    if (!string.IsNullOrWhiteSpace(color))
+                    {
+                        var colorTrimmed = color.Trim().ToUpper();
+                        // Verificar si empieza con "P-" (case insensitive)
+                        if (colorTrimmed.StartsWith("P-"))
+                        {
+                            pantoneColors.Add(colorTrimmed);
+                        }
+                    }
+                }
+
+                return pantoneColors;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting Pantone colors for article {articleF}: {ex.Message}", ex);
+            }
+        }
     }
 }

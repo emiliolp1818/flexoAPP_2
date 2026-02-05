@@ -82,5 +82,10 @@ namespace FlexoAPP.API.Services
         /// Obtener lista de colores únicos utilizados en todos los diseños
         /// </summary>
         Task<IEnumerable<string>> GetUniqueUsedColorsAsync();
+        
+        /// <summary>
+        /// Obtener colores Pantone (que empiezan con P-) de un artículo específico
+        /// </summary>
+        Task<List<string>> GetPantoneColorsByArticleAsync(string articleF);
     }
 }

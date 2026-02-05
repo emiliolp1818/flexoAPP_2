@@ -100,7 +100,7 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
       font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace; // Fuente monospace para números
       color: #ffffff;             // Blanco puro para máximo contraste
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); // Sombra para mejorar legibilidad
-      margin-bottom: 8px;         // Espacio inferior antes de la fecha
+      margin-bottom: 24px;        // Espacio inferior aumentado antes de la fecha
       letter-spacing: 2px;        // Espaciado entre letras para mejor legibilidad
     }
 
@@ -110,6 +110,7 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
       font-weight: 500;           // Peso medio para contraste con la hora
       color: rgba(255, 255, 255, 0.9); // Blanco casi opaco para jerarquía
       text-transform: capitalize; // Capitalizar primera letra de cada palabra
+      margin-top: 12px;           // Espacio superior adicional para separación
     }
   }
 
@@ -944,31 +945,4 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
 @keyframes spin {
   0% { transform: rotate(0deg); }     // Rotación inicial
   100% { transform: rotate(360deg); } // Rotación completa
-}
-
-// ===== MENSAJE DE INFORMACIÓN DE CARGA =====
-.loading-info {
-  display: flex;                 // Usar flexbox
-  align-items: center;           // Centrar verticalmente
-  gap: 10px;                     // Espacio entre icono y texto
-  margin-top: 16px;              // Espacio superior
-  padding: 12px 16px;            // Espaciado interno
-  background: rgba(59, 130, 246, 0.1); // Fondo azul semi-transparente
-  border-left: 3px solid #3b82f6; // Borde izquierdo azul
-  border-radius: 8px;            // Bordes redondeados
-  font-size: 13px;               // Tamaño de fuente pequeño
-  color: #1e40af;                // Color azul oscuro
-  line-height: 1.5;              // Altura de línea
-  animation: fadeIn 0.3s ease-in-out; // Animación de aparición
-
-  mat-icon {
-    font-size: 18px;             // Tamaño del icono
-    width: 18px;                 // Ancho del icono
-    height: 18px;                // Altura del icono
-    color: #3b82f6;              // Color azul del icono
-  }
-
-  span {
-    flex: 1;                     // Tomar todo el espacio disponible
-  }
 }

@@ -411,6 +411,29 @@ namespace flexoAPP.Services
                 // Solo se limpiará cuando cambie a CORRIENDO, SUSPENDIDO o TERMINADO
             }
             
+            // ✅ NUEVO: Calcular duración si cambia a TERMINADO desde LISTO o CORRIENDO
+            if (estadoUpper == "TERMINADO")
+            {
+                if (existing.Estado == "LISTO" && existing.PreparandoStartedAt.HasValue)
+                {
+                    // Si viene de LISTO, calcular desde PreparandoStartedAt
+                    duration = DateTime.UtcNow - existing.PreparandoStartedAt.Value;
+                    _logger.LogInformation("⏱️ Duración PREPARANDO->LISTO->TERMINADO para OT={OtSap}: {Duration}", otSap, duration);
+                }
+                else if (existing.Estado == "CORRIENDO" && existing.LastActionAt.HasValue)
+                {
+                    // Si viene de CORRIENDO, calcular desde LastActionAt (cuando se marcó como CORRIENDO)
+                    duration = DateTime.UtcNow - existing.LastActionAt.Value;
+                    _logger.LogInformation("⏱️ Duración CORRIENDO->TERMINADO para OT={OtSap}: {Duration}", otSap, duration);
+                }
+                else if (existing.PreparandoStartedAt.HasValue)
+                {
+                    // Fallback: calcular desde PreparandoStartedAt si existe
+                    duration = DateTime.UtcNow - existing.PreparandoStartedAt.Value;
+                    _logger.LogInformation("⏱️ Duración total hasta TERMINADO para OT={OtSap}: {Duration}", otSap, duration);
+                }
+            }
+            
             // Limpiar PreparandoStartedAt cuando cambia a CORRIENDO, SUSPENDIDO o TERMINADO
             if (existing.Estado == "PREPARANDO" && (estadoUpper == "CORRIENDO" || estadoUpper == "SUSPENDIDO" || estadoUpper == "TERMINADO"))
             {
@@ -459,7 +482,7 @@ namespace flexoAPP.Services
                     duration: duration,
                     oldValues: new { estado = oldStatus, observaciones = oldObservaciones },
                     newValues: new { estado = estadoUpper, observaciones = existing.Observaciones },
-                    details: $"{{\"otSap\":\"{otSap}\",\"articulo\":\"{existing.Articulo}\",\"descripcion\":\"{existing.Referencia}\",\"maquina\":{existing.NumeroMaquina}}}"
+                    details: $"{{\"otSap\":\"{otSap}\",\"articulo\":\"{existing.Articulo}\",\"descripcion\":\"{existing.Referencia}\",\"maquina\":{existing.NumeroMaquina},\"numeroColores\":{existing.NumeroColores}}}"
                 );
             }
             catch (Exception logEx)

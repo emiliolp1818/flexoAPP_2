@@ -905,5 +905,33 @@ namespace FlexoAPP.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        /// <summary>
+        /// Get Pantone colors (starting with P-) for a specific article
+        /// </summary>
+        [HttpGet("pantone-colors/{articleF}")]
+        public async Task<IActionResult> GetPantoneColorsByArticle(string articleF)
+        {
+            try
+            {
+                _logger.LogInformation($"🎨 Getting Pantone colors for article: {articleF}");
+                var pantoneColors = await _designService.GetPantoneColorsByArticleAsync(articleF);
+                
+                return Ok(new { 
+                    articleF = articleF,
+                    pantoneCount = pantoneColors.Count,
+                    pantoneColors = pantoneColors,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting Pantone colors for article {articleF}");
+                return StatusCode(500, new { 
+                    error = "Error getting Pantone colors", 
+                    message = ex.Message 
+                });
+            }
+        }
     }
 }

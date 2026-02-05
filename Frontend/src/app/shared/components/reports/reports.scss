@@ -986,3 +986,358 @@ $gray-900: #0f172a;
   line-height: 1.6;
   border-left: 3px solid $primary-blue;
 }
+
+
+// ============================================================================
+// ESTILOS PARA VISTA POR MÓDULOS (ÍTEMS SEPARADOS)
+// ============================================================================
+
+.modules-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.module-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .module-header {
+    cursor: pointer;
+    padding: 16px;
+    border-bottom: 1px solid $gray-200;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: $gray-50;
+    }
+
+    .module-header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .module-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .module-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+        color: $primary-blue;
+      }
+
+      .module-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: $gray-800;
+      }
+
+      .module-count {
+        font-size: 14px;
+        color: $gray-500;
+        font-weight: 500;
+      }
+    }
+
+    .expand-icon {
+      color: $gray-600;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  .module-content {
+    padding: 20px;
+  }
+}
+
+// ===== ESTADÍSTICAS DE MÁQUINAS =====
+.machine-stats {
+  margin-bottom: 24px;
+
+  .stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
+      border-radius: 12px;
+      border-left: 4px solid $primary-blue;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      }
+
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: $primary-blue;
+      }
+
+      .stat-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .stat-label {
+          font-size: 12px;
+          color: $gray-600;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+          font-size: 24px;
+          font-weight: 700;
+          color: $gray-900;
+        }
+      }
+    }
+  }
+
+  // ===== LISTA DE PEDIDOS =====
+  .orders-list {
+    background: $gray-50;
+    border-radius: 12px;
+    padding: 20px;
+
+    .orders-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: $gray-800;
+
+      mat-icon {
+        color: $primary-blue;
+      }
+    }
+
+    .order-item {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-left: 4px solid $primary-blue;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+
+      &:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transform: translateX(4px);
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .order-number {
+        font-size: 14px;
+        font-weight: 700;
+        color: $primary-blue;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .order-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .order-field {
+          display: flex;
+          align-items: baseline;
+          gap: 8px;
+
+          .field-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: $gray-600;
+            min-width: 140px;
+          }
+
+          .field-value {
+            font-size: 14px;
+            color: $gray-900;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ===== TABLA DE ACTIVIDADES DEL MÓDULO =====
+.module-activities-table {
+  margin-top: 20px;
+
+  .activities-table {
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+    th {
+      background: $gray-100;
+      color: $gray-800;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 16px;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid $gray-200;
+      font-size: 14px;
+      color: $gray-700;
+    }
+
+    tr:hover {
+      background-color: $gray-50;
+    }
+
+    .timestamp-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .date {
+        font-weight: 600;
+        color: $gray-900;
+      }
+
+      .time {
+        font-size: 12px;
+        color: $gray-500;
+      }
+    }
+
+    .user-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .user-name {
+        font-weight: 600;
+        color: $gray-900;
+      }
+
+      .user-code {
+        font-size: 12px;
+        color: $gray-500;
+      }
+    }
+
+    .detail-expansion {
+      overflow: hidden;
+      transition: all 0.3s ease;
+
+      .detail-content {
+        padding: 16px;
+        background: $gray-50;
+        border-radius: 8px;
+        margin: 8px;
+
+        .detail-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 12px;
+
+          .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+
+            .detail-label {
+              font-size: 12px;
+              font-weight: 600;
+              color: $gray-600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .detail-value {
+              font-size: 14px;
+              color: $gray-900;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+
+    .expanded-row {
+      background-color: $gray-50;
+    }
+
+    .detail-row {
+      height: 0;
+    }
+  }
+}
+
+// ===== RESPONSIVE =====
+@media (max-width: 768px) {
+  .machine-stats {
+    .stats-summary {
+      grid-template-columns: 1fr;
+    }
+
+    .orders-list {
+      .order-item {
+        .order-details {
+          .order-field {
+            flex-direction: column;
+            gap: 4px;
+
+            .field-label {
+              min-width: auto;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .module-activities-table {
+    .activities-table {
+      font-size: 12px;
+
+      th, td {
+        padding: 8px 12px;
+      }
+    }
+  }
+}
