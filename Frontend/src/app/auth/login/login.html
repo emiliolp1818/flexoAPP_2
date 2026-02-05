@@ -115,8 +115,14 @@
           class="login-button" 
           [disabled]="loginForm.invalid || isLoading()">
           <mat-icon *ngIf="isLoading()" class="spinning">refresh</mat-icon>
-          <span>{{ isLoading() ? 'Iniciando...' : 'Iniciar Sesión' }}</span>
+          <span>{{ isLoading() ? loadingMessage() : 'Iniciar Sesión' }}</span>
         </button>
+        
+        <!-- Loading Message -->
+        <div class="loading-info" *ngIf="isLoading()">
+          <mat-icon>info</mat-icon>
+          <span>El servidor puede tardar hasta 30 segundos en despertar si está inactivo</span>
+        </div>
       </form>
     </div>
 

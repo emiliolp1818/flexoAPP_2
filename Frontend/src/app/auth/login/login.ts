@@ -41,6 +41,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   hidePassword = signal(true);
   isLoading = signal(false);
   errorMessage = signal('');
+  loadingMessage = signal('Conectando...');
 
   
   // Clock signals
@@ -115,6 +116,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.loginForm.valid && !this.isLoading()) {
       this.isLoading.set(true);
       this.errorMessage.set('');
+      this.loadingMessage.set('Conectando con el servidor...');
       
       const credentials: LoginRequest = {
         userCode: this.loginForm.value.userCode,
@@ -126,9 +128,27 @@ export class LoginComponent implements OnInit, OnDestroy {
         apiUrl: environment.apiUrl 
       });
 
+      // Actualizar mensaje después de 3 segundos si aún está cargando
+      const messageTimeout = setTimeout(() => {
+        if (this.isLoading()) {
+          this.loadingMessage.set('Despertando servidor (esto puede tomar hasta 30 segundos)...');
+        }
+      }, 3000);
+
+      // Actualizar mensaje después de 15 segundos
+      const messageTimeout2 = setTimeout(() => {
+        if (this.isLoading()) {
+          this.loadingMessage.set('Casi listo, por favor espera...');
+        }
+      }, 15000);
+
       this.authService.login(credentials)
         .pipe(
-          finalize(() => this.isLoading.set(false))
+          finalize(() => {
+            this.isLoading.set(false);
+            clearTimeout(messageTimeout);
+            clearTimeout(messageTimeout2);
+          })
         )
         .subscribe({
           next: (response) => {
@@ -136,6 +156,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             // Si tenemos token y user, el login fue exitoso
             if (response.token && response.user) {
               console.log('✅ Login exitoso:', response.user);
+              this.loadingMessage.set('¡Conectado! Redirigiendo...');
               this.router.navigate(['/dashboard']);
             } else {
               this.errorMessage.set('Error de autenticación: respuesta inválida del servidor');
@@ -157,10 +178,13 @@ export class LoginComponent implements OnInit, OnDestroy {
               errorMsg = 'Usuario o contraseña incorrectos';
             } else if (error.status === 0) {
               errorMsg = 'No se puede conectar al servidor';
-              errorDetails = `Intentando conectar a: ${error.url || 'URL desconocida'}. Verifica que el backend esté corriendo y que CORS esté configurado correctamente.`;
+              errorDetails = `El servidor puede estar iniciando. Por favor, intenta nuevamente en unos segundos.`;
             } else if (error.status === 404) {
               errorMsg = 'Endpoint de login no encontrado';
               errorDetails = `URL: ${error.url}`;
+            } else if (error.status === 504 || error.status === 503) {
+              errorMsg = 'El servidor está iniciando';
+              errorDetails = 'Por favor, espera 30 segundos e intenta nuevamente.';
             } else if (error.error?.message) {
               errorMsg = error.error.message;
             } else if (error.message) {

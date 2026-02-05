@@ -945,3 +945,30 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
   0% { transform: rotate(0deg); }     // Rotación inicial
   100% { transform: rotate(360deg); } // Rotación completa
 }
+
+// ===== MENSAJE DE INFORMACIÓN DE CARGA =====
+.loading-info {
+  display: flex;                 // Usar flexbox
+  align-items: center;           // Centrar verticalmente
+  gap: 10px;                     // Espacio entre icono y texto
+  margin-top: 16px;              // Espacio superior
+  padding: 12px 16px;            // Espaciado interno
+  background: rgba(59, 130, 246, 0.1); // Fondo azul semi-transparente
+  border-left: 3px solid #3b82f6; // Borde izquierdo azul
+  border-radius: 8px;            // Bordes redondeados
+  font-size: 13px;               // Tamaño de fuente pequeño
+  color: #1e40af;                // Color azul oscuro
+  line-height: 1.5;              // Altura de línea
+  animation: fadeIn 0.3s ease-in-out; // Animación de aparición
+
+  mat-icon {
+    font-size: 18px;             // Tamaño del icono
+    width: 18px;                 // Ancho del icono
+    height: 18px;                // Altura del icono
+    color: #3b82f6;              // Color azul del icono
+  }
+
+  span {
+    flex: 1;                     // Tomar todo el espacio disponible
+  }
+}
