@@ -1056,9 +1056,40 @@ $gray-900: #0f172a;
       }
     }
 
-    .expand-icon {
-      color: $gray-600;
-      transition: transform 0.3s ease;
+    .module-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      button[mat-icon-button] {
+        width: 36px;
+        height: 36px;
+        color: $gray-600;
+        transition: all 0.2s ease;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+
+        &:hover:not(:disabled) {
+          background-color: $primary-blue-50;
+          color: $primary-blue;
+          transform: scale(1.1);
+        }
+
+        &:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+      }
+
+      .expand-icon {
+        color: $gray-600;
+        transition: transform 0.3s ease;
+        margin-left: 4px;
+      }
     }
   }
 
@@ -1163,9 +1194,44 @@ $gray-900: #0f172a;
         font-size: 14px;
         font-weight: 700;
         color: $primary-blue;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+      }
+
+      // Información del usuario en la parte superior
+      .order-user-info {
+        background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        border-left: 3px solid $primary-blue;
+
+        .user-info-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          mat-icon {
+            color: $primary-blue;
+          }
+
+          .user-code {
+            font-size: 14px;
+            font-weight: 700;
+            color: $primary-blue;
+            padding: 2px 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid $primary-blue-200;
+          }
+
+          .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: $gray-800;
+          }
+        }
       }
 
       .order-details {

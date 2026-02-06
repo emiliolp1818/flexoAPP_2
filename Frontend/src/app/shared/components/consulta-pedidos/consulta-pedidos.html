@@ -1,0 +1,81 @@
+<!-- Header Component -->
+<app-header></app-header>
+
+<!-- Consulta de Pedidos Container -->
+<div class="consulta-pedidos-container">
+  <div class="consulta-content">
+    
+    <!-- Mensaje de Módulo en Fabricación -->
+    <div class="fabricacion-container">
+      <mat-card class="fabricacion-card">
+        <mat-card-content>
+          <div class="fabricacion-content">
+            <!-- Icono de alerta animado -->
+            <div class="fabricacion-icon-wrapper">
+              <div class="icon-pulse"></div>
+              <mat-icon class="fabricacion-icon">warning</mat-icon>
+            </div>
+            
+            <!-- Título principal -->
+            <h1 class="fabricacion-title">
+              <span class="title-highlight">Módulo en Fabricación</span>
+            </h1>
+            
+            <!-- Subtítulo -->
+            <p class="fabricacion-subtitle">
+              <mat-icon>build_circle</mat-icon>
+              Este módulo está actualmente en desarrollo
+            </p>
+            
+            <!-- Banner de información -->
+            <div class="fabricacion-banner">
+              <mat-icon>info</mat-icon>
+              <p>Estamos trabajando para traerte la mejor experiencia de consulta de pedidos. <strong>¡Pronto estará disponible!</strong></p>
+            </div>
+            
+            <!-- Características próximas -->
+            <div class="fabricacion-features">
+              <h3>
+                <mat-icon>rocket_launch</mat-icon>
+                Funcionalidades Próximamente
+              </h3>
+              <div class="features-grid">
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <mat-icon>search</mat-icon>
+                  </div>
+                  <span>Búsqueda rápida por OT SAP o Artículo</span>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <mat-icon>info</mat-icon>
+                  </div>
+                  <span>Información detallada del pedido</span>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <mat-icon>timeline</mat-icon>
+                  </div>
+                  <span>Historial completo de estados</span>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <mat-icon>palette</mat-icon>
+                  </div>
+                  <span>Visualización de colores y observaciones</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Botón de regreso -->
+            <button mat-raised-button color="primary" routerLink="/dashboard" class="back-button">
+              <mat-icon>arrow_back</mat-icon>
+              Volver al Dashboard
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+</div>

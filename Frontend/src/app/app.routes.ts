@@ -58,6 +58,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'consulta-pedidos',
+    loadComponent: () => import('./shared/components/consulta-pedidos/consulta-pedidos').then(c => c.ConsultaPedidosComponent),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: '/dashboard'
   }

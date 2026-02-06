@@ -18,7 +18,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -126,10 +126,10 @@ export class ReportsComponent implements OnInit {
   // Cache para colores Pantone por artículo
   private pantoneColorsCache: Map<string, number> = new Map();
 
-  // Función para mostrar el valor en el autocomplete
-  displayUserFn(user: any): string {
-    return user ? `${user.userCode} - ${user.firstName} ${user.lastName}` : '';
-  }
+  // Función para mostrar el valor en el autocomplete (YA NO SE USA)
+  // displayUserFn(user: any): string {
+  //   return user ? user.userCode : '';
+  // }
 
   // Módulos disponibles
   modules = [
@@ -279,19 +279,19 @@ export class ReportsComponent implements OnInit {
   // Enriquecer actividades de máquinas con colores Pantone desde la base de datos
   private async enrichActivitiesWithPantoneColors(activities: AuditActivity[]) {
     console.log('🎨 ===== INICIO ENRIQUECIMIENTO DE COLORES PANTONE =====');
-    
+
     // Filtrar solo actividades de máquinas
     const machineActivities = activities.filter(a => a.module === 'MACHINES');
     console.log(`🎨 Total actividades de máquinas: ${machineActivities.length}`);
-    
+
     // Extraer artículos únicos con más detalle
     const uniqueArticles = new Set<string>();
     const articulosDebug: any[] = [];
-    
+
     machineActivities.forEach((a, index) => {
       const machineInfo = this.getMachineInfo(a);
       const articulo = machineInfo?.articulo;
-      
+
       articulosDebug.push({
         activityId: a.id,
         articulo: articulo,
@@ -299,7 +299,7 @@ export class ReportsComponent implements OnInit {
         details: a.details ? 'Sí' : 'No',
         newValues: a.newValues ? 'Sí' : 'No'
       });
-      
+
       if (articulo && articulo !== '-') {
         uniqueArticles.add(articulo);
       }
@@ -324,11 +324,11 @@ export class ReportsComponent implements OnInit {
       try {
         const url = `${environment.apiUrl}/designs/pantone-colors/${articulo}`;
         console.log(`🔍 Consultando: ${url}`);
-        
+
         const pantoneResponse: any = await this.http.get(url).toPromise();
         const pantoneCount = pantoneResponse?.pantoneCount || 0;
         const pantoneColors = pantoneResponse?.pantoneColors || [];
-        
+
         this.pantoneColorsCache.set(articulo, pantoneCount);
         console.log(`🎨 ✅ Colores Pantone para ${articulo}:`, pantoneCount, pantoneColors);
       } catch (error: any) {
@@ -370,31 +370,62 @@ export class ReportsComponent implements OnInit {
     this.loadActivities();
   }
 
-  // Búsqueda de usuario
+  // Búsqueda de usuario - Mejorada para buscar por código numérico y autoseleccionar
   onUserSearch() {
     const searchTerm = this.userSearchText.toLowerCase().trim();
 
     if (!searchTerm) {
       this.filteredUsers.set(this.users());
+      this.filterForm.patchValue({ userId: null });
       return;
     }
 
+    // Buscar por código exacto primero
+    const exactCodeMatch = this.users().find(user => 
+      user.userCode.toLowerCase() === searchTerm
+    );
+
+    // Si hay coincidencia exacta por código, seleccionar automáticamente
+    if (exactCodeMatch) {
+      console.log('✅ Usuario encontrado por código:', exactCodeMatch);
+      this.userSearchText = exactCodeMatch.userCode;
+      this.filterForm.patchValue({ userId: exactCodeMatch.id });
+      this.filteredUsers.set([exactCodeMatch]);
+      return;
+    }
+
+    // Si no hay coincidencia exacta, filtrar por código, nombre o apellido
     const filtered = this.users().filter(user =>
+      // Buscar por código de usuario (exacto o parcial)
       user.userCode.toLowerCase().includes(searchTerm) ||
+      // Buscar por nombre
       user.firstName.toLowerCase().includes(searchTerm) ||
+      // Buscar por apellido
       user.lastName.toLowerCase().includes(searchTerm) ||
+      // Buscar por nombre completo
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm)
     );
 
     this.filteredUsers.set(filtered);
+    
+    // Si solo hay un resultado, seleccionarlo automáticamente
+    if (filtered.length === 1) {
+      console.log('✅ Usuario único encontrado:', filtered[0]);
+      this.userSearchText = filtered[0].userCode;
+      this.filterForm.patchValue({ userId: filtered[0].id });
+    } else {
+      // Si hay múltiples resultados o ninguno, limpiar la selección
+      this.filterForm.patchValue({ userId: null });
+    }
   }
 
-  // Cuando se selecciona un usuario del autocomplete
-  onUserSelected(event: MatAutocompleteSelectedEvent) {
-    const user = event.option.value;
-    this.userSearchText = `${user.userCode} - ${user.firstName} ${user.lastName}`;
-    this.filterForm.patchValue({ userId: user.id });
-  }
+  // Cuando se selecciona un usuario del autocomplete (YA NO SE USA)
+  // onUserSelected(event: MatAutocompleteSelectedEvent) {
+  //   const user = event.option.value;
+  //   this.userSearchText = user.userCode;
+  //   this.filterForm.patchValue({ userId: user.id });
+  //   console.log('✅ Usuario seleccionado:', user);
+  // }
 
   // Limpiar búsqueda de usuario
   clearUserSearch() {
@@ -433,10 +464,15 @@ export class ReportsComponent implements OnInit {
     // Si es 0, retornar "0s" en lugar de guion
     if (seconds === 0) return '0s';
 
-    const minutes = Math.floor(seconds / 60);
+    // Calcular horas, minutos y segundos
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
 
-    if (minutes > 0) {
+    // Formato: HH:MM:SS o MM:SS dependiendo si hay horas
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
       return `${minutes}m ${secs}s`;
     }
     return `${secs}s`;
@@ -862,9 +898,9 @@ export class ReportsComponent implements OnInit {
         try {
           const newVals = typeof a.newValues === 'string' ? JSON.parse(a.newValues) : a.newValues;
           const estadoUpper = (newVals.estado || newVals.Estado || '').toUpperCase();
-          newValuesMatch = estadoUpper === 'TERMINADO' || estadoUpper === 'LISTO' || 
-                          estadoUpper === 'PREPARANDO' || estadoUpper === 'SUSPENDIDO' ||
-                          estadoUpper === 'CORRIENDO';
+          newValuesMatch = estadoUpper === 'TERMINADO' || estadoUpper === 'LISTO' ||
+            estadoUpper === 'PREPARANDO' || estadoUpper === 'SUSPENDIDO' ||
+            estadoUpper === 'CORRIENDO';
         } catch (e) {
           // Ignorar error de parseo
         }
@@ -903,11 +939,14 @@ export class ReportsComponent implements OnInit {
       numeroMaquina: string;
       numeroColores: number;
       totalDuration: number;
+      totalDurationListo: number; // Solo tiempo en estado LISTO
       historialEstados: Array<{
         estado: string;
         timestamp: string;
         duration: number;
         observaciones?: string;
+        userCode?: string;
+        userName?: string;
       }>;
     }>();
 
@@ -935,7 +974,7 @@ export class ReportsComponent implements OnInit {
 
       // Extraer número de colores Pantone desde el cache
       let numeroColores = 0;
-      
+
       if (articulo && articulo !== '-' && this.pantoneColorsCache.has(articulo)) {
         numeroColores = this.pantoneColorsCache.get(articulo) || 0;
       } else if (articulo && articulo !== '-') {
@@ -962,14 +1001,41 @@ export class ReportsComponent implements OnInit {
         }
       }
 
-      // Extraer estado
+      // Extraer estado y observaciones
       let estadoPedido = '-';
       let observaciones = '';
       if (a.newValues) {
         try {
           const newVals = typeof a.newValues === 'string' ? JSON.parse(a.newValues) : a.newValues;
           estadoPedido = newVals.estado || newVals.Estado || '-';
-          observaciones = newVals.observaciones || newVals.Observaciones || '';
+          
+          // Extraer observaciones según el estado
+          let rawObservaciones = newVals.observaciones || newVals.Observaciones || '';
+          
+          // DEBUG: Log para ver qué observaciones vienen del backend
+          console.log(`🔍 [${otSap}] Estado: ${estadoPedido}, Observaciones raw:`, rawObservaciones);
+          
+          // Filtrar el mensaje automático del sistema
+          const mensajesFiltrar = [
+            'Programa nuevo - Información de tabla de diseño - Pendiente de asignación de estado por operario',
+            'Programa nuevo',
+            'Información de tabla de diseño',
+            'Pendiente de asignación de estado por operario'
+          ];
+          
+          // Si las observaciones contienen alguno de los mensajes a filtrar, limpiarlas
+          let observacionesLimpias = rawObservaciones;
+          for (const mensaje of mensajesFiltrar) {
+            observacionesLimpias = observacionesLimpias.replace(mensaje, '').trim();
+          }
+          
+          // Limpiar guiones y espacios extras
+          observacionesLimpias = observacionesLimpias.replace(/^[\s\-]+|[\s\-]+$/g, '').trim();
+          
+          observaciones = observacionesLimpias;
+          
+          // DEBUG: Log para ver las observaciones después del filtrado
+          console.log(`🔍 [${otSap}] Observaciones después de filtrar:`, observaciones);
         } catch (e) {
           // Ignorar error
         }
@@ -982,6 +1048,10 @@ export class ReportsComponent implements OnInit {
         }
       }
 
+      // Extraer información del usuario
+      const userCode = a.user?.userCode || a.userCode || '-';
+      const userName = a.user?.fullName || `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.trim() || '-';
+
       // Si el pedido ya existe, agregar al historial
       if (pedidosMap.has(key)) {
         const pedido = pedidosMap.get(key)!;
@@ -989,15 +1059,22 @@ export class ReportsComponent implements OnInit {
           estado: estadoPedido,
           timestamp: typeof a.timestamp === 'string' ? a.timestamp : a.timestamp.toISOString(),
           duration: duration,
-          observaciones: observaciones
+          observaciones: observaciones,
+          userCode: userCode,
+          userName: userName
         });
         pedido.totalDuration += duration;
+        // Sumar duración solo si el estado es LISTO
+        if (estadoPedido.toUpperCase() === 'LISTO') {
+          pedido.totalDurationListo += duration;
+        }
         // Actualizar número de colores si es mayor
         if (numeroColores > pedido.numeroColores) {
           pedido.numeroColores = numeroColores;
         }
       } else {
         // Crear nuevo pedido
+        const durationListo = estadoPedido.toUpperCase() === 'LISTO' ? duration : 0;
         pedidosMap.set(key, {
           articulo: articulo,
           otSap: otSap,
@@ -1005,45 +1082,51 @@ export class ReportsComponent implements OnInit {
           numeroMaquina: this.getNumeroMaquina(a) || '-',
           numeroColores: numeroColores,
           totalDuration: duration,
+          totalDurationListo: durationListo,
           historialEstados: [{
             estado: estadoPedido,
             timestamp: typeof a.timestamp === 'string' ? a.timestamp : a.timestamp.toISOString(),
             duration: duration,
-            observaciones: observaciones
+            observaciones: observaciones,
+            userCode: userCode,
+            userName: userName
           }]
         });
       }
     });
 
     // Convertir el mapa a array y ordenar historial de estados por fecha
-    const orderDetails = Array.from(pedidosMap.values()).map(pedido => {
-      // Ordenar historial por timestamp (más antiguo primero)
-      pedido.historialEstados.sort((a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
+    // SOLO INCLUIR pedidos que tengan al menos un estado LISTO
+    const orderDetails = Array.from(pedidosMap.values())
+      .filter(pedido => pedido.historialEstados.some(h => h.estado.toUpperCase() === 'LISTO'))
+      .map(pedido => {
+        // Ordenar historial por timestamp (más antiguo primero)
+        pedido.historialEstados.sort((a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
 
-      return {
-        articulo: pedido.articulo,
-        otSap: pedido.otSap,
-        descripcion: pedido.descripcion,
-        numeroMaquina: pedido.numeroMaquina,
-        numeroColores: pedido.numeroColores,
-        duration: pedido.totalDuration,
-        historialEstados: pedido.historialEstados,
-        // Para compatibilidad, usar el último estado y timestamp
-        estado: pedido.historialEstados[pedido.historialEstados.length - 1]?.estado || '-',
-        timestamp: pedido.historialEstados[pedido.historialEstados.length - 1]?.timestamp || ''
-      };
-    });
+        return {
+          articulo: pedido.articulo,
+          otSap: pedido.otSap,
+          descripcion: pedido.descripcion,
+          numeroMaquina: pedido.numeroMaquina,
+          numeroColores: pedido.numeroColores,
+          duration: pedido.totalDurationListo, // Solo tiempo en estado LISTO
+          historialEstados: pedido.historialEstados,
+          // Para compatibilidad, usar el último estado y timestamp
+          estado: pedido.historialEstados[pedido.historialEstados.length - 1]?.estado || '-',
+          timestamp: pedido.historialEstados[pedido.historialEstados.length - 1]?.timestamp || ''
+        };
+      });
 
-    console.log('🔧 ===== PEDIDOS AGRUPADOS =====');
-    console.log(`🔧 Total de pedidos únicos: ${orderDetails.length}`);
+    console.log('🔧 ===== PEDIDOS AGRUPADOS (SOLO CON ESTADO LISTO) =====');
+    console.log(`🔧 Total de pedidos únicos con estado LISTO: ${orderDetails.length}`);
     orderDetails.forEach((order, index) => {
       console.log(`🔧 Pedido #${index + 1}:`, {
         articulo: order.articulo,
         otSap: order.otSap,
         numeroColores: order.numeroColores,
-        totalDuration: order.duration,
+        durationListo: order.duration,
         cantidadEstados: order.historialEstados.length,
         historial: order.historialEstados
       });
@@ -1070,14 +1153,16 @@ export class ReportsComponent implements OnInit {
       return acc;
     }, { totalColores: 0, pedidosConColores: 0 });
 
-    const avgColores = coloresStats.pedidosConColores > 0
-      ? coloresStats.totalColores / coloresStats.pedidosConColores
+    // Promedio de colores = Total de colores / Número de pedidos
+    const avgColores = totalOrders > 0
+      ? coloresStats.totalColores / totalOrders
       : 0;
 
     console.log('🔧 ===== ESTADÍSTICAS DE COLORES =====');
-    console.log('🔧 Total de colores:', coloresStats.totalColores);
+    console.log('🔧 Total de colores Pantone:', coloresStats.totalColores);
     console.log('🔧 Pedidos con colores:', coloresStats.pedidosConColores);
-    console.log('🔧 Promedio de colores:', avgColores);
+    console.log('🔧 Total de pedidos:', totalOrders);
+    console.log('🔧 Promedio de colores (total colores / total pedidos):', avgColores);
 
     // Guardar en cache
     this.machineStatsCache = {
@@ -1200,5 +1285,436 @@ export class ReportsComponent implements OnInit {
     link.click();
 
     this.snackBar.open('Excel generado exitosamente', 'Cerrar', { duration: 3000 });
+  }
+
+  // ===== NUEVOS MÉTODOS DE EXPORTACIÓN POR MÓDULO =====
+
+  /**
+   * Exportar módulo específico a PDF con diseño compacto y organizado
+   */
+  exportModuleToPDF(moduleValue: string, event: Event) {
+    event.stopPropagation(); // Evitar que se expanda/colapse el módulo
+
+    const activities = this.getActivitiesByModule(moduleValue);
+
+    if (activities.length === 0) {
+      this.snackBar.open('No hay actividades para exportar', 'Cerrar', { duration: 2000 });
+      return;
+    }
+
+    const doc = new jsPDF();
+    const moduleLabel = this.getModuleLabel(moduleValue);
+
+    // ===== ENCABEZADO COMPACTO =====
+    doc.setFillColor(37, 99, 235); // Azul primario
+    doc.rect(0, 0, 210, 20, 'F'); // Reducido de 35 a 20
+
+    // Título principal
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); // Reducido de 20 a 14
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Auditoría - ${moduleLabel}`, 14, 10);
+
+    // Fecha de generación (misma línea, a la derecha)
+    doc.setFontSize(8); // Reducido de 14 a 8
+    doc.setFont('helvetica', 'normal');
+    const fechaGeneracion = new Date().toLocaleString('es-ES', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    doc.text(fechaGeneracion, 196, 10, { align: 'right' });
+
+    // Total de registros (segunda línea)
+    doc.text(`Total: ${activities.length} registros`, 14, 16);
+
+    // ===== INFORMACIÓN DE FILTROS (COMPACTA) =====
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(7); // Reducido de 9 a 7
+    doc.setFont('helvetica', 'normal');
+
+    const filters = this.filterForm.value;
+    const selectedUser = filters.userId ? this.users().find(u => u.id === filters.userId) : null;
+
+    let yPos = 24; // Reducido de 42 a 24
+
+    // Mostrar filtros en una sola línea si es posible
+    let filtrosTexto = '';
+    if (selectedUser) {
+      filtrosTexto += `Usuario: ${selectedUser.userCode} - ${selectedUser.firstName} ${selectedUser.lastName}`;
+    }
+    if (filters.startDate) {
+      if (filtrosTexto) filtrosTexto += ' | ';
+      filtrosTexto += `Desde: ${new Date(filters.startDate).toLocaleDateString('es-ES')}`;
+    }
+    if (filters.endDate) {
+      if (filtrosTexto) filtrosTexto += ' | ';
+      filtrosTexto += `Hasta: ${new Date(filters.endDate).toLocaleDateString('es-ES')}`;
+    }
+
+    if (filtrosTexto) {
+      doc.setFillColor(245, 245, 245);
+      doc.rect(10, yPos - 3, 190, 6, 'F');
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Filtros: ${filtrosTexto}`, 12, yPos);
+      yPos += 8;
+    } else {
+      yPos += 2;
+    }
+
+    // ===== TABLA DE DATOS =====
+    if (moduleValue === 'MACHINES') {
+      // Exportación especial para MÁQUINAS con estadísticas
+      const stats = this.getMachineStats(activities);
+
+      // Estadísticas generales en formato compacto (2 columnas)
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(37, 99, 235);
+      doc.text('Resumen', 14, yPos);
+      yPos += 5;
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+
+      // Primera columna
+      doc.text(`Pedidos: ${stats.totalOrders}`, 14, yPos);
+      doc.text(`Tiempo total: ${this.formatDuration(stats.totalDuration)}`, 14, yPos + 4);
+
+      // Segunda columna
+      doc.text(`Tiempo promedio: ${this.formatDuration(stats.avgDuration)}`, 105, yPos);
+      doc.text(`Promedio colores: ${stats.avgColores ? stats.avgColores.toFixed(1) : '-'}`, 105, yPos + 4);
+
+      yPos += 10;
+
+      // Tabla de pedidos compacta
+      const tableData = stats.orderDetails.map((order: any, index: number) => [
+        `${index + 1}`,
+        order.articulo,
+        order.otSap,
+        order.descripcion.substring(0, 25) + (order.descripcion.length > 25 ? '...' : ''),
+        order.numeroMaquina,
+        order.numeroColores || '-',
+        this.formatDuration(order.duration),
+        order.historialEstados.length.toString()
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['#', 'Artículo', 'OT SAP', 'Descripción', 'Máq', 'Col', 'Tiempo', 'Est']],
+        body: tableData,
+        styles: { 
+          fontSize: 6, // Reducido de 7 a 6
+          cellPadding: 1.5, // Reducido de 2 a 1.5
+          lineColor: [220, 220, 220],
+          lineWidth: 0.1
+        },
+        headStyles: { 
+          fillColor: [37, 99, 235],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 7,
+          halign: 'center'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 8, halign: 'center' },
+          1: { cellWidth: 28 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 50 },
+          4: { cellWidth: 12, halign: 'center' },
+          5: { cellWidth: 10, halign: 'center' },
+          6: { cellWidth: 22, halign: 'right' },
+          7: { cellWidth: 10, halign: 'center' }
+        },
+        margin: { left: 10, right: 10 }
+      });
+
+      // Agregar detalle de historial de estados en nueva página si hay espacio
+      const finalY = (doc as any).lastAutoTable.finalY;
+      if (finalY > 250) {
+        doc.addPage();
+        yPos = 15;
+      } else {
+        yPos = finalY + 8;
+      }
+
+      // Título de historial
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(37, 99, 235);
+      doc.text('Historial de Estados', 14, yPos);
+      yPos += 5;
+
+      // Tabla de historial
+      const historialData: any[] = [];
+      stats.orderDetails.forEach((order: any, index: number) => {
+        order.historialEstados.forEach((estado: any) => {
+          historialData.push([
+            `#${index + 1}`,
+            order.articulo,
+            estado.estado,
+            new Date(estado.timestamp).toLocaleDateString('es-ES') + '\n' + 
+            new Date(estado.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+            this.formatDuration(estado.duration),
+            `${estado.userCode}\n${estado.userName}`,
+            estado.observaciones || '-'
+          ]);
+        });
+      });
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['#', 'Artículo', 'Estado', 'Fecha/Hora', 'Duración', 'Usuario', 'Observaciones']],
+        body: historialData,
+        styles: { 
+          fontSize: 6,
+          cellPadding: 1.5,
+          lineColor: [220, 220, 220],
+          lineWidth: 0.1
+        },
+        headStyles: { 
+          fillColor: [37, 99, 235],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 7,
+          halign: 'center'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center' },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 25, halign: 'center' },
+          4: { cellWidth: 20, halign: 'right' },
+          5: { cellWidth: 35 },
+          6: { cellWidth: 55 }
+        },
+        margin: { left: 10, right: 10 }
+      });
+
+    } else {
+      // Exportación estándar para otros módulos
+      const tableData = activities.map(a => [
+        new Date(a.timestamp).toLocaleDateString('es-ES') + '\n' + 
+        new Date(a.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+        (a.user?.userCode || a.userCode || '-') + '\n' + (a.user?.fullName || 'Sistema'),
+        a.action,
+        a.description.substring(0, 60) + (a.description.length > 60 ? '...' : ''),
+        this.getDuration(a)
+      ]);
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Fecha/Hora', 'Usuario', 'Acción', 'Descripción', 'Duración']],
+        body: tableData,
+        styles: { 
+          fontSize: 6,
+          cellPadding: 1.5,
+          lineColor: [220, 220, 220],
+          lineWidth: 0.1
+        },
+        headStyles: { 
+          fillColor: [37, 99, 235],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 7,
+          halign: 'center'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 30, halign: 'center' },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 70 },
+          4: { cellWidth: 20, halign: 'right' }
+        },
+        margin: { left: 10, right: 10 }
+      });
+    }
+
+    // ===== PIE DE PÁGINA COMPACTO =====
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Página ${i} de ${pageCount}`, 
+        doc.internal.pageSize.width / 2, 
+        doc.internal.pageSize.height - 8, 
+        { align: 'center' }
+      );
+    }
+
+    // Guardar PDF
+    const timestamp = new Date().getTime();
+    const fileName = `auditoria_${moduleValue.toLowerCase()}_${timestamp}.pdf`;
+    doc.save(fileName);
+
+    this.snackBar.open('PDF generado exitosamente', 'Cerrar', { duration: 2000 });
+  }
+
+  /**
+   * Exportar módulo específico a Excel con diseño organizado igual que el PDF
+   */
+  exportModuleToExcel(moduleValue: string, event: Event) {
+    event.stopPropagation(); // Evitar que se expanda/colapse el módulo
+
+    const activities = this.getActivitiesByModule(moduleValue);
+
+    if (activities.length === 0) {
+      this.snackBar.open('No hay actividades para exportar', 'Cerrar', { duration: 2000 });
+      return;
+    }
+
+    const moduleLabel = this.getModuleLabel(moduleValue);
+    const filters = this.filterForm.value;
+    const selectedUser = filters.userId ? this.users().find(u => u.id === filters.userId) : null;
+
+    let csvContent = '';
+
+    // ===== ENCABEZADO =====
+    const fechaGeneracion = new Date().toLocaleString('es-ES', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
+    csvContent += `AUDITORÍA - ${moduleLabel.toUpperCase()};;;;\n`;
+    csvContent += `Fecha de generación:;${fechaGeneracion};;;\n`;
+    csvContent += `Total de registros:;${activities.length};;;\n`;
+    
+    // Filtros aplicados
+    let filtrosTexto = '';
+    if (selectedUser) {
+      filtrosTexto = `Usuario: ${selectedUser.userCode} - ${selectedUser.firstName} ${selectedUser.lastName}`;
+    }
+    if (filters.startDate) {
+      if (filtrosTexto) filtrosTexto += ' | ';
+      filtrosTexto += `Desde: ${new Date(filters.startDate).toLocaleDateString('es-ES')}`;
+    }
+    if (filters.endDate) {
+      if (filtrosTexto) filtrosTexto += ' | ';
+      filtrosTexto += `Hasta: ${new Date(filters.endDate).toLocaleDateString('es-ES')}`;
+    }
+    if (filtrosTexto) {
+      csvContent += `Filtros aplicados:;${filtrosTexto};;;\n`;
+    }
+
+    csvContent += ';;;;\n'; // Línea en blanco separadora
+
+    // ===== DATOS ORGANIZADOS POR MÓDULO =====
+    if (moduleValue === 'MACHINES') {
+      // ========================================
+      // MÓDULO MÁQUINAS - ESTRUCTURA ORGANIZADA
+      // ========================================
+      const stats = this.getMachineStats(activities);
+
+      // === SECCIÓN 1: RESUMEN DE ESTADÍSTICAS ===
+      csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+      csvContent += 'RESUMEN DE ESTADÍSTICAS;;;;\n';
+      csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+      csvContent += ';;;;\n';
+      
+      csvContent += 'Métrica;Valor;;;\n';
+      csvContent += 'Pedidos completados;' + stats.totalOrders + ';;;\n';
+      csvContent += 'Tiempo total;' + this.formatDuration(stats.totalDuration) + ';;;\n';
+      csvContent += 'Tiempo promedio por pedido;' + this.formatDuration(stats.avgDuration) + ';;;\n';
+      csvContent += 'Promedio de colores Pantone;' + (stats.avgColores ? stats.avgColores.toFixed(1) : '-') + ';;;\n';
+      csvContent += ';;;;\n';
+      csvContent += ';;;;\n';
+
+      // === SECCIÓN 2: TABLA DE PEDIDOS COMPLETADOS ===
+      csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+      csvContent += 'PEDIDOS COMPLETADOS;;;;\n';
+      csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+      csvContent += ';;;;\n';
+      
+      csvContent += '#;Artículo;OT SAP;Descripción;Máquina;Colores Pantone;Tiempo en LISTO;Cantidad de Estados\n';
+      stats.orderDetails.forEach((order: any, index: number) => {
+        const descripcion = order.descripcion.replace(/;/g, ','); // Reemplazar punto y coma por coma
+        csvContent += `${index + 1};${order.articulo};${order.otSap};${descripcion};${order.numeroMaquina};${order.numeroColores || '-'};${this.formatDuration(order.duration)};${order.historialEstados.length}\n`;
+      });
+      csvContent += ';;;;\n';
+      csvContent += ';;;;\n';
+
+      // === SECCIÓN 3: HISTORIAL DETALLADO DE ESTADOS ===
+      csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+      csvContent += 'HISTORIAL DETALLADO DE ESTADOS;;;;\n';
+      csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+      csvContent += ';;;;\n';
+      
+      csvContent += 'Pedido;Artículo;OT SAP;Estado;Fecha;Hora;Duración;Código Usuario;Nombre Usuario;Observaciones\n';
+      stats.orderDetails.forEach((order: any, index: number) => {
+        order.historialEstados.forEach((estado: any, estadoIndex: number) => {
+          const fecha = new Date(estado.timestamp).toLocaleDateString('es-ES');
+          const hora = new Date(estado.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+          const observaciones = (estado.observaciones || '-').replace(/;/g, ','); // Reemplazar punto y coma por coma
+          
+          csvContent += `#${index + 1};${order.articulo};${order.otSap};${estado.estado};${fecha};${hora};${this.formatDuration(estado.duration)};${estado.userCode};${estado.userName};${observaciones}\n`;
+        });
+        
+        // Línea en blanco entre pedidos para mejor separación visual
+        if (index < stats.orderDetails.length - 1) {
+          csvContent += ';;;;\n';
+        }
+      });
+
+    } else {
+      // ========================================
+      // OTROS MÓDULOS - ESTRUCTURA ESTÁNDAR
+      // ========================================
+      
+      csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+      csvContent += 'ACTIVIDADES DEL MÓDULO;;;;\n';
+      csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+      csvContent += ';;;;\n';
+      
+      csvContent += '#;Fecha;Hora;Código Usuario;Nombre Usuario;Acción;Descripción;Duración;Dirección IP;Entidad\n';
+      
+      activities.forEach((a, index) => {
+        const fecha = new Date(a.timestamp).toLocaleDateString('es-ES');
+        const hora = new Date(a.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const userCode = a.user?.userCode || a.userCode || '-';
+        const userName = a.user?.fullName || 'Sistema';
+        const action = a.action;
+        const description = a.description.replace(/;/g, ','); // Reemplazar punto y coma por coma
+        const duration = this.getDuration(a);
+        const ip = a.ipAddress || '-';
+        const entity = a.entityName || '-';
+
+        csvContent += `${index + 1};${fecha};${hora};${userCode};${userName};${action};${description};${duration};${ip};${entity}\n`;
+      });
+    }
+
+    // ===== PIE DE PÁGINA =====
+    csvContent += ';;;;\n';
+    csvContent += ';;;;\n';
+    csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+    csvContent += 'FIN DEL REPORTE;;;;\n';
+    csvContent += `Generado el ${fechaGeneracion};;;;\n`;
+    csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
+
+    // ===== DESCARGAR ARCHIVO =====
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' }); // \ufeff es BOM para UTF-8
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    const timestamp = new Date().getTime();
+    link.download = `auditoria_${moduleValue.toLowerCase()}_${timestamp}.csv`;
+    link.click();
+
+    this.snackBar.open('Excel generado exitosamente', 'Cerrar', { duration: 2000 });
   }
 }

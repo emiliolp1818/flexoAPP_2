@@ -142,6 +142,10 @@ export class DashboardComponent implements OnInit {
     this.router.navigate(['/condicion-unica']);
   }
 
+  navigateToConsultaPedidos(): void {
+    this.router.navigate(['/consulta-pedidos']);
+  }
+
   // Permission check - ACCESO COMPLETO PARA TODOS LOS USUARIOS
   canManageSettings(): boolean {
     // TODOS los usuarios pueden acceder a configuraciones

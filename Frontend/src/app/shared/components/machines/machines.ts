@@ -827,8 +827,8 @@ export class MachinesComponent implements OnInit {
       // Este objeto se serializa a JSON y se envía en el body de la petición PATCH
       const changeStatusDto = {
         estado: newStatus, // Nuevo estado del programa (LISTO, CORRIENDO, SUSPENDIDO, TERMINADO)
-        // Solo incluir observaciones si el nuevo estado es SUSPENDIDO (para guardar el motivo)
-        observaciones: newStatus === 'SUSPENDIDO' ? program.observaciones : null
+        // Incluir observaciones para TODOS los estados (no solo SUSPENDIDO)
+        observaciones: program.observaciones || null
       };
       
       // ===== LOG DEL DTO Y URL =====
@@ -2247,8 +2247,46 @@ export class MachinesComponent implements OnInit {
       // Guardar en localStorage para persistencia
       this.saveMessagesToStorage();
 
-      // Aquí podrías enviar el mensaje al backend si es necesario
-      // const response = await this.http.post(`${environment.apiUrl}/maquinas/${this.messageProgram.otSap}/message`, messageData).toPromise();
+      // ===== NUEVO: Enviar el mensaje al backend para guardarlo en observaciones =====
+      try {
+        const normalizedOtSap = String(this.messageProgram.otSap).trim();
+        const url = `${environment.apiUrl}/maquinas/${encodeURIComponent(normalizedOtSap)}/status`;
+        
+        console.log('📤 Enviando mensaje al backend:', url);
+        
+        // Enviar PATCH al backend para actualizar las observaciones
+        const response = await firstValueFrom(this.http.patch<any>(url, {
+          estado: this.messageProgram.estado, // Mantener el estado actual
+          observaciones: this.currentMessage.trim() // Guardar el mensaje en observaciones
+        }));
+        
+        console.log('✅ Mensaje guardado en backend:', response);
+        
+        // Actualizar el programa localmente con las nuevas observaciones
+        const programs = this.programs();
+        const programIndex = programs.findIndex(p => String(p.otSap).trim() === normalizedOtSap);
+        
+        if (programIndex !== -1) {
+          const updatedPrograms = programs.map((p, index) => {
+            if (index === programIndex) {
+              return {
+                ...p,
+                observaciones: this.currentMessage.trim(),
+                lastActionBy: response.data?.lastActionBy || currentUser?.firstName + ' ' + currentUser?.lastName,
+                lastActionAt: new Date()
+              };
+            }
+            return p;
+          });
+          
+          this.programs.set(updatedPrograms);
+          console.log('✅ Programa actualizado localmente con observaciones');
+        }
+        
+      } catch (backendError: any) {
+        console.error('❌ Error enviando mensaje al backend:', backendError);
+        // Continuar aunque falle el backend - el mensaje se guarda en localStorage
+      }
 
       const actionText = this.isEditingMessage ? 'actualizado' : 'enviado';
       this.snackBar.open(`Mensaje ${actionText} exitosamente`, 'Cerrar', { duration: 3000 });

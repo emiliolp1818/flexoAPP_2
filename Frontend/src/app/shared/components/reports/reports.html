@@ -15,16 +15,6 @@
       </div>
 
       <div class="header-actions">
-        <button mat-raised-button color="accent" (click)="exportToPDF()"
-          [disabled]="loading() || filteredActivities().length === 0">
-          <mat-icon>picture_as_pdf</mat-icon>
-          Exportar PDF
-        </button>
-        <button mat-raised-button color="accent" (click)="exportToExcel()"
-          [disabled]="loading() || filteredActivities().length === 0">
-          <mat-icon>table_chart</mat-icon>
-          Exportar Excel
-        </button>
         <button mat-icon-button (click)="loadActivities()" [disabled]="loading()" class="refresh-btn"
           matTooltip="Actualizar actividades">
           <mat-icon [class.spinning]="loading()">refresh</mat-icon>
@@ -46,20 +36,15 @@
         <form [formGroup]="filterForm" class="filters-form-compact">
           <!-- Fila única de filtros -->
           <div class="filter-row-compact">
-            <!-- Usuario - Autocomplete de Angular Material -->
+            <!-- Usuario - Campo de texto simple -->
             <mat-form-field appearance="outline" class="filter-field-compact">
-              <mat-label>Usuario (Opcional)</mat-label>
+              <mat-label>Código Usuario</mat-label>
               <input type="text" matInput [(ngModel)]="userSearchText" [ngModelOptions]="{standalone: true}"
-                [matAutocomplete]="autoUser" (input)="onUserSearch()" placeholder="Dejar vacío para ver todos">
+                (input)="onUserSearch()" placeholder="Ej: 123">
               <mat-icon matPrefix>person</mat-icon>
               <button matSuffix mat-icon-button (click)="clearUserSearch()" *ngIf="userSearchText">
                 <mat-icon>clear</mat-icon>
               </button>
-              <mat-autocomplete #autoUser="matAutocomplete" (optionSelected)="onUserSelected($event)">
-                <mat-option *ngFor="let user of filteredUsers()" [value]="user">
-                  {{ user.userCode }} - {{ user.firstName }} {{ user.lastName }}
-                </mat-option>
-              </mat-autocomplete>
             </mat-form-field>
 
             <!-- Fecha Inicio -->
@@ -108,9 +93,21 @@
               <h3 class="module-title">{{ module.label }}</h3>
               <span class="module-count">({{ getModuleCount(module.value) }} actividades)</span>
             </div>
-            <mat-icon class="expand-icon">
-              {{ selectedModule() === module.value ? 'expand_less' : 'expand_more' }}
-            </mat-icon>
+            <div class="module-actions">
+              <button mat-icon-button (click)="exportModuleToPDF(module.value, $event)" 
+                [disabled]="getModuleCount(module.value) === 0"
+                matTooltip="Exportar a PDF">
+                <mat-icon>picture_as_pdf</mat-icon>
+              </button>
+              <button mat-icon-button (click)="exportModuleToExcel(module.value, $event)" 
+                [disabled]="getModuleCount(module.value) === 0"
+                matTooltip="Exportar a Excel">
+                <mat-icon>table_chart</mat-icon>
+              </button>
+              <mat-icon class="expand-icon">
+                {{ selectedModule() === module.value ? 'expand_less' : 'expand_more' }}
+              </mat-icon>
+            </div>
           </div>
         </mat-card-header>
 
@@ -161,6 +158,14 @@
                 </h4>
                 <div class="order-item" *ngFor="let order of stats.orderDetails; let i = index">
                   <div class="order-number">Pedido #{{ i + 1 }}</div>
+                  <!-- Información del Usuario en la parte superior -->
+                  <div class="order-user-info" *ngIf="order.historialEstados && order.historialEstados.length > 0">
+                    <div class="user-info-header">
+                      <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 6px;">person</mat-icon>
+                      <span class="user-code">{{ order.historialEstados[0].userCode || '-' }}</span>
+                      <span class="user-name">{{ order.historialEstados[0].userName || '-' }}</span>
+                    </div>
+                  </div>
                   <div class="order-details">
                     <div class="order-field">
                       <span class="field-label">Artículo:</span>
@@ -179,7 +184,7 @@
                       <span class="field-value">{{ order.numeroMaquina }}</span>
                     </div>
                     <div class="order-field">
-                      <span class="field-label">Duración Total:</span>
+                      <span class="field-label">Tiempo en LISTO:</span>
                       <span class="field-value">
                         {{ formatDuration(order.duration) }}
                         <small style="color: #999; margin-left: 8px;">({{ order.duration | number:'1.0-0' }}
@@ -204,21 +209,30 @@
                               {{ estado.timestamp | date:'dd/MM/yyyy HH:mm' }}
                             </span>
                             <span style="font-weight: bold; font-size: 13px;" [style.color]="
-                                estado.estado === 'PREPARANDO' ? '#f97316' :
+                                estado.estado === 'PREPARANDO' ? '#eab308' :
                                 estado.estado === 'LISTO' ? '#16a34a' :
                                 estado.estado === 'CORRIENDO' ? '#2196f3' :
-                                estado.estado === 'SUSPENDIDO' ? '#dc2626' :
-                                estado.estado === 'TERMINADO' ? '#64748b' : '#64748b'">
+                                estado.estado === 'SUSPENDIDO' ? '#f97316' :
+                                estado.estado === 'TERMINADO' ? '#dc2626' : '#64748b'">
                               {{ estado.estado }}
                             </span>
-                            <span *ngIf="estado.duration > 0" style="color: #999; font-size: 11px; margin-left: auto;">
-                              ({{ formatDuration(estado.duration) }})
+                            <!-- Mostrar duración solo para estado LISTO -->
+                            <span *ngIf="estado.estado === 'LISTO' && estado.duration > 0"
+                              style="color: #16a34a; font-size: 11px; margin-left: auto; font-weight: 600;">
+                              {{ formatDuration(estado.duration) }}
                             </span>
                           </div>
-                          <!-- Mostrar motivo de suspensión si existe -->
-                          <div *ngIf="estado.estado === 'SUSPENDIDO' && estado.observaciones" 
-                               style="padding-left: 138px; color: #dc2626; font-size: 12px; font-style: italic;">
-                            Motivo: {{ estado.observaciones }}
+                          <!-- Mostrar información del usuario -->
+                          <div *ngIf="estado.userCode && estado.userCode !== '-'"
+                            style="padding-left: 138px; color: #555; font-size: 11px;">
+                            <span style="font-weight: 500;">Usuario:</span> {{ estado.userCode }} - {{ estado.userName
+                            }}
+                          </div>
+                          <!-- Mostrar observaciones para TODOS los estados (con estilo especial para SUSPENDIDO) -->
+                          <div *ngIf="estado.observaciones && estado.observaciones !== '-'"
+                            style="padding-left: 138px; font-size: 12px; font-style: italic;"
+                            [style.color]="estado.estado === 'SUSPENDIDO' ? '#dc2626' : '#666'">
+                            <span style="font-weight: 500;">{{ estado.estado === 'SUSPENDIDO' ? 'Motivo:' : 'Observaciones:' }}</span> {{ estado.observaciones }}
                           </div>
                         </div>
                       </div>
