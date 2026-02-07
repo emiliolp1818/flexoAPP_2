@@ -256,7 +256,7 @@ try
         {
             var uri = new Uri(connectionString);
             var userInfo = uri.UserInfo.Split(':');
-            connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=30;";
+            connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=60;DefaultCommandTimeout=60;";
         }
         
         Log.Information("🔌 Configurando conexión a MySQL Railway");
@@ -282,11 +282,12 @@ try
             
             options.UseMySql(connectionString, serverVersion, mySqlOptions =>
             {
-                mySqlOptions.CommandTimeout(60); // Aumentar timeout para Render
+                mySqlOptions.CommandTimeout(90); // Aumentar timeout para Railway
                 mySqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5, // Más reintentos para conexiones de red
-                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    maxRetryCount: 3, // Reducir reintentos para evitar cascadas
+                    maxRetryDelay: TimeSpan.FromSeconds(5),
                     errorNumbersToAdd: null);
+                mySqlOptions.EnableStringComparisonTranslations();
             });
 
             // Solo habilitar logging sensible en desarrollo
@@ -312,7 +313,9 @@ try
 
     // ===== HEALTH CHECKS =====
     builder.Services.AddHealthChecks()
-        .AddDbContextCheck<FlexoAPPDbContext>("database")
+        .AddDbContextCheck<FlexoAPPDbContext>("database", 
+            failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
+            tags: new[] { "db", "mysql" })
         .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy());
 
     Log.Information("✅ Health checks configured");
