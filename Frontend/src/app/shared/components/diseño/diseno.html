@@ -23,38 +23,6 @@
           Base de datos completa de diseños flexográficos con especificaciones técnicas detalladas
         </p>
       </div>
-
-      <!-- Sección derecha: Acciones del header - Solo botones funcionales -->
-      <div class="header-actions">
-        <!-- Botón Crear Diseño - Siempre visible para administradores -->
-        <button mat-raised-button color="primary" (click)="createNewDesign()" class="create-design-btn"
-          [disabled]="loading()" matTooltip="Crear nuevo diseño flexográfico">
-          <mat-icon>add</mat-icon>
-          Crear Diseño
-        </button>
-
-        <!-- Botón Carga Masiva Excel - Funcional -->
-        <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn" [disabled]="uploading()"
-          matTooltip="Subir diseños desde Excel">
-          <mat-icon>cloud_upload</mat-icon>
-          <span *ngIf="!uploading()">Importar Excel</span>
-          <span *ngIf="uploading()">{{uploadProgress()}}%</span>
-        </button>
-
-        <!-- Botón Exportar Excel - Funcional -->
-        <button mat-stroked-button color="primary" (click)="exportToExcel()" class="export-btn"
-          matTooltip="Exportar diseños a Excel">
-          <mat-icon>download</mat-icon>
-          Exportar
-        </button>
-
-        <!-- Botón Actualizar/Refrescar - Solo icono -->
-        <button mat-icon-button (click)="refreshDesigns()" class="refresh-btn" [disabled]="loading()"
-          matTooltip="Actualizar lista de diseños">
-          <mat-icon [class.spinning]="loading()">refresh</mat-icon>
-        </button>
-
-      </div>
     </div>
     <!-- Fin del contenedor interno del header -->
 
@@ -62,6 +30,16 @@
   <!-- Fin del header fijo -->
 
 
+
+  <!-- ===== PESTAÑAS DE NAVEGACIÓN ===== -->
+  <mat-tab-group class="design-tabs" animationDuration="300ms">
+    
+    <!-- ===== PESTAÑA DISEÑOS ===== -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">design_services</mat-icon>
+        <span class="tab-label">Diseños</span>
+      </ng-template>
 
   <!-- ===== ÁREA DE TABLA SCROLLABLE ===== -->
   <!-- Contenedor principal de la tabla que ocupa el resto del espacio disponible -->
@@ -97,20 +75,54 @@
             </div>
           </div>
 
-          <!-- Campo de búsqueda integrado en el header - LADO DERECHO -->
-          <div class="search-section-inline">
-            <mat-form-field appearance="outline" class="search-field-inline">
-              <mat-label>Buscar diseños</mat-label>
-              <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
-                placeholder="Artículo F, Cliente o Descripción">
-              <mat-icon matSuffix>search</mat-icon>
-            </mat-form-field>
+          <!-- Sección derecha: Búsqueda y Botones de acción -->
+          <div class="search-and-actions-section">
+            <!-- Campo de búsqueda -->
+            <div class="search-section-inline">
+              <mat-form-field appearance="outline" class="search-field-inline">
+                <mat-label>Buscar diseños</mat-label>
+                <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
+                  placeholder="Artículo F, Cliente o Descripción">
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
 
-            <!-- Botón para limpiar búsqueda -->
-            <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm()" class="clear-search-btn-inline"
-              matTooltip="Limpiar búsqueda">
-              <mat-icon>clear</mat-icon>
-            </button>
+              <!-- Botón para limpiar búsqueda -->
+              <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm()" class="clear-search-btn-inline"
+                matTooltip="Limpiar búsqueda">
+                <mat-icon>clear</mat-icon>
+              </button>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="header-actions-inline">
+              <!-- Botón Crear Diseño -->
+              <button mat-raised-button (click)="createNewDesign()" class="create-design-btn"
+                [disabled]="loading()" matTooltip="Crear nuevo diseño flexográfico">
+                <mat-icon>add</mat-icon>
+                Crear
+              </button>
+
+              <!-- Botón Importar Excel -->
+              <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn" [disabled]="uploading()"
+                matTooltip="Subir diseños desde Excel">
+                <mat-icon>cloud_upload</mat-icon>
+                <span *ngIf="!uploading()">Importar</span>
+                <span *ngIf="uploading()">{{uploadProgress()}}%</span>
+              </button>
+
+              <!-- Botón Exportar Excel -->
+              <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn"
+                matTooltip="Exportar diseños a Excel">
+                <mat-icon>download</mat-icon>
+                Exportar
+              </button>
+
+              <!-- Botón Actualizar/Refrescar -->
+              <button mat-icon-button (click)="refreshDesigns()" class="refresh-btn" [disabled]="loading()"
+                matTooltip="Actualizar lista de diseños">
+                <mat-icon [class.spinning]="loading()">refresh</mat-icon>
+              </button>
+            </div>
           </div>
         </div>
       </mat-card-header>
@@ -190,6 +202,19 @@
               </th>
               <td mat-cell *matCellDef="let design" class="excel-cell type-cell" [matTooltip]="design.type" matTooltipPosition="above">
                 <span class="type-text">{{ design.type || 'N/A' }}</span>
+              </td>
+            </ng-container>
+
+            <!-- ===== COLUMNA ANCHO MM ===== -->
+            <ng-container matColumnDef="anchoMm">
+              <th mat-header-cell *matHeaderCellDef class="excel-header">
+                <div class="header-content">
+                  <mat-icon>straighten</mat-icon>
+                  <span>Ancho (mm)</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let design" class="excel-cell ancho-cell">
+                <span class="ancho-text">{{ design.anchoMm || 'N/A' }}</span>
               </td>
             </ng-container>
 
@@ -361,6 +386,241 @@
     <!-- Fin de la tarjeta de la tabla -->
   </div>
   <!-- Fin del área de tabla scrollable -->
+
+    </mat-tab>
+    <!-- Fin pestaña Diseños -->
+
+    <!-- ===== PESTAÑA ANILOX ===== -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">grid_on</mat-icon>
+        <span class="tab-label">Anilox</span>
+      </ng-template>
+
+      <div class="anilox-tab-content">
+        
+        <!-- Layout con sidebar y tabla -->
+        <div class="anilox-layout">
+          
+          <!-- Sidebar izquierdo con máquinas -->
+          <div class="anilox-sidebar">
+            <div class="sidebar-header">
+              <mat-icon>precision_manufacturing</mat-icon>
+              <h3>Máquinas</h3>
+            </div>
+            
+            <div class="machine-buttons">
+              <div class="machine-item" *ngFor="let machine of availableMachines">
+                <button 
+                  mat-raised-button 
+                  [class.active]="selectedMachine === machine.toString()"
+                  (click)="selectMachine(machine)"
+                  class="machine-btn">
+                  <mat-icon>settings</mat-icon>
+                  <span>MQ {{ machine }}</span>
+                </button>
+                <mat-form-field class="carga-muestra-input" appearance="outline">
+                  <input 
+                    matInput 
+                    type="number" 
+                    step="0.01"
+                    [value]="machinesCargaMuestra[machine] || ''"
+                    (blur)="updateMachineCargaMuestra(machine, $event)"
+                    placeholder="Carga"
+                    class="carga-input">
+                </mat-form-field>
+              </div>
+              
+              <button 
+                mat-raised-button 
+                [class.active]="selectedMachine === 'all'"
+                (click)="selectMachine('all')"
+                class="machine-btn all-machines">
+                <mat-icon>view_list</mat-icon>
+                <span>Todas</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Área principal con tabla -->
+          <div class="anilox-main-area">
+            
+            <!-- Header con título y botones a la derecha -->
+            <div class="anilox-header">
+              <div class="header-title">
+                <mat-icon>grid_on</mat-icon>
+                <h2>Inventario de Anilox</h2>
+                <span class="record-count">{{ filteredAniloxData.length }} registros</span>
+              </div>
+              
+              <div class="header-actions">
+                <button mat-raised-button color="primary" class="create-anilox-btn" (click)="createAnilox()">
+                  <mat-icon>add</mat-icon>
+                  Crear Anilox
+                </button>
+
+                <button mat-raised-button color="accent" class="import-excel-btn" (click)="triggerExcelUpload()">
+                  <mat-icon>upload_file</mat-icon>
+                  Importar Excel
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de anilox -->
+            <div class="anilox-table-container">
+              <table mat-table [dataSource]="filteredAniloxData" class="anilox-table">
+
+                <!-- Columna Código -->
+                <ng-container matColumnDef="codigo">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>tag</mat-icon>
+                      <span>Código</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell codigo-cell">
+                    <span class="codigo-badge">{{ anilox.codigo }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Máquina -->
+                <ng-container matColumnDef="maquina">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>precision_manufacturing</mat-icon>
+                      <span>Máquina</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell maquina-cell">
+                    <span class="maquina-badge">MQ {{ anilox.maquina }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna BCM -->
+                <ng-container matColumnDef="bcm">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>water_drop</mat-icon>
+                      <span>BCM</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell bcm-cell">
+                    <span class="bcm-value">{{ anilox.bcm }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Lineatura -->
+                <ng-container matColumnDef="lineatura">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>grid_4x4</mat-icon>
+                      <span>Lineatura (LPI)</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell lineatura-cell">
+                    <span class="lineatura-value">{{ anilox.lineatura }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Marca -->
+                <ng-container matColumnDef="marca">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>business</mat-icon>
+                      <span>Marca</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell marca-cell">
+                    <span class="marca-badge" [class.apex]="anilox.marca === 'APEX'" 
+                          [class.zecher]="anilox.marca === 'ZECHER'" 
+                          [class.harper]="anilox.marca === 'HARPER'">
+                      {{ anilox.marca }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Volumen Real -->
+                <ng-container matColumnDef="volumenReal">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>science</mat-icon>
+                      <span>Volumen Real</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell volumen-cell">
+                    <span class="volumen-value">{{ anilox.volumen_real }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Factor Eficiencia -->
+                <ng-container matColumnDef="factorEficiencia">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>speed</mat-icon>
+                      <span>Factor Eficiencia</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell">
+                    <span class="factor-value">{{ anilox.factor_eficiencia ? anilox.factor_eficiencia + '%' : '35%' }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Densidad -->
+                <ng-container matColumnDef="densidad">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>opacity</mat-icon>
+                      <span>Densidad</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell">
+                    <span class="densidad-value">{{ anilox.densidad !== null && anilox.densidad !== undefined ? anilox.densidad : '0.885' }}</span>
+                  </td>
+                </ng-container>
+
+                <!-- Columna Acciones -->
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
+                    <div class="header-content">
+                      <mat-icon>settings</mat-icon>
+                      <span>Acciones</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let anilox" class="anilox-cell actions-cell">
+                    <div class="action-buttons">
+                      <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar anilox" (click)="editAnilox(anilox)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button mat-icon-button class="action-btn delete-btn" matTooltip="Eliminar anilox" (click)="deleteAnilox(anilox)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="aniloxDisplayedColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: aniloxDisplayedColumns;" class="anilox-row"></tr>
+
+              </table>
+
+              <!-- Mensaje sin datos -->
+              <div *ngIf="filteredAniloxData.length === 0" class="no-anilox-data">
+                <mat-icon>grid_on</mat-icon>
+                <p *ngIf="selectedMachine === 'all'">No hay anilox registrados</p>
+                <p *ngIf="selectedMachine !== 'all'">No hay anilox para la máquina {{ selectedMachine }}</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </mat-tab>
+    <!-- Fin pestaña Anilox -->
+
+  </mat-tab-group>
+  <!-- Fin pestañas -->
 
 </div>
 <!-- Fin del contenedor principal de diseños -->

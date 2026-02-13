@@ -19,6 +19,8 @@ namespace FlexoAPP.API.Models.Entities
         
         public string? Type { get; set; }
         
+        public int? AnchoMm { get; set; }
+        
         public string? PrintType { get; set; }
         
         public int? ColorCount { get; set; }

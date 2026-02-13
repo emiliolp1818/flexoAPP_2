@@ -8,9 +8,11 @@ namespace flexoAPP.Models.DTOs
         public string Cliente { get; set; } = string.Empty;
         public string Referencia { get; set; } = string.Empty;
         public string Td { get; set; } = string.Empty;
+        public string? TipoImpresion { get; set; }
         public int NumeroColores { get; set; }
         public List<string> Colores { get; set; } = new();
         public decimal Kilos { get; set; }
+        public decimal? Metros { get; set; }
         public DateTime FechaTintaEnMaquina { get; set; }
         public string Sustrato { get; set; } = string.Empty;
         public string Estado { get; set; } = "LISTO";
@@ -32,8 +34,10 @@ namespace flexoAPP.Models.DTOs
         public string Cliente { get; set; } = string.Empty;
         public string Referencia { get; set; } = string.Empty;
         public string Td { get; set; } = string.Empty;
+        public string? TipoImpresion { get; set; }
         public List<string> Colores { get; set; } = new();
         public decimal Kilos { get; set; }
+        public decimal? Metros { get; set; }
         public DateTime? FechaTintaEnMaquina { get; set; }
         public string Sustrato { get; set; } = string.Empty;
         public string? Estado { get; set; } = null; // NULL por defecto - El operario debe asignar el estado
@@ -48,8 +52,10 @@ namespace flexoAPP.Models.DTOs
         public string? Cliente { get; set; }
         public string? Referencia { get; set; }
         public string? Td { get; set; }
+        public string? TipoImpresion { get; set; }
         public List<string>? Colores { get; set; }
         public decimal? Kilos { get; set; }
+        public decimal? Metros { get; set; }
         public DateTime? FechaTintaEnMaquina { get; set; }
         public string? Sustrato { get; set; }
         public string? Estado { get; set; }

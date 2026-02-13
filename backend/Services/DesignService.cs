@@ -2,6 +2,8 @@ using FlexoAPP.API.Models.DTOs;
 using FlexoAPP.API.Models.Entities;
 using FlexoAPP.API.Repositories;
 using System.Text.Json;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 
 namespace FlexoAPP.API.Services
 {
@@ -169,6 +171,7 @@ namespace FlexoAPP.API.Services
                 Description = createDto.Description,
                 Substrate = createDto.Substrate,
                 Type = createDto.Type,
+                AnchoMm = createDto.AnchoMm,
                 PrintType = createDto.PrintType,
                 ColorCount = createDto.ColorCount,
                 Color1 = createDto.Colors.Count > 0 ? createDto.Colors[0] : null,
@@ -224,6 +227,8 @@ namespace FlexoAPP.API.Services
                 existingDesign.Substrate = updateDto.Substrate;
             if (!string.IsNullOrEmpty(updateDto.Type))
                 existingDesign.Type = updateDto.Type;
+            if (updateDto.AnchoMm.HasValue)
+                existingDesign.AnchoMm = updateDto.AnchoMm.Value;
             if (!string.IsNullOrEmpty(updateDto.PrintType))
                 existingDesign.PrintType = updateDto.PrintType;
             if (updateDto.ColorCount.HasValue)
@@ -287,6 +292,7 @@ namespace FlexoAPP.API.Services
                 Description = $"{originalDesign.Description} (Copia)",
                 Substrate = originalDesign.Substrate,
                 Type = originalDesign.Type,
+                AnchoMm = originalDesign.AnchoMm,
                 PrintType = originalDesign.PrintType,
                 ColorCount = originalDesign.ColorCount,
                 Color1 = originalDesign.Color1,
@@ -357,6 +363,7 @@ namespace FlexoAPP.API.Services
                     Description = createDto.Description,
                     Substrate = createDto.Substrate,
                     Type = createDto.Type,
+                    AnchoMm = createDto.AnchoMm,
                     PrintType = createDto.PrintType,
                     ColorCount = createDto.ColorCount,
                     Color1 = createDto.Colors.Count > 0 ? createDto.Colors[0] : null,
@@ -561,6 +568,7 @@ namespace FlexoAPP.API.Services
                     Description = design.Description ?? string.Empty,
                     Substrate = design.Substrate ?? string.Empty,
                     Type = design.Type ?? string.Empty,
+                    AnchoMm = design.AnchoMm,
                     PrintType = design.PrintType ?? string.Empty,
                     ColorCount = design.ColorCount ?? 0,
                     Colors = colors,
@@ -605,6 +613,7 @@ namespace FlexoAPP.API.Services
                     Description = design.Description ?? string.Empty,
                     Substrate = design.Substrate ?? string.Empty,
                     Type = design.Type ?? string.Empty,
+                    AnchoMm = design.AnchoMm,
                     PrintType = design.PrintType ?? string.Empty,
                     ColorCount = design.ColorCount ?? colors.Count,
                     Colors = colors,
@@ -702,49 +711,83 @@ namespace FlexoAPP.API.Services
 
         private static byte[] GenerateExcelFile(IEnumerable<DesignDto> designs)
         {
-            // Crear contenido CSV que se puede abrir en Excel
-            var csv = new System.Text.StringBuilder();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("Diseños");
             
             // Encabezados
-            csv.AppendLine("ArticleF,Cliente,Descripción,Sustrato,Tipo,Tipo de Impresión,Cantidad de Colores,Color1,Color2,Color3,Color4,Color5,Color6,Color7,Color8,Color9,Color10,Diseñador,Estado,Fecha de Creación,Última Modificación");
+            worksheet.Cells[1, 1].Value = "ID";
+            worksheet.Cells[1, 2].Value = "Artículo F";
+            worksheet.Cells[1, 3].Value = "Cliente";
+            worksheet.Cells[1, 4].Value = "Descripción";
+            worksheet.Cells[1, 5].Value = "Sustrato";
+            worksheet.Cells[1, 6].Value = "Tipo";
+            worksheet.Cells[1, 7].Value = "Ancho (mm)";
+            worksheet.Cells[1, 8].Value = "Tipo de Impresión";
+            worksheet.Cells[1, 9].Value = "# de Colores";
+            worksheet.Cells[1, 10].Value = "Color 1";
+            worksheet.Cells[1, 11].Value = "Color 2";
+            worksheet.Cells[1, 12].Value = "Color 3";
+            worksheet.Cells[1, 13].Value = "Color 4";
+            worksheet.Cells[1, 14].Value = "Color 5";
+            worksheet.Cells[1, 15].Value = "Color 6";
+            worksheet.Cells[1, 16].Value = "Color 7";
+            worksheet.Cells[1, 17].Value = "Color 8";
+            worksheet.Cells[1, 18].Value = "Color 9";
+            worksheet.Cells[1, 19].Value = "Color 10";
+            worksheet.Cells[1, 20].Value = "Estado";
+            
+            // Estilo del encabezado
+            using (var range = worksheet.Cells[1, 1, 1, 20])
+            {
+                range.Style.Font.Bold = true;
+                range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(79, 129, 189));
+                range.Style.Font.Color.SetColor(System.Drawing.Color.White);
+            }
             
             // Datos
+            int row = 2;
             foreach (var design in designs)
             {
                 var colors = design.Colors ?? new List<string>();
-                var row = $"\"{design.ArticleF}\"," +
-                         $"\"{design.Client}\"," +
-                         $"\"{design.Description}\"," +
-                         $"\"{design.Substrate}\"," +
-                         $"\"{design.Type}\"," +
-                         $"\"{design.PrintType}\"," +
-                         $"{design.ColorCount}," +
-                         $"\"{(colors.Count > 0 ? colors[0] : "")}\"," +
-                         $"\"{(colors.Count > 1 ? colors[1] : "")}\"," +
-                         $"\"{(colors.Count > 2 ? colors[2] : "")}\"," +
-                         $"\"{(colors.Count > 3 ? colors[3] : "")}\"," +
-                         $"\"{(colors.Count > 4 ? colors[4] : "")}\"," +
-                         $"\"{(colors.Count > 5 ? colors[5] : "")}\"," +
-                         $"\"{(colors.Count > 6 ? colors[6] : "")}\"," +
-                         $"\"{(colors.Count > 7 ? colors[7] : "")}\"," +
-                         $"\"{(colors.Count > 8 ? colors[8] : "")}\"," +
-                         $"\"{(colors.Count > 9 ? colors[9] : "")}\"," +
-
-                         $"\"{design.Status}\"," +
-                         $"\"{design.CreatedDate:yyyy-MM-dd HH:mm:ss}\"," +
-                         $"\"{design.LastModified:yyyy-MM-dd HH:mm:ss}\"";
                 
-                csv.AppendLine(row);
+                worksheet.Cells[row, 1].Value = design.Id;
+                worksheet.Cells[row, 2].Value = design.ArticleF;
+                worksheet.Cells[row, 3].Value = design.Client;
+                worksheet.Cells[row, 4].Value = design.Description;
+                worksheet.Cells[row, 5].Value = design.Substrate;
+                worksheet.Cells[row, 6].Value = design.Type;
+                worksheet.Cells[row, 7].Value = design.AnchoMm;
+                worksheet.Cells[row, 8].Value = design.PrintType;
+                worksheet.Cells[row, 9].Value = design.ColorCount;
+                worksheet.Cells[row, 10].Value = colors.Count > 0 ? colors[0] : "";
+                worksheet.Cells[row, 11].Value = colors.Count > 1 ? colors[1] : "";
+                worksheet.Cells[row, 12].Value = colors.Count > 2 ? colors[2] : "";
+                worksheet.Cells[row, 13].Value = colors.Count > 3 ? colors[3] : "";
+                worksheet.Cells[row, 14].Value = colors.Count > 4 ? colors[4] : "";
+                worksheet.Cells[row, 15].Value = colors.Count > 5 ? colors[5] : "";
+                worksheet.Cells[row, 16].Value = colors.Count > 6 ? colors[6] : "";
+                worksheet.Cells[row, 17].Value = colors.Count > 7 ? colors[7] : "";
+                worksheet.Cells[row, 18].Value = colors.Count > 8 ? colors[8] : "";
+                worksheet.Cells[row, 19].Value = colors.Count > 9 ? colors[9] : "";
+                worksheet.Cells[row, 20].Value = design.Status;
+                
+                row++;
             }
             
-            // Convertir a bytes con BOM para que Excel lo reconozca como UTF-8
-            var preamble = System.Text.Encoding.UTF8.GetPreamble();
-            var csvBytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
-            var result = new byte[preamble.Length + csvBytes.Length];
-            preamble.CopyTo(result, 0);
-            csvBytes.CopyTo(result, preamble.Length);
+            // Autoajustar columnas solo si hay datos
+            if (row > 2)
+            {
+                worksheet.Cells[1, 1, row - 1, 20].AutoFitColumns();
+            }
+            else
+            {
+                worksheet.Cells[1, 1, 1, 20].AutoFitColumns();
+            }
             
-            return result;
+            return package.GetAsByteArray();
         }
 
         public async Task<ImportResultDto> ImportFromExcelAsync(IFormFile file)
@@ -847,11 +890,12 @@ namespace FlexoAPP.API.Services
         {
             try
             {
-                // Estructura correcta del Excel según especificación:
-                // ID, ArticuloF, Cliente, Descripcion, Sustrato, TIPO, Tipo Impresion, #Colores, Color1-Color10, ESTADO
+                // Estructura correcta del Excel según especificación ACTUALIZADA:
+                // A: ID (opcional), B: ArticuloF, C: Cliente, D: Descripcion, E: Sustrato, 
+                // F: #Colores, G: Tipo Impresion, H: TIPO, I: Ancho MM, J-S: Color1-10, T: ESTADO
                 
-                // Columna 1: ID (opcional - se puede ignorar ya que la BD genera automáticamente)
-                // Columna 2: ArticleF
+                // Columna A (1): ID (opcional - se puede ignorar ya que la BD genera automáticamente)
+                // Columna B (2): ArticleF
                 var articleF = worksheet.Cells[row, 2].Text?.Trim();
                 if (string.IsNullOrEmpty(articleF))
                 {
@@ -862,43 +906,45 @@ namespace FlexoAPP.API.Services
                 // Log para debugging
                 _logger.LogDebug("Procesando fila {Row}: ArticleF={ArticleF}", row, articleF);
 
-                // Leer todos los campos con logging detallado (ajustando índices por el ID)
-                var client = worksheet.Cells[row, 3].Text?.Trim() ?? "";                   // Columna 3
-                var description = worksheet.Cells[row, 4].Text?.Trim() ?? "";              // Columna 4
-                var substrate = worksheet.Cells[row, 5].Text?.Trim() ?? "";                // Columna 5
-                var type = worksheet.Cells[row, 6].Text?.Trim() ?? "LAMINA";               // Columna 6
-                var printType = worksheet.Cells[row, 7].Text?.Trim() ?? "CARA";            // Columna 7
-                var colorCountText = worksheet.Cells[row, 8].Text?.Trim();                 // Columna 8
-                var status = worksheet.Cells[row, 19].Text?.Trim() ?? "ACTIVO";            // Columna 19
+                // Leer todos los campos con logging detallado según NUEVA ESTRUCTURA
+                var client = worksheet.Cells[row, 3].Text?.Trim() ?? "";                   // Columna C (3)
+                var description = worksheet.Cells[row, 4].Text?.Trim() ?? "";              // Columna D (4)
+                var substrate = worksheet.Cells[row, 5].Text?.Trim() ?? "";                // Columna E (5)
+                var colorCountText = worksheet.Cells[row, 6].Text?.Trim();                 // Columna F (6) - #Colores
+                var printType = worksheet.Cells[row, 7].Text?.Trim() ?? "CARA";            // Columna G (7) - Tipo Impresión
+                var type = worksheet.Cells[row, 8].Text?.Trim() ?? "LAMINA";               // Columna H (8) - TIPO
+                var anchoMmText = worksheet.Cells[row, 9].Text?.Trim();                    // Columna I (9) - Ancho MM
+                var status = worksheet.Cells[row, 20].Text?.Trim() ?? "ACTIVO";            // Columna T (20) - ESTADO
 
                 // Log detallado para debugging (solo para las primeras 5 filas)
                 if (row <= 6)
                 {
-                    _logger.LogInformation("Fila {Row} - ArticleF: '{ArticleF}', Cliente: '{Client}', Descripción: '{Description}', Sustrato: '{Substrate}', Tipo: '{Type}', TipoImpresión: '{PrintType}', #Colores: '{ColorCount}', Estado: '{Status}'", 
-                        row, articleF, client, description, substrate, type, printType, colorCountText, status);
+                    _logger.LogInformation("Fila {Row} - ArticleF: '{ArticleF}', Cliente: '{Client}', Descripción: '{Description}', Sustrato: '{Substrate}', #Colores: '{ColorCount}', TipoImpresión: '{PrintType}', Tipo: '{Type}', AnchoMM: '{AnchoMm}', Estado: '{Status}'", 
+                        row, articleF, client, description, substrate, colorCountText, printType, type, anchoMmText, status);
                 }
 
                 var design = new Models.Entities.Design
                 {
                     // No usar ID del Excel, dejar que la base de datos genere el ID automáticamente
-                    ArticleF = articleF,                                                    // Columna 2
-                    Client = client,                                                        // Columna 3
-                    Description = description,                                              // Columna 4
-                    Substrate = substrate,                                                  // Columna 5
-                    Type = type,                                                            // Columna 6
-                    PrintType = printType,                                                  // Columna 7 (tipo de impresión)
-                    ColorCount = int.TryParse(colorCountText, out var colorCount) ? colorCount : 1, // Columna 8
-                    Color1 = worksheet.Cells[row, 9].Text?.Trim(),                         // Columna 9
-                    Color2 = worksheet.Cells[row, 10].Text?.Trim(),                        // Columna 10
-                    Color3 = worksheet.Cells[row, 11].Text?.Trim(),                        // Columna 11
-                    Color4 = worksheet.Cells[row, 12].Text?.Trim(),                        // Columna 12
-                    Color5 = worksheet.Cells[row, 13].Text?.Trim(),                        // Columna 13
-                    Color6 = worksheet.Cells[row, 14].Text?.Trim(),                        // Columna 14
-                    Color7 = worksheet.Cells[row, 15].Text?.Trim(),                        // Columna 15
-                    Color8 = worksheet.Cells[row, 16].Text?.Trim(),                        // Columna 16
-                    Color9 = worksheet.Cells[row, 17].Text?.Trim(),                        // Columna 17
-                    Color10 = worksheet.Cells[row, 18].Text?.Trim(),                       // Columna 18
-                    Status = status,                                                        // Columna 19 (estado)
+                    ArticleF = articleF,                                                    // Columna B (2)
+                    Client = client,                                                        // Columna C (3)
+                    Description = description,                                              // Columna D (4)
+                    Substrate = substrate,                                                  // Columna E (5)
+                    ColorCount = int.TryParse(colorCountText, out var colorCount) ? colorCount : 1, // Columna F (6)
+                    PrintType = printType,                                                  // Columna G (7)
+                    Type = type,                                                            // Columna H (8)
+                    AnchoMm = int.TryParse(anchoMmText, out var anchoMm) ? anchoMm : (int?)null, // Columna I (9)
+                    Color1 = worksheet.Cells[row, 10].Text?.Trim(),                        // Columna J (10)
+                    Color2 = worksheet.Cells[row, 11].Text?.Trim(),                        // Columna K (11)
+                    Color3 = worksheet.Cells[row, 12].Text?.Trim(),                        // Columna L (12)
+                    Color4 = worksheet.Cells[row, 13].Text?.Trim(),                        // Columna M (13)
+                    Color5 = worksheet.Cells[row, 14].Text?.Trim(),                        // Columna N (14)
+                    Color6 = worksheet.Cells[row, 15].Text?.Trim(),                        // Columna O (15)
+                    Color7 = worksheet.Cells[row, 16].Text?.Trim(),                        // Columna P (16)
+                    Color8 = worksheet.Cells[row, 17].Text?.Trim(),                        // Columna Q (17)
+                    Color9 = worksheet.Cells[row, 18].Text?.Trim(),                        // Columna R (18)
+                    Color10 = worksheet.Cells[row, 19].Text?.Trim(),                       // Columna S (19)
+                    Status = status,                                                        // Columna T (20)
                     CreatedDate = DateTime.UtcNow,
                     LastModified = DateTime.UtcNow
                 };

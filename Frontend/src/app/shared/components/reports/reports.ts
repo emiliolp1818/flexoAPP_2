@@ -201,7 +201,11 @@ export class ReportsComponent implements OnInit {
     try {
       const filters = this.filterForm.value;
 
+      console.log('🔍 ===== INICIO CARGA DE ACTIVIDADES =====');
       console.log('🔍 Filtros del formulario:', filters);
+      console.log('🔍 userId del formulario:', filters.userId);
+      console.log('🔍 Tipo de userId:', typeof filters.userId);
+      console.log('🔍 userSearchText actual:', this.userSearchText);
 
       const params: any = {
         page: 1,
@@ -211,16 +215,27 @@ export class ReportsComponent implements OnInit {
       // Agregar userId si está seleccionado (OPCIONAL)
       if (filters.userId && filters.userId > 0) {
         params.userId = filters.userId;
-        console.log('🔍 Filtrando por userId:', filters.userId);
+        console.log('✅ FILTRO DE USUARIO APLICADO - userId:', filters.userId);
+
+        // Buscar el usuario en la lista para mostrar su información
+        const selectedUser = this.users().find(u => u.id === filters.userId);
+        if (selectedUser) {
+          console.log('✅ Usuario seleccionado:', {
+            id: selectedUser.id,
+            code: selectedUser.userCode,
+            name: `${selectedUser.firstName} ${selectedUser.lastName}`
+          });
+        }
       } else {
-        console.log('🔍 Sin filtro de usuario - mostrando TODAS las actividades');
+        console.log('⚠️ SIN FILTRO DE USUARIO - mostrando TODAS las actividades');
+        console.log('⚠️ Razón: userId =', filters.userId, '(debe ser > 0)');
       }
 
       // NO aplicar filtro de fechas por defecto - mostrar TODAS las actividades
       // Solo filtrar si el usuario selecciona fechas específicas
       if (filters.startDate) {
         params.startDate = filters.startDate.toISOString();
-        console.log('🔍 Filtrando por fecha inicio:', filters.startDate);
+        console.log('✅ FILTRO DE FECHA INICIO:', filters.startDate);
       }
 
       if (filters.endDate) {
@@ -228,7 +243,7 @@ export class ReportsComponent implements OnInit {
         const endDate = new Date(filters.endDate);
         endDate.setHours(23, 59, 59, 999);
         params.endDate = endDate.toISOString();
-        console.log('🔍 Filtrando por fecha fin:', filters.endDate);
+        console.log('✅ FILTRO DE FECHA FIN:', filters.endDate);
       }
 
       if (!filters.startDate && !filters.endDate) {
@@ -374,23 +389,32 @@ export class ReportsComponent implements OnInit {
   onUserSearch() {
     const searchTerm = this.userSearchText.toLowerCase().trim();
 
+    console.log('🔍 onUserSearch - Término de búsqueda:', searchTerm);
+
     if (!searchTerm) {
       this.filteredUsers.set(this.users());
       this.filterForm.patchValue({ userId: null });
+      console.log('🔍 Búsqueda vacía - userId limpiado');
       return;
     }
 
     // Buscar por código exacto primero
-    const exactCodeMatch = this.users().find(user => 
+    const exactCodeMatch = this.users().find(user =>
       user.userCode.toLowerCase() === searchTerm
     );
 
     // Si hay coincidencia exacta por código, seleccionar automáticamente
     if (exactCodeMatch) {
-      console.log('✅ Usuario encontrado por código:', exactCodeMatch);
+      console.log('✅ Usuario encontrado por código exacto:', exactCodeMatch);
+      console.log('✅ Configurando userId en formulario:', exactCodeMatch.id);
       this.userSearchText = exactCodeMatch.userCode;
       this.filterForm.patchValue({ userId: exactCodeMatch.id });
       this.filteredUsers.set([exactCodeMatch]);
+
+      // Verificar que el valor se guardó correctamente
+      const currentUserId = this.filterForm.get('userId')?.value;
+      console.log('✅ userId después de patchValue:', currentUserId);
+
       return;
     }
 
@@ -406,15 +430,22 @@ export class ReportsComponent implements OnInit {
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm)
     );
 
+    console.log('🔍 Usuarios filtrados:', filtered.length);
     this.filteredUsers.set(filtered);
-    
+
     // Si solo hay un resultado, seleccionarlo automáticamente
     if (filtered.length === 1) {
       console.log('✅ Usuario único encontrado:', filtered[0]);
+      console.log('✅ Configurando userId en formulario:', filtered[0].id);
       this.userSearchText = filtered[0].userCode;
       this.filterForm.patchValue({ userId: filtered[0].id });
+
+      // Verificar que el valor se guardó correctamente
+      const currentUserId = this.filterForm.get('userId')?.value;
+      console.log('✅ userId después de patchValue:', currentUserId);
     } else {
       // Si hay múltiples resultados o ninguno, limpiar la selección
+      console.log('⚠️ Múltiples resultados o ninguno - limpiando userId');
       this.filterForm.patchValue({ userId: null });
     }
   }
@@ -1008,13 +1039,13 @@ export class ReportsComponent implements OnInit {
         try {
           const newVals = typeof a.newValues === 'string' ? JSON.parse(a.newValues) : a.newValues;
           estadoPedido = newVals.estado || newVals.Estado || '-';
-          
+
           // Extraer observaciones según el estado
           let rawObservaciones = newVals.observaciones || newVals.Observaciones || '';
-          
+
           // DEBUG: Log para ver qué observaciones vienen del backend
           console.log(`🔍 [${otSap}] Estado: ${estadoPedido}, Observaciones raw:`, rawObservaciones);
-          
+
           // Filtrar el mensaje automático del sistema
           const mensajesFiltrar = [
             'Programa nuevo - Información de tabla de diseño - Pendiente de asignación de estado por operario',
@@ -1022,18 +1053,18 @@ export class ReportsComponent implements OnInit {
             'Información de tabla de diseño',
             'Pendiente de asignación de estado por operario'
           ];
-          
+
           // Si las observaciones contienen alguno de los mensajes a filtrar, limpiarlas
           let observacionesLimpias = rawObservaciones;
           for (const mensaje of mensajesFiltrar) {
             observacionesLimpias = observacionesLimpias.replace(mensaje, '').trim();
           }
-          
+
           // Limpiar guiones y espacios extras
           observacionesLimpias = observacionesLimpias.replace(/^[\s\-]+|[\s\-]+$/g, '').trim();
-          
+
           observaciones = observacionesLimpias;
-          
+
           // DEBUG: Log para ver las observaciones después del filtrado
           console.log(`🔍 [${otSap}] Observaciones después de filtrar:`, observaciones);
         } catch (e) {
@@ -1318,12 +1349,12 @@ export class ReportsComponent implements OnInit {
     // Fecha de generación (misma línea, a la derecha)
     doc.setFontSize(8); // Reducido de 14 a 8
     doc.setFont('helvetica', 'normal');
-    const fechaGeneracion = new Date().toLocaleString('es-ES', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    const fechaGeneracion = new Date().toLocaleString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
     doc.text(fechaGeneracion, 196, 10, { align: 'right' });
 
@@ -1406,13 +1437,13 @@ export class ReportsComponent implements OnInit {
         startY: yPos,
         head: [['#', 'Artículo', 'OT SAP', 'Descripción', 'Máq', 'Col', 'Tiempo', 'Est']],
         body: tableData,
-        styles: { 
+        styles: {
           fontSize: 6, // Reducido de 7 a 6
           cellPadding: 1.5, // Reducido de 2 a 1.5
           lineColor: [220, 220, 220],
           lineWidth: 0.1
         },
-        headStyles: { 
+        headStyles: {
           fillColor: [37, 99, 235],
           textColor: [255, 255, 255],
           fontStyle: 'bold',
@@ -1459,7 +1490,7 @@ export class ReportsComponent implements OnInit {
             `#${index + 1}`,
             order.articulo,
             estado.estado,
-            new Date(estado.timestamp).toLocaleDateString('es-ES') + '\n' + 
+            new Date(estado.timestamp).toLocaleDateString('es-ES') + '\n' +
             new Date(estado.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
             this.formatDuration(estado.duration),
             `${estado.userCode}\n${estado.userName}`,
@@ -1472,13 +1503,13 @@ export class ReportsComponent implements OnInit {
         startY: yPos,
         head: [['#', 'Artículo', 'Estado', 'Fecha/Hora', 'Duración', 'Usuario', 'Observaciones']],
         body: historialData,
-        styles: { 
+        styles: {
           fontSize: 6,
           cellPadding: 1.5,
           lineColor: [220, 220, 220],
           lineWidth: 0.1
         },
-        headStyles: { 
+        headStyles: {
           fillColor: [37, 99, 235],
           textColor: [255, 255, 255],
           fontStyle: 'bold',
@@ -1503,7 +1534,7 @@ export class ReportsComponent implements OnInit {
     } else {
       // Exportación estándar para otros módulos
       const tableData = activities.map(a => [
-        new Date(a.timestamp).toLocaleDateString('es-ES') + '\n' + 
+        new Date(a.timestamp).toLocaleDateString('es-ES') + '\n' +
         new Date(a.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         (a.user?.userCode || a.userCode || '-') + '\n' + (a.user?.fullName || 'Sistema'),
         a.action,
@@ -1515,13 +1546,13 @@ export class ReportsComponent implements OnInit {
         startY: yPos,
         head: [['Fecha/Hora', 'Usuario', 'Acción', 'Descripción', 'Duración']],
         body: tableData,
-        styles: { 
+        styles: {
           fontSize: 6,
           cellPadding: 1.5,
           lineColor: [220, 220, 220],
           lineWidth: 0.1
         },
-        headStyles: { 
+        headStyles: {
           fillColor: [37, 99, 235],
           textColor: [255, 255, 255],
           fontStyle: 'bold',
@@ -1549,9 +1580,9 @@ export class ReportsComponent implements OnInit {
       doc.setFontSize(7);
       doc.setTextColor(150, 150, 150);
       doc.text(
-        `Página ${i} de ${pageCount}`, 
-        doc.internal.pageSize.width / 2, 
-        doc.internal.pageSize.height - 8, 
+        `Página ${i} de ${pageCount}`,
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 8,
         { align: 'center' }
       );
     }
@@ -1584,18 +1615,18 @@ export class ReportsComponent implements OnInit {
     let csvContent = '';
 
     // ===== ENCABEZADO =====
-    const fechaGeneracion = new Date().toLocaleString('es-ES', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    const fechaGeneracion = new Date().toLocaleString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
 
     csvContent += `AUDITORÍA - ${moduleLabel.toUpperCase()};;;;\n`;
     csvContent += `Fecha de generación:;${fechaGeneracion};;;\n`;
     csvContent += `Total de registros:;${activities.length};;;\n`;
-    
+
     // Filtros aplicados
     let filtrosTexto = '';
     if (selectedUser) {
@@ -1627,7 +1658,7 @@ export class ReportsComponent implements OnInit {
       csvContent += 'RESUMEN DE ESTADÍSTICAS;;;;\n';
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += ';;;;\n';
-      
+
       csvContent += 'Métrica;Valor;;;\n';
       csvContent += 'Pedidos completados;' + stats.totalOrders + ';;;\n';
       csvContent += 'Tiempo total;' + this.formatDuration(stats.totalDuration) + ';;;\n';
@@ -1641,7 +1672,7 @@ export class ReportsComponent implements OnInit {
       csvContent += 'PEDIDOS COMPLETADOS;;;;\n';
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += ';;;;\n';
-      
+
       csvContent += '#;Artículo;OT SAP;Descripción;Máquina;Colores Pantone;Tiempo en LISTO;Cantidad de Estados\n';
       stats.orderDetails.forEach((order: any, index: number) => {
         const descripcion = order.descripcion.replace(/;/g, ','); // Reemplazar punto y coma por coma
@@ -1655,17 +1686,17 @@ export class ReportsComponent implements OnInit {
       csvContent += 'HISTORIAL DETALLADO DE ESTADOS;;;;\n';
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += ';;;;\n';
-      
+
       csvContent += 'Pedido;Artículo;OT SAP;Estado;Fecha;Hora;Duración;Código Usuario;Nombre Usuario;Observaciones\n';
       stats.orderDetails.forEach((order: any, index: number) => {
         order.historialEstados.forEach((estado: any, estadoIndex: number) => {
           const fecha = new Date(estado.timestamp).toLocaleDateString('es-ES');
           const hora = new Date(estado.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
           const observaciones = (estado.observaciones || '-').replace(/;/g, ','); // Reemplazar punto y coma por coma
-          
+
           csvContent += `#${index + 1};${order.articulo};${order.otSap};${estado.estado};${fecha};${hora};${this.formatDuration(estado.duration)};${estado.userCode};${estado.userName};${observaciones}\n`;
         });
-        
+
         // Línea en blanco entre pedidos para mejor separación visual
         if (index < stats.orderDetails.length - 1) {
           csvContent += ';;;;\n';
@@ -1676,14 +1707,14 @@ export class ReportsComponent implements OnInit {
       // ========================================
       // OTROS MÓDULOS - ESTRUCTURA ESTÁNDAR
       // ========================================
-      
+
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += 'ACTIVIDADES DEL MÓDULO;;;;\n';
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += ';;;;\n';
-      
+
       csvContent += '#;Fecha;Hora;Código Usuario;Nombre Usuario;Acción;Descripción;Duración;Dirección IP;Entidad\n';
-      
+
       activities.forEach((a, index) => {
         const fecha = new Date(a.timestamp).toLocaleDateString('es-ES');
         const hora = new Date(a.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });

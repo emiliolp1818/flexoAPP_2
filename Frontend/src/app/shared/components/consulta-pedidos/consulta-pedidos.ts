@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,32 +15,15 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { HeaderComponent } from '../header/header';
 
-interface PedidoInfo {
-  otSap: string;
+interface PedidoAgrupado {
   articulo: string;
-  cliente: string;
-  referencia: string;
-  td: string;
-  numeroColores: number;
   colores: string[];
-  kilos: number;
-  fechaTintaEnMaquina: Date;
-  sustrato: string;
-  estado: string;
-  numeroMaquina: number;
-  observaciones?: string;
-  lastActionBy?: string;
-  lastActionAt?: Date;
-  // Historial de estados
-  historialEstados?: Array<{
-    estado: string;
-    timestamp: Date;
-    userCode: string;
-    userName: string;
-    observaciones?: string;
-  }>;
+  coloresStr: string;
+  kilosTotales: number;
+  otsSap: string[];
+  maquinas: number[];
+  cantidadOTs: number;
 }
 
 @Component({
@@ -60,8 +43,7 @@ interface PedidoInfo {
     MatChipsModule,
     MatTooltipModule,
     MatExpansionModule,
-    FormsModule,
-    HeaderComponent
+    FormsModule
   ],
   templateUrl: './consulta-pedidos.html',
   styleUrls: ['./consulta-pedidos.scss']
@@ -69,9 +51,30 @@ interface PedidoInfo {
 export class ConsultaPedidosComponent implements OnInit {
   // Señales reactivas
   loading = signal(false);
-  searchTerm = signal('');
-  pedidoInfo = signal<PedidoInfo | null>(null);
-  errorMessage = signal<string | null>(null);
+  searchTermOT = signal('');
+  searchTermArticulo = signal('');
+  pedidosAgrupados = signal<PedidoAgrupado[]>([]);
+  allPedidos = signal<any[]>([]);
+
+  // Columnas de la tabla
+  displayedColumns: string[] = ['articulo', 'colores', 'kilosTotales', 'cantidadOTs', 'otsSap', 'maquinas'];
+
+  // Computed para filtrar pedidos
+  filteredPedidos = computed(() => {
+    const pedidos = this.pedidosAgrupados();
+    const otTerm = this.searchTermOT().toLowerCase().trim();
+    const articuloTerm = this.searchTermArticulo().toLowerCase().trim();
+
+    if (!otTerm && !articuloTerm) {
+      return pedidos;
+    }
+
+    return pedidos.filter(p => {
+      const matchOT = !otTerm || p.otsSap.some(ot => ot.toLowerCase().includes(otTerm));
+      const matchArticulo = !articuloTerm || p.articulo.toLowerCase().includes(articuloTerm);
+      return matchOT && matchArticulo;
+    });
+  });
 
   constructor(
     private http: HttpClient,
@@ -80,194 +83,89 @@ export class ConsultaPedidosComponent implements OnInit {
 
   ngOnInit() {
     console.log('🔍 Módulo de Consulta de Pedidos inicializado');
+    this.cargarPedidos();
   }
 
-  // Buscar pedido por OT SAP o Artículo
-  async buscarPedido() {
-    const term = this.searchTerm().trim();
-    
-    if (!term) {
-      this.snackBar.open('Por favor ingresa un OT SAP o Artículo', 'Cerrar', { duration: 3000 });
-      return;
-    }
-
+  // Cargar todos los pedidos y agruparlos
+  async cargarPedidos() {
     this.loading.set(true);
-    this.errorMessage.set(null);
-    this.pedidoInfo.set(null);
 
     try {
-      console.log('🔍 Buscando pedido:', term);
-
-      // Buscar en la tabla de máquinas
       const response: any = await this.http.get(`${environment.apiUrl}/maquinas`).toPromise();
 
       if (response && response.success && response.data) {
-        // Buscar por OT SAP o Artículo
-        const pedido = response.data.find((p: any) => 
-          String(p.otSap).toLowerCase().includes(term.toLowerCase()) ||
-          String(p.articulo).toLowerCase().includes(term.toLowerCase())
-        );
-
-        if (pedido) {
-          // Parsear colores
-          let colores: string[] = [];
-          if (pedido.colores) {
-            try {
-              colores = typeof pedido.colores === 'string' 
-                ? JSON.parse(pedido.colores) 
-                : pedido.colores;
-            } catch (e) {
-              console.warn('Error parseando colores:', e);
-            }
-          }
-
-          // Obtener historial de estados desde auditoría
-          const historial = await this.obtenerHistorialEstados(pedido.otSap, pedido.articulo);
-
-          this.pedidoInfo.set({
-            otSap: pedido.otSap,
-            articulo: pedido.articulo,
-            cliente: pedido.cliente,
-            referencia: pedido.referencia,
-            td: pedido.td,
-            numeroColores: colores.length,
-            colores: colores,
-            kilos: pedido.kilos,
-            fechaTintaEnMaquina: new Date(pedido.fechaTintaEnMaquina),
-            sustrato: pedido.sustrato,
-            estado: pedido.estado,
-            numeroMaquina: pedido.numeroMaquina,
-            observaciones: pedido.observaciones,
-            lastActionBy: pedido.updatedByUser?.firstName && pedido.updatedByUser?.lastName 
-              ? `${pedido.updatedByUser.firstName} ${pedido.updatedByUser.lastName}`.trim()
-              : pedido.lastActionBy || 'Sistema',
-            lastActionAt: pedido.updatedAt ? new Date(pedido.updatedAt) : undefined,
-            historialEstados: historial
-          });
-
-          this.snackBar.open('Pedido encontrado', 'Cerrar', { duration: 2000 });
-        } else {
-          this.errorMessage.set('No se encontró ningún pedido con ese OT SAP o Artículo');
-          this.snackBar.open('Pedido no encontrado', 'Cerrar', { duration: 3000 });
-        }
-      } else {
-        this.errorMessage.set('Error al consultar los pedidos');
+        this.allPedidos.set(response.data);
+        this.agruparPedidos(response.data);
+        this.snackBar.open('Pedidos cargados correctamente', 'Cerrar', { duration: 2000 });
       }
     } catch (error: any) {
-      console.error('❌ Error buscando pedido:', error);
-      this.errorMessage.set('Error al buscar el pedido. Por favor intenta nuevamente.');
-      this.snackBar.open('Error al buscar pedido', 'Cerrar', { duration: 3000 });
+      console.error('❌ Error cargando pedidos:', error);
+      this.snackBar.open('Error al cargar pedidos', 'Cerrar', { duration: 3000 });
     } finally {
       this.loading.set(false);
     }
   }
 
-  // Obtener historial de estados desde auditoría
-  async obtenerHistorialEstados(otSap: string, articulo: string): Promise<Array<{
-    estado: string;
-    timestamp: Date;
-    userCode: string;
-    userName: string;
-    observaciones?: string;
-  }>> {
-    try {
-      const response: any = await this.http.get(`${environment.apiUrl}/audit/activities`, {
-        params: {
-          page: 1,
-          pageSize: 1000
+  // Agrupar pedidos por artículo y colores
+  agruparPedidos(pedidos: any[]) {
+    const grupos = new Map<string, PedidoAgrupado>();
+
+    pedidos.forEach(pedido => {
+      // Parsear colores
+      let colores: string[] = [];
+      if (pedido.colores) {
+        try {
+          colores = typeof pedido.colores === 'string' 
+            ? JSON.parse(pedido.colores) 
+            : pedido.colores;
+        } catch (e) {
+          console.warn('Error parseando colores:', e);
         }
-      }).toPromise();
-
-      if (response && response.activities) {
-        // Filtrar actividades de máquinas para este pedido
-        const actividadesPedido = response.activities.filter((a: any) => {
-          if (a.module !== 'MACHINES') return false;
-
-          // Verificar si es el pedido correcto
-          let esElPedido = false;
-          
-          if (a.details) {
-            try {
-              const details = JSON.parse(a.details);
-              esElPedido = details.otSap === otSap || details.articulo === articulo;
-            } catch (e) {}
-          }
-
-          if (!esElPedido && a.newValues) {
-            try {
-              const newVals = JSON.parse(a.newValues);
-              esElPedido = newVals.otSap === otSap || newVals.articulo === articulo;
-            } catch (e) {}
-          }
-
-          return esElPedido;
-        });
-
-        // Mapear a historial de estados
-        const historial = actividadesPedido.map((a: any) => {
-          let estado = '-';
-          let observaciones = '';
-
-          if (a.newValues) {
-            try {
-              const newVals = JSON.parse(a.newValues);
-              estado = newVals.estado || newVals.Estado || '-';
-              observaciones = newVals.observaciones || newVals.Observaciones || '';
-            } catch (e) {}
-          }
-
-          return {
-            estado: estado,
-            timestamp: new Date(a.timestamp),
-            userCode: a.user?.userCode || a.userCode || '-',
-            userName: a.user?.fullName || `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.trim() || '-',
-            observaciones: observaciones
-          };
-        });
-
-        // Ordenar por fecha (más reciente primero)
-        historial.sort((a: any, b: any) => b.timestamp.getTime() - a.timestamp.getTime());
-
-        return historial;
       }
 
-      return [];
-    } catch (error) {
-      console.error('Error obteniendo historial:', error);
-      return [];
-    }
+      // Crear clave única: artículo + colores ordenados
+      const coloresOrdenados = [...colores].sort();
+      const clave = `${pedido.articulo}|${coloresOrdenados.join(',')}`;
+
+      if (grupos.has(clave)) {
+        // Agregar a grupo existente
+        const grupo = grupos.get(clave)!;
+        grupo.kilosTotales += pedido.kilos || 0;
+        grupo.otsSap.push(pedido.otSap);
+        if (pedido.numeroMaquina && !grupo.maquinas.includes(pedido.numeroMaquina)) {
+          grupo.maquinas.push(pedido.numeroMaquina);
+        }
+        grupo.cantidadOTs++;
+      } else {
+        // Crear nuevo grupo
+        grupos.set(clave, {
+          articulo: pedido.articulo,
+          colores: coloresOrdenados,
+          coloresStr: coloresOrdenados.join(', '),
+          kilosTotales: pedido.kilos || 0,
+          otsSap: [pedido.otSap],
+          maquinas: pedido.numeroMaquina ? [pedido.numeroMaquina] : [],
+          cantidadOTs: 1
+        });
+      }
+    });
+
+    // Convertir a array y ordenar por artículo
+    const agrupados = Array.from(grupos.values()).sort((a, b) => 
+      a.articulo.localeCompare(b.articulo)
+    );
+
+    this.pedidosAgrupados.set(agrupados);
   }
 
   // Limpiar búsqueda
   limpiarBusqueda() {
-    this.searchTerm.set('');
-    this.pedidoInfo.set(null);
-    this.errorMessage.set(null);
+    this.searchTermOT.set('');
+    this.searchTermArticulo.set('');
   }
 
-  // Obtener color del estado
-  getEstadoColor(estado: string): string {
-    const colores: any = {
-      'SIN_ASIGNAR': '#64748b',
-      'PREPARANDO': '#eab308',
-      'LISTO': '#16a34a',
-      'CORRIENDO': '#2196f3',
-      'SUSPENDIDO': '#f97316',
-      'TERMINADO': '#dc2626'
-    };
-    return colores[estado] || '#64748b';
-  }
-
-  // Obtener etiqueta del estado
-  getEstadoLabel(estado: string): string {
-    const etiquetas: any = {
-      'SIN_ASIGNAR': 'Sin Asignar',
-      'PREPARANDO': 'Preparando',
-      'LISTO': 'Listo',
-      'CORRIENDO': 'Corriendo',
-      'SUSPENDIDO': 'Suspendido',
-      'TERMINADO': 'Terminado'
-    };
-    return etiquetas[estado] || estado;
+  // Refrescar datos
+  refreshPedidos() {
+    this.cargarPedidos();
   }
 }

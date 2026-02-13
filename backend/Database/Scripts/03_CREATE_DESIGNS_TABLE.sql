@@ -6,8 +6,11 @@
 -- Base de datos: MySQL 8.0+ (Railway/Render)
 -- Tabla: designs
 -- Autor: Sistema FlexoAPP
--- Fecha: 2026-01-27
--- Versión: 3.0 (Optimizado con índices de rendimiento)
+-- Fecha: 2026-02-11
+-- Versión: 3.1 (Agregado campo ancho_mm)
+-- =====================================================
+-- CAMBIOS EN VERSIÓN 3.1:
+-- - Agregado campo ancho_mm (ancho en milímetros)
 -- =====================================================
 -- CAMBIOS EN VERSIÓN 3.0:
 -- - Agregado índice en Type para filtros por tipo
@@ -29,8 +32,9 @@ CREATE TABLE IF NOT EXISTS `designs` (
     
     -- ===== ESPECIFICACIONES TÉCNICAS =====
     `Substrate` VARCHAR(100) NULL COMMENT 'Tipo de sustrato (BOPP, PE, PET, etc.)',
-    `Type` VARCHAR(100) NULL COMMENT 'Tipo de diseño',
-    `PrintType` VARCHAR(100) NULL COMMENT 'Tipo de impresión (Flexografía, Rotograbado, etc.)',
+    `Type` VARCHAR(100) NULL COMMENT 'Tipo de diseño (LAMINA, etc.)',
+    `ancho_mm` INT NULL COMMENT 'Ancho en milímetros',
+    `PrintType` VARCHAR(100) NULL COMMENT 'Tipo de impresión (CARA, REVERSO, etc.)',
     
     -- ===== INFORMACIÓN DE COLORES =====
     `ColorCount` INT NULL DEFAULT 0 COMMENT 'Número total de colores (0-10)',
@@ -77,6 +81,25 @@ CREATE TABLE IF NOT EXISTS `designs` (
 
 -- ===== VERIFICACIÓN =====
 SELECT '✓ Tabla designs creada exitosamente con índices optimizados' as resultado;
+
+-- ===== SI LA TABLA YA EXISTE, AGREGAR LA COLUMNA ANCHO_MM =====
+SET @dbname = DATABASE();
+SET @tablename = 'designs';
+SET @columnname = 'ancho_mm';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT ''La columna ancho_mm ya existe'' AS resultado;',
+  'ALTER TABLE designs ADD COLUMN ancho_mm INT NULL COMMENT ''Ancho en milímetros'' AFTER Type;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- ===== INFORMACIÓN DE LA TABLA =====
 DESCRIBE `designs`;

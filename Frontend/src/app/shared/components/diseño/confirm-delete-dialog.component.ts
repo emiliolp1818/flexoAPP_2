@@ -5,9 +5,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 export interface ConfirmDeleteData {
-  articleF: string;
-  client: string;
-  description: string;
+  title?: string;
+  message?: string;
+  subtitle?: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: string;
+  articleF?: string;
+  client?: string;
+  description?: string;
 }
 
 @Component({
@@ -20,195 +26,199 @@ export interface ConfirmDeleteData {
     MatIconModule
   ],
   template: `
-    <div class="confirm-delete-dialog">
-      <!-- Header con icono de advertencia -->
-      <div class="dialog-header-warning">
-        <mat-icon class="warning-icon">warning</mat-icon>
-        <h2>Confirmar Eliminación</h2>
+    <div class="compact-delete-dialog">
+      <!-- Header compacto -->
+      <div class="dialog-header-compact">
+        <div class="icon-container">
+          <mat-icon class="warning-icon">delete_outline</mat-icon>
+        </div>
+        <div class="header-text">
+          <h2>{{ data.title || 'Confirmar Eliminación' }}</h2>
+          <p class="subtitle" *ngIf="data.subtitle">{{ data.subtitle }}</p>
+        </div>
       </div>
 
-      <!-- Contenido del diálogo -->
-      <div class="dialog-content-warning">
-        <p class="warning-message">
-          ¿Está seguro de que desea eliminar este diseño?
-        </p>
+      <!-- Contenido compacto -->
+      <div class="dialog-content-compact">
+        <p class="message">{{ data.message }}</p>
         
-        <div class="design-info">
-          <div class="info-row">
+        <!-- Info adicional para diseños -->
+        <div class="design-info-compact" *ngIf="data.articleF">
+          <div class="info-item">
             <mat-icon>article</mat-icon>
-            <span class="label">Artículo F:</span>
-            <span class="value">{{ data.articleF }}</span>
+            <span>{{ data.articleF }}</span>
           </div>
-          <div class="info-row">
+          <div class="info-item">
             <mat-icon>business</mat-icon>
-            <span class="label">Cliente:</span>
-            <span class="value">{{ data.client }}</span>
-          </div>
-          <div class="info-row">
-            <mat-icon>description</mat-icon>
-            <span class="label">Descripción:</span>
-            <span class="value">{{ data.description }}</span>
+            <span>{{ data.client }}</span>
           </div>
         </div>
 
-        <div class="warning-box">
-          <mat-icon>error_outline</mat-icon>
-          <p>Esta acción es <strong>PERMANENTE</strong> y no se puede deshacer.</p>
+        <div class="warning-note">
+          <mat-icon>info</mat-icon>
+          <span>Esta acción no se puede deshacer</span>
         </div>
       </div>
 
-      <!-- Footer con botones -->
-      <div class="dialog-footer-warning">
-        <button mat-button (click)="onCancel()" class="cancel-btn">
-          <mat-icon>close</mat-icon>
-          Cancelar
+      <!-- Footer compacto -->
+      <div class="dialog-footer-compact">
+        <button mat-button (click)="onCancel()" class="cancel-btn-compact">
+          {{ data.cancelText || 'Cancelar' }}
         </button>
-        <button mat-raised-button color="warn" (click)="onConfirm()" class="delete-btn">
-          <mat-icon>delete_forever</mat-icon>
-          Eliminar Diseño
+        <button mat-raised-button (click)="onConfirm()" class="delete-btn-compact">
+          <mat-icon>delete</mat-icon>
+          {{ data.confirmText || 'Eliminar' }}
         </button>
       </div>
     </div>
   `,
   styles: [`
-    .confirm-delete-dialog {
-      min-width: 500px;
-      max-width: 600px;
+    .compact-delete-dialog {
+      width: 100%;
+      max-width: 380px;
     }
 
-    .dialog-header-warning {
+    .dialog-header-compact {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      padding: 20px 24px 16px;
+      border-bottom: 2px solid #fee2e2;
+
+      .icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border-radius: 12px;
+        flex-shrink: 0;
+
+        .warning-icon {
+          font-size: 28px;
+          width: 28px;
+          height: 28px;
+          color: #ef4444;
+        }
+      }
+
+      .header-text {
+        flex: 1;
+
+        h2 {
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #1f2937;
+          line-height: 1.3;
+        }
+
+        .subtitle {
+          margin: 4px 0 0 0;
+          font-size: 0.875rem;
+          color: #6b7280;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .dialog-content-compact {
       padding: 20px 24px;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      color: white;
-      border-radius: 20px 20px 0 0; // Matriz con el contenedor
 
-      .warning-icon {
-        font-size: 32px;
-        width: 32px;
-        height: 32px;
-        animation: pulse 2s infinite;
+      .message {
+        font-size: 0.95rem;
+        color: #374151;
+        margin: 0 0 16px 0;
+        line-height: 1.5;
       }
 
-      h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 600;
-      }
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.1);
-      }
-    }
-
-    .dialog-content-warning {
-      padding: 24px;
-
-      .warning-message {
-        font-size: 1.1rem;
-        color: #1f2937;
-        margin: 0 0 20px 0;
-        font-weight: 500;
-      }
-
-      .design-info {
+      .design-info-compact {
         background: #f9fafb;
-        border: 2px solid #e5e7eb;
         border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 20px;
+        padding: 12px;
+        margin-bottom: 16px;
 
-        .info-row {
+        .info-item {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 8px 0;
-          border-bottom: 1px solid #e5e7eb;
-
-          &:last-child {
-            border-bottom: none;
-          }
+          gap: 8px;
+          padding: 6px 0;
 
           mat-icon {
             color: #6b7280;
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
           }
 
-          .label {
-            font-weight: 600;
-            color: #4b5563;
-            min-width: 100px;
-          }
-
-          .value {
+          span {
             color: #1f2937;
-            flex: 1;
+            font-size: 0.875rem;
           }
         }
       }
 
-      .warning-box {
+      .warning-note {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         background: #fef2f2;
-        border: 2px solid #fecaca;
-        border-radius: 8px;
-        padding: 16px;
+        border-left: 3px solid #ef4444;
+        border-radius: 4px;
+        padding: 10px 12px;
 
         mat-icon {
           color: #ef4444;
-          font-size: 24px;
-          width: 24px;
-          height: 24px;
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
         }
 
-        p {
-          margin: 0;
+        span {
           color: #991b1b;
-          font-size: 0.95rem;
-
-          strong {
-            font-weight: 700;
-          }
+          font-size: 0.875rem;
+          font-weight: 500;
         }
       }
     }
 
-    .dialog-footer-warning {
+    .dialog-footer-compact {
       display: flex;
       justify-content: flex-end;
-      gap: 12px;
+      gap: 10px;
       padding: 16px 24px;
       background: #f9fafb;
-      border-radius: 0 0 20px 20px;
+      border-top: 1px solid #e5e7eb;
 
-      .cancel-btn {
+      .cancel-btn-compact {
         color: #6b7280;
-        border: 1px solid #d1d5db;
+        font-weight: 500;
+        padding: 0 20px;
 
         &:hover {
           background: #f3f4f6;
         }
       }
 
-      .delete-btn {
+      .delete-btn-compact {
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        font-weight: 500;
+        padding: 0 20px;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          margin-right: 4px;
+        }
 
         &:hover {
           background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-          box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
         }
       }
     }

@@ -64,6 +64,14 @@ namespace FlexoAPP.API.Models.Entities
         public string Td { get; set; } = string.Empty;
 
         /// <summary>
+        /// Tipo de impresión (ej: 07A)
+        /// Columna H del Excel
+        /// </summary>
+        [MaxLength(50)]
+        [Column("tipo_impresion")]
+        public string? TipoImpresion { get; set; }
+
+        /// <summary>
         /// Número total de colores utilizados en la impresión
         /// </summary>
         [Required]
@@ -85,6 +93,13 @@ namespace FlexoAPP.API.Models.Entities
         [Column(TypeName = "DECIMAL(10,3)")]
         [Range(0.001, 99999.999, ErrorMessage = "Los kilos deben ser mayor a 0")]
         public decimal Kilos { get; set; }
+
+        /// <summary>
+        /// Metros a fabricar
+        /// Columna K del Excel
+        /// </summary>
+        [Column(TypeName = "DECIMAL(10,2)")]
+        public decimal? Metros { get; set; }
 
         /// <summary>
         /// Fecha y hora cuando se aplicó la tinta en la máquina

@@ -20,8 +20,12 @@ import { AuthService, User } from '../../../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { PantoneLiveService, PantoneColor } from '../../services/pantone-live.service';
+import { AniloxService, Anilox, CreateAniloxDto, UpdateAniloxDto } from '../../services/anilox.service';
+import { MachineConfigService } from '../../services/machine-config.service';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { DuplicateDesignDialogComponent } from './duplicate-design-dialog.component';
+import { CreateAniloxDialogComponent } from './create-anilox-dialog.component';
+import { EditAniloxDialogComponent } from './edit-anilox-dialog.component';
 
 interface FlexographicDesign {
   id?: number;
@@ -30,6 +34,7 @@ interface FlexographicDesign {
   description: string;
   substrate: string;
   type: 'LAMINA' | 'TUBULAR' | 'SEMITUBULAR';
+  anchoMm?: number;
   printType: 'CARA' | 'DORSO' | 'CARA_DORSO';
   colorCount: number;
   // Estructura de colores individual para Excel (hasta 10 colores)
@@ -94,7 +99,9 @@ export class DesignComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private fb = inject(FormBuilder);
+  private machineConfigService = inject(MachineConfigService);
   private pantoneService = inject(PantoneLiveService);
+  private aniloxService = inject(AniloxService);
 
   // Make Math available in template
   Math = Math;
@@ -138,7 +145,7 @@ export class DesignComponent implements OnInit, OnDestroy {
 
   // Configuración de tabla
   displayedColumns: string[] = [
-    'articleF', 'client', 'description', 'substrate', 'type',
+    'articleF', 'client', 'description', 'substrate', 'type', 'anchoMm',
     'printType', 'colors', 'status', 'actions'
   ];
 
@@ -153,6 +160,15 @@ export class DesignComponent implements OnInit, OnDestroy {
     bulk_upload: true,
     admin_clear_db: false
   });
+
+  // ===== PROPIEDADES ANILOX =====
+  aniloxData: any[] = [];
+  filteredAniloxData: any[] = [];
+  selectedMachine: string = 'all';
+  aniloxSearchTerm: string = '';
+  availableMachines: number[] = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+  aniloxDisplayedColumns: string[] = ['codigo', 'maquina', 'bcm', 'lineatura', 'marca', 'volumenReal', 'factorEficiencia', 'densidad', 'actions'];
+  machinesCargaMuestra: { [key: number]: number | null } = {};
 
   constructor() {
     // Inicializar formulario de creación de diseño
@@ -187,6 +203,8 @@ export class DesignComponent implements OnInit, OnDestroy {
     this.loadPantoneColors();
     this.loadDatabaseColors();
     this.initializeOptimizations();
+    this.initializeAniloxData(); // Inicializar datos de anilox
+    this.loadMachineConfigs(); // Cargar configuraciones de máquinas
     this.loadDesigns();
   }
 
@@ -1409,10 +1427,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       formData.append('optimizeMemory', 'true');    // Optimizar memoria
       formData.append('validateStructure', 'true'); // Validar estructura de Excel
 
-      // Especificar estructura CORRECTA esperada del Excel
+      // Especificar estructura CORRECTA esperada del Excel (20 columnas A-T)
       formData.append('expectedColumns', JSON.stringify([
-        'articulo_f', 'cliente', 'descripcion', 'sustrato', 'tipo', 'tipo_de_impresion',
-        'numero_de_colores', 'color1', 'color2', 'color3', 'color4', 'color5',
+        'id', 'articulo_f', 'cliente', 'descripcion', 'sustrato', 'numero_de_colores',
+        'tipo_de_impresion', 'tipo', 'ancho_mm', 'color1', 'color2', 'color3', 'color4', 'color5',
         'color6', 'color7', 'color8', 'color9', 'color10', 'estado'
       ]));
 
@@ -2371,5 +2389,452 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return 'Sin colores';
     }
     return `${design.colors.length} colores: ${design.colors.join(', ')}`;
+  }
+
+  // ===== MÉTODOS ANILOX =====
+  
+  /**
+   * Cargar datos de anilox desde el backend
+   */
+  async initializeAniloxData() {
+    try {
+      const aniloxList = await this.aniloxService.getAll().toPromise();
+      
+      if (aniloxList && aniloxList.length > 0) {
+        this.aniloxData = aniloxList;
+        
+        // Extraer máquinas únicas y ordenarlas
+        const machinesSet = new Set(aniloxList.map(a => a.maquina));
+        const machinesFromData = Array.from(machinesSet).sort((a, b) => a - b);
+        
+        // Combinar con las máquinas por defecto para asegurar que todas estén disponibles
+        const allMachines = new Set([...this.availableMachines, ...machinesFromData]);
+        this.availableMachines = Array.from(allMachines).sort((a, b) => a - b);
+        
+        // Inicializar datos filtrados
+        this.filteredAniloxData = [...this.aniloxData];
+        
+        console.log(`✅ ${aniloxList.length} anilox cargados desde el backend`);
+        console.log(`📋 Máquinas disponibles:`, this.availableMachines);
+      } else {
+        console.log('⚠️ No hay datos de anilox en el backend');
+        this.aniloxData = [];
+        this.filteredAniloxData = [];
+      }
+    } catch (error) {
+      console.error('❌ Error cargando anilox:', error);
+      this.snackBar.open('Error al cargar el inventario de anilox', 'Cerrar', {
+        duration: 5000,
+        panelClass: ['error-snackbar']
+      });
+      
+      // Mantener las máquinas por defecto en caso de error
+      this.aniloxData = [];
+      this.filteredAniloxData = [];
+    }
+  }
+
+  /**
+   * Crear nuevo anilox
+   */
+  async createAnilox() {
+    const dialogRef = this.dialog.open(CreateAniloxDialogComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      disableClose: false,
+      panelClass: 'custom-dialog-container'
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        try {
+          const newAnilox = await this.aniloxService.create(result).toPromise();
+          
+          if (newAnilox) {
+            this.snackBar.open(`Anilox ${newAnilox.codigo} creado exitosamente`, 'Cerrar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+            
+            // Recargar datos
+            await this.initializeAniloxData();
+          }
+        } catch (error: any) {
+          console.error('❌ Error creando anilox:', error);
+          
+          let errorMessage = 'Error al crear el anilox';
+          if (error.status === 400) {
+            errorMessage = error.error?.message || 'Datos inválidos';
+          } else if (error.status === 401) {
+            errorMessage = 'No tienes permisos para crear anilox';
+          }
+          
+          this.snackBar.open(errorMessage, 'Cerrar', {
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Editar anilox
+   */
+  async editAnilox(anilox: any) {
+    const dialogRef = this.dialog.open(EditAniloxDialogComponent, {
+      width: '600px',
+      maxWidth: '90vw',
+      disableClose: false,
+      panelClass: 'custom-dialog-container',
+      data: anilox
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result) {
+        try {
+          const updatedAnilox = await this.aniloxService.update(anilox.id, result).toPromise();
+          
+          if (updatedAnilox) {
+            // Mensaje personalizado con icono de check
+            this.snackBar.open(`✓ ${updatedAnilox.codigo} guardado`, '', {
+              duration: 2500,
+              panelClass: ['success-snackbar-compact'],
+              horizontalPosition: 'center',
+              verticalPosition: 'top'
+            });
+            
+            // Recargar datos
+            await this.initializeAniloxData();
+          }
+        } catch (error: any) {
+          console.error('❌ Error actualizando anilox:', error);
+          
+          let errorMessage = 'Error al actualizar el anilox';
+          if (error.status === 400) {
+            errorMessage = error.error?.message || 'Datos inválidos';
+          } else if (error.status === 404) {
+            errorMessage = 'Anilox no encontrado';
+          } else if (error.status === 401) {
+            errorMessage = 'No tienes permisos para editar anilox';
+          }
+          
+          this.snackBar.open(errorMessage, 'Cerrar', {
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Eliminar anilox
+   */
+  async deleteAnilox(anilox: any) {
+    // Diálogo de confirmación compacto y mejorado
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      width: '380px',
+      panelClass: 'compact-delete-dialog',
+      data: {
+        title: 'Eliminar Anilox',
+        message: `¿Eliminar el anilox ${anilox.codigo}?`,
+        subtitle: `Máquina ${anilox.maquina} • ${anilox.lineatura} LPI`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        type: 'anilox'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(async (confirmed) => {
+      if (confirmed) {
+        try {
+          await this.aniloxService.delete(anilox.id).toPromise();
+          
+          // Mensaje personalizado con icono de eliminación en rojo
+          this.snackBar.open(`🗑️ ${anilox.codigo} eliminado`, '', {
+            duration: 2500,
+            panelClass: ['delete-snackbar-compact'],
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          });
+          
+          // Recargar datos
+          await this.initializeAniloxData();
+        } catch (error: any) {
+          console.error('❌ Error eliminando anilox:', error);
+          
+          let errorMessage = 'Error al eliminar el anilox';
+          if (error.status === 404) {
+            errorMessage = 'Anilox no encontrado';
+          } else if (error.status === 401) {
+            errorMessage = 'No tienes permisos para eliminar anilox';
+          }
+          
+          this.snackBar.open(errorMessage, 'Cerrar', {
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Cargar configuraciones de máquinas (carga muestra)
+   */
+  async loadMachineConfigs() {
+    try {
+      console.log('🔄 Cargando configuraciones de máquinas...');
+      const configs = await this.machineConfigService.getAll().toPromise();
+      
+      console.log('📦 Respuesta del servidor:', configs);
+      
+      if (configs && configs.length > 0) {
+        // Mapear las configuraciones al objeto machinesCargaMuestra
+        configs.forEach(config => {
+          this.machinesCargaMuestra[config.numero_maquina] = config.carga_muestra || null;
+        });
+        
+        console.log('✅ Configuraciones de máquinas cargadas:', this.machinesCargaMuestra);
+      } else {
+        console.warn('⚠️ No se encontraron configuraciones de máquinas');
+      }
+    } catch (error: any) {
+      console.error('❌ Error cargando configuraciones de máquinas:', error);
+      console.error('❌ Status:', error.status);
+      console.error('❌ Message:', error.message);
+      console.error('❌ Error completo:', error);
+    }
+  }
+
+  /**
+   * Actualizar carga muestra de una máquina
+   */
+  async updateMachineCargaMuestra(machine: number, event: any) {
+    console.log('🔵 ===== INICIO updateMachineCargaMuestra =====');
+    console.log('📝 Máquina:', machine);
+    console.log('📝 Event target value:', event.target.value);
+    
+    const newValue = event.target.value;
+    const cargaMuestra = newValue && newValue.trim() !== '' ? parseFloat(newValue) : null;
+    const currentValue = this.machinesCargaMuestra[machine];
+    
+    console.log('📝 Nuevo valor parseado:', cargaMuestra);
+    console.log('📝 Valor actual en memoria:', currentValue);
+
+    // Si el valor no cambió, no hacer nada
+    if (cargaMuestra === currentValue) {
+      console.log('⚠️ El valor no cambió, no se hace nada');
+      return;
+    }
+
+    try {
+      console.log(`📤 Enviando petición PUT para MQ ${machine} con valor: ${cargaMuestra}`);
+      
+      const response = await this.machineConfigService.updateCargaMuestra(machine, cargaMuestra).toPromise();
+      
+      console.log('✅ Respuesta del servidor:', response);
+      
+      if (response) {
+        // Actualizar el valor local SOLO después de guardar exitosamente
+        this.machinesCargaMuestra[machine] = cargaMuestra;
+        console.log('✅ Valor actualizado en memoria:', this.machinesCargaMuestra[machine]);
+        
+        // Mensaje compacto de éxito
+        this.snackBar.open(`✓ Carga muestra MQ ${machine} actualizada`, '', {
+          duration: 2000,
+          panelClass: ['success-snackbar-compact'],
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Error actualizando carga muestra:', error);
+      
+      let errorMessage = 'Error al actualizar carga muestra';
+      if (error.status === 404) {
+        errorMessage = 'Configuración de máquina no encontrada';
+      } else if (error.status === 401) {
+        errorMessage = 'No tienes permisos para actualizar configuraciones';
+      }
+      
+      this.snackBar.open(errorMessage, 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      
+      // Revertir el valor en el input al valor original
+      event.target.value = currentValue !== null && currentValue !== undefined ? currentValue : '';
+    }
+    
+    console.log('🔵 ===== FIN updateMachineCargaMuestra =====');
+  }
+
+  /**
+   * Activar carga de archivo Excel para anilox
+   */
+  triggerExcelUpload() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.xlsx,.xls';
+    fileInput.onchange = (event) => this.onAniloxExcelSelected(event);
+    fileInput.click();
+  }
+
+  /**
+   * Procesar archivo Excel de anilox
+   */
+  async onAniloxExcelSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    this.uploading.set(true);
+    this.uploadProgress.set(0);
+
+    try {
+      console.log('📂 Leyendo archivo Excel de anilox:', file.name);
+
+      const XLSX = await import('xlsx');
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      console.log('📊 Datos leídos del Excel:', jsonData.length, 'filas');
+
+      // Procesar datos (empezar desde fila 2, fila 1 es header)
+      const aniloxList: any[] = [];
+      
+      for (let i = 1; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        
+        // Columnas: C=Codigo(2), D=Maquina(3), E=Lineatura(4), F=AporteTeorico(5), G=Proveedor(6), H=Aporte(7), I=FactorEficiencia(8), J=Densidad(9)
+        const codigo = row[2]?.toString().trim();
+        const maquina = parseInt(row[3]);
+        const lineatura = parseInt(row[4]);
+        const aporteTeorico = parseInt(row[5]);
+        const proveedor = row[6]?.toString().trim() || 'APEX';
+        const aporte = parseFloat(row[7]);
+        const factorEficiencia = row[8] ? parseFloat(row[8]) : 35.00; // Columna I - Valor por defecto 35%
+        const densidad = row[9] ? parseFloat(row[9]) : 0.885; // Columna J - Valor por defecto 0.885
+
+        // Validar datos requeridos
+        if (!codigo || !maquina || !lineatura || !aporteTeorico || !aporte) {
+          console.warn(`⚠️ Fila ${i + 1} ignorada: datos incompletos`);
+          continue;
+        }
+
+        aniloxList.push({
+          codigo,
+          maquina,
+          lineatura,
+          aporteTeorico,
+          proveedor,
+          aporte,
+          factorEficiencia,
+          densidad
+        });
+
+        // Actualizar progreso
+        this.uploadProgress.set(Math.round((i / jsonData.length) * 50));
+      }
+
+      console.log(`✅ ${aniloxList.length} anilox procesados del Excel`);
+
+      if (aniloxList.length === 0) {
+        this.snackBar.open('No se encontraron datos válidos en el Excel', 'Cerrar', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+        this.uploading.set(false);
+        return;
+      }
+
+      // Enviar al backend
+      this.uploadProgress.set(60);
+      const response = await this.aniloxService.importFromExcel(aniloxList).toPromise();
+
+      if (response) {
+        console.log('✅ Respuesta del servidor:', response);
+        
+        this.uploadProgress.set(100);
+        
+        this.snackBar.open(
+          `Importación completada: ${response.created} creados, ${response.updated} actualizados`,
+          'Cerrar',
+          { duration: 5000, panelClass: ['success-snackbar'] }
+        );
+
+        // Recargar datos
+        await this.initializeAniloxData();
+      }
+    } catch (error: any) {
+      console.error('❌ Error importando anilox desde Excel:', error);
+      
+      let errorMessage = 'Error al importar el archivo Excel';
+      if (error.status === 400) {
+        errorMessage = error.error?.message || 'Datos inválidos en el Excel';
+      } else if (error.status === 401) {
+        errorMessage = 'No tienes permisos para importar anilox';
+      }
+      
+      this.snackBar.open(errorMessage, 'Cerrar', {
+        duration: 5000,
+        panelClass: ['error-snackbar']
+      });
+    } finally {
+      this.uploading.set(false);
+      this.uploadProgress.set(0);
+    }
+  }
+
+  filterAniloxByMachine() {
+    if (this.selectedMachine === 'all') {
+      this.filteredAniloxData = [...this.aniloxData];
+    } else {
+      this.filteredAniloxData = this.aniloxData.filter((a: any) => a.maquina === parseInt(this.selectedMachine));
+    }
+    this.filterAnilox(); // Aplicar también el filtro de búsqueda
+  }
+
+  /**
+   * Seleccionar máquina desde el sidebar
+   */
+  selectMachine(machine: number | string) {
+    this.selectedMachine = machine.toString();
+    this.filterAniloxByMachine();
+  }
+
+  filterAnilox() {
+    const searchLower = this.aniloxSearchTerm.toLowerCase().trim();
+    
+    if (!searchLower) {
+      // Si no hay término de búsqueda, solo aplicar filtro de máquina
+      if (this.selectedMachine === 'all') {
+        this.filteredAniloxData = [...this.aniloxData];
+      } else {
+        this.filteredAniloxData = this.aniloxData.filter((a: any) => a.maquina === parseInt(this.selectedMachine));
+      }
+      return;
+    }
+
+    // Aplicar ambos filtros
+    let filtered = this.aniloxData;
+    
+    if (this.selectedMachine !== 'all') {
+      filtered = filtered.filter((a: any) => a.maquina === parseInt(this.selectedMachine));
+    }
+
+    filtered = filtered.filter((a: any) => 
+      a.codigo.toString().includes(searchLower) ||
+      a.bcm.toString().includes(searchLower) ||
+      a.lineatura.toString().includes(searchLower) ||
+      a.marca.toLowerCase().includes(searchLower) ||
+      a.volumenReal.toString().includes(searchLower)
+    );
+
+    this.filteredAniloxData = filtered;
   }
 }

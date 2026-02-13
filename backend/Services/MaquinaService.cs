@@ -193,8 +193,8 @@ namespace flexoAPP.Services
                     updateCmd.CommandText = @"
                         UPDATE maquinas SET 
                             articulo=@articulo, numero_maquina=@numeroMaquina, cliente=@cliente,
-                            referencia=@referencia, td=@td, numero_colores=@numeroColores, colores=@colores,
-                            kilos=@kilos, fecha_tinta_en_maquina=@fechaTinta, sustrato=@sustrato,
+                            referencia=@referencia, td=@td, tipo_impresion=@tipoImpresion, numero_colores=@numeroColores, colores=@colores,
+                            kilos=@kilos, metros=@metros, fecha_tinta_en_maquina=@fechaTinta, sustrato=@sustrato,
                             estado=@estado, observaciones=@observaciones, updated_by=@updatedBy, updated_at=@updatedAt
                         WHERE ot_sap=@otSap";
 
@@ -203,9 +203,11 @@ namespace flexoAPP.Services
                     updateCmd.Parameters.AddWithValue("@cliente", createDto.Cliente);
                     updateCmd.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
                     updateCmd.Parameters.AddWithValue("@td", createDto.Td ?? (object)DBNull.Value);
+                    updateCmd.Parameters.AddWithValue("@tipoImpresion", createDto.TipoImpresion ?? (object)DBNull.Value);
                     updateCmd.Parameters.AddWithValue("@numeroColores", createDto.Colores.Count);
                     updateCmd.Parameters.AddWithValue("@colores", coloresJson);
                     updateCmd.Parameters.AddWithValue("@kilos", createDto.Kilos);
+                    updateCmd.Parameters.AddWithValue("@metros", createDto.Metros ?? (object)DBNull.Value);
                     updateCmd.Parameters.AddWithValue("@fechaTinta", fechaTinta);
                     updateCmd.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
                     updateCmd.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(estadoFinal) ? (object)DBNull.Value : estadoFinal);
@@ -225,9 +227,11 @@ namespace flexoAPP.Services
                         Cliente = createDto.Cliente,
                         Referencia = createDto.Referencia ?? string.Empty,
                         Td = createDto.Td ?? string.Empty,
+                        TipoImpresion = createDto.TipoImpresion,
                         NumeroColores = createDto.Colores.Count,
                         Colores = createDto.Colores,
                         Kilos = createDto.Kilos,
+                        Metros = createDto.Metros,
                         FechaTintaEnMaquina = fechaTinta,
                         Sustrato = createDto.Sustrato,
                         Estado = estadoFinal ?? "SIN_ASIGNAR",
@@ -244,12 +248,12 @@ namespace flexoAPP.Services
                     using var insertCommand = connection.CreateCommand();
                     insertCommand.CommandText = @"
                         INSERT INTO maquinas (
-                            articulo, numero_maquina, ot_sap, cliente, referencia, td,
-                            numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
+                            articulo, numero_maquina, ot_sap, cliente, referencia, td, tipo_impresion,
+                            numero_colores, colores, kilos, metros, fecha_tinta_en_maquina, sustrato,
                             estado, observaciones, created_by, updated_by, created_at, updated_at
                         ) VALUES (
-                            @articulo, @numeroMaquina, @otSap, @cliente, @referencia, @td,
-                            @numeroColores, @colores, @kilos, @fechaTinta, @sustrato,
+                            @articulo, @numeroMaquina, @otSap, @cliente, @referencia, @td, @tipoImpresion,
+                            @numeroColores, @colores, @kilos, @metros, @fechaTinta, @sustrato,
                             @estado, @observaciones, @createdBy, @updatedBy, @createdAt, @updatedAt
                         )";
 
@@ -259,9 +263,11 @@ namespace flexoAPP.Services
                     insertCommand.Parameters.AddWithValue("@cliente", createDto.Cliente);
                     insertCommand.Parameters.AddWithValue("@referencia", createDto.Referencia ?? (object)DBNull.Value);
                     insertCommand.Parameters.AddWithValue("@td", createDto.Td ?? (object)DBNull.Value);
+                    insertCommand.Parameters.AddWithValue("@tipoImpresion", createDto.TipoImpresion ?? (object)DBNull.Value);
                     insertCommand.Parameters.AddWithValue("@numeroColores", createDto.Colores.Count);
                     insertCommand.Parameters.AddWithValue("@colores", coloresJson);
                     insertCommand.Parameters.AddWithValue("@kilos", createDto.Kilos);
+                    insertCommand.Parameters.AddWithValue("@metros", createDto.Metros ?? (object)DBNull.Value);
                     insertCommand.Parameters.AddWithValue("@fechaTinta", fechaTinta);
                     insertCommand.Parameters.AddWithValue("@sustrato", createDto.Sustrato);
                     insertCommand.Parameters.AddWithValue("@estado", string.IsNullOrWhiteSpace(createDto.Estado) ? (object)DBNull.Value : createDto.Estado);
@@ -284,9 +290,11 @@ namespace flexoAPP.Services
                         Cliente = createDto.Cliente,
                         Referencia = createDto.Referencia ?? string.Empty,
                         Td = createDto.Td ?? string.Empty,
+                        TipoImpresion = createDto.TipoImpresion,
                         NumeroColores = createDto.Colores.Count,
                         Colores = createDto.Colores,
                         Kilos = createDto.Kilos,
+                        Metros = createDto.Metros,
                         FechaTintaEnMaquina = fechaTinta,
                         Sustrato = createDto.Sustrato,
                         Estado = createDto.Estado ?? "SIN_ASIGNAR",
@@ -338,11 +346,17 @@ namespace flexoAPP.Services
             if (!string.IsNullOrEmpty(updateDto.Td))
                 existing.Td = updateDto.Td;
 
+            if (!string.IsNullOrEmpty(updateDto.TipoImpresion))
+                existing.TipoImpresion = updateDto.TipoImpresion;
+
             if (updateDto.Colores != null && updateDto.Colores.Any())
                 existing.SetColoresArray(updateDto.Colores.ToArray());
 
             if (updateDto.Kilos.HasValue)
                 existing.Kilos = updateDto.Kilos.Value;
+
+            if (updateDto.Metros.HasValue)
+                existing.Metros = updateDto.Metros.Value;
 
             if (updateDto.FechaTintaEnMaquina.HasValue)
                 existing.FechaTintaEnMaquina = updateDto.FechaTintaEnMaquina.Value;
@@ -577,10 +591,10 @@ namespace flexoAPP.Services
                 
                 _logger.LogInformation("📊 Total registros existentes en DB: {Count}", existingPrograms.Count);
 
-                // 3.2 Identificar Eliminaciones (CORRIENDO y SIN_ASIGNAR)
-                // Mantener: PREPARANDO, LISTO, SUSPENDIDO
-                // CORRIENDO se elimina para ser reemplazado por la nueva programación
-                var statesToKeep = new[] { "PREPARANDO", "LISTO", "SUSPENDIDO" };
+                // 3.2 Identificar Eliminaciones (TERMINADO y SIN_ASIGNAR)
+                // Mantener: PREPARANDO, LISTO, SUSPENDIDO, CORRIENDO
+                // TERMINADO y SIN_ASIGNAR se eliminan para ser reemplazados por la nueva programación
+                var statesToKeep = new[] { "PREPARANDO", "LISTO", "SUSPENDIDO", "CORRIENDO" };
                 
                 // Normalizar estados para comparación segura
                 bool IsProtectedState(string estado)
@@ -591,7 +605,7 @@ namespace flexoAPP.Services
                 
                 // Usar OT_SAP para la eliminación
                 var otSapsToDelete = existingPrograms
-                    .Where(p => !IsProtectedState(p.Estado)) // Esto incluye "CORRIENDO", "SIN_ASIGNAR", "", null
+                    .Where(p => !IsProtectedState(p.Estado)) // Esto incluye "TERMINADO", "SIN_ASIGNAR", "", null
                     .Select(p => p.OtSap)
                     .Where(ot => !string.IsNullOrEmpty(ot)) // Asegurar que no borremos cosas sin OT
                     .ToList();
@@ -599,7 +613,7 @@ namespace flexoAPP.Services
                 // Log de diagnóstico
                 var estadosEncontrados = existingPrograms.Select(p => p.Estado).Distinct().ToList();
                 _logger.LogInformation("🔍 Estados encontrados en DB: {Estados}", string.Join(", ", estadosEncontrados));
-                _logger.LogInformation("🗑️ Registros identificados para eliminar: {Count}", otSapsToDelete.Count);
+                _logger.LogInformation("🗑️ Registros identificados para eliminar (TERMINADO y SIN_ASIGNAR): {Count}", otSapsToDelete.Count);
 
                 if (otSapsToDelete.Any())
                 {
@@ -644,8 +658,8 @@ namespace flexoAPP.Services
                         updateCmd.CommandText = @"
                             UPDATE maquinas SET 
                                 articulo=@articulo, numero_maquina=@num, cliente=@cliente, 
-                                referencia=@ref, td=@td, numero_colores=@nc, colores=@col, 
-                                kilos=@kilos, fecha_tinta_en_maquina=@fecha, sustrato=@sust, 
+                                referencia=@ref, td=@td, tipo_impresion=@timp, numero_colores=@nc, colores=@col, 
+                                kilos=@kilos, metros=@metros, fecha_tinta_en_maquina=@fecha, sustrato=@sust, 
                                 observaciones=@obs, updated_by=@upd, updated_at=@now
                             WHERE ot_sap=@otSap"; // Usar OT_SAP para update seguro
 
@@ -654,9 +668,11 @@ namespace flexoAPP.Services
                         updateCmd.Parameters.AddWithValue("@cliente", dto.Cliente);
                         updateCmd.Parameters.AddWithValue("@ref", dto.Referencia ?? (object)DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@td", dto.Td ?? (object)DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@timp", dto.TipoImpresion ?? (object)DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@nc", dto.Colores.Count);
                         updateCmd.Parameters.AddWithValue("@col", JsonSerializer.Serialize(dto.Colores));
                         updateCmd.Parameters.AddWithValue("@kilos", dto.Kilos);
+                        updateCmd.Parameters.AddWithValue("@metros", dto.Metros ?? (object)DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@fecha", dto.FechaTintaEnMaquina ?? DateTime.Now);
                         updateCmd.Parameters.AddWithValue("@sust", dto.Sustrato);
                         updateCmd.Parameters.AddWithValue("@obs", dto.Observaciones ?? (object)DBNull.Value);
@@ -671,9 +687,11 @@ namespace flexoAPP.Services
                             NumeroMaquina = dto.NumeroMaquina, 
                             Cliente = dto.Cliente, 
                             Referencia = dto.Referencia ?? string.Empty, 
-                            Td = dto.Td ?? string.Empty, 
+                            Td = dto.Td ?? string.Empty,
+                            TipoImpresion = dto.TipoImpresion,
                             Colores = dto.Colores, 
-                            Kilos = dto.Kilos, 
+                            Kilos = dto.Kilos,
+                            Metros = dto.Metros,
                             FechaTintaEnMaquina = dto.FechaTintaEnMaquina ?? DateTime.Now, 
                             Sustrato = dto.Sustrato, 
                             Estado = existingMatch.Estado ?? "SIN_ASIGNAR" 
@@ -799,13 +817,13 @@ namespace flexoAPP.Services
             _logger.LogInformation("📋 Datos: {Data}", string.Join(" | ", columns.Select((c, i) => $"[{i}]={c}")));
             
             // ===== PASO 3: VALIDACIÓN DEL NÚMERO DE COLUMNAS =====
-            // Verificar que el archivo tenga al menos 10 columnas según el formato esperado
+            // Verificar que el archivo tenga al menos 13 columnas según el nuevo formato esperado
             // Si tiene menos columnas, el archivo no es válido y se debe rechazar
-            if (columns.Count < 10)
+            if (columns.Count < 13)
             {
                 // Construir un mensaje de error detallado que explique el formato esperado
                 // Este mensaje ayuda al usuario a corregir el archivo Excel
-                var errorMsg = $"Formato inválido: Se esperan al menos 10 columnas (B-K), se encontraron {columns.Count}.\n" +
+                var errorMsg = $"Formato inválido: Se esperan al menos 13 columnas (B-N), se encontraron {columns.Count}.\n" +
                               $"Columnas esperadas:\n" +
                               $"B: MQ IMP (Número de máquina impresora)\n" +
                               $"C: ARTICULO F (Código del artículo)\n" +
@@ -813,10 +831,13 @@ namespace flexoAPP.Services
                               $"E: CLIENTE (Nombre del cliente)\n" +
                               $"F: REFERENCIA (Referencia del producto)\n" +
                               $"G: TD (Tipo de diseño)\n" +
-                              $"H: NUMERO DE COLORES (Cantidad de colores)\n" +
-                              $"I: KILOS (Cantidad en kilogramos)\n" +
-                              $"J: COLORES EN MAQUINA (Fecha de preparación - ej: '10-nov-25 05 PM')\n" +
-                              $"K: SUSTRATOS (Tipo de material)";
+                              $"H: TIMP (Tipo de impresión)\n" +
+                              $"I: NUMERO DE COLORES (Cantidad de colores)\n" +
+                              $"J: KILOS (Cantidad en kilogramos)\n" +
+                              $"K: METROS (Metros a fabricar)\n" +
+                              $"L: COLORES EN MAQUINA (Fecha de preparación - ej: '10/11/2025 17:00')\n" +
+                              $"M: SUSTRATOS (Tipo de material)\n" +
+                              $"N: COLORES (Colores del pedido separados por coma)";
                 
                 // Lanzar excepción con el mensaje de error para detener el procesamiento
                 throw new ArgumentException(errorMsg);
@@ -902,19 +923,20 @@ namespace flexoAPP.Services
                 designFromTable = null; // Asegurar que sea null para usar datos del Excel
             }
 
-            // ===== DOCUMENTACIÓN: FORMATO CORRECTO DEL ARCHIVO (10 COLUMNAS) =====
+            // ===== DOCUMENTACIÓN: FORMATO CORRECTO DEL ARCHIVO (13 COLUMNAS) =====
             // Columna 0: MQ IMP - Número de máquina impresora (11-21)
             // Columna 1: ARTICULO F - Código del artículo (único, clave primaria)
             // Columna 2: OT SAP - Orden de trabajo SAP
             // Columna 3: CLIENTE - Nombre del cliente
             // Columna 4: REFERENCIA - Referencia del producto
             // Columna 5: TD - Código TD (Tipo de Diseño)
-            // Columna 6: NUMERO DE COLORES - Cantidad de colores (1-10)
-            // Columna 7: KILOS - Cantidad en kilogramos
-            // Columna 8: COLORES EN MAQUINA - Fecha y hora en que deben estar listos los colores (ej: "10-nov-25 05 PM")
-            //            IMPORTANTE: Esta columna contiene la FECHA Y HORA LÍMITE para tener los colores preparados
-            //            NO contiene los nombres de los colores
-            // Columna 9: SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
+            // Columna 6: TIMP - Tipo de impresión
+            // Columna 7: NUMERO DE COLORES - Cantidad de colores (1-10)
+            // Columna 8: KILOS - Cantidad en kilogramos
+            // Columna 9: METROS - Metros a fabricar
+            // Columna 10: COLORES EN MAQUINA - Fecha y hora en que deben estar listos los colores (ej: "10/11/2025 17:00")
+            // Columna 11: SUSTRATOS - Tipo de material base (ej: BOPP, PE, PET)
+            // Columna 12: COLORES - Colores del pedido separados por coma (ej: "Cyan,Magenta,Amarillo,Negro")
 
             // ===== PASO 5: PARSEAR NÚMERO DE MÁQUINA (COLUMNA 0) =====
             // Declarar variable para almacenar el número de máquina con valor por defecto 11
@@ -934,12 +956,12 @@ namespace flexoAPP.Services
                 _logger.LogWarning("⚠️ No se pudo parsear número de máquina '{Machine}', usando 11 por defecto", columns[0]);
             }
 
-            // ===== PASO 6: PARSEAR NÚMERO DE COLORES (COLUMNA 6) =====
+            // ===== PASO 6: PARSEAR NÚMERO DE COLORES (COLUMNA 7) =====
             // Declarar variable para almacenar la cantidad de colores con valor inicial 0
             int numeroColores = 0;
             
-            // Intentar convertir el valor de la columna 6 a número entero
-            if (int.TryParse(columns[6], out var numCol))
+            // Intentar convertir el valor de la columna 7 a número entero
+            if (int.TryParse(columns[7], out var numCol))
             {
                 // Si la conversión es exitosa, usar el valor parseado
                 numeroColores = numCol;
@@ -949,50 +971,52 @@ namespace flexoAPP.Services
             else
             {
                 // Si la conversión falla, registrar advertencia y usar 0 por defecto
-                _logger.LogWarning("⚠️ No se pudo parsear número de colores '{NumColores}', usando 0", columns[6]);
+                _logger.LogWarning("⚠️ No se pudo parsear número de colores '{NumColores}', usando 0", columns[7]);
             }
 
-            // ===== PASO 7: PARSEAR FECHA LÍMITE PARA COLORES (COLUMNA 8) =====
-            // La columna 8 "COLORES EN MAQUINA" contiene la FECHA Y HORA LÍMITE en que deben estar listos los colores
-            // Formato esperado: "10-nov-25 05 PM" o "dd-MMM-yy hh tt"
+            // ===== PASO 7: PARSEAR FECHA LÍMITE PARA COLORES (COLUMNA 10) =====
+            // La columna 10 "COLORES EN MAQUINA" contiene la FECHA Y HORA LÍMITE en que deben estar listos los colores
+            // Formato esperado: "10/11/2025 17:00" o "dd/MM/yyyy HH:mm"
             // Esta es la fecha objetivo para tener los colores preparados en la máquina
             // Declarar variable para almacenar la fecha límite de preparación de colores
             DateTime? fechaTintaEnMaquina = null;
             
             // Registrar en el log el valor original de la fecha antes de procesarlo
-            _logger.LogInformation("📅 Parseando fecha límite para colores - Valor original: '{Fecha}' (columna J)", columns[8]);
+            _logger.LogInformation("📅 Parseando fecha límite para colores - Valor original: '{Fecha}' (columna L)", columns[10]);
             
-            // Verificar si la columna 8 tiene contenido (no está vacía ni es solo espacios)
-            if (!string.IsNullOrWhiteSpace(columns[8]))
+            // Verificar si la columna 10 tiene contenido (no está vacía ni es solo espacios)
+            if (!string.IsNullOrWhiteSpace(columns[10]))
             {
                 // Intentar parsear la fecha usando DateTime.TryParse
                 // Este método intenta automáticamente varios formatos de fecha comunes
-                if (DateTime.TryParse(columns[8], out var fecha))
+                if (DateTime.TryParse(columns[10], out var fecha))
                 {
                     // Si la conversión es exitosa, usar la fecha parseada
                     fechaTintaEnMaquina = fecha;
                     // Registrar en el log la fecha límite parseada exitosamente
-                    _logger.LogInformation("✅ Fecha límite para colores parseada exitosamente (columna J): {Fecha}", fechaTintaEnMaquina);
+                    _logger.LogInformation("✅ Fecha límite para colores parseada exitosamente (columna L): {Fecha}", fechaTintaEnMaquina);
                 }
                 else
                 {
                     // Si la conversión falla, usar la fecha actual como fallback
                     fechaTintaEnMaquina = DateTime.Now;
                     // Registrar advertencia indicando que no se pudo parsear la fecha
-                    _logger.LogWarning("⚠️ No se pudo parsear la fecha límite (columna J) '{Fecha}', usando fecha actual", columns[8]);
+                    _logger.LogWarning("⚠️ No se pudo parsear la fecha límite (columna L) '{Fecha}', usando fecha actual", columns[10]);
                 }
             }
             else
             {
-                // Si la columna 8 está vacía, usar la fecha actual
+                // Si la columna 10 está vacía, usar la fecha actual
                 fechaTintaEnMaquina = DateTime.Now;
                 // Registrar advertencia indicando que la fecha está vacía
-                _logger.LogWarning("⚠️ Fecha límite para colores vacía (columna J), usando fecha actual");
+                _logger.LogWarning("⚠️ Fecha límite para colores vacía (columna L), usando fecha actual");
             }
             
-            // ===== PASO 7B: OBTENER COLORES (DESDE TABLA DE DISEÑO O GENÉRICOS) =====
-            // NUEVA LÓGICA: Si el artículo existe en la tabla de diseño, usar esos colores
-            // Si NO existe, generar colores genéricos
+            // ===== PASO 7B: OBTENER COLORES (DESDE TABLA DE DISEÑO O COLUMNA N DEL EXCEL) =====
+            // NUEVA LÓGICA: 
+            // 1. Si el artículo existe en la tabla de diseño, usar esos colores
+            // 2. Si NO existe, usar los colores de la columna N del Excel
+            // 3. Si la columna N está vacía, generar colores genéricos
             var colores = new List<string>();
             
             // Verificar si se encontró el diseño en la tabla de diseño
@@ -1017,13 +1041,29 @@ namespace flexoAPP.Services
                 // Registrar en el log los colores obtenidos de la tabla de diseño
                 _logger.LogInformation("✅ Colores de tabla de diseño: {Colores}", string.Join(", ", colores));
             }
+            else if (columns.Count > 12 && !string.IsNullOrWhiteSpace(columns[12]))
+            {
+                // ===== USAR COLORES DE LA COLUMNA N DEL EXCEL =====
+                _logger.LogInformation("🎨 Usando colores de la columna N del Excel para artículo '{Articulo}'", columns[1]);
+                
+                // Parsear los colores de la columna 12 (separados por coma)
+                var coloresExcel = columns[12].Split(',')
+                    .Select(c => c.Trim())
+                    .Where(c => !string.IsNullOrWhiteSpace(c))
+                    .ToList();
+                
+                colores.AddRange(coloresExcel);
+                
+                // Registrar en el log los colores obtenidos del Excel
+                _logger.LogInformation("✅ Colores del Excel (columna N): {Colores}", string.Join(", ", colores));
+            }
             else
             {
                 // ===== GENERAR COLORES GENÉRICOS =====
-                // Como el artículo NO está en la tabla de diseño, generar nombres genéricos
+                // Como el artículo NO está en la tabla de diseño y no hay colores en el Excel, generar nombres genéricos
                 _logger.LogInformation("🎨 Generando colores genéricos para artículo '{Articulo}'", columns[1]);
                 
-                // Usar un bucle for para crear colores genéricos basados en el número de colores (columna 6)
+                // Usar un bucle for para crear colores genéricos basados en el número de colores (columna 7)
                 for (int i = 0; i < numeroColores; i++)
                 {
                     // Agregar color genérico con formato "COLOR1", "COLOR2", "COLOR3", etc.
@@ -1034,28 +1074,47 @@ namespace flexoAPP.Services
                 _logger.LogInformation("✅ Colores genéricos creados: {Colores}", string.Join(", ", colores));
             }
 
-            // ===== PASO 8: PARSEAR KILOS (COLUMNA 7) =====
+            // ===== PASO 7C: PARSEAR TIPO DE IMPRESIÓN (COLUMNA 7 - TIMP) =====
+            // La columna 7 "TIMP" contiene el tipo de impresión (ej: 07A)
+            // Este campo es opcional
+            string? tipoImpresion = null;
+            
+            // Verificar si la columna 7 tiene contenido (no está vacía ni es solo espacios)
+            if (!string.IsNullOrWhiteSpace(columns[6]))
+            {
+                tipoImpresion = columns[6].Trim();
+                _logger.LogInformation("🖨️ Tipo de impresión (TIMP): {TipoImpresion}", tipoImpresion);
+            }
+            else
+            {
+                _logger.LogInformation("⚠️ Tipo de impresión (TIMP) vacío (columna H)");
+            }
+
+            // ===== PASO 8: PARSEAR KILOS (COLUMNA 9) =====
             // Los kilos pueden venir con coma (,) o punto (.) como separador decimal
             // Declarar variable para almacenar los kilos con valor inicial 0
             decimal kilos = 0;
             
             // Registrar en el log el valor original de kilos antes de procesarlo
-            _logger.LogInformation("🔍 Parseando KILOS - Valor original: '{Kilos}' (columna I)", columns[7]);
+            _logger.LogInformation("🔍 Parseando KILOS - Valor original: '{Kilos}' (columna J)", columns[8]);
             
-            // Verificar si la columna 7 tiene contenido (no está vacía ni es solo espacios)
-            if (!string.IsNullOrWhiteSpace(columns[7]))
+            // Verificar si la columna 8 tiene contenido (no está vacía ni es solo espacios)
+            if (!string.IsNullOrWhiteSpace(columns[8]))
             {
                 // Limpiar el valor de kilos:
                 // 1. Replace(",", "."): Reemplazar coma por punto para formato decimal estándar
                 // 2. Replace(" ", ""): Eliminar todos los espacios
-                // 3. Trim(): Eliminar espacios al inicio y final
-                var kilosStr = columns[7]
+                // 3. Replace("kg", ""): Eliminar la unidad "kg" si está presente
+                // 4. Trim(): Eliminar espacios al inicio y final
+                var kilosStr = columns[8]
                     .Replace(",", ".")
                     .Replace(" ", "")
+                    .Replace("kg", "")
+                    .Replace("KG", "")
                     .Trim();
                 
                 // Registrar en el log el valor de kilos después de la limpieza
-                _logger.LogInformation("🔍 KILOS después de limpieza (columna I): '{KilosLimpio}'", kilosStr);
+                _logger.LogInformation("🔍 KILOS después de limpieza (columna J): '{KilosLimpio}'", kilosStr);
                 
                 // Intentar convertir el valor limpio a decimal usando cultura invariante
                 // NumberStyles.Any: Acepta cualquier formato numérico válido
@@ -1063,24 +1122,68 @@ namespace flexoAPP.Services
                 if (decimal.TryParse(kilosStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out kilos))
                 {
                     // Si la conversión es exitosa, registrar el valor parseado
-                    _logger.LogInformation("✅ KILOS parseados exitosamente (columna I): {Kilos}", kilos);
+                    _logger.LogInformation("✅ KILOS parseados exitosamente (columna J): {Kilos}", kilos);
                 }
                 else
                 {
                     // Si la conversión falla, registrar advertencia y usar 0 por defecto
-                    _logger.LogWarning("⚠️ No se pudo parsear KILOS (columna I) '{Kilos}', usando 0", columns[7]);
+                    _logger.LogWarning("⚠️ No se pudo parsear KILOS (columna J) '{Kilos}', usando 0", columns[8]);
                     kilos = 0;
                 }
             }
             else
             {
                 // Si la columna de kilos está vacía, registrar advertencia y usar 0
-                _logger.LogWarning("⚠️ Columna de KILOS vacía (columna I), usando 0");
+                _logger.LogWarning("⚠️ Columna de KILOS vacía (columna J), usando 0");
                 kilos = 0;
             }
 
+            // ===== PASO 8B: PARSEAR METROS (COLUMNA 10) =====
+            // Los metros pueden venir con coma (,) o punto (.) como separador decimal
+            // Declarar variable para almacenar los metros (nullable)
+            decimal? metros = null;
+            
+            // Registrar en el log el valor original de metros antes de procesarlo
+            _logger.LogInformation("🔍 Parseando METROS - Valor original: '{Metros}' (columna K)", columns[9]);
+            
+            // Verificar si la columna 9 tiene contenido (no está vacía ni es solo espacios)
+            if (!string.IsNullOrWhiteSpace(columns[9]))
+            {
+                // Limpiar el valor de metros:
+                // 1. Replace(",", "."): Reemplazar coma por punto para formato decimal estándar
+                // 2. Replace(" ", ""): Eliminar todos los espacios
+                // 3. Trim(): Eliminar espacios al inicio y final
+                var metrosStr = columns[9]
+                    .Replace(",", ".")
+                    .Replace(" ", "")
+                    .Trim();
+                
+                // Registrar en el log el valor de metros después de la limpieza
+                _logger.LogInformation("🔍 METROS después de limpieza (columna K): '{MetrosLimpio}'", metrosStr);
+                
+                // Intentar convertir el valor limpio a decimal usando cultura invariante
+                if (decimal.TryParse(metrosStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var metrosValue))
+                {
+                    metros = metrosValue;
+                    // Si la conversión es exitosa, registrar el valor parseado
+                    _logger.LogInformation("✅ METROS parseados exitosamente (columna K): {Metros}", metros);
+                }
+                else
+                {
+                    // Si la conversión falla, registrar advertencia y dejar null
+                    _logger.LogWarning("⚠️ No se pudo parsear METROS (columna K) '{Metros}', dejando null", columns[9]);
+                    metros = null;
+                }
+            }
+            else
+            {
+                // Si la columna de metros está vacía, registrar advertencia y dejar null
+                _logger.LogInformation("⚠️ Columna de METROS vacía (columna K), dejando null");
+                metros = null;
+            }
+
             // ===== PASO 9: VALIDAR FECHA LÍMITE PARA COLORES =====
-            // La fecha ya fue parseada en el PASO 7 desde la columna 8
+            // La fecha ya fue parseada en el PASO 7 desde la columna 10
             // Aquí solo validamos que tengamos una fecha válida
             if (!fechaTintaEnMaquina.HasValue)
             {
@@ -1111,7 +1214,7 @@ namespace flexoAPP.Services
             // ===== SUSTRATO: Usar tabla de diseño si existe, sino Excel =====
             string sustratoFinal = designFromTable != null && !string.IsNullOrWhiteSpace(designFromTable.Substrate)
                 ? designFromTable.Substrate  // Usar sustrato de la tabla de diseño
-                : columns[9];                // Usar sustrato del Excel (columna 9)
+                : columns[11];               // Usar sustrato del Excel (columna M - índice 11)
             
             // ===== REFERENCIA: Usar tabla de diseño si existe, sino Excel =====
             string referenciaFinal = designFromTable != null && !string.IsNullOrWhiteSpace(designFromTable.Description)
@@ -1152,16 +1255,22 @@ namespace flexoAPP.Services
                 // Asignar referencia (de tabla de diseño o Excel)
                 Referencia = referenciaFinal,
                 
-                // Asignar código TD (de tabla de diseño o Excel)
+                // Asignar código TD (siempre del Excel)
                 Td = tdFinal,
                 
-                // Asignar lista de colores (de tabla de diseño o genéricos)
+                // Asignar tipo de impresión (columna 7 - TIMP)
+                TipoImpresion = tipoImpresion,
+                
+                // Asignar lista de colores (de tabla de diseño, Excel columna N, o genéricos)
                 Colores = colores,
                 
-                // Asignar kilos parseados de la columna 7 (siempre del Excel)
+                // Asignar kilos parseados de la columna 9 (siempre del Excel)
                 Kilos = kilos,
                 
-                // Asignar fecha límite para tener colores listos (columna 8) (siempre del Excel)
+                // Asignar metros parseados de la columna 10 (siempre del Excel)
+                Metros = metros,
+                
+                // Asignar fecha límite para tener colores listos (columna 11) (siempre del Excel)
                 FechaTintaEnMaquina = fechaTintaEnMaquina,
                 
                 // Asignar tipo de sustrato (de tabla de diseño o Excel)
@@ -1180,8 +1289,8 @@ namespace flexoAPP.Services
             // Registrar en el log un resumen del DTO creado con los datos más importantes
             // Incluir información sobre el origen de los datos (tabla de diseño o Excel)
             string origenDatos = designFromTable != null ? "TABLA DE DISEÑO" : "EXCEL";
-            _logger.LogInformation("✅ DTO creado desde {Origen}: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Sustrato={Sustrato}, Kilos={Kilos}, Colores={Colores}", 
-                origenDatos, createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Sustrato, createDto.Kilos, string.Join(",", createDto.Colores));
+            _logger.LogInformation("✅ DTO creado desde {Origen}: Máquina={Machine}, Artículo={Articulo}, OT={OT}, Cliente={Cliente}, Sustrato={Sustrato}, Kilos={Kilos}, Metros={Metros}, TIMP={TIMP}, Colores={Colores}", 
+                origenDatos, createDto.NumeroMaquina, createDto.Articulo, createDto.OtSap, createDto.Cliente, createDto.Sustrato, createDto.Kilos, createDto.Metros, createDto.TipoImpresion, string.Join(",", createDto.Colores));
 
             // ===== PASO 12: RETORNAR DTO =====
             // Retornar el DTO para ser procesado por el método principal
@@ -1414,9 +1523,11 @@ namespace flexoAPP.Services
                 Cliente = maquina.Cliente,
                 Referencia = maquina.Referencia,
                 Td = maquina.Td,
+                TipoImpresion = maquina.TipoImpresion,
                 NumeroColores = maquina.NumeroColores,
                 Colores = maquina.GetColoresArray().ToList(),
                 Kilos = maquina.Kilos,
+                Metros = maquina.Metros,
                 FechaTintaEnMaquina = maquina.FechaTintaEnMaquina,
                 Sustrato = maquina.Sustrato,
                 Estado = maquina.Estado,

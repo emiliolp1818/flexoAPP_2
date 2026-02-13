@@ -2,12 +2,12 @@
 -- SCRIPT: CREAR/ACTUALIZAR TABLA MAQUINAS (VERSIÓN ACTUALIZADA)
 -- =====================================================
 -- Sistema: FlexoAPP - Sistema de Gestión Flexográfica
--- Propósito: Crear tabla de máquinas con columna preparando_started_at
+-- Propósito: Crear tabla de máquinas con todos los campos actualizados
 -- Base de datos: MySQL 8.0+ (Railway/Render)
 -- Tabla: maquinas
 -- Autor: Sistema FlexoAPP
--- Fecha: 2026-01-27
--- Versión: 2.1 (Incluye preparando_started_at)
+-- Fecha: 2026-02-11
+-- Versión: 2.2 (Incluye tipo_impresion y metros)
 -- =====================================================
 
 USE flexoapp_bd;
@@ -31,9 +31,11 @@ CREATE TABLE IF NOT EXISTS `maquinas` (
     
     -- ===== ESPECIFICACIONES TÉCNICAS =====
     `Td` VARCHAR(10) NOT NULL DEFAULT '' COMMENT 'Código TD (Tipo de Diseño)',
+    `tipo_impresion` VARCHAR(50) NULL COMMENT 'Tipo de impresión (ej: 07A)',
     `NumeroColores` INT NOT NULL DEFAULT 1 COMMENT 'Número total de colores (1-10)',
     `Colores` JSON NOT NULL DEFAULT ('[]') COMMENT 'Array de colores en formato JSON',
-    `Kilos` DECIMAL(10,2) NOT NULL COMMENT 'Cantidad en kilogramos',
+    `Kilos` DECIMAL(10,3) NOT NULL COMMENT 'Cantidad en kilogramos (hasta 3 decimales)',
+    `metros` DECIMAL(10,2) NULL DEFAULT 0 COMMENT 'Metros a fabricar',
     `Sustrato` VARCHAR(100) NOT NULL COMMENT 'Tipo de material base (BOPP, PE, PET, etc.)',
     
     -- ===== PROGRAMACIÓN =====
@@ -91,8 +93,9 @@ CREATE TABLE IF NOT EXISTS `maquinas` (
         
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Máquinas de producción flexográfica';
 
--- ===== SI LA TABLA YA EXISTE, AGREGAR LA COLUMNA =====
--- Este comando agregará la columna solo si no existe
+-- ===== SI LA TABLA YA EXISTE, AGREGAR LAS COLUMNAS FALTANTES =====
+
+-- Agregar columna preparando_started_at si no existe
 SET @dbname = DATABASE();
 SET @tablename = 'maquinas';
 SET @columnname = 'preparando_started_at';
@@ -111,13 +114,62 @@ PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
 
+-- Agregar columna tipo_impresion si no existe
+SET @columnname = 'tipo_impresion';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT ''La columna tipo_impresion ya existe'' AS resultado;',
+  'ALTER TABLE maquinas ADD COLUMN tipo_impresion VARCHAR(50) NULL COMMENT ''Tipo de impresión (ej: 07A)'' AFTER Td;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Agregar columna metros si no existe
+SET @columnname = 'metros';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT ''La columna metros ya existe'' AS resultado;',
+  'ALTER TABLE maquinas ADD COLUMN metros DECIMAL(10,2) NULL DEFAULT 0 COMMENT ''Metros a fabricar'' AFTER Kilos;'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Actualizar precisión de Kilos a 3 decimales si es necesario
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @dbname
+      AND TABLE_NAME = @tablename
+      AND COLUMN_NAME = 'Kilos'
+  ) >= 3,
+  'SELECT ''La columna Kilos ya tiene 3 decimales'' AS resultado;',
+  'ALTER TABLE maquinas MODIFY COLUMN Kilos DECIMAL(10,3) NOT NULL COMMENT ''Cantidad en kilogramos (hasta 3 decimales)'';'
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
 -- ===== VERIFICACIÓN =====
 SELECT '✓ Tabla maquinas creada/actualizada exitosamente' as resultado;
 
 -- ===== INFORMACIÓN DE LA TABLA =====
 DESCRIBE `maquinas`;
 
--- ===== VERIFICAR QUE LA COLUMNA EXISTE =====
+-- ===== VERIFICAR QUE LAS COLUMNAS EXISTEN =====
 SELECT 
     COLUMN_NAME,
     COLUMN_TYPE,
@@ -127,6 +179,9 @@ SELECT
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'flexoapp_bd'
   AND TABLE_NAME = 'maquinas'
-  AND COLUMN_NAME = 'preparando_started_at';
+  AND COLUMN_NAME IN ('preparando_started_at', 'tipo_impresion', 'metros', 'Kilos')
+ORDER BY ORDINAL_POSITION;
 
 SELECT '✓ Script completado exitosamente' as resultado;
+SELECT '✓ Nuevos campos agregados: tipo_impresion, metros' as info;
+SELECT '✓ Campo Kilos actualizado a DECIMAL(10,3)' as info2;

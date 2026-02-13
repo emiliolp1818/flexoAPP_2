@@ -1,81 +1,223 @@
-<!-- Header Component -->
-<app-header></app-header>
+<!-- ===== CONTENEDOR PRINCIPAL DE CONSULTA DE PEDIDOS ===== -->
+<div class="consulta-container">
 
-<!-- Consulta de Pedidos Container -->
-<div class="consulta-pedidos-container">
-  <div class="consulta-content">
-    
-    <!-- Mensaje de Módulo en Fabricación -->
-    <div class="fabricacion-container">
-      <mat-card class="fabricacion-card">
-        <mat-card-content>
-          <div class="fabricacion-content">
-            <!-- Icono de alerta animado -->
-            <div class="fabricacion-icon-wrapper">
-              <div class="icon-pulse"></div>
-              <mat-icon class="fabricacion-icon">warning</mat-icon>
+  <!-- ===== HEADER FIJO ===== -->
+  <div class="consulta-header">
+    <div class="header-content">
+      <!-- Sección izquierda: Información del header -->
+      <div class="header-info">
+        <h1 class="page-title">
+          <mat-icon>search</mat-icon>
+          Consulta de Pedidos
+        </h1>
+        <p class="page-subtitle">
+          Búsqueda y agrupación de pedidos por artículo y colores
+        </p>
+      </div>
+
+      <!-- Sección derecha: Acciones del header -->
+      <div class="header-actions">
+        <!-- Botón Actualizar -->
+        <button mat-icon-button (click)="refreshPedidos()" class="refresh-btn" [disabled]="loading()"
+          matTooltip="Actualizar lista de pedidos">
+          <mat-icon [class.spinning]="loading()">refresh</mat-icon>
+        </button>
+
+        <!-- Botón Volver -->
+        <button mat-stroked-button routerLink="/dashboard" class="back-btn">
+          <mat-icon>arrow_back</mat-icon>
+          Volver
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ÁREA DE TABLA SCROLLABLE ===== -->
+  <div class="scrollable-table-area">
+
+    <!-- ===== TARJETA DE TABLA ===== -->
+    <mat-card class="table-card">
+
+      <!-- Header de la tabla con búsqueda -->
+      <mat-card-header>
+        <div class="header-with-search">
+          <!-- Título del header -->
+          <div class="title-section">
+            <mat-card-title>
+              <mat-icon>inventory_2</mat-icon>
+              Pedidos Agrupados
+              <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+                ({{ filteredPedidos().length }} grupos)
+              </span>
+            </mat-card-title>
+            
+            <!-- Resultados de búsqueda -->
+            <div class="search-results-inline" *ngIf="searchTermOT() || searchTermArticulo()">
+              <span class="results-count">
+                {{ filteredPedidos().length }} resultado(s)
+              </span>
             </div>
-            
-            <!-- Título principal -->
-            <h1 class="fabricacion-title">
-              <span class="title-highlight">Módulo en Fabricación</span>
-            </h1>
-            
-            <!-- Subtítulo -->
-            <p class="fabricacion-subtitle">
-              <mat-icon>build_circle</mat-icon>
-              Este módulo está actualmente en desarrollo
-            </p>
-            
-            <!-- Banner de información -->
-            <div class="fabricacion-banner">
-              <mat-icon>info</mat-icon>
-              <p>Estamos trabajando para traerte la mejor experiencia de consulta de pedidos. <strong>¡Pronto estará disponible!</strong></p>
-            </div>
-            
-            <!-- Características próximas -->
-            <div class="fabricacion-features">
-              <h3>
-                <mat-icon>rocket_launch</mat-icon>
-                Funcionalidades Próximamente
-              </h3>
-              <div class="features-grid">
-                <div class="feature-item">
-                  <div class="feature-icon">
-                    <mat-icon>search</mat-icon>
-                  </div>
-                  <span>Búsqueda rápida por OT SAP o Artículo</span>
-                </div>
-                <div class="feature-item">
-                  <div class="feature-icon">
-                    <mat-icon>info</mat-icon>
-                  </div>
-                  <span>Información detallada del pedido</span>
-                </div>
-                <div class="feature-item">
-                  <div class="feature-icon">
-                    <mat-icon>timeline</mat-icon>
-                  </div>
-                  <span>Historial completo de estados</span>
-                </div>
-                <div class="feature-item">
-                  <div class="feature-icon">
-                    <mat-icon>palette</mat-icon>
-                  </div>
-                  <span>Visualización de colores y observaciones</span>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Botón de regreso -->
-            <button mat-raised-button color="primary" routerLink="/dashboard" class="back-button">
-              <mat-icon>arrow_back</mat-icon>
-              Volver al Dashboard
+          </div>
+
+          <!-- Campos de búsqueda -->
+          <div class="search-fields">
+            <!-- Búsqueda por OT SAP -->
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Buscar por OT SAP</mat-label>
+              <input matInput [(ngModel)]="searchTermOT" placeholder="Ej: 12345">
+              <mat-icon matPrefix>tag</mat-icon>
+              <button mat-icon-button matSuffix *ngIf="searchTermOT()" (click)="searchTermOT.set('')"
+                matTooltip="Limpiar búsqueda OT">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+
+            <!-- Búsqueda por Artículo -->
+            <mat-form-field appearance="outline" class="search-field">
+              <mat-label>Buscar por Artículo</mat-label>
+              <input matInput [(ngModel)]="searchTermArticulo" placeholder="Ej: ART-001">
+              <mat-icon matPrefix>inventory</mat-icon>
+              <button mat-icon-button matSuffix *ngIf="searchTermArticulo()" (click)="searchTermArticulo.set('')"
+                matTooltip="Limpiar búsqueda Artículo">
+                <mat-icon>close</mat-icon>
+              </button>
+            </mat-form-field>
+
+            <!-- Botón limpiar todo -->
+            <button mat-stroked-button (click)="limpiarBusqueda()" 
+              *ngIf="searchTermOT() || searchTermArticulo()"
+              class="clear-all-btn">
+              <mat-icon>clear_all</mat-icon>
+              Limpiar
             </button>
           </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+        </div>
+      </mat-card-header>
+
+      <!-- Contenido de la tabla -->
+      <mat-card-content>
+        
+        <!-- Spinner de carga -->
+        <div *ngIf="loading()" class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Cargando pedidos...</p>
+        </div>
+
+        <!-- Tabla de pedidos agrupados -->
+        <div *ngIf="!loading()" class="table-container">
+          <table mat-table [dataSource]="filteredPedidos()" class="pedidos-table">
+
+            <!-- Columna: Artículo -->
+            <ng-container matColumnDef="articulo">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <div class="header-content">
+                  <mat-icon>inventory</mat-icon>
+                  <span>Artículo</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let pedido" class="data-cell articulo-cell">
+                <strong>{{ pedido.articulo }}</strong>
+              </td>
+            </ng-container>
+
+            <!-- Columna: Colores/Pantones -->
+            <ng-container matColumnDef="colores">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <div class="header-content">
+                  <mat-icon>palette</mat-icon>
+                  <span>Colores/Pantones</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let pedido" class="data-cell colores-cell">
+                <div class="colores-chips">
+                  <mat-chip *ngFor="let color of pedido.colores" class="color-chip">
+                    {{ color }}
+                  </mat-chip>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna: Kilos Totales -->
+            <ng-container matColumnDef="kilosTotales">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <div class="header-content">
+                  <mat-icon>scale</mat-icon>
+                  <span>Kilos Totales</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let pedido" class="data-cell kilos-cell">
+                <span class="kilos-badge">{{ pedido.kilosTotales | number:'1.2-2' }} kg</span>
+              </td>
+            </ng-container>
+
+            <!-- Columna: Cantidad OTs -->
+            <ng-container matColumnDef="cantidadOTs">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <div class="header-content">
+                  <mat-icon>numbers</mat-icon>
+                  <span>Cantidad OTs</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let pedido" class="data-cell cantidad-cell">
+                <span class="cantidad-badge">{{ pedido.cantidadOTs }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Columna: OTs SAP -->
+            <ng-container matColumnDef="otsSap">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <div class="header-content">
+                  <mat-icon>tag</mat-icon>
+                  <span>OTs SAP</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let pedido" class="data-cell ots-cell">
+                <div class="ots-list">
+                  <span *ngFor="let ot of pedido.otsSap; let last = last">
+                    {{ ot }}<span *ngIf="!last">, </span>
+                  </span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna: Máquinas -->
+            <ng-container matColumnDef="maquinas">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <div class="header-content">
+                  <mat-icon>precision_manufacturing</mat-icon>
+                  <span>Máquinas</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let pedido" class="data-cell maquinas-cell">
+                <div class="maquinas-chips">
+                  <mat-chip *ngFor="let maquina of pedido.maquinas" class="maquina-chip">
+                    M{{ maquina }}
+                  </mat-chip>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Definir filas -->
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+
+            <!-- Fila cuando no hay datos -->
+            <tr class="mat-row no-data-row" *matNoDataRow>
+              <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+                <div class="no-data-container">
+                  <mat-icon>search_off</mat-icon>
+                  <p>No se encontraron pedidos</p>
+                </div>
+              </td>
+            </tr>
+
+          </table>
+        </div>
+
+      </mat-card-content>
+
+    </mat-card>
 
   </div>
+
 </div>

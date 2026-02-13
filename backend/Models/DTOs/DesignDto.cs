@@ -10,6 +10,7 @@ namespace FlexoAPP.API.Models.DTOs
         public string Description { get; set; } = string.Empty;
         public string Substrate { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
+        public int? AnchoMm { get; set; }
         public string PrintType { get; set; } = string.Empty;
         public int ColorCount { get; set; }
         public List<string> Colors { get; set; } = new List<string>();
@@ -42,6 +43,8 @@ namespace FlexoAPP.API.Models.DTOs
         [Required(ErrorMessage = "El tipo es requerido")]
         public string Type { get; set; } = string.Empty;
 
+        public int? AnchoMm { get; set; }
+
         [Required(ErrorMessage = "El tipo de impresión es requerido")]
         public string PrintType { get; set; } = string.Empty;
 
@@ -70,6 +73,8 @@ namespace FlexoAPP.API.Models.DTOs
         public string? Substrate { get; set; }
 
         public string? Type { get; set; }
+
+        public int? AnchoMm { get; set; }
 
         public string? PrintType { get; set; }
 

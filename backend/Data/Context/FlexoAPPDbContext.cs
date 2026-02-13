@@ -22,6 +22,7 @@ namespace FlexoAPP.API.Data.Context
         public DbSet<CondicionUnica> CondicionUnica { get; set; }
         public DbSet<Documento> Documentos { get; set; } // Tabla de documentos
         public DbSet<SystemConfig> SystemConfigs { get; set; } // Tabla de configuraciones del sistema
+        public DbSet<Anilox> Anilox { get; set; } // Tabla de anilox
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -62,6 +63,9 @@ namespace FlexoAPP.API.Data.Context
                 entity.ToTable("designs");
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                
+                // Mapeo explícito para AnchoMm
+                entity.Property(e => e.AnchoMm).HasColumnName("ancho_mm");
                 
                 // Columnas con espacios (compatibilidad con BD existente)
                 entity.Property(e => e.Color1).HasColumnName("color 1");
@@ -314,6 +318,30 @@ namespace FlexoAPP.API.Data.Context
                 // Índices
                 entity.HasIndex(e => e.Category);
                 entity.HasIndex(e => e.Type);
+            });
+
+            // ===== CONFIGURACIÓN ANILOX =====
+            modelBuilder.Entity<Anilox>(entity =>
+            {
+                entity.ToTable("anilox");
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.Codigo).IsRequired().HasMaxLength(50);
+                entity.HasIndex(e => e.Codigo).IsUnique();
+                
+                entity.Property(e => e.Maquina).IsRequired();
+                entity.Property(e => e.Bcm).IsRequired();
+                entity.Property(e => e.Lineatura).IsRequired();
+                entity.Property(e => e.Marca).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.VolumenReal).IsRequired().HasColumnType("DECIMAL(10,2)");
+                
+                // MySQL timestamps
+                entity.Property(e => e.CreatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+                
+                // Índices
+                entity.HasIndex(e => e.Maquina);
+                entity.HasIndex(e => e.Marca);
             });
         }
     }

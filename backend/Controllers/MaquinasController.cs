@@ -75,9 +75,9 @@ namespace backend.Controllers
                 using var command = connection.CreateCommand();
                 command.CommandText = $@"
                     SELECT 
-                        articulo, numero_maquina, ot_sap, cliente, referencia, td,
-                        numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
-                        estado, observaciones, last_action_by, last_action_at,
+                        articulo, numero_maquina, ot_sap, cliente, referencia, td, tipo_impresion,
+                        numero_colores, colores, kilos, metros, fecha_tinta_en_maquina, sustrato,
+                        estado, observaciones, last_action_by, last_action_at, preparando_started_at,
                         created_by, updated_by, created_at, updated_at
                     FROM maquinas
                     ORDER BY {orderByClause}";
@@ -95,15 +95,19 @@ namespace backend.Controllers
                         cliente = reader.GetString("cliente"),
                         referencia = reader.IsDBNull(reader.GetOrdinal("referencia")) ? null : reader.GetString("referencia"),
                         td = reader.IsDBNull(reader.GetOrdinal("td")) ? null : reader.GetString("td"),
+                        tipoImpresion = reader.IsDBNull(reader.GetOrdinal("tipo_impresion")) ? null : reader.GetString("tipo_impresion"),
+                        tipo_impresion = reader.IsDBNull(reader.GetOrdinal("tipo_impresion")) ? null : reader.GetString("tipo_impresion"),
                         numeroColores = reader.GetInt32("numero_colores"),
                         colores = ParseColores(reader.GetString("colores")),
                         kilos = reader.GetDecimal("kilos"),
+                        metros = reader.IsDBNull(reader.GetOrdinal("metros")) ? (decimal?)null : reader.GetDecimal("metros"),
                         fechaTintaEnMaquina = reader.GetDateTime("fecha_tinta_en_maquina"),
                         sustrato = reader.GetString("sustrato"),
                         estado = reader.IsDBNull(reader.GetOrdinal("estado")) ? null : reader.GetString("estado"),
                         observaciones = reader.IsDBNull(reader.GetOrdinal("observaciones")) ? null : reader.GetString("observaciones"),
                         lastActionBy = reader.IsDBNull(reader.GetOrdinal("last_action_by")) ? null : reader.GetString("last_action_by"),
                         lastActionAt = reader.IsDBNull(reader.GetOrdinal("last_action_at")) ? (DateTime?)null : reader.GetDateTime("last_action_at"),
+                        preparandoStartedAt = reader.IsDBNull(reader.GetOrdinal("preparando_started_at")) ? (DateTime?)null : reader.GetDateTime("preparando_started_at"),
                         createdBy = reader.IsDBNull(reader.GetOrdinal("created_by")) ? (int?)null : reader.GetInt32("created_by"),
                         updatedBy = reader.IsDBNull(reader.GetOrdinal("updated_by")) ? (int?)null : reader.GetInt32("updated_by"),
                         createdAt = reader.GetDateTime("created_at"),
@@ -815,6 +819,7 @@ namespace backend.Controllers
                         descripcion = design.Description ?? "", // ✅ Cambiado de "referencia" a "descripcion" para condición única
                         referencia = design.Description ?? "", // ✅ Mantener "referencia" para compatibilidad con máquinas
                         sustrato = design.Substrate ?? "",
+                        anchoMm = design.AnchoMm ?? 0, // ✅ Agregamos AnchoMm para cálculos de tinta
                         numeroColores = colors.Count,
                         colores = colors // ✅ Agregamos la lista de colores
                     },
