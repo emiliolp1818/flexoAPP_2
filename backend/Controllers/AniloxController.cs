@@ -397,94 +397,172 @@ namespace FlexoAPP.API.Controllers
 
         // POST: api/anilox/import
         [HttpPost("import")]
-        public async Task<IActionResult> ImportFromExcel([FromBody] List<ImportAniloxFromExcelDto> aniloxList)
-        {
-            try
-            {
-                int created = 0;
-                int updated = 0;
-                int errors = 0;
-
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-                await connection.OpenAsync();
-
-                foreach (var item in aniloxList)
+                public async Task<IActionResult> ImportFromExcel([FromBody] List<ImportAniloxFromExcelDto> aniloxList)
                 {
                     try
                     {
-                        // Verificar si el anilox ya existe por código
-                        using var checkCommand = new MySqlCommand(
-                            "SELECT id FROM anilox WHERE codigo = @Codigo",
-                            connection);
-                        checkCommand.Parameters.AddWithValue("@Codigo", item.Codigo);
-                        
-                        var existingId = await checkCommand.ExecuteScalarAsync();
+                        _logger.LogInformation($"📥 Iniciando importación de {aniloxList.Count} anilox desde Excel");
 
-                        if (existingId != null)
+                        int created = 0;
+                        int updated = 0;
+                        int errors = 0;
+                        var errorDetails = new List<string>();
+
+                        using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                        await connection.OpenAsync();
+
+                        foreach (var item in aniloxList)
                         {
-                            // Actualizar existente
-                            using var updateCommand = new MySqlCommand(
-                                @"UPDATE anilox SET 
-                                    maquina = @Maquina,
-                                    bcm = @BCM,
-                                    lineatura = @Lineatura,
-                                    marca = @Marca,
-                                    volumen_real = @VolumenReal,
-                                    factor_eficiencia = @FactorEficiencia,
-                                    densidad = @Densidad
-                                  WHERE codigo = @Codigo",
-                                connection);
-                            
-                            updateCommand.Parameters.AddWithValue("@Codigo", item.Codigo);
-                            updateCommand.Parameters.AddWithValue("@Maquina", item.Maquina);
-                            updateCommand.Parameters.AddWithValue("@BCM", item.AporteTeorico);
-                            updateCommand.Parameters.AddWithValue("@Lineatura", item.Lineatura);
-                            updateCommand.Parameters.AddWithValue("@Marca", item.Proveedor ?? "APEX");
-                            updateCommand.Parameters.AddWithValue("@VolumenReal", item.Aporte);
-                            updateCommand.Parameters.AddWithValue("@FactorEficiencia", item.FactorEficiencia ?? 35.00m);
-                            updateCommand.Parameters.AddWithValue("@Densidad", item.Densidad ?? 0.885m);
-                            
-                            await updateCommand.ExecuteNonQueryAsync();
-                            updated++;
+                            try
+                            {
+                                _logger.LogInformation($"Procesando anilox: {item.Codigo}");
+
+                                // Verificar si el anilox ya existe por código
+                                using var checkCommand = new MySqlCommand(
+                                    "SELECT id FROM anilox WHERE codigo = @Codigo",
+                                    connection);
+                                checkCommand.Parameters.AddWithValue("@Codigo", item.Codigo);
+
+                                var existingId = await checkCommand.ExecuteScalarAsync();
+
+                                if (existingId != null)
+                                {
+                                    // Actualizar existente
+                                    using var updateCommand = new MySqlCommand(
+                                        @"UPDATE anilox SET 
+                                            maquina = @Maquina,
+                                            bcm = @BCM,
+                                            lineatura = @Lineatura,
+                                            marca = @Marca,
+                                            volumen_real = @VolumenReal,
+                                            factor_eficiencia = @FactorEficiencia,
+                                            densidad = @Densidad
+                                          WHERE codigo = @Codigo",
+                                        connection);
+
+                                    updateCommand.Parameters.AddWithValue("@Codigo", item.Codigo);
+                                    updateCommand.Parameters.AddWithValue("@Maquina", item.Maquina);
+                                    updateCommand.Parameters.AddWithValue("@BCM", item.AporteTeorico);
+                                    updateCommand.Parameters.AddWithValue("@Lineatura", item.Lineatura);
+                                    updateCommand.Parameters.AddWithValue("@Marca", item.Proveedor ?? "APEX");
+                                    updateCommand.Parameters.AddWithValue("@VolumenReal", item.Aporte);
+                                    updateCommand.Parameters.AddWithValue("@FactorEficiencia", item.FactorEficiencia ?? 35.00m);
+                                    updateCommand.Parameters.AddWithValue("@Densidad", item.Densidad ?? 0.885m);
+
+                                    await updateCommand.ExecuteNonQueryAsync();
+                                    updated++;
+                                    _logger.LogInformation($"✅ Anilox {item.Codigo} actualizado");
+                                }
+                                else
+                                {
+                                    // Crear nuevo
+                                    using var insertCommand = new MySqlCommand(
+                                        @"INSERT INTO anilox 
+                                            (codigo, maquina, bcm, lineatura, marca, volumen_real, factor_eficiencia, densidad) 
+                                          VALUES 
+                                            (@Codigo, @Maquina, @BCM, @Lineatura, @Marca, @VolumenReal, @FactorEficiencia, @Densidad)",
+                                        connection);
+
+                                    insertCommand.Parameters.AddWithValue("@Codigo", item.Codigo);
+                                    insertCommand.Parameters.AddWithValue("@Maquina", item.Maquina);
+                                    insertCommand.Parameters.AddWithValue("@BCM", item.AporteTeorico);
+                                    insertCommand.Parameters.AddWithValue("@Lineatura", item.Lineatura);
+                                    insertCommand.Parameters.AddWithValue("@Marca", item.Proveedor ?? "APEX");
+                                    insertCommand.Parameters.AddWithValue("@VolumenReal", item.Aporte);
+                                    insertCommand.Parameters.AddWithValue("@FactorEficiencia", item.FactorEficiencia ?? 35.00m);
+                                    insertCommand.Parameters.AddWithValue("@Densidad", item.Densidad ?? 0.885m);
+
+                                    await insertCommand.ExecuteNonQueryAsync();
+                                    created++;
+                                    _logger.LogInformation($"✅ Anilox {item.Codigo} creado");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                var errorMsg = $"Anilox {item.Codigo}: {ex.Message}";
+                                _logger.LogError(ex, $"❌ Error procesando anilox {item.Codigo}");
+                                errorDetails.Add(errorMsg);
+                                errors++;
+                            }
                         }
-                        else
-                        {
-                            // Crear nuevo
-                            using var insertCommand = new MySqlCommand(
-                                @"INSERT INTO anilox 
-                                    (codigo, maquina, bcm, lineatura, marca, volumen_real, factor_eficiencia, densidad) 
-                                  VALUES 
-                                    (@Codigo, @Maquina, @BCM, @Lineatura, @Marca, @VolumenReal, @FactorEficiencia, @Densidad)",
-                                connection);
-                            
-                            insertCommand.Parameters.AddWithValue("@Codigo", item.Codigo);
-                            insertCommand.Parameters.AddWithValue("@Maquina", item.Maquina);
-                            insertCommand.Parameters.AddWithValue("@BCM", item.AporteTeorico);
-                            insertCommand.Parameters.AddWithValue("@Lineatura", item.Lineatura);
-                            insertCommand.Parameters.AddWithValue("@Marca", item.Proveedor ?? "APEX");
-                            insertCommand.Parameters.AddWithValue("@VolumenReal", item.Aporte);
-                            insertCommand.Parameters.AddWithValue("@FactorEficiencia", item.FactorEficiencia ?? 35.00m);
-                            insertCommand.Parameters.AddWithValue("@Densidad", item.Densidad ?? 0.885m);
-                            
-                            await insertCommand.ExecuteNonQueryAsync();
-                            created++;
-                        }
+
+                        _logger.LogInformation($"✅ Importación completada: {created} creados, {updated} actualizados, {errors} errores");
+
+                        return Ok(new { 
+                            created, 
+                            updated, 
+                            errors,
+                            errorDetails = errors > 0 ? errorDetails : null
+                        });
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"Error procesando anilox {item.Codigo}");
-                        errors++;
+                        _logger.LogError(ex, "❌ Error crítico al importar anilox");
+                        return StatusCode(500, new { 
+                            message = "Error al importar anilox", 
+                            error = ex.Message,
+                            stackTrace = ex.StackTrace,
+                            innerError = ex.InnerException?.Message
+                        });
                     }
                 }
 
-                return Ok(new { created, updated, errors });
+        // Endpoint de diagnóstico para verificar estructura de tabla
+        [HttpGet("check-table")]
+        public async Task<IActionResult> CheckTableStructure()
+        {
+            try
+            {
+                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                await connection.OpenAsync();
+
+                using var command = new MySqlCommand(@"
+                    SELECT 
+                        COLUMN_NAME,
+                        DATA_TYPE,
+                        COLUMN_DEFAULT,
+                        IS_NULLABLE,
+                        COLUMN_COMMENT
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'anilox'
+                    ORDER BY ORDINAL_POSITION", connection);
+
+                var columns = new List<object>();
+                using var reader = await command.ExecuteReaderAsync();
+                
+                while (await reader.ReadAsync())
+                {
+                    columns.Add(new
+                    {
+                        name = reader.GetString(0),
+                        type = reader.GetString(1),
+                        defaultValue = reader.IsDBNull(2) ? null : reader.GetString(2),
+                        nullable = reader.GetString(3),
+                        comment = reader.IsDBNull(4) ? null : reader.GetString(4)
+                    });
+                }
+
+                var hasFactorEficiencia = columns.Any(c => ((dynamic)c).name == "factor_eficiencia");
+                var hasDensidad = columns.Any(c => ((dynamic)c).name == "densidad");
+
+                return Ok(new
+                {
+                    database = connection.Database,
+                    table = "anilox",
+                    columns,
+                    hasFactorEficiencia,
+                    hasDensidad,
+                    status = hasFactorEficiencia && hasDensidad ? "✅ Tabla actualizada" : "❌ Faltan columnas"
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al importar anilox");
-                return StatusCode(500, new { message = "Error al importar anilox", error = ex.Message });
+                _logger.LogError(ex, "Error verificando estructura de tabla");
+                return StatusCode(500, new { message = "Error verificando tabla", error = ex.Message });
             }
         }
+
     }
 
     // DTOs
