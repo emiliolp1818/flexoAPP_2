@@ -123,7 +123,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
               <input matInput formControlName="factorEficiencia" placeholder="Ej: 0.85" type="text" 
                      (input)="onFactorEficienciaInput($event)" (blur)="formatFactorEficiencia()">
               <mat-icon matSuffix>speed</mat-icon>
-              <mat-hint>Valor entre 0 y 1 (usa . o , como separador)</mat-hint>
               <mat-error *ngIf="aniloxForm.get('factorEficiencia')?.hasError('min')">
                 El factor debe ser mayor o igual a 0
               </mat-error>
@@ -134,10 +133,9 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Densidad</mat-label>
-              <input matInput formControlName="densidad" placeholder="Ej: 1.234" type="text" 
-                     (input)="onDensidadInput($event)" (blur)="formatDensidad()">
+              <input matInput formControlName="densidad" placeholder="Ej: 0.889" type="text" 
+                     (input)="onDensidadInput($event)">
               <mat-icon matSuffix>opacity</mat-icon>
-              <mat-hint>Densidad del material (usa . o , como separador)</mat-hint>
               <mat-error *ngIf="aniloxForm.get('densidad')?.hasError('min')">
                 La densidad debe ser mayor o igual a 0
               </mat-error>
@@ -386,37 +384,36 @@ export class EditAniloxDialogComponent {
 
   onDensidadInput(event: any): void {
     let value = event.target.value;
-    console.log('📝 Densidad input original:', value);
+    console.log('📝 Densidad input original:', value, 'tipo:', typeof value);
     
     // Reemplazar coma por punto
     if (value.includes(',')) {
       value = value.replace(',', '.');
       console.log('📝 Densidad convertida:', value);
+      // Actualizar el valor visual en el input
+      event.target.value = value;
     }
     
     // Actualizar el valor del formulario
-    const numValue = value === '' ? null : parseFloat(value);
-    this.aniloxForm.patchValue({ densidad: numValue }, { emitEvent: false });
-    
-    console.log('📝 Densidad en formulario:', this.aniloxForm.get('densidad')?.value);
+    if (value === '' || value === null) {
+      this.aniloxForm.patchValue({ densidad: null }, { emitEvent: false });
+      console.log('📝 Densidad: null');
+    } else {
+      // Usar Number() en lugar de parseFloat() para mejor precisión
+      const numValue = Number(value);
+      if (!isNaN(numValue) && isFinite(numValue)) {
+        this.aniloxForm.patchValue({ densidad: numValue }, { emitEvent: false });
+        console.log('📝 Densidad guardada:', numValue);
+        console.log('📝 Densidad con máxima precisión:', numValue.toString());
+        console.log('📝 Densidad toFixed(3):', numValue.toFixed(3));
+        console.log('📝 Densidad === 0.889:', numValue === 0.889);
+      }
+    }
   }
 
   formatDensidad(): void {
-    const densidadControl = this.aniloxForm.get('densidad');
-    const value = densidadControl?.value;
-    
-    console.log('📝 Formateando densidad - Valor actual:', value);
-    
-    if (value !== null && value !== undefined && value !== '') {
-      const numValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) : value;
-      
-      if (!isNaN(numValue)) {
-        // NO formatear, solo asegurar que sea un número válido
-        // Mantener el valor exacto tal como fue ingresado
-        densidadControl?.setValue(numValue, { emitEvent: false });
-        console.log('📝 Densidad guardada (sin redondeo):', numValue);
-      }
-    }
+    // ELIMINADO - No formatear para mantener el valor exacto
+    // El valor se mantiene tal cual fue ingresado
   }
 
   onFactorEficienciaInput(event: any): void {
@@ -427,31 +424,26 @@ export class EditAniloxDialogComponent {
     if (value.includes(',')) {
       value = value.replace(',', '.');
       console.log('📝 Factor Eficiencia convertida:', value);
+      // Actualizar el valor visual en el input
+      event.target.value = value;
     }
     
-    // Actualizar el valor del formulario
-    const numValue = value === '' ? null : parseFloat(value);
-    this.aniloxForm.patchValue({ factorEficiencia: numValue }, { emitEvent: false });
-    
-    console.log('📝 Factor Eficiencia en formulario:', this.aniloxForm.get('factorEficiencia')?.value);
+    // Actualizar el valor del formulario SIN PARSEAR (mantener precisión)
+    if (value === '' || value === null) {
+      this.aniloxForm.patchValue({ factorEficiencia: null }, { emitEvent: false });
+    } else {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue)) {
+        // Guardar el número parseado EXACTAMENTE como fue ingresado
+        this.aniloxForm.patchValue({ factorEficiencia: numValue }, { emitEvent: false });
+        console.log('📝 Factor Eficiencia guardado en formulario (SIN redondeo):', numValue);
+      }
+    }
   }
 
   formatFactorEficiencia(): void {
-    const factorControl = this.aniloxForm.get('factorEficiencia');
-    const value = factorControl?.value;
-    
-    console.log('📝 Formateando factor eficiencia - Valor actual:', value);
-    
-    if (value !== null && value !== undefined && value !== '') {
-      const numValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) : value;
-      
-      if (!isNaN(numValue)) {
-        // NO formatear, solo asegurar que sea un número válido
-        // Mantener el valor exacto tal como fue ingresado
-        factorControl?.setValue(numValue, { emitEvent: false });
-        console.log('📝 Factor Eficiencia guardado (sin redondeo):', numValue);
-      }
-    }
+    // ELIMINADO - No formatear para mantener el valor exacto
+    // El valor se mantiene tal cual fue ingresado
   }
 
   onCancel(): void {

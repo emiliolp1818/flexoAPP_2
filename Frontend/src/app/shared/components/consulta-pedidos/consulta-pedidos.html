@@ -17,16 +17,17 @@
 
       <!-- Sección derecha: Acciones del header -->
       <div class="header-actions">
+        <!-- Botón Exportar -->
+        <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn" [disabled]="loading()"
+          matTooltip="Exportar consulta a archivo Excel">
+          <mat-icon>download</mat-icon>
+          Exportar
+        </button>
+
         <!-- Botón Actualizar -->
         <button mat-icon-button (click)="refreshPedidos()" class="refresh-btn" [disabled]="loading()"
           matTooltip="Actualizar lista de pedidos">
           <mat-icon [class.spinning]="loading()">refresh</mat-icon>
-        </button>
-
-        <!-- Botón Volver -->
-        <button mat-stroked-button routerLink="/dashboard" class="back-btn">
-          <mat-icon>arrow_back</mat-icon>
-          Volver
         </button>
       </div>
     </div>
@@ -41,55 +42,50 @@
       <!-- Header de la tabla con búsqueda -->
       <mat-card-header>
         <div class="header-with-search">
-          <!-- Título del header -->
-          <div class="title-section">
+          <!-- Título y campos de búsqueda en la misma línea -->
+          <div class="title-and-search">
             <mat-card-title>
               <mat-icon>inventory_2</mat-icon>
               Pedidos Agrupados
-              <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+              <span *ngIf="!loading()" class="count-badge">
                 ({{ filteredPedidos().length }} grupos)
               </span>
             </mat-card-title>
-            
-            <!-- Resultados de búsqueda -->
-            <div class="search-results-inline" *ngIf="searchTermOT() || searchTermArticulo()">
-              <span class="results-count">
-                {{ filteredPedidos().length }} resultado(s)
-              </span>
+
+            <!-- Campos de búsqueda a la derecha -->
+            <div class="search-and-actions-section">
+              <!-- Búsqueda por OT SAP -->
+              <div class="search-section-inline">
+                <mat-form-field appearance="outline" class="search-field-inline">
+                  <input matInput [(ngModel)]="searchTermOT" placeholder="Buscar por OT SAP" (ngModelChange)="cargarPedidos()">
+                  <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+                <button mat-icon-button (click)="searchTermOT.set(''); cargarPedidos()" *ngIf="searchTermOT()" 
+                  class="clear-search-btn-inline" matTooltip="Limpiar">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </div>
+
+              <!-- Búsqueda por Artículo -->
+              <div class="search-section-inline">
+                <mat-form-field appearance="outline" class="search-field-inline">
+                  <input matInput [(ngModel)]="searchTermArticulo" placeholder="Buscar por Artículo" (ngModelChange)="cargarPedidos()">
+                  <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+                <button mat-icon-button (click)="searchTermArticulo.set(''); cargarPedidos()" *ngIf="searchTermArticulo()" 
+                  class="clear-search-btn-inline" matTooltip="Limpiar">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Campos de búsqueda -->
-          <div class="search-fields">
-            <!-- Búsqueda por OT SAP -->
-            <mat-form-field appearance="outline" class="search-field">
-              <mat-label>Buscar por OT SAP</mat-label>
-              <input matInput [(ngModel)]="searchTermOT" placeholder="Ej: 12345">
-              <mat-icon matPrefix>tag</mat-icon>
-              <button mat-icon-button matSuffix *ngIf="searchTermOT()" (click)="searchTermOT.set('')"
-                matTooltip="Limpiar búsqueda OT">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
-
-            <!-- Búsqueda por Artículo -->
-            <mat-form-field appearance="outline" class="search-field">
-              <mat-label>Buscar por Artículo</mat-label>
-              <input matInput [(ngModel)]="searchTermArticulo" placeholder="Ej: ART-001">
-              <mat-icon matPrefix>inventory</mat-icon>
-              <button mat-icon-button matSuffix *ngIf="searchTermArticulo()" (click)="searchTermArticulo.set('')"
-                matTooltip="Limpiar búsqueda Artículo">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
-
-            <!-- Botón limpiar todo -->
-            <button mat-stroked-button (click)="limpiarBusqueda()" 
-              *ngIf="searchTermOT() || searchTermArticulo()"
-              class="clear-all-btn">
-              <mat-icon>clear_all</mat-icon>
-              Limpiar
-            </button>
+          <!-- Resultados de búsqueda debajo -->
+          <div class="search-results-row" *ngIf="searchTermOT() || searchTermArticulo()">
+            <span class="results-count">
+              <mat-icon>search</mat-icon>
+              {{ filteredPedidos().length }} resultado(s) encontrado(s)
+            </span>
           </div>
         </div>
       </mat-card-header>
@@ -105,7 +101,7 @@
 
         <!-- Tabla de pedidos agrupados -->
         <div *ngIf="!loading()" class="table-container">
-          <table mat-table [dataSource]="filteredPedidos()" class="pedidos-table">
+          <table mat-table [dataSource]="paginatedPedidos()" class="pedidos-table">
 
             <!-- Columna: Artículo -->
             <ng-container matColumnDef="articulo">
@@ -130,9 +126,13 @@
               </th>
               <td mat-cell *matCellDef="let pedido" class="data-cell colores-cell">
                 <div class="colores-chips">
-                  <mat-chip *ngFor="let color of pedido.colores" class="color-chip">
+                  <div *ngFor="let color of pedido.colores" class="color-chip"
+                    [style.background-color]="getPantoneInfo(color).hex"
+                    [style.color]="getTextColor(getPantoneInfo(color).hex)"
+                    [matTooltip]="'Pantone: ' + getPantoneInfo(color).displayName"
+                    matTooltipPosition="above">
                     {{ color }}
-                  </mat-chip>
+                  </div>
                 </div>
               </td>
             </ng-container>
@@ -190,9 +190,58 @@
               </th>
               <td mat-cell *matCellDef="let pedido" class="data-cell maquinas-cell">
                 <div class="maquinas-chips">
-                  <mat-chip *ngFor="let maquina of pedido.maquinas" class="maquina-chip">
+                  <div *ngFor="let maquina of pedido.maquinas" class="maquina-chip"
+                    [matTooltip]="'Máquina #' + maquina"
+                    matTooltipPosition="above">
                     M{{ maquina }}
-                  </mat-chip>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna: Estado (solo en histórico) -->
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <div class="header-content">
+                  <mat-icon>info</mat-icon>
+                  <span>Estado</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let pedido" class="data-cell estado-cell">
+                <div [class]="'estado-chip estado-' + (pedido.estado || 'sin-estado')"
+                  [matTooltip]="'Estado del pedido: ' + (pedido.estado || 'Sin estado')"
+                  matTooltipPosition="above">
+                  {{ pedido.estado || 'N/A' }}
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna: Info Backup (solo en histórico) -->
+            <ng-container matColumnDef="backupInfo">
+              <th mat-header-cell *matHeaderCellDef class="header-cell">
+                <div class="header-content">
+                  <mat-icon>history</mat-icon>
+                  <span>Información de Backup</span>
+                </div>
+              </th>
+              <td mat-cell *matCellDef="let pedido" class="data-cell backup-info-cell">
+                <div class="backup-info">
+                  <div class="backup-row" *ngIf="pedido.backupDate">
+                    <mat-icon>event</mat-icon>
+                    <span>{{ pedido.backupDate | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <div class="backup-row" *ngIf="pedido.backupReason">
+                    <mat-icon>label</mat-icon>
+                    <span>{{ pedido.backupReason }}</span>
+                  </div>
+                  <div class="backup-row" *ngIf="pedido.backupUserName">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ pedido.backupUserName }}</span>
+                  </div>
+                  <div class="backup-row" *ngIf="pedido.lastActionBy">
+                    <mat-icon>edit</mat-icon>
+                    <span>Última acción: {{ pedido.lastActionBy }}</span>
+                  </div>
                 </div>
               </td>
             </ng-container>
@@ -212,6 +261,45 @@
             </tr>
 
           </table>
+        </div>
+
+        <!-- Paginación personalizada -->
+        <div class="pagination-controls" *ngIf="filteredPedidos().length > 0">
+          <!-- Información de registros (Izquierda) -->
+          <div class="pagination-info">
+            Mostrando <b>{{ (pageIndex() * pageSize()) + 1 }} - {{ Math.min((pageIndex() + 1) * pageSize(), filteredPedidos().length) }}</b> 
+            de <b>{{ filteredPedidos().length }}</b> pedidos
+          </div>
+
+          <!-- Controles de acción (Centro) -->
+          <div class="pagination-actions">
+            <button (click)="previousPage()" [disabled]="pageIndex() === 0 || loading()" mat-ripple
+              class="nav-btn prev-btn">
+              <mat-icon>chevron_left</mat-icon>
+              Anterior
+            </button>
+
+            <div class="current-page-indicator">
+              Página <span>{{ pageIndex() + 1 }}</span>
+            </div>
+
+            <button (click)="nextPage()" [disabled]="!hasMorePages() || loading()" mat-ripple class="nav-btn next-btn">
+              Siguiente
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+
+          <!-- Selector de tamaño (Derecha) -->
+          <div class="page-size-container">
+            <mat-form-field appearance="outline" class="page-size-select mini-select">
+              <mat-select [ngModel]="pageSize()" (selectionChange)="onPageSizeChange($event.value)">
+                <mat-option [value]="10">10 / pág</mat-option>
+                <mat-option [value]="25">25 / pág</mat-option>
+                <mat-option [value]="50">50 / pág</mat-option>
+                <mat-option [value]="100">100 / pág</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
         </div>
 
       </mat-card-content>

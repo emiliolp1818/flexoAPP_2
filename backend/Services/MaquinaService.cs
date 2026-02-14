@@ -462,11 +462,22 @@ namespace flexoAPP.Services
                 existing.PreparandoStartedAt = null;
             }
 
+            // ===== NUEVO: LIMPIAR OBSERVACIONES CUANDO CAMBIA DE SUSPENDIDO A OTRO ESTADO =====
+            // Si el programa estaba SUSPENDIDO y cambia a otro estado, limpiar el motivo de suspensión
+            if (existing.Estado == "SUSPENDIDO" && estadoUpper != "SUSPENDIDO")
+            {
+                _logger.LogInformation("🧹 Limpiando observaciones de SUSPENDIDO para OT={OtSap} (cambio a {Estado})", otSap, estadoUpper);
+                existing.Observaciones = null; // Limpiar el motivo de suspensión
+            }
+
             existing.Estado = estadoUpper;
             
-            if (observaciones != null)
+            // Solo actualizar observaciones si se proporcionan Y el estado es SUSPENDIDO
+            // O si se está limpiando (ya se hizo arriba)
+            if (observaciones != null && estadoUpper == "SUSPENDIDO")
             {
                 existing.Observaciones = observaciones;
+                _logger.LogInformation("💾 Guardando motivo de suspensión: {Obs}", observaciones);
             }
 
             existing.UpdatedBy = userId;
@@ -574,17 +585,18 @@ namespace flexoAPP.Services
                 await connection.OpenAsync();
 
                 // 3.1 Obtener programas existentes
-                var existingPrograms = new List<(string Articulo, string OtSap, string Estado)>();
+                var existingPrograms = new List<(string Articulo, string OtSap, string Estado, string? Observaciones)>();
                 using (var cmd = connection.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT articulo, ot_sap, estado FROM maquinas";
+                    cmd.CommandText = "SELECT articulo, ot_sap, estado, observaciones FROM maquinas";
                     using var reader = await cmd.ExecuteReaderAsync();
                     while (await reader.ReadAsync())
                     {
                         existingPrograms.Add((
                             reader.IsDBNull(0) ? "" : reader.GetString(0),
                             reader.IsDBNull(1) ? "" : reader.GetString(1),
-                            reader.IsDBNull(2) ? "" : reader.GetString(2)
+                            reader.IsDBNull(2) ? "" : reader.GetString(2),
+                            reader.IsDBNull(3) ? null : reader.GetString(3)
                         ));
                     }
                 }
@@ -617,6 +629,68 @@ namespace flexoAPP.Services
 
                 if (otSapsToDelete.Any())
                 {
+                    // ===== NUEVO: CREAR BACKUP SOLO DE PROGRAMAS CON EVENTOS (EXCLUIR SIN_ASIGNAR) =====
+                    // Estados que se guardarán en backup: PREPARANDO, LISTO, CORRIENDO, SUSPENDIDO, TERMINADO
+                    // Estado que NO se guardará: SIN_ASIGNAR (no tuvo ningún evento/acción)
+                    var estadosParaBackup = new[] { "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO" };
+                    
+                    var otSapsParaBackup = existingPrograms
+                        .Where(p => otSapsToDelete.Contains(p.OtSap) && 
+                                   !string.IsNullOrWhiteSpace(p.Estado) && 
+                                   estadosParaBackup.Contains(p.Estado.Trim().ToUpper()))
+                        .Select(p => p.OtSap)
+                        .ToList();
+                    
+                    _logger.LogInformation("💾 Creando backup de {Count} registros con eventos (excluyendo SIN_ASIGNAR)...", otSapsParaBackup.Count);
+                    
+                    foreach (var otSap in otSapsParaBackup)
+                    {
+                        try
+                        {
+                            // Obtener el programa completo que se va a respaldar
+                            var programToBackup = existingPrograms.FirstOrDefault(p => p.OtSap == otSap);
+                            if (!string.IsNullOrEmpty(programToBackup.OtSap))
+                            {
+                                // Insertar en tabla de backup
+                                using var backupCmd = connection.CreateCommand();
+                                backupCmd.CommandText = @"
+                                    INSERT INTO maquinas_backup (
+                                        ot_sap, Articulo, NumeroMaquina, Cliente, Referencia, Td, tipo_impresion,
+                                        NumeroColores, Colores, Kilos, Metros, FechaTintaEnMaquina, Sustrato,
+                                        Estado, Observaciones, LastActionBy, LastActionAt, preparando_started_at,
+                                        CreatedBy, UpdatedBy, CreatedAt, UpdatedAt,
+                                        backup_date, backup_reason, backup_user_id, backup_user_name
+                                    )
+                                    SELECT 
+                                        ot_sap, Articulo, numero_maquina, Cliente, Referencia, Td, tipo_impresion,
+                                        numero_colores, Colores, Kilos, Metros, fecha_tinta_en_maquina, Sustrato,
+                                        Estado, Observaciones, last_action_by, last_action_at, preparando_started_at,
+                                        created_by, updated_by, created_at, updated_at,
+                                        @backupDate, @backupReason, @backupUserId, @backupUserName
+                                    FROM maquinas
+                                    WHERE ot_sap = @otSap";
+                                
+                                backupCmd.Parameters.AddWithValue("@otSap", otSap);
+                                backupCmd.Parameters.AddWithValue("@backupDate", DateTime.UtcNow);
+                                backupCmd.Parameters.AddWithValue("@backupReason", "REEMPLAZADO_POR_NUEVA_PROGRAMACION");
+                                backupCmd.Parameters.AddWithValue("@backupUserId", userId ?? (object)DBNull.Value);
+                                backupCmd.Parameters.AddWithValue("@backupUserName", "Sistema - Carga Excel");
+                                
+                                await backupCmd.ExecuteNonQueryAsync();
+                                _logger.LogInformation("💾 Backup creado para OT: {OtSap} (Estado: {Estado})", otSap, programToBackup.Estado);
+                            }
+                        }
+                        catch (Exception backupEx)
+                        {
+                            _logger.LogWarning(backupEx, "⚠️ Error creando backup para OT {OtSap}, continuando con eliminación", otSap);
+                        }
+                    }
+                    
+                    var sinAsignarCount = otSapsToDelete.Count - otSapsParaBackup.Count;
+                    _logger.LogInformation("✅ Backups creados: {BackupCount} | Sin backup (SIN_ASIGNAR): {SinAsignarCount}", 
+                        otSapsParaBackup.Count, sinAsignarCount);
+                    
+                    // ===== CONTINUAR CON LA ELIMINACIÓN DE TODOS (CON Y SIN BACKUP) =====
                     using var delCmd = connection.CreateCommand();
                     // Usar parámetros para evitar inyección SQL y manejar listas grandes
                     const int BatchSize = 1000;
@@ -637,7 +711,8 @@ namespace flexoAPP.Services
                         _logger.LogInformation("⚡ Batch eliminado: {Count} registros", deletedCount);
                     }
                     
-                    _logger.LogInformation("✅ Eliminación completada. Total: {Count}", otSapsToDelete.Count);
+                    _logger.LogInformation("✅ Eliminación completada. Total eliminados: {Count} (Con backup: {BackupCount}, Sin backup: {SinBackup})", 
+                        otSapsToDelete.Count, otSapsParaBackup.Count, sinAsignarCount);
                 }
 
                 // 3.3 Upsert (Insertar o Actualizar)
@@ -653,6 +728,16 @@ namespace flexoAPP.Services
                     {
                         // ACTUALIZAR (Mantener estado)
                         _logger.LogInformation("♻️ Actualizando registro protegido: {OtSap} (Estado: {Estado})", existingMatch.OtSap, existingMatch.Estado);
+                        
+                        // ===== PRESERVAR OBSERVACIONES SI ESTÁ SUSPENDIDO =====
+                        // Si el programa está SUSPENDIDO, mantener las observaciones existentes (motivo de suspensión)
+                        // Solo se limpiarán cuando el estado cambie de SUSPENDIDO a otro
+                        string? observacionesAGuardar = dto.Observaciones;
+                        if (existingMatch.Estado?.ToUpper() == "SUSPENDIDO" && !string.IsNullOrWhiteSpace(existingMatch.Observaciones))
+                        {
+                            observacionesAGuardar = existingMatch.Observaciones;
+                            _logger.LogInformation("💾 Preservando observaciones de SUSPENDIDO: {Obs}", observacionesAGuardar);
+                        }
                         
                         using var updateCmd = connection.CreateCommand();
                         updateCmd.CommandText = @"
@@ -675,7 +760,7 @@ namespace flexoAPP.Services
                         updateCmd.Parameters.AddWithValue("@metros", dto.Metros ?? (object)DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@fecha", dto.FechaTintaEnMaquina ?? DateTime.Now);
                         updateCmd.Parameters.AddWithValue("@sust", dto.Sustrato);
-                        updateCmd.Parameters.AddWithValue("@obs", dto.Observaciones ?? (object)DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@obs", observacionesAGuardar ?? (object)DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@upd", userId ?? (object)DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@now", DateTime.UtcNow);
                         updateCmd.Parameters.AddWithValue("@otSap", existingMatch.OtSap);
