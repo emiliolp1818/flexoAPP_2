@@ -225,6 +225,8 @@ namespace FlexoAPP.API.Controllers
         {
             try
             {
+                _logger.LogInformation($"📝 Creando anilox: {dto.Codigo}");
+                
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
                 
@@ -245,6 +247,8 @@ namespace FlexoAPP.API.Controllers
                 
                 var newId = Convert.ToInt32(await command.ExecuteScalarAsync());
                 
+                _logger.LogInformation($"✅ Anilox {dto.Codigo} creado con ID: {newId}");
+                
                 // Obtener el anilox recién creado
                 using var selectCommand = new MySqlCommand("SELECT * FROM anilox WHERE id = @Id", connection);
                 selectCommand.Parameters.AddWithValue("@Id", newId);
@@ -259,8 +263,13 @@ namespace FlexoAPP.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear anilox");
-                return StatusCode(500, new { message = "Error al crear anilox", error = ex.Message });
+                _logger.LogError(ex, $"❌ Error al crear anilox {dto.Codigo}");
+                return StatusCode(500, new { 
+                    message = "Error al crear anilox", 
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace,
+                    innerError = ex.InnerException?.Message
+                });
             }
         }
 
