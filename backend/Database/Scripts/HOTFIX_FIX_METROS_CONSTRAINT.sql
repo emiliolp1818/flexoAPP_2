@@ -17,8 +17,10 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ===== PASO 1: ELIMINAR CONSTRAINT ANTIGUO =====
 SELECT 'Eliminando constraint antiguo...' as '';
 
+-- Nota: MySQL no soporta IF EXISTS para DROP CONSTRAINT
+-- Si el constraint no existe, este comando dará error (ignorar si es el caso)
 ALTER TABLE `maquinas` 
-DROP CONSTRAINT IF EXISTS `chk_maquinas_metros_positivos`;
+DROP CHECK `chk_maquinas_metros_positivos`;
 
 SELECT '✓ Constraint antiguo eliminado' as '';
 

@@ -382,16 +382,13 @@ CREATE TABLE IF NOT EXISTS `anilox` (
         CHECK (`maquina` BETWEEN 11 AND 21),
         
     CONSTRAINT `chk_anilox_bcm_positivo` 
-        CHECK (`bcm` > 0),
+        CHECK (`bcm` >= 0),
         
     CONSTRAINT `chk_anilox_lineatura_positiva` 
-        CHECK (`lineatura` > 0),
+        CHECK (`lineatura` >= 0),
         
     CONSTRAINT `chk_anilox_volumen_positivo` 
-        CHECK (`volumen_real` > 0),
-        
-    CONSTRAINT `chk_anilox_marca_valida` 
-        CHECK (`marca` IN ('APEX', 'ZECHER', 'HARPER')),
+        CHECK (`volumen_real` >= 0),
         
     CONSTRAINT `chk_anilox_factor_eficiencia_valido` 
         CHECK (`factor_eficiencia` IS NULL OR (`factor_eficiencia` >= 0 AND `factor_eficiencia` <= 100)),

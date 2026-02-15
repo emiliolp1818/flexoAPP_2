@@ -34,7 +34,7 @@ try
     // ===== CONFIGURACIÓN DE KESTREL PARA RENDER =====
     builder.WebHost.ConfigureKestrel(options =>
     {
-        options.Limits.MaxRequestBodySize = 52428800; // 50MB
+        options.Limits.MaxRequestBodySize = 524_288_000; // 500MB para importación masiva de Excel
         options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
         
         // Configurar para escuchar en el puerto de Render
@@ -121,6 +121,15 @@ try
             // Permitir que las propiedades sean case-insensitive
             options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         });
+    
+    // ===== CONFIGURACIÓN DE LÍMITES DE FORMULARIO =====
+    builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+    {
+        options.MultipartBodyLengthLimit = 524_288_000; // 500MB para importación masiva de Excel
+        options.ValueLengthLimit = 524_288_000;
+        options.MultipartHeadersLengthLimit = 524_288_000;
+    });
+    
     builder.Services.AddEndpointsApiExplorer();
 
     // ===== SWAGGER CONFIGURATION =====

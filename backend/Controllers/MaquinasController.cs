@@ -1256,6 +1256,280 @@ namespace backend.Controllers
             }
         }
 
+        /// <summary>
+        /// POST: api/maquinas/import/excel-multisheet
+        /// Importa programación desde Excel con múltiples hojas (una por máquina)
+        /// Formato de hojas: MAQ 11, MAQ 12, ..., MAQ 21
+        /// Columnas: A=mq imp, C=articulo f, D=cliente, E=referencia, F=td, G=timp, 
+        ///           K=numero de colores, O=kilos, S=sustrato, T=ot sap, 
+        ///           W=colores en maquina (fecha), AG=metros
+        /// Filas: 1-2 son encabezados, datos desde fila 3 en adelante
+        /// </summary>
+        [HttpPost("import/excel-multisheet")]
+        [RequestSizeLimit(524_288_000)] // 500MB limit
+        [RequestFormLimits(MultipartBodyLengthLimit = 524_288_000)]
+        public async Task<IActionResult> ImportFromExcelMultiSheet(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new { message = "No se proporcionó ningún archivo" });
+                }
+
+                if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest(new { message = "El archivo debe ser formato .xlsx" });
+                }
+
+                _logger.LogInformation($"📥 Iniciando importación masiva desde Excel: {file.FileName}");
+
+                // Configurar EPPlus para uso no comercial
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                var importResults = new Dictionary<int, ImportSheetResult>();
+                var totalCreated = 0;
+                var totalErrors = 0;
+                var sheetsProcessed = 0;
+
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        _logger.LogInformation($"� Excel contiene {package.Workbook.Worksheets.Count} hojas");
+
+                        // Procesar cada hoja del Excel
+                        foreach (var worksheet in package.Workbook.Worksheets)
+                        {
+                            var sheetName = worksheet.Name.Trim();
+                            _logger.LogInformation($"📄 Procesando hoja: {sheetName}");
+
+                            // Extraer número de máquina del nombre de la hoja (ej: "MAQ 11" → 11)
+                            var machineNumber = ExtractMachineNumber(sheetName);
+                            
+                            if (machineNumber == null)
+                            {
+                                _logger.LogWarning($"⚠️ Hoja '{sheetName}' ignorada: no se pudo extraer número de máquina");
+                                continue;
+                            }
+
+                            if (machineNumber < 11 || machineNumber > 21)
+                            {
+                                _logger.LogWarning($"⚠️ Hoja '{sheetName}' ignorada: número de máquina {machineNumber} fuera de rango (11-21)");
+                                continue;
+                            }
+
+                            _logger.LogInformation($"✅ Máquina identificada: {machineNumber}");
+
+                            // Procesar datos de la hoja
+                            var result = await ProcessWorksheet(worksheet, machineNumber.Value);
+                            importResults[machineNumber.Value] = result;
+                            
+                            totalCreated += result.Created;
+                            totalErrors += result.Errors;
+                            sheetsProcessed++;
+
+                            _logger.LogInformation($"📊 Máquina {machineNumber}: {result.Created} creados, {result.Errors} errores");
+                        }
+                    }
+                }
+
+                _logger.LogInformation($"✅ Importación completada: {sheetsProcessed} hojas procesadas, {totalCreated} registros creados, {totalErrors} errores");
+
+                return Ok(new
+                {
+                    message = "Importación completada",
+                    sheetsProcessed,
+                    totalCreated,
+                    totalErrors,
+                    results = importResults.Select(r => new
+                    {
+                        machineNumber = r.Key,
+                        created = r.Value.Created,
+                        errors = r.Value.Errors,
+                        errorDetails = r.Value.ErrorDetails
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error crítico al importar Excel multisheet");
+                return StatusCode(500, new
+                {
+                    message = "Error al importar Excel",
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        /// <summary>
+        /// Extrae el número de máquina del nombre de la hoja
+        /// Soporta formatos: "MAQ 11", "MAQ11", "Maquina 11", "11", etc.
+        /// </summary>
+        private int? ExtractMachineNumber(string sheetName)
+        {
+            // Buscar cualquier número en el nombre de la hoja
+            var match = System.Text.RegularExpressions.Regex.Match(sheetName, @"\d+");
+            if (match.Success && int.TryParse(match.Value, out int number))
+            {
+                return number;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Procesa una hoja de Excel y crea registros de programación para una máquina
+        /// </summary>
+        private async Task<ImportSheetResult> ProcessWorksheet(ExcelWorksheet worksheet, int machineNumber)
+        {
+            var result = new ImportSheetResult();
+            var rowCount = worksheet.Dimension?.Rows ?? 0;
+
+            _logger.LogInformation($"📊 Hoja tiene {rowCount} filas");
+
+            // Empezar desde la fila 3 (filas 1-2 son encabezados)
+            for (int row = 3; row <= rowCount; row++)
+            {
+                try
+                {
+                    // Leer datos de las columnas especificadas
+                    var otSap = GetCellValue(worksheet, row, "T")?.Trim(); // Columna T
+                    var articulo = GetCellValue(worksheet, row, "C")?.Trim(); // Columna C
+                    var cliente = GetCellValue(worksheet, row, "D")?.Trim(); // Columna D
+
+                    // Validar campos obligatorios
+                    if (string.IsNullOrEmpty(otSap) || string.IsNullOrEmpty(articulo) || string.IsNullOrEmpty(cliente))
+                    {
+                        _logger.LogDebug($"⚠️ Fila {row} ignorada: faltan datos obligatorios (OT SAP, Artículo o Cliente)");
+                        continue;
+                    }
+
+                    var referencia = GetCellValue(worksheet, row, "E")?.Trim(); // Columna E
+                    var td = GetCellValue(worksheet, row, "F")?.Trim(); // Columna F
+                    var tipoImpresion = GetCellValue(worksheet, row, "G")?.Trim(); // Columna G
+                    var numeroColoresStr = GetCellValue(worksheet, row, "K")?.Trim(); // Columna K
+                    var kilosStr = GetCellValue(worksheet, row, "O")?.Trim(); // Columna O
+                    var sustrato = GetCellValue(worksheet, row, "S")?.Trim(); // Columna S
+                    var fechaTintaStr = GetCellValue(worksheet, row, "W")?.Trim(); // Columna W
+                    var metrosStr = GetCellValue(worksheet, row, "AG")?.Trim(); // Columna AG
+
+                    // Parsear número de colores
+                    if (!int.TryParse(numeroColoresStr, out int numeroColores))
+                    {
+                        numeroColores = 1; // Default
+                    }
+
+                    // Parsear kilos
+                    if (!decimal.TryParse(kilosStr, out decimal kilos))
+                    {
+                        _logger.LogWarning($"⚠️ Fila {row}: kilos inválido '{kilosStr}', usando 0");
+                        kilos = 0;
+                    }
+
+                    // Parsear metros (opcional)
+                    decimal? metros = null;
+                    if (!string.IsNullOrEmpty(metrosStr) && decimal.TryParse(metrosStr, out decimal metrosValue))
+                    {
+                        metros = metrosValue;
+                    }
+
+                    // Parsear fecha
+                    DateTime fechaTinta = DateTime.Now;
+                    if (!string.IsNullOrEmpty(fechaTintaStr))
+                    {
+                        if (!DateTime.TryParse(fechaTintaStr, out fechaTinta))
+                        {
+                            // Intentar parsear formato dd/mm/yyyy hh:mm
+                            var formats = new[] { 
+                                "dd/MM/yyyy HH:mm", 
+                                "dd/MM/yyyy H:mm",
+                                "d/M/yyyy HH:mm",
+                                "d/M/yyyy H:mm",
+                                "dd/MM/yyyy",
+                                "d/M/yyyy"
+                            };
+                            
+                            if (!DateTime.TryParseExact(fechaTintaStr, formats, 
+                                System.Globalization.CultureInfo.InvariantCulture, 
+                                System.Globalization.DateTimeStyles.None, out fechaTinta))
+                            {
+                                _logger.LogWarning($"⚠️ Fila {row}: fecha inválida '{fechaTintaStr}', usando fecha actual");
+                                fechaTinta = DateTime.Now;
+                            }
+                        }
+                    }
+
+                    // Crear objeto Maquina
+                    var maquina = new Maquina
+                    {
+                        OtSap = otSap,
+                        Articulo = articulo,
+                        NumeroMaquina = machineNumber,
+                        Cliente = cliente,
+                        Referencia = referencia,
+                        Td = td,
+                        TipoImpresion = tipoImpresion,
+                        NumeroColores = numeroColores,
+                        Colores = "[]", // Array vacío por defecto
+                        Kilos = kilos,
+                        Metros = metros,
+                        FechaTintaEnMaquina = fechaTinta,
+                        Sustrato = sustrato ?? "",
+                        Estado = "PENDIENTE",
+                        Observaciones = $"Importado desde Excel - Hoja MAQ {machineNumber}",
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+
+                    // Guardar en base de datos
+                    _context.Maquinas.Add(maquina);
+                    await _context.SaveChangesAsync();
+
+                    result.Created++;
+                    _logger.LogDebug($"✅ Fila {row}: Registro creado - OT {otSap}");
+                }
+                catch (Exception ex)
+                {
+                    result.Errors++;
+                    var errorMsg = $"Fila {row}: {ex.Message}";
+                    result.ErrorDetails.Add(errorMsg);
+                    _logger.LogError(ex, $"❌ Error procesando fila {row}");
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Obtiene el valor de una celda por su referencia de columna (ej: "A", "C", "AG")
+        /// </summary>
+        private string? GetCellValue(ExcelWorksheet worksheet, int row, string columnLetter)
+        {
+            try
+            {
+                var cell = worksheet.Cells[$"{columnLetter}{row}"];
+                return cell.Value?.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Clase para almacenar resultados de importación por hoja
+        /// </summary>
+        private class ImportSheetResult
+        {
+            public int Created { get; set; } = 0;
+            public int Errors { get; set; } = 0;
+            public List<string> ErrorDetails { get; set; } = new List<string>();
+        }
+
     } // Fin de la clase MaquinasController
 
     /// <summary>
