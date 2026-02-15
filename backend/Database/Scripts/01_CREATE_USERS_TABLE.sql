@@ -1,56 +1,43 @@
 -- =====================================================
 -- SCRIPT: CREAR TABLA USERS
 -- =====================================================
--- Sistema: FlexoAPP - Sistema de Gestión Flexográfica
--- Propósito: Crear tabla de usuarios del sistema con autenticación
--- Base de datos: MySQL 8.0+ (Railway/Render)
+-- Sistema: FlexoAPP
 -- Tabla: users
--- Autor: Sistema FlexoAPP
--- Fecha: 2026-01-17
--- Versión: 2.0
+-- Descripción: Usuarios del sistema con autenticación
+-- Fecha: 2026-02-15
 -- =====================================================
 
--- Verificar si la tabla existe y crearla si no existe
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Eliminar tabla si existe (solo para desarrollo)
+-- DROP TABLE IF EXISTS `users`;
+
+-- Crear tabla users
 CREATE TABLE IF NOT EXISTS `users` (
-    -- ===== IDENTIFICACIÓN =====
-    `Id` INT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID único del usuario (clave primaria)',
-    `UserCode` VARCHAR(50) NOT NULL UNIQUE COMMENT 'Código único de usuario (admin, 90009, etc.)',
-    
-    -- ===== AUTENTICACIÓN =====
+    `Id` INT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID único del usuario',
+    `UserCode` VARCHAR(50) NOT NULL UNIQUE COMMENT 'Código único de usuario',
     `Password` VARCHAR(255) NOT NULL COMMENT 'Contraseña hasheada con bcrypt',
-    
-    -- ===== INFORMACIÓN PERSONAL =====
     `FirstName` VARCHAR(50) NULL COMMENT 'Nombre del usuario',
     `LastName` VARCHAR(50) NULL COMMENT 'Apellido del usuario',
-    
-    -- ===== ROLES Y PERMISOS =====
-    `Role` VARCHAR(50) NOT NULL DEFAULT 'Operario' COMMENT 'Rol del usuario (Admin, Supervisor, Operario)',
+    `Role` VARCHAR(50) NOT NULL DEFAULT 'Operario' COMMENT 'Rol del usuario',
     `Permissions` JSON NULL COMMENT 'Permisos específicos en formato JSON',
-    
-    -- ===== PERFIL =====
-    `ProfileImage` LONGTEXT NULL COMMENT 'Imagen de perfil en base64 o URL',
-    
-    -- ===== INFORMACIÓN DE CONTACTO =====
+    `ProfileImage` LONGTEXT NULL COMMENT 'Imagen de perfil en base64',
     `Email` VARCHAR(100) NULL COMMENT 'Correo electrónico',
     `Phone` VARCHAR(20) NULL COMMENT 'Teléfono de contacto',
+    `IsActive` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Estado activo/inactivo',
+    `CreatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Fecha de creación',
+    `UpdatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Fecha de actualización',
     
-    -- ===== ESTADO =====
-    `IsActive` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Estado activo (1) o inactivo (0)',
-    
-    -- ===== AUDITORÍA =====
-    `CreatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Fecha de creación del registro',
-    `UpdatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Fecha de última actualización',
-    
-    -- ===== ÍNDICES PARA OPTIMIZACIÓN =====
-    INDEX `idx_users_usercode` (`UserCode`) COMMENT 'Índice para búsquedas por código de usuario',
-    INDEX `idx_users_role` (`Role`) COMMENT 'Índice para filtrar por rol',
-    INDEX `idx_users_active` (`IsActive`) COMMENT 'Índice para filtrar usuarios activos',
-    INDEX `idx_users_email` (`Email`) COMMENT 'Índice para búsquedas por email'
-    
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Usuarios del sistema con autenticación y permisos';
+    INDEX `idx_users_usercode` (`UserCode`),
+    INDEX `idx_users_role` (`Role`),
+    INDEX `idx_users_active` (`IsActive`),
+    INDEX `idx_users_email` (`Email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Usuarios del sistema';
 
--- ===== DATOS INICIALES =====
--- Insertar usuario administrador por defecto si no existe
+-- Insertar usuario administrador por defecto
+-- UserCode: admin
+-- Password: admin123
 INSERT IGNORE INTO `users` (
     `UserCode`, 
     `Password`, 
@@ -62,7 +49,7 @@ INSERT IGNORE INTO `users` (
     `UpdatedAt`
 ) VALUES (
     'admin',
-    '$2a$11$rOzJqQZ8kVJ8kVJ8kVJ8kOzJqQZ8kVJ8kVJ8kVJ8kOzJqQZ8kVJ8k.',  -- Contraseña: admin123
+    '$2a$11$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa',
     'Administrador',
     'Sistema',
     'Admin',
@@ -71,9 +58,7 @@ INSERT IGNORE INTO `users` (
     NOW(6)
 );
 
--- ===== VERIFICACIÓN =====
-SELECT '✓ Tabla users creada exitosamente' as resultado;
-SELECT COUNT(*) as total_usuarios FROM `users`;
+SET FOREIGN_KEY_CHECKS = 1;
 
--- ===== INFORMACIÓN DE LA TABLA =====
-DESCRIBE `users`;
+SELECT '✓ Tabla users creada exitosamente' as '';
+SELECT '✓ Usuario administrador creado (UserCode: admin, Password: admin123)' as '';
