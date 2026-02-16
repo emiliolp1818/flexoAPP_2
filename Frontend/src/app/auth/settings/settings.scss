@@ -872,18 +872,56 @@ $gray-900: #0f172a; // Gris máximo
 
 // ===== CELDA DE FECHA =====
 .date-cell {
-  min-width: 90px;
+  min-width: 140px;
   text-align: center;
+  padding: 8px 6px;
+
+  .last-login-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .last-login-datetime {
+    font-size: 11px;
+    color: $gray-700;
+    font-weight: 600;
+    background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: block;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    border: 1px solid $primary-blue-200;
+    white-space: nowrap;
+  }
 
   .last-login {
-    font-size: 11px;
+    font-size: 10px;
     color: $gray-600;
-    font-weight: 500;
+    font-weight: 600;
     background: $gray-100;
     padding: 2px 6px;
     border-radius: 6px;
-    display: inline-block;
+    display: block;
     font-family: 'SF Mono', 'Monaco', monospace;
+    border: 1px solid $gray-200;
+    white-space: nowrap;
+  }
+
+  .elapsed {
+    font-size: 9px;
+    color: $gray-500;
+    font-weight: 500;
+    background: $gray-50;
+    padding: 2px 6px;
+    border-radius: 6px;
+    display: block;
+    font-family: 'SF Mono', 'Monaco', monospace;
+    border: 1px solid $gray-200;
+    font-style: italic;
+    white-space: nowrap;
   }
 }
 
