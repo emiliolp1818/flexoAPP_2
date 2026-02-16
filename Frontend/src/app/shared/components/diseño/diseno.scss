@@ -1097,7 +1097,7 @@ $header-blue-900: #1e3a8a;
     mat-card-content {
       flex: 1; 
       padding: 0; 
-      overflow: hidden; 
+      overflow: visible; // Cambiar a visible para que el paginador sea visible
       display: flex; 
       flex-direction: column; 
       position: relative; 
@@ -2892,7 +2892,10 @@ $header-blue-900: #1e3a8a;
   background: white;
   border-top: 1px solid #edf2f7;
   border-radius: 0 0 12px 12px;
-  min-height: 40px; 
+  min-height: 40px;
+  flex-shrink: 0; // No permitir que se encoja
+  position: relative; // Asegurar que sea visible
+  z-index: 10; // Estar por encima de otros elementos 
 
   .pagination-info {
     font-size: 10px; 
