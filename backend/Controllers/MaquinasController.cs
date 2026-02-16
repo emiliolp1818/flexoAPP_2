@@ -198,7 +198,7 @@ namespace backend.Controllers
                 catch (Exception) { userId = 1; userName = "Sistema"; }
 
                 // ===== VERIFICAR PERMISOS DE ESTADO =====
-                string permissionNeeded = request.Estado.ToUpper() switch
+                string? permissionNeeded = request.Estado.ToUpper() switch
                 {
                     "PREPARANDO" => FlexoAPP.API.Models.PermissionCodes.MACHINES_STATUS_PREALISTANDO,
                     "LISTO" => FlexoAPP.API.Models.PermissionCodes.MACHINES_STATUS_LISTO,
