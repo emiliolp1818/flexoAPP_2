@@ -53,7 +53,7 @@ interface MachineProgram {
   anchoMm?: number; // Ancho en mm del diseño - Opcional para cálculos
   fechaTintaEnMaquina: Date; // Fecha y hora cuando se aplicó la tinta en la máquina (formato dd/mm/aaaa: hora)
   sustrato: string; // Tipo de material base (ej: BOPP, PE, PET)
-  estado: 'SIN_ASIGNAR' | 'PREPARANDO' | 'LISTO' | 'SUSPENDIDO' | 'CORRIENDO' | 'TERMINADO'; // Estado actual del programa - SIN_ASIGNAR = Programa nuevo sin acción del operario
+  estado: 'SIN_ASIGNAR' | 'PREPARANDO' | 'LISTO' | 'SUSPENDIDO' | 'CORRIENDO' | 'TERMINADO' | null; // Estado actual del programa - SIN_ASIGNAR = Programa nuevo sin acción del operario
   observaciones?: string; // Observaciones adicionales (opcional)
   lastActionBy?: string; // Usuario que realizó la última acción (opcional)
   lastActionAt?: Date; // Fecha de la última acción (opcional)
@@ -358,7 +358,7 @@ export class MachinesComponent implements OnInit {
             referencia: program.referencia || '', // Referencia del producto (columna referencia) - vacío si es null
             td: program.td || '', // Código TD - Tipo de Diseño (columna td) - vacío si es null
             tipoImpresion: program.tipoImpresion || program.tipo_impresion || undefined, // Tipo de impresión (columna tipo_impresion) - opcional
-            numeroColores: colores.length, // Número de colores - SIEMPRE usar el length real del array de colores
+            numeroColores: program.numeroColores || colores.length || 0, // Priorizar el campo numeroColores de la BD, fallback al length del array de colores
             colores: colores, // Array de colores parseado desde la columna JSON 'colores'
             kilos: Number(program.kilos || 0), // Cantidad en kilogramos (columna kilos) - 0 si es null
             metros: program.metros ? Number(program.metros) : undefined, // Metros a fabricar (columna metros) - opcional
@@ -388,6 +388,15 @@ export class MachinesComponent implements OnInit {
 
         // ===== LOG DE ÉXITO Y ACTUALIZACIÓN DE ESTADO =====
         console.log(`✅ ${programs.length} programas cargados exitosamente desde la base de datos`);
+
+        // ===== LOG DE NÚMEROS DE MÁQUINA =====
+        const machineNumbers = [...new Set(programs.map(p => p.machineNumber))].sort((a, b) => a - b);
+        console.log(`🔢 Máquinas con programas: ${machineNumbers.join(', ')}`);
+        const programsByMachine = programs.reduce((acc, p) => {
+          acc[p.machineNumber] = (acc[p.machineNumber] || 0) + 1;
+          return acc;
+        }, {} as Record<number, number>);
+        console.log('📊 Programas por máquina:', programsByMachine);
 
         // ===== LOG DE PREPARANDO_STARTED_AT =====
         const programsWithPreparandoStartedAt = programs.filter(p => p.preparandoStartedAt);
@@ -425,7 +434,8 @@ export class MachinesComponent implements OnInit {
           }, {} as Record<number, number>),
           // Contar programas por estado usando reduce - agrupa por estado (LISTO, CORRIENDO, etc.)
           porEstado: programs.reduce((acc, p) => {
-            acc[p.estado] = (acc[p.estado] || 0) + 1;
+            const estadoKey = p.estado || 'SIN_ASIGNAR';
+            acc[estadoKey] = (acc[estadoKey] || 0) + 1;
             return acc;
           }, {} as Record<string, number>)
         };
@@ -870,7 +880,10 @@ export class MachinesComponent implements OnInit {
       if (program.metros && program.anchoMm && selectedAnilox.volumen_real) {
         const metros = Number(program.metros);
         const anchoMm = Number(program.anchoMm);
-        const areaM2 = (metros * anchoMm) / 1000;
+
+        // ✅ CORRECCIÓN: Convertir ancho de mm a metros primero
+        const anchoMetros = anchoMm / 1000; // Convertir mm a m
+        const areaM2 = metros * anchoMetros; // Área en m²
 
         const eficiencia = selectedAnilox.factor_eficiencia || 35.00;
         const densidad = selectedAnilox.densidad || 0.885;
@@ -887,11 +900,12 @@ export class MachinesComponent implements OnInit {
 
         console.log(`⚖️ DETALLES DEL CÁLCULO:`, {
           metros,
-          anchoMm,
-          areaM2: areaM2.toFixed(2) + ' m2',
-          volumen: selectedAnilox.volumen_real + ' cm3/m2',
+          anchoMm: anchoMm + ' mm',
+          anchoMetros: anchoMetros.toFixed(3) + ' m',
+          areaM2: areaM2.toFixed(3) + ' m²',
+          volumen: selectedAnilox.volumen_real + ' cm³/m²',
           eficiencia: eficiencia + '%',
-          densidad: densidad + ' g/cm3',
+          densidad: densidad + ' g/cm³',
           kilosBase: kilosBase.toFixed(3) + ' kg',
           cargaMuerta: cargaMuerta + ' kg',
           RESULTADO: calculatedKilos + ' kg'
@@ -1029,6 +1043,18 @@ export class MachinesComponent implements OnInit {
     }
 
     const filtered = machineAnilox.filter(a => a.lineatura === lineatura);
+
+    // Log de depuración para verificar filtrado
+    console.log(`🔍 getAniloxForMachine - Máquina: ${machineNumber}, Lineatura: ${lineatura}`);
+    console.log(`📦 Total anilox en máquina ${machineNumber}:`, machineAnilox.length);
+    console.log(`🎯 Anilox filtrados por lineatura ${lineatura}:`, filtered.length);
+    console.log(`📋 Códigos filtrados:`, filtered.map(a => `${a.codigo} (Máq: ${a.maquina})`));
+
+    // Verificar si hay anilox de otras máquinas (BUG)
+    const wrongMachine = filtered.filter(a => a.maquina !== machineNumber);
+    if (wrongMachine.length > 0) {
+      console.error(`❌ ERROR: Se encontraron ${wrongMachine.length} anilox de otras máquinas:`, wrongMachine);
+    }
 
     // Solo mostrar log si no hay resultados (para debugging)
     if (filtered.length === 0) {
@@ -1372,7 +1398,7 @@ export class MachinesComponent implements OnInit {
         };
 
         // ===== CALCULAR TIEMPO TRANSCURRIDO DE PREPARANDO A LISTO =====
-        let successMessage = statusMessages[newStatus] || 'Estado actualizado';
+        let successMessage = (newStatus ? (statusMessages as any)[newStatus] : 'Estado actualizado') || 'Estado actualizado';
 
         // Si el programa pasó de PREPARANDO a LISTO, calcular el tiempo transcurrido
         if (program.estado === 'PREPARANDO' && newStatus === 'LISTO') {
@@ -1804,11 +1830,11 @@ export class MachinesComponent implements OnInit {
     }
 
     // ===== VALIDACIÓN DE TAMAÑO DE ARCHIVO =====
-    // Validar tamaño del archivo (máximo 10MB para evitar problemas de memoria y timeout)
-    const maxSize = 10 * 1024 * 1024; // 10MB en bytes
+    // Validar tamaño del archivo (máximo 500MB para importación masiva multisheet)
+    const maxSize = 500 * 1024 * 1024; // 500MB en bytes
     if (file.size > maxSize) {
       console.warn('⚠️ Archivo demasiado grande:', file.size, 'bytes. Máximo:', maxSize, 'bytes');
-      this.snackBar.open('El archivo es demasiado grande. Máximo: 10MB', 'Cerrar', { duration: 5000 });
+      this.snackBar.open('El archivo es demasiado grande. Máximo: 500MB', 'Cerrar', { duration: 5000 });
       return; // Salir si el archivo es muy grande
     }
 
@@ -1831,48 +1857,22 @@ export class MachinesComponent implements OnInit {
 
       // ===== PETICIÓN HTTP POST AL BACKEND =====
       // Realizar petición HTTP POST para subir y procesar el archivo
-      // El backend procesará el Excel/CSV y retornará los programas parseados
+      // El backend procesará el Excel con múltiples hojas (MAQ 11, MAQ 12, etc.)
       const response = await firstValueFrom(
-        this.http.post<any>(`${environment.apiUrl}/maquinas/upload`, formData)
+        this.http.post<any>(`${environment.apiUrl}/maquinas/import/excel-multisheet`, formData)
       );
 
       // ===== VALIDACIÓN DE LA RESPUESTA DEL SERVIDOR =====
       // Verificar que la respuesta del servidor sea exitosa
-      if (response && response.success) {
+      // El backend retorna: { message, sheetsProcessed, totalCreated, totalErrors, results }
+      if (response && response.message === 'Importación completada') {
         console.log('📡 Respuesta del servidor:', response);
-        console.log('📦 Datos recibidos:', response.data);
-        console.log('📊 Cantidad de programas en response.data:', response.data?.length || 0);
-
-        // ===== OBTENER PROGRAMAS ACTUALES =====
-        // Obtener los programas actuales antes de actualizar
-        const currentPrograms = this.programs();
-        console.log('📋 Programas actuales antes de cargar:', currentPrograms.length);
-
-        // ===== FILTRAR PROGRAMAS A MANTENER =====
-        // Mantener solo los programas que NO están en estado CORRIENDO
-        // Esto preserva el trabajo del operario en programas PREPARANDO, LISTO y SUSPENDIDO
-        const programsToKeep = currentPrograms.filter(p =>
-          p.estado === 'PREPARANDO' ||
-          p.estado === 'LISTO' ||
-          p.estado === 'SUSPENDIDO'
-        );
-        console.log('💾 Programas a mantener:', programsToKeep.length);
-
-        // ===== OBTENER NUEVOS PROGRAMAS DEL SERVIDOR =====
-        // Los nuevos programas vienen del archivo Excel/CSV procesado
-        // Estos programas se cargan sin color (estado PREPARANDO por defecto)
-        const newPrograms = response.data || [];
-        console.log('🆕 Nuevos programas del servidor:', newPrograms.length);
-
-        if (newPrograms.length > 0) {
-          console.log('📝 Primer programa nuevo:', newPrograms[0]);
-        }
-
-        // ===== COMBINAR PROGRAMAS =====
-        // Combinar los programas a mantener con los nuevos programas
-        // Los programas a mantener van primero para preservar su orden
-        const combinedPrograms = [...programsToKeep, ...newPrograms];
-        console.log('🔗 Total de programas combinados:', combinedPrograms.length);
+        console.log('� Estadísticas de importación:', {
+          hojasProcesadas: response.sheetsProcessed,
+          registrosCreados: response.totalCreated,
+          errores: response.totalErrors,
+          resultadosPorMaquina: response.results
+        });
 
         // ===== RECARGAR DATOS DESDE LA BASE DE DATOS =====
         // IMPORTANTE: Después de subir el Excel, recargar todos los datos desde la base de datos
@@ -1888,23 +1888,25 @@ export class MachinesComponent implements OnInit {
         // Log de éxito con estadísticas detalladas de la carga
         const programasActualizados = this.programs();
         console.log('✅ Archivo procesado exitosamente y datos recargados', {
-          programasNuevos: newPrograms.length, // Cantidad de programas nuevos cargados
+          programasCreados: response.totalCreated, // Cantidad de programas nuevos creados
           programasEnBD: programasActualizados.length, // Total de programas en la base de datos
           programasPreparando: programasActualizados.filter(p => p.estado === 'PREPARANDO' || p.estado === 'SIN_ASIGNAR').length,
           programasListos: programasActualizados.filter(p => p.estado === 'LISTO').length,
           programasSuspendidos: programasActualizados.filter(p => p.estado === 'SUSPENDIDO').length,
           programasCorriendo: programasActualizados.filter(p => p.estado === 'CORRIENDO').length,
           maquinasProgramadas: new Set(programasActualizados.map(p => p.machineNumber)).size,
+          hojasProcesadas: response.sheetsProcessed,
+          errores: response.totalErrors,
           archivo: file.name
         });
 
         // ===== MOSTRAR MENSAJE AL USUARIO =====
         // Mostrar notificación de éxito al usuario con información de la carga
-        this.snackBar.open(
-          `✅ Programación cargada: ${newPrograms.length} programas procesados desde Excel`,
-          'Cerrar',
-          { duration: 5000 }
-        );
+        const mensajeExito = response.totalErrors > 0
+          ? `✅ Importación completada: ${response.totalCreated} programas creados, ${response.totalErrors} errores en ${response.sheetsProcessed} hojas`
+          : `✅ Importación exitosa: ${response.totalCreated} programas creados desde ${response.sheetsProcessed} hojas`;
+
+        this.snackBar.open(mensajeExito, 'Cerrar', { duration: 6000 });
 
         // ===== LIMPIAR INPUT FILE =====
         // Limpiar el input file para permitir seleccionar el mismo archivo nuevamente
@@ -1974,7 +1976,7 @@ export class MachinesComponent implements OnInit {
       } else if (error.status === 413) {
         // Error 413: Payload Too Large - Archivo demasiado grande
         errorMessage = 'El archivo es demasiado grande';
-        technicalDetails = 'El tamaño máximo permitido es 10MB.';
+        technicalDetails = 'El tamaño máximo permitido es 500MB.';
       } else if (error.status === 0) {
         // Error 0: Network Error - Sin conexión al servidor
         errorMessage = 'Error de conexión';
@@ -2074,7 +2076,7 @@ export class MachinesComponent implements OnInit {
       'TERMINADO': 'TERMINADO'
     };
 
-    const result = displayTexts[estadoNormalizado] || estado.replace('_', ' ');
+    const result = displayTexts[estadoNormalizado] || (estado ? estado.replace('_', ' ') : 'SIN ASIGNAR');
     // console.log('🔍 getEstadoDisplay retorna:', result);
 
     // Retorna el texto correspondiente o el estado original si no se encuentra
@@ -2429,14 +2431,15 @@ export class MachinesComponent implements OnInit {
       htmlContent = htmlContent
         .replace(/\$\{fechaActual\}/g, fechaActual)
         .replace(/\$\{nombreCompleto\}/g, nombreCompleto)
-        .replace(/\$\{program\.cliente\s*\|\|\s*['"]{2}\}/g, program.cliente || '')
-        .replace(/\$\{program\.referencia\s*\|\|\s*['"]{2}\}/g, program.referencia || '')
-        .replace(/\$\{program\.td\s*\|\|\s*['"]{2}\}/g, program.td || '')
-        .replace(/\$\{program\.otSap\s*\|\|\s*['"]{2}\}/g, program.otSap || '')
-        .replace(/\$\{program\.machineNumber\s*\|\|\s*program\.numeroMaquina\s*\|\|\s*['"]{2}\}/g, String(program.machineNumber || program.numeroMaquina || ''))
+        .replace(/\$\{program\.cliente\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.cliente || '')
+        .replace(/\$\{program\.referencia\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.referencia || '')
+        .replace(/\$\{program\.td\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.td || '')
+        .replace(/\$\{program\.otSap\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.otSap || '')
+        .replace(/\$\{program\.machineNumber\s*\|\|\s*program\.numeroMaquina\s*\|\|\s*[\s\S]*?['"]{2}\}/g, String(program.machineNumber || program.numeroMaquina || ''))
         .replace(/\$\{program\.kilos\s*\|\|\s*0\}\s*kg/g, this.formatKilosForPrint(program.kilos) + ' kg')
-        .replace(/\$\{program\.sustrato\s*\|\|\s*['"]{2}\}/g, program.sustrato || '')
-        .replace(/\$\{program\.articulo\s*\|\|\s*['"]{2}\}/g, program.articulo || '');
+        .replace(/\$\{program\.metros\s*\|\|\s*0\}\s*m/g, (program.metros ? Math.floor(program.metros) : 0) + ' m')
+        .replace(/\$\{program\.sustrato\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.sustrato || '')
+        .replace(/\$\{program\.articulo\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.articulo || '');
 
 
 
@@ -2538,45 +2541,32 @@ export class MachinesComponent implements OnInit {
   // ===== MÉTODO AUXILIAR PARA FORMATEAR KILOS EN IMPRESIÓN =====
   // Formatea los kilos: hasta 3 decimales para < 1000, y 4 decimales fijos para >= 1000
   private formatKilosForPrint(kilos: number | null | undefined): string {
-    if (kilos === null || kilos === undefined || kilos === 0) {
+    if (kilos === null || kilos === undefined) {
       return '0';
     }
-
-    // Si es >= 1000, mostrar con 4 decimales fijos
-    if (kilos >= 1000) {
-      return kilos.toLocaleString('es-ES', {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4
-      });
-    }
-
-    // Si es < 1000, mostrar con hasta 3 decimales (sin ceros innecesarios)
-    return kilos.toLocaleString('es-ES', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 3
-    });
+    // Retornar parte entera como string puro (quitar decimales)
+    return Math.floor(kilos).toString();
   }
 
   // ===== MÉTODO PARA FORMATEAR KILOS EN TABLA =====
-  // Formatea los kilos: hasta 3 decimales para < 1000, y 4 decimales fijos para >= 1000
+  // Formatea los kilos: con hasta 2 decimales si los tiene
   formatKilosForDisplay(kilos: number | null | undefined): string {
     if (kilos === null || kilos === undefined) {
       return '0';
     }
 
-    // Si es >= 1000, mostrar con 4 decimales fijos
-    if (kilos >= 1000) {
-      return kilos.toLocaleString('es-ES', {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4
-      });
-    }
+    // Retornar parte entera como string puro (quitar decimales)
+    return Math.floor(kilos).toString();
+  }
 
-    // Si es < 1000, mostrar con hasta 3 decimales (sin ceros innecesarios)
-    return kilos.toLocaleString('es-ES', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 3
-    });
+  // ===== MÉTODO PARA FORMATEAR METROS EN TABLA =====
+  // Según solicitud: solo números antes de la coma, sin puntos ni comas
+  formatMetrosForDisplay(metros: number | null | undefined): string {
+    if (metros === null || metros === undefined) {
+      return '0';
+    }
+    // Retornar parte entera como string puro
+    return Math.floor(metros).toString();
   }
 
   // ===== MÉTODOS PARA PERSISTENCIA DE MENSAJES =====

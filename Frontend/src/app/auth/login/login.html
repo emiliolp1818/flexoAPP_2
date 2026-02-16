@@ -76,10 +76,10 @@
               type="text"
               inputmode="text" />
             <mat-icon matSuffix>person</mat-icon>
+            <mat-error *ngIf="loginForm.get('userCode')?.invalid && loginForm.get('userCode')?.touched">
+              Usuario requerido
+            </mat-error>
           </mat-form-field>
-          <mat-error *ngIf="loginForm.get('userCode')?.invalid && loginForm.get('userCode')?.touched">
-            Usuario requerido
-          </mat-error>
         </div>
 
         <!-- Password Field -->
@@ -100,10 +100,10 @@
               [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'">
               <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
+            <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+              Contraseña requerida
+            </mat-error>
           </mat-form-field>
-          <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-            Contraseña requerida
-          </mat-error>
         </div>
 
 

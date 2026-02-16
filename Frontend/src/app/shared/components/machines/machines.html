@@ -282,7 +282,8 @@
                         matTooltipPosition="right"
                         [matTooltipDisabled]="isColorsExpanded((element.otSap || '').toString())">
                         <mat-icon class="colors-icon-small">palette</mat-icon>
-                        <span class="numero-colores-text">{{ element.colores?.length || 0 }}</span>
+                        <span class="numero-colores-text">{{ element.numeroColores || element.colores?.length || 0
+                          }}</span>
                       </button>
                     </td>
                   </ng-container>
@@ -354,7 +355,8 @@
                                 </div>
                                 <div class="detail-badge">
                                   <mat-icon>opacity</mat-icon>
-                                  <span>Dens: {{ anilox.densidad !== null && anilox.densidad !== undefined ? anilox.densidad : '0.885' }}</span>
+                                  <span>Dens: {{ anilox.densidad !== null && anilox.densidad !== undefined ?
+                                    anilox.densidad : '0.885' }}</span>
                                 </div>
                                 <div class="detail-badge" *ngIf="element.anchoMm">
                                   <mat-icon>straighten</mat-icon>
@@ -398,7 +400,7 @@
                           <span class="kilos-unit">kg</span>
                         </div>
                         <div class="metros-info" *ngIf="element.metros && element.metros > 0">
-                          <span class="metros-number">{{ element.metros | number:'1.0-2' }}</span>
+                          <span class="metros-number">{{ formatMetrosForDisplay(element.metros) }}</span>
                           <span class="metros-unit">m</span>
                         </div>
                       </div>
@@ -445,7 +447,8 @@
                     <td mat-cell *matCellDef="let element" class="excel-cell status-cell">
                       <div class="estado-container">
                         <div class="status-main">
-                          <span class="status-text-display" [class]="'status-' + element.estado.toLowerCase()">
+                          <span class="status-text-display"
+                            [class]="'status-' + (element.estado || 'SIN_ASIGNAR').toLowerCase()">
                             <span class="status-text">{{ getEstadoDisplay(element.estado) }}</span>
                           </span>
                         </div>
@@ -541,8 +544,8 @@
                   <!-- DEFINICIÓN DE FILAS -->
                   <tr mat-header-row *matHeaderRowDef="simpleColumns; sticky: true"></tr>
                   <tr mat-row *matRowDef="let row; columns: simpleColumns;" class="excel-row"
-                    [ngClass]="'status-row-' + row.estado.toLowerCase()" [attr.data-ot-sap]="row.otSap"
-                    [attr.data-articulo]="row.articulo"></tr>
+                    [ngClass]="'status-row-' + (row.estado || 'SIN_ASIGNAR').toLowerCase()"
+                    [attr.data-ot-sap]="row.otSap" [attr.data-articulo]="row.articulo"></tr>
                   <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="expanded-row"></tr>
 
                 </table>

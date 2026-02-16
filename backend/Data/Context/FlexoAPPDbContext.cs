@@ -157,7 +157,7 @@ namespace FlexoAPP.API.Data.Context
                 entity.Property(e => e.Kilos)
                     .HasColumnName("kilos") // Mapeo explícito a minúsculas
                     .IsRequired()
-                    .HasColumnType("DECIMAL(10,2)");
+                    .HasColumnType("DECIMAL(10,3)");
                 
                 // FechaTintaEnMaquina: fecha de aplicación de tinta
                 // Propiedad C#: FechaTintaEnMaquina -> Columna MySQL: fecha_tinta_en_maquina
@@ -176,9 +176,9 @@ namespace FlexoAPP.API.Data.Context
                 // Propiedad C#: Estado -> Columna MySQL: estado
                 entity.Property(e => e.Estado)
                     .HasColumnName("estado") // Mapeo explícito a minúsculas
-                    .IsRequired()
+                    .IsRequired(false) // Permitir NULL para "Sin asignar"
                     .HasMaxLength(20)
-                    .HasDefaultValue("LISTO");
+                    .HasDefaultValue(null);
                 
                 // Observaciones: notas adicionales
                 // Propiedad C#: Observaciones -> Columna MySQL: observaciones

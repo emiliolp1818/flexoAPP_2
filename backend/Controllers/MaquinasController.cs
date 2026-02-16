@@ -96,7 +96,6 @@ namespace backend.Controllers
                         referencia = reader.IsDBNull(reader.GetOrdinal("referencia")) ? null : reader.GetString("referencia"),
                         td = reader.IsDBNull(reader.GetOrdinal("td")) ? null : reader.GetString("td"),
                         tipoImpresion = reader.IsDBNull(reader.GetOrdinal("tipo_impresion")) ? null : reader.GetString("tipo_impresion"),
-                        tipo_impresion = reader.IsDBNull(reader.GetOrdinal("tipo_impresion")) ? null : reader.GetString("tipo_impresion"),
                         numeroColores = reader.GetInt32("numero_colores"),
                         colores = ParseColores(reader.GetString("colores")),
                         kilos = reader.GetDecimal("kilos"),
@@ -625,105 +624,7 @@ namespace backend.Controllers
             return int.TryParse(userIdClaim, out var userId) ? userId : 0; // Si la conversión es exitosa retornar userId, sino retornar 0
         }
 
-        /// <summary>
-        /// POST: api/maquinas/upload
-        /// Cargar programación desde archivo Excel
-        /// </summary>
-        [HttpPost("upload")]
-        public async Task<ActionResult<object>> UploadProgramming(IFormFile file)
-        {
-            try
-            {
-                if (file == null || file.Length == 0)
-                {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        error = "Archivo requerido",
-                        message = "Debe seleccionar un archivo Excel válido",
-                        timestamp = DateTime.UtcNow
-                    });
-                }
 
-                // Validar tipo de archivo - Solo Excel
-                var allowedExtensions = new[] { ".xlsx", ".xls" };
-                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
-                
-                if (!allowedExtensions.Contains(fileExtension))
-                {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        error = "Tipo de archivo no válido",
-                        message = "Solo se permiten archivos Excel (.xlsx, .xls)",
-                        timestamp = DateTime.UtcNow
-                    });
-                }
-
-                // Validar tamaño del archivo (máximo 10MB)
-                if (file.Length > 10 * 1024 * 1024)
-                {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        error = "Archivo demasiado grande",
-                        message = "El archivo no debe exceder 10MB",
-                        timestamp = DateTime.UtcNow
-                    });
-                }
-
-                // Obtener el ID del usuario actual
-                var userId = GetCurrentUserId();
-                if (userId == 0) userId = 1; // Usuario por defecto si no hay autenticación
-
-                _logger.LogInformation("📁 Procesando archivo Excel: {FileName} ({FileSize} bytes)", file.FileName, file.Length);
-
-                // Procesar el archivo Excel usando el servicio
-                var result = await _maquinaService.ProcessExcelFileAsync(file, userId);
-
-                if (result.Success)
-                {
-                    return Ok(new
-                    {
-                        success = true,
-                        data = result.Programs,
-                        message = $"✅ Archivo procesado exitosamente. {result.ProcessedCount} programas cargados.",
-                        summary = new
-                        {
-                            totalPrograms = result.ProcessedCount,
-                            readyPrograms = result.Programs?.Count(p => p.Estado == "LISTO" || p.Estado == "PREPARANDO") ?? 0,
-                            machinesWithPrograms = result.Programs?.Select(p => p.NumeroMaquina).Distinct().Count() ?? 0,
-                            fileName = file.FileName,
-                            processedAt = DateTime.UtcNow
-                        },
-                        timestamp = DateTime.UtcNow
-                    });
-                }
-                else
-                {
-                    return BadRequest(new
-                    {
-                        success = false,
-                        error = "Error procesando archivo",
-                        message = result.ErrorMessage,
-                        details = result.ValidationErrors,
-                        timestamp = DateTime.UtcNow
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error procesando archivo Excel: {FileName}", file?.FileName);
-                return StatusCode(500, new
-                {
-                    success = false,
-                    error = "Error interno del servidor",
-                    message = "Error al procesar el archivo Excel",
-                    details = ex.Message,
-                    timestamp = DateTime.UtcNow
-                });
-            }
-        }
 
         /// <summary>
         /// DELETE: api/maquinas/clear-all
@@ -775,10 +676,60 @@ namespace backend.Controllers
             {
                 _logger.LogInformation("📋 Obteniendo información de diseño para artículo: {Articulo}", articulo);
 
-                // Buscar el diseño por artículo F
-                var design = await _context.Designs
-                    .Where(d => d.ArticleF == articulo)
-                    .FirstOrDefaultAsync();
+                // Buscar el diseño por artículo F usando Raw SQL para evitar errores de mapeo
+                Design? design = null;
+                var colors = new List<string>();
+                int? colorCountFromDb = null;
+                
+                using (var conn = new MySqlConnector.MySqlConnection(_context.Database.GetConnectionString()))
+                {
+                    await conn.OpenAsync();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = @"
+                        SELECT client, description, substrate, type, ancho_mm, printType, status,
+                               `color 1`, `color 2`, `color 3`, `color 4`, `color 5`,
+                               `color 6`, `color 7`, `color 8`, `color 9`, `color 10`,
+                               ColorCount
+                        FROM designs 
+                        WHERE ArticleF = @art 
+                        LIMIT 1";
+                    cmd.Parameters.AddWithValue("@art", articulo);
+                    
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        design = new Design
+                        {
+                            ArticleF = articulo,
+                            Client = reader.IsDBNull(0) ? null : reader.GetString(0),
+                            Description = reader.IsDBNull(1) ? null : reader.GetString(1),
+                            Substrate = reader.IsDBNull(2) ? null : reader.GetString(2),
+                            Type = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            AnchoMm = reader.IsDBNull(4) ? (int?)null : reader.GetInt32(4),
+                            PrintType = reader.IsDBNull(5) ? null : reader.GetString(5),
+                            Status = reader.IsDBNull(6) ? null : reader.GetString(6)
+                        };
+
+                        // Cargar colores de las columnas 1-10
+                        for (int i = 7; i <= 16; i++)
+                        {
+                            if (!reader.IsDBNull(i))
+                            {
+                                var colorName = reader.GetString(i);
+                                if (!string.IsNullOrWhiteSpace(colorName))
+                                {
+                                    colors.Add(colorName);
+                                }
+                            }
+                        }
+
+                        // Obtener el conteo de colores directo de la columna ColorCount
+                        if (!reader.IsDBNull(17))
+                        {
+                            colorCountFromDb = reader.GetInt32(17);
+                        }
+                    }
+                }
 
                 if (design == null)
                 {
@@ -789,24 +740,16 @@ namespace backend.Controllers
                         found = false,
                         data = (object?)null,
                         message = "No se encontró diseño para este artículo",
-                        timestamp = DateTime.UtcNow
+                        timestamp = DateTime.Now
                     });
                 }
 
-                // Construir lista de colores desde las columnas Color1 a Color10
-                var colors = new List<string>();
-                if (!string.IsNullOrWhiteSpace(design.Color1)) colors.Add(design.Color1);
-                if (!string.IsNullOrWhiteSpace(design.Color2)) colors.Add(design.Color2);
-                if (!string.IsNullOrWhiteSpace(design.Color3)) colors.Add(design.Color3);
-                if (!string.IsNullOrWhiteSpace(design.Color4)) colors.Add(design.Color4);
-                if (!string.IsNullOrWhiteSpace(design.Color5)) colors.Add(design.Color5);
-                if (!string.IsNullOrWhiteSpace(design.Color6)) colors.Add(design.Color6);
-                if (!string.IsNullOrWhiteSpace(design.Color7)) colors.Add(design.Color7);
-                if (!string.IsNullOrWhiteSpace(design.Color8)) colors.Add(design.Color8);
-                if (!string.IsNullOrWhiteSpace(design.Color9)) colors.Add(design.Color9);
-                if (!string.IsNullOrWhiteSpace(design.Color10)) colors.Add(design.Color10);
-
                 _logger.LogInformation("✅ Información de diseño encontrada para artículo {Articulo}", articulo);
+
+                // Determinar el número final de colores:
+                // 1. Usar la cantidad de pantones encontrados si hay alguno.
+                // 2. Fallback al campo ColorCount de la BD si es mayor que 0.
+                int finalColorCount = colors.Count > 0 ? colors.Count : (colorCountFromDb ?? 0);
 
                 return Ok(new
                 {
@@ -816,14 +759,14 @@ namespace backend.Controllers
                     {
                         articulo = articulo,
                         cliente = design.Client ?? "",
-                        descripcion = design.Description ?? "", // ✅ Cambiado de "referencia" a "descripcion" para condición única
-                        referencia = design.Description ?? "", // ✅ Mantener "referencia" para compatibilidad con máquinas
+                        descripcion = design.Description ?? "",
+                        referencia = design.Description ?? "",
                         sustrato = design.Substrate ?? "",
-                        anchoMm = design.AnchoMm ?? 0, // ✅ Agregamos AnchoMm para cálculos de tinta
-                        numeroColores = colors.Count,
-                        colores = colors // ✅ Agregamos la lista de colores
+                        anchoMm = design.AnchoMm ?? 0,
+                        numeroColores = finalColorCount,
+                        colores = colors
                     },
-                    timestamp = DateTime.UtcNow
+                    timestamp = DateTime.Now
                 });
             }
             catch (Exception ex)
@@ -1055,7 +998,7 @@ namespace backend.Controllers
                 command.CommandText = @"
                     SELECT 
                         articulo, numero_maquina, ot_sap, cliente, referencia, td,
-                        numero_colores, colores, kilos, fecha_tinta_en_maquina, sustrato,
+                        numero_colores, colores, kilos, metros, fecha_tinta_en_maquina, sustrato,
                         estado, observaciones
                     FROM maquinas
                     WHERE articulo = @articulo";
@@ -1084,6 +1027,7 @@ namespace backend.Controllers
                     numeroColores = reader.GetInt32("numero_colores"),
                     colores = ParseColores(reader.GetString("colores")),
                     kilos = reader.GetDecimal("kilos"),
+                    metros = reader.IsDBNull(reader.GetOrdinal("metros")) ? 0 : reader.GetDecimal("metros"),
                     fechaTintaEnMaquina = reader.GetDateTime("fecha_tinta_en_maquina"),
                     sustrato = reader.GetString("sustrato"),
                     estado = reader.IsDBNull(reader.GetOrdinal("estado")) ? null : reader.GetString("estado"),
@@ -1284,6 +1228,24 @@ namespace backend.Controllers
 
                 _logger.LogInformation($"📥 Iniciando importación masiva desde Excel: {file.FileName}");
 
+                // ===== ELIMINAR SOLO PROGRAMAS TERMINADOS =====
+                // Antes de importar, eliminar solo los programas con estado TERMINADO
+                // Los programas PREPARANDO, LISTO, SUSPENDIDO y CORRIENDO se mantienen
+                var programasTerminados = await _context.Maquinas
+                    .Where(m => m.Estado == "TERMINADO")
+                    .ToListAsync();
+                
+                if (programasTerminados.Any())
+                {
+                    _context.Maquinas.RemoveRange(programasTerminados);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"🗑️ {programasTerminados.Count} programas TERMINADOS eliminados antes de importar");
+                }
+                else
+                {
+                    _logger.LogInformation("ℹ️ No hay programas TERMINADOS para eliminar");
+                }
+
                 // Configurar EPPlus para uso no comercial
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -1333,6 +1295,16 @@ namespace backend.Controllers
                             sheetsProcessed++;
 
                             _logger.LogInformation($"📊 Máquina {machineNumber}: {result.Created} creados, {result.Errors} errores");
+                            
+                            // Log detallado si no se creó ningún registro
+                            if (result.Created == 0)
+                            {
+                                _logger.LogWarning($"⚠️ Máquina {machineNumber}: NO se crearon registros. Errores: {result.Errors}");
+                                if (result.ErrorDetails.Any())
+                                {
+                                    _logger.LogWarning($"   Detalles de errores: {string.Join(", ", result.ErrorDetails.Take(3))}");
+                                }
+                            }
                         }
                     }
                 }
@@ -1344,11 +1316,13 @@ namespace backend.Controllers
                     message = "Importación completada",
                     sheetsProcessed,
                     totalCreated,
+                    totalUpdated = importResults.Sum(r => r.Value.Updated),
                     totalErrors,
                     results = importResults.Select(r => new
                     {
                         machineNumber = r.Key,
                         created = r.Value.Created,
+                        updated = r.Value.Updated,
                         errors = r.Value.Errors,
                         errorDetails = r.Value.ErrorDetails
                     })
@@ -1388,8 +1362,9 @@ namespace backend.Controllers
         {
             var result = new ImportSheetResult();
             var rowCount = worksheet.Dimension?.Rows ?? 0;
+            var processedOts = new HashSet<string>(); // Rastrear OTs procesadas en esta hoja
 
-            _logger.LogInformation($"📊 Hoja tiene {rowCount} filas");
+            _logger.LogInformation($"📊 Procesando máquina {machineNumber}: Hoja tiene {rowCount} filas");
 
             // Empezar desde la fila 3 (filas 1-2 son encabezados)
             for (int row = 3; row <= rowCount; row++)
@@ -1401,12 +1376,36 @@ namespace backend.Controllers
                     var articulo = GetCellValue(worksheet, row, "C")?.Trim(); // Columna C
                     var cliente = GetCellValue(worksheet, row, "D")?.Trim(); // Columna D
 
+                    // Log de datos leídos para debugging
+                    if (row == 3)
+                    {
+                        _logger.LogDebug($"🔍 Máquina {machineNumber}, Primera fila de datos: OT={otSap}, Articulo={articulo}, Cliente={cliente}");
+                    }
+
                     // Validar campos obligatorios
                     if (string.IsNullOrEmpty(otSap) || string.IsNullOrEmpty(articulo) || string.IsNullOrEmpty(cliente))
                     {
                         _logger.LogDebug($"⚠️ Fila {row} ignorada: faltan datos obligatorios (OT SAP, Artículo o Cliente)");
                         continue;
                     }
+
+                    // Verificar si la OT ya fue procesada en esta hoja
+                    if (processedOts.Contains(otSap))
+                    {
+                        _logger.LogDebug($"⚠️ Fila {row} ignorada: OT {otSap} duplicada en el mismo archivo");
+                        result.Errors++;
+                        result.ErrorDetails.Add($"Fila {row}: OT {otSap} duplicada en el archivo");
+                        continue;
+                    }
+
+                    // Buscar si la OT ya existe en la base de datos para actualizarla
+                    var existingMachine = await _context.Maquinas
+                        .FirstOrDefaultAsync(m => m.OtSap == otSap);
+                    
+                    bool isUpdate = existingMachine != null;
+
+                    // Marcar OT como procesada
+                    processedOts.Add(otSap);
 
                     var referencia = GetCellValue(worksheet, row, "E")?.Trim(); // Columna E
                     var td = GetCellValue(worksheet, row, "F")?.Trim(); // Columna F
@@ -1417,31 +1416,105 @@ namespace backend.Controllers
                     var fechaTintaStr = GetCellValue(worksheet, row, "W")?.Trim(); // Columna W
                     var metrosStr = GetCellValue(worksheet, row, "AG")?.Trim(); // Columna AG
 
-                    // Parsear número de colores
-                    if (!int.TryParse(numeroColoresStr, out int numeroColores))
+                    // Parsear número de colores con mejor manejo
+                    int numeroColores = 1; // Default
+                    if (!string.IsNullOrEmpty(numeroColoresStr))
                     {
-                        numeroColores = 1; // Default
+                        // Intentar parsear como entero
+                        if (int.TryParse(numeroColoresStr, out int coloresInt))
+                        {
+                            numeroColores = coloresInt;
+                        }
+                        // Si falla, intentar parsear como decimal y convertir a entero
+                        else if (decimal.TryParse(numeroColoresStr, out decimal coloresDecimal))
+                        {
+                            numeroColores = (int)coloresDecimal;
+                            _logger.LogDebug($"📊 Fila {row}: Número de colores convertido de decimal {coloresDecimal} a {numeroColores}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"⚠️ Fila {row}: número de colores inválido '{numeroColoresStr}', usando default 1");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogDebug($"📊 Fila {row}: Número de colores vacío, usando default 1");
                     }
 
-                    // Parsear kilos
-                    if (!decimal.TryParse(kilosStr, out decimal kilos))
+                    // Parsear kilos - Solo parte entera (sin decimales)
+                    // Según instrucción: aplicar lo mismo que metros (quitar puntos, ignorar lo que esté después de la coma)
+                    decimal kilos = 0;
+                    if (!string.IsNullOrEmpty(kilosStr))
                     {
-                        _logger.LogWarning($"⚠️ Fila {row}: kilos inválido '{kilosStr}', usando 0");
-                        kilos = 0;
+                        // 1. Quitar puntos (separadores de miles)
+                        var kilosClean = kilosStr.Replace(".", "").Trim();
+                        // 2. Tomar solo lo que está antes de la coma (separador decimal)
+                        var parts = kilosClean.Split(',');
+                        var kilosIntPart = parts[0];
+                        
+                        if (decimal.TryParse(kilosIntPart, out decimal kilosValue))
+                        {
+                            kilos = kilosValue;
+                            
+                            // Validar límite DECIMAL(10,3)
+                            if (kilos > 9999999.999m) kilos = 0;
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"⚠️ Fila {row}: kilos inválido '{kilosStr}', usando 0");
+                        }
                     }
 
-                    // Parsear metros (opcional)
+                    // Parsear metros - Solo parte entera (antes de la coma/punto)
+                    // Según instrucción: ignorar decimales y cargar sin separadores
                     decimal? metros = null;
-                    if (!string.IsNullOrEmpty(metrosStr) && decimal.TryParse(metrosStr, out decimal metrosValue))
+                    if (!string.IsNullOrEmpty(metrosStr))
                     {
-                        metros = metrosValue;
+                        // 1. Quitar puntos (separadores de miles en formato ES)
+                        // 2. Tomar solo lo que está antes de la coma (separador decimal)
+                        var metrosClean = metrosStr.Replace(".", "").Trim();
+                        var parts = metrosClean.Split(',');
+                        var metrosIntPart = parts[0];
+                        
+                        if (decimal.TryParse(metrosIntPart, out decimal metrosValue))
+                        {
+                            // Validar que no exceda el límite de DECIMAL(10,2)
+                            if (metrosValue > 99999999.99m)
+                            {
+                                _logger.LogWarning($"⚠️ Fila {row}: metros {metrosValue} excede límite, usando NULL");
+                                metros = null;
+                            }
+                            else
+                            {
+                                metros = metrosValue;
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"⚠️ Fila {row}: metros inválido '{metrosStr}', usando NULL");
+                        }
                     }
 
-                    // Parsear fecha
+                    // Parsear fecha - mejorado para manejar fechas de Excel
                     DateTime fechaTinta = DateTime.Now;
                     if (!string.IsNullOrEmpty(fechaTintaStr))
                     {
-                        if (!DateTime.TryParse(fechaTintaStr, out fechaTinta))
+                        // Primero intentar parsear como número de Excel (OADate)
+                        if (double.TryParse(fechaTintaStr, out double oaDate))
+                        {
+                            try
+                            {
+                                fechaTinta = DateTime.FromOADate(oaDate);
+                                _logger.LogDebug($"📅 Fila {row}: Fecha parseada desde OADate: {fechaTinta:dd/MM/yyyy HH:mm}");
+                            }
+                            catch
+                            {
+                                _logger.LogWarning($"⚠️ Fila {row}: OADate inválido '{fechaTintaStr}', intentando otros formatos");
+                            }
+                        }
+                        
+                        // Si no es OADate, intentar parsear como string
+                        if (fechaTinta == DateTime.Now && !DateTime.TryParse(fechaTintaStr, out fechaTinta))
                         {
                             // Intentar parsear formato dd/mm/yyyy hh:mm
                             var formats = new[] { 
@@ -1450,7 +1523,10 @@ namespace backend.Controllers
                                 "d/M/yyyy HH:mm",
                                 "d/M/yyyy H:mm",
                                 "dd/MM/yyyy",
-                                "d/M/yyyy"
+                                "d/M/yyyy",
+                                "M/d/yyyy HH:mm",
+                                "M/d/yyyy H:mm",
+                                "M/d/yyyy"
                             };
                             
                             if (!DateTime.TryParseExact(fechaTintaStr, formats, 
@@ -1462,35 +1538,167 @@ namespace backend.Controllers
                             }
                         }
                     }
-
-                    // Crear objeto Maquina
-                    var maquina = new Maquina
+                    else
                     {
-                        OtSap = otSap,
-                        Articulo = articulo,
-                        NumeroMaquina = machineNumber,
-                        Cliente = cliente,
-                        Referencia = referencia,
-                        Td = td,
-                        TipoImpresion = tipoImpresion,
-                        NumeroColores = numeroColores,
-                        Colores = "[]", // Array vacío por defecto
-                        Kilos = kilos,
-                        Metros = metros,
-                        FechaTintaEnMaquina = fechaTinta,
-                        Sustrato = sustrato ?? "",
-                        Estado = "PENDIENTE",
-                        Observaciones = $"Importado desde Excel - Hoja MAQ {machineNumber}",
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now
-                    };
+                        _logger.LogDebug($"📅 Fila {row}: Fecha vacía, usando fecha actual");
+                    }
+
+                    // ===== CARGAR COLORES DESDE TABLA DE DISEÑO =====
+                    // Buscar el diseño por artículo F para obtener los colores
+                    // IMPORTANTE: Usar AsNoTracking para evitar conflictos de rastreo
+                    // ===== OBTENER DISEÑO (Usando Raw SQL para evitar errores de EF like '0HModified') =====
+                    Design? design = null;
+                    try 
+                    {
+                        using var designConn = new MySqlConnector.MySqlConnection(_context.Database.GetConnectionString());
+                        await designConn.OpenAsync();
+                        using var designCmd = designConn.CreateCommand();
+                        designCmd.CommandText = @"
+                            SELECT client, description, substrate, type, ancho_mm, printType, status, 
+                                   `color 1`, `color 2`, `color 3`, `color 4`, `color 5`, 
+                                   `color 6`, `color 7`, `color 8`, `color 9`, `color 10`,
+                                   ColorCount
+                            FROM designs 
+                            WHERE ArticleF = @art 
+                            LIMIT 1";
+                        designCmd.Parameters.AddWithValue("@art", articulo);
+                        
+                        using var designReader = await designCmd.ExecuteReaderAsync();
+                        if (await designReader.ReadAsync())
+                        {
+                            design = new Design
+                            {
+                                ArticleF = articulo,
+                                Client = designReader.IsDBNull(0) ? null : designReader.GetString(0),
+                                Description = designReader.IsDBNull(1) ? null : designReader.GetString(1),
+                                Substrate = designReader.IsDBNull(2) ? null : designReader.GetString(2),
+                                Type = designReader.IsDBNull(3) ? null : designReader.GetString(3),
+                                AnchoMm = designReader.IsDBNull(4) ? (int?)null : designReader.GetInt32(4),
+                                PrintType = designReader.IsDBNull(5) ? null : designReader.GetString(5),
+                                Status = designReader.IsDBNull(6) ? null : designReader.GetString(6),
+                                Color1 = designReader.IsDBNull(7) ? null : designReader.GetString(7),
+                                Color2 = designReader.IsDBNull(8) ? null : designReader.GetString(8),
+                                Color3 = designReader.IsDBNull(9) ? null : designReader.GetString(9),
+                                Color4 = designReader.IsDBNull(10) ? null : designReader.GetString(10),
+                                Color5 = designReader.IsDBNull(11) ? null : designReader.GetString(11),
+                                Color6 = designReader.IsDBNull(12) ? null : designReader.GetString(12),
+                                Color7 = designReader.IsDBNull(13) ? null : designReader.GetString(13),
+                                Color8 = designReader.IsDBNull(14) ? null : designReader.GetString(14),
+                                Color9 = designReader.IsDBNull(15) ? null : designReader.GetString(15),
+                                Color10 = designReader.IsDBNull(16) ? null : designReader.GetString(16),
+                                ColorCount = designReader.IsDBNull(17) ? 0 : designReader.GetInt32(17)
+                            };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"⚠️ Error al buscar diseño para {articulo}: {ex.Message}");
+                    }
+                    
+                    var coloresArray = new List<string>();
+                    if (design != null)
+                    {
+                        // Construir lista de colores desde las columnas Color1 a Color10
+                        if (!string.IsNullOrWhiteSpace(design.Color1)) coloresArray.Add(design.Color1);
+                        if (!string.IsNullOrWhiteSpace(design.Color2)) coloresArray.Add(design.Color2);
+                        if (!string.IsNullOrWhiteSpace(design.Color3)) coloresArray.Add(design.Color3);
+                        if (!string.IsNullOrWhiteSpace(design.Color4)) coloresArray.Add(design.Color4);
+                        if (!string.IsNullOrWhiteSpace(design.Color5)) coloresArray.Add(design.Color5);
+                        if (!string.IsNullOrWhiteSpace(design.Color6)) coloresArray.Add(design.Color6);
+                        if (!string.IsNullOrWhiteSpace(design.Color7)) coloresArray.Add(design.Color7);
+                        if (!string.IsNullOrWhiteSpace(design.Color8)) coloresArray.Add(design.Color8);
+                        if (!string.IsNullOrWhiteSpace(design.Color9)) coloresArray.Add(design.Color9);
+                        if (!string.IsNullOrWhiteSpace(design.Color10)) coloresArray.Add(design.Color10);
+                        
+                        _logger.LogDebug($"🎨 Fila {row}: {coloresArray.Count} colores cargados desde diseño para artículo {articulo}");
+                    }
+                    else
+                    {
+                        _logger.LogDebug($"⚠️ Fila {row}: No se encontró diseño para artículo {articulo}");
+                    }
+
+                    // FALLBACK: Si no hay colores del diseño, usar el número de colores del Excel
+                    if (coloresArray.Count == 0)
+                    {
+                        // Priorizar ColorCount de la tabla designs si existe
+                        int fallbackCount = (design != null && design.ColorCount > 0) ? (int)design.ColorCount : numeroColores;
+                        
+                        if (fallbackCount > 0)
+                        {
+                            _logger.LogDebug($"⚖️ Fila {row}: Usando {fallbackCount} colores como fallback (sin nombres de pantones)");
+                            for (int i = 1; i <= fallbackCount; i++)
+                            {
+                                // Llenar con etiquetas genéricas para que se visualicen los bloques en el frontend
+                                coloresArray.Add($"COLOR {i}");
+                            }
+                        }
+                    }
+
+                    // Serializar colores a JSON
+                    var coloresJson = System.Text.Json.JsonSerializer.Serialize(coloresArray);
+
+                    // Usar la entidad existente o crear una nueva
+                    var maquina = existingMachine ?? new Maquina();
+                    
+                    maquina.OtSap = otSap;
+                    maquina.Articulo = articulo;
+                    maquina.NumeroMaquina = machineNumber;
+                    maquina.Cliente = cliente;
+                    maquina.Referencia = referencia;
+                    maquina.Td = td;
+                    maquina.TipoImpresion = tipoImpresion;
+                    maquina.NumeroColores = coloresArray.Count;
+                    maquina.Colores = coloresJson;
+                    maquina.Kilos = kilos;
+                    maquina.Metros = metros;
+                    maquina.FechaTintaEnMaquina = fechaTinta;
+                    maquina.Sustrato = sustrato ?? "";
+                    
+                    // ===== LÓGICA DE ESTADO (PROTECCIÓN DE ESTADOS ACTIVOS) =====
+                    // Definir los estados que se deben proteger/mantener si ya existen
+                    // Eliminamos 'LISTO' de esta lista para que se resetee a 'Sin asignar' (null) según solicitud
+                    var protectedStates = new[] { "PREPARANDO", "SUSPENDIDO", "CORRIENDO" };
+
+                    // Si ya existe y está en un estado protegido, mantener tanto el estado como las observaciones
+                    if (isUpdate && existingMachine != null && !string.IsNullOrEmpty(existingMachine.Estado) 
+                        && protectedStates.Contains(existingMachine.Estado.ToUpper()))
+                    {
+                        maquina.Estado = existingMachine.Estado;
+                        maquina.Observaciones = existingMachine.Observaciones; // Mantener motivo de suspensión/notas
+                        _logger.LogDebug($"🛡️ OT {otSap} mantiene estado protegido: {maquina.Estado}");
+                    }
+                    else
+                    {
+                        // Si es nuevo o no está en un estado protegido, cargar como sin asignar
+                        maquina.Estado = null; // null se mapea a "Sin asignar" en el frontend
+                        
+                        maquina.Observaciones = isUpdate 
+                            ? $"Actualizado desde Excel - Hoja MAQ {machineNumber}"
+                            : $"Importado desde Excel - Hoja MAQ {machineNumber}";
+                        
+                        _logger.LogDebug($"🆕 OT {otSap} cargada como 'Sin asignar'");
+                    }
+                    
+                    if (!isUpdate) {
+                        maquina.CreatedAt = DateTime.Now;
+                    }
+                    maquina.UpdatedAt = DateTime.Now;
 
                     // Guardar en base de datos
-                    _context.Maquinas.Add(maquina);
-                    await _context.SaveChangesAsync();
+                    if (isUpdate) {
+                        _context.Maquinas.Update(maquina);
+                        result.Updated++;
+                    } else {
+                        _context.Maquinas.Add(maquina);
+                        result.Created++;
+                    }
 
-                    result.Created++;
-                    _logger.LogDebug($"✅ Fila {row}: Registro creado - OT {otSap}");
+                    await _context.SaveChangesAsync();
+                    
+                    // CRÍTICO: Limpiar el contexto después de guardar para evitar conflictos de rastreo
+                    _context.ChangeTracker.Clear();
+
+                    _logger.LogDebug($"✅ Fila {row}: Registro {(isUpdate ? "actualizado" : "creado")} - OT {otSap}");
                 }
                 catch (Exception ex)
                 {
@@ -1498,6 +1706,10 @@ namespace backend.Controllers
                     var errorMsg = $"Fila {row}: {ex.Message}";
                     result.ErrorDetails.Add(errorMsg);
                     _logger.LogError(ex, $"❌ Error procesando fila {row}");
+                    
+                    // CRÍTICO: Limpiar el contexto también en caso de error
+                    // Esto evita que errores en una fila afecten las siguientes
+                    _context.ChangeTracker.Clear();
                 }
             }
 
@@ -1526,6 +1738,7 @@ namespace backend.Controllers
         private class ImportSheetResult
         {
             public int Created { get; set; } = 0;
+            public int Updated { get; set; } = 0;
             public int Errors { get; set; } = 0;
             public List<string> ErrorDetails { get; set; } = new List<string>();
         }

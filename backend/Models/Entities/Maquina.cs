@@ -162,13 +162,13 @@ namespace FlexoAPP.API.Models.Entities
         /// Fecha de creación del registro
         /// </summary>
         [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         /// <summary>
         /// Fecha de última actualización del registro
         /// </summary>
         [Required]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         // Propiedades de navegación para las relaciones con `User` (creador / actualizador)
         [ForeignKey("CreatedBy")]
