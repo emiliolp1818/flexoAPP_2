@@ -27,7 +27,8 @@
               "rgbcolor",
               "jspdf-autotable",
               "html2canvas",
-              "dompurify"
+              "dompurify",
+              "exceljs"
             ],
             "assets": [
               {
