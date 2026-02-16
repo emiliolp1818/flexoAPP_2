@@ -196,6 +196,23 @@ namespace backend.Controllers
                     if (userId == 0) { userId = 1; userName = !string.IsNullOrEmpty(userName) ? userName : "Sistema"; }
                 }
                 catch (Exception) { userId = 1; userName = "Sistema"; }
+
+                // ===== VERIFICAR PERMISOS DE ESTADO =====
+                string permissionNeeded = request.Estado.ToUpper() switch
+                {
+                    "PREPARANDO" => FlexoAPP.API.Models.PermissionCodes.MACHINES_STATUS_PREALISTANDO,
+                    "LISTO" => FlexoAPP.API.Models.PermissionCodes.MACHINES_STATUS_LISTO,
+                    "CORRIENDO" => FlexoAPP.API.Models.PermissionCodes.MACHINES_STATUS_CORRIENDO,
+                    "TERMINADO" => FlexoAPP.API.Models.PermissionCodes.MACHINES_STATUS_TERMINADO,
+                    "SUSPENDIDO" => FlexoAPP.API.Models.PermissionCodes.MACHINES_STATUS_SUSPENDIDO,
+                    _ => null
+                };
+
+                if (permissionNeeded != null && !await HasPermissionAsync(userId, permissionNeeded))
+                {
+                    _logger.LogWarning($"🚫 Usuario {userId} ({userName}) intentó cambiar estado a {request.Estado} sin permiso {permissionNeeded}");
+                    return Forbid(); // O StatusCode(403)
+                }
                 
                 var result = await _maquinaService.UpdateMachineStatusAsync(otSap, request.Estado, request.Observaciones, userId, userName);
 
@@ -624,6 +641,26 @@ namespace backend.Controllers
             return int.TryParse(userIdClaim, out var userId) ? userId : 0; // Si la conversión es exitosa retornar userId, sino retornar 0
         }
 
+        /// <summary>
+        /// Verifica si el usuario actual tiene un permiso específico
+        /// </summary>
+        /// <param name="userId">ID del usuario</param>
+        /// <param name="permissionCode">Código del permiso a verificar</param>
+        /// <returns>True si tiene el permiso, False en caso contrario</returns>
+        private async Task<bool> HasPermissionAsync(int userId, string permissionCode)
+        {
+            if (userId == 0) return false;
+
+            // El administrador (ID 1) tiene todos los permisos por defecto
+            if (userId == 1) return true;
+
+            // Verificar si el usuario tiene el permiso concedido en la base de datos
+            return await _context.UserPermissions.AnyAsync(up => 
+                up.UserId == userId && 
+                up.PermissionCode == permissionCode && 
+                up.IsGranted);
+        }
+
 
 
         /// <summary>
@@ -637,6 +674,14 @@ namespace backend.Controllers
             {
                 var userId = GetCurrentUserId();
                 if (userId == 0) userId = 1; // Usuario por defecto
+
+                // ===== VERIFICAR PERMISOS =====
+                if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.USERS_DELETE) && 
+                    !await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.PERMISSIONS_MANAGE))
+                {
+                    _logger.LogWarning($"🚫 Usuario {userId} intentó limpiar toda la programación sin permisos adecuados");
+                    return Forbid();
+                }
 
                 _logger.LogWarning("🗑️ Limpiando toda la programación de máquinas - Usuario: {UserId}", userId);
 
@@ -989,6 +1034,13 @@ namespace backend.Controllers
                     _logger.LogWarning(userEx, "⚠️ Error obteniendo información del usuario");
                 }
 
+                // ===== VERIFICAR PERMISOS =====
+                if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.MACHINES_PRINT))
+                {
+                    _logger.LogWarning($"🚫 Usuario {userId} ({userName}) intentó generar FF459 sin permiso");
+                    return Forbid();
+                }
+
                 // Buscar la máquina en la base de datos
                 var connectionString = _context.Database.GetConnectionString();
                 using var connection = new MySqlConnector.MySqlConnection(connectionString);
@@ -1106,6 +1158,14 @@ namespace backend.Controllers
         {
             try
             {
+                // ===== VERIFICAR PERMISOS =====
+                int userId = GetCurrentUserId();
+                if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.MACHINES_PRINT))
+                {
+                    _logger.LogWarning($"🚫 Usuario {userId} intentó consultar historial FF459 sin permiso");
+                    return Forbid();
+                }
+
                 _logger.LogInformation("📊 Consultando historial de impresiones FF459");
 
                 // Construir consulta SQL con filtros opcionales
@@ -1227,6 +1287,17 @@ namespace backend.Controllers
                 }
 
                 _logger.LogInformation($"📥 Iniciando importación masiva desde Excel: {file.FileName}");
+
+                // ===== VERIFICAR PERMISOS =====
+                int userId = GetCurrentUserId();
+                if (userId == 0) userId = 1;
+
+                if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.ACTION_IMPORT) && 
+                    !await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.ACTION_ADD_PROGRAMMING))
+                {
+                    _logger.LogWarning($"🚫 Usuario {userId} intentó importar Excel sin permisos");
+                    return Forbid();
+                }
 
                 // ===== ELIMINAR SOLO PROGRAMAS TERMINADOS (Optimizado para memoria) =====
                 var countTerminados = await _context.Maquinas

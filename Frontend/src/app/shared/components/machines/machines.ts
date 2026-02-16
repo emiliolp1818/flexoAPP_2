@@ -203,17 +203,19 @@ export class MachinesComponent implements OnInit {
     'acciones'               // Botones de acción para cambiar estado
   ];
 
-  // Permisos del usuario calculados reactivamente
+  // Permisos del usuario calculados reactivamente usando Signals
   userPermissions = computed((): UserPermissions => {
-    const user = this.authService.getCurrentUser();
-    const userRole = user?.role?.toLowerCase() || '';
+    // Estas señales de permisos provienen del PermissionsService (que es reactivo)
+    const perms = this.permissionsService.permissions();
 
     return {
-      canLoadExcel: true, // Permitir carga de Excel
-      canDownloadTemplate: false, // No permitir descarga de plantilla
-      canViewFF459: false, // No permitir ver formato FF459
-      canClearPrograms: false, // No permitir limpiar programación
-      canSendMessages: ['admin', 'supervisor'].includes(userRole) // Solo admin y supervisor pueden enviar mensajes
+      canLoadExcel: this.permissionsService.hasPermission(PERMISSIONS.ACTION_IMPORT) ||
+        this.permissionsService.hasPermission(PERMISSIONS.ACTION_ADD_PROGRAMMING),
+      canDownloadTemplate: this.permissionsService.hasPermission(PERMISSIONS.ACTION_EXPORT),
+      canViewFF459: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_PRINT),
+      canClearPrograms: this.permissionsService.hasPermission(PERMISSIONS.USERS_DELETE) ||
+        this.permissionsService.hasPermission(PERMISSIONS.PERMISSIONS_MANAGE),
+      canSendMessages: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_SEND_MESSAGE)
     };
   });
 
@@ -1540,6 +1542,13 @@ export class MachinesComponent implements OnInit {
   // Método simplificado que recibe el elemento directamente y el nuevo estado
   async handleAction(element: MachineProgram, newStatus: MachineProgram['estado']) {
     console.log('🎯 ===== handleAction LLAMADO =====');
+
+    // ===== VERIFICAR PERMISOS =====
+    if (!this.canChangeToStatus(newStatus)) {
+      this.snackBar.open('No tienes permiso para realizar esta acción', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
     console.log('📋 Elemento recibido:');
     console.log('   - OT SAP:', element.otSap);
     console.log('   - Artículo:', element.articulo);
@@ -1589,6 +1598,12 @@ export class MachinesComponent implements OnInit {
   async confirmSuspend() {
     // Validar que hay un programa seleccionado y un motivo ingresado
     if (!this.currentProgramToSuspend || !this.suspendReason.trim()) {
+      return;
+    }
+
+    // ===== VERIFICAR PERMISOS =====
+    if (!this.canChangeToSuspendido()) {
+      this.snackBar.open('No tienes permiso para suspender programas', 'Cerrar', { duration: 3000 });
       return;
     }
 
@@ -1744,6 +1759,15 @@ export class MachinesComponent implements OnInit {
   // Los programas en PREPARANDO, LISTO y SUSPENDIDO se mantienen para no perder el trabajo del operario
   async onFileSelected(event: any): Promise<void> {
     console.log('🎯 onFileSelected ejecutado - Evento recibido');
+
+    // ===== VERIFICAR PERMISOS =====
+    if (!this.userPermissions().canLoadExcel) {
+      this.snackBar.open('No tienes permiso para cargar programación', 'Cerrar', { duration: 3000 });
+      // Limpiar el input file
+      if (event?.target) event.target.value = '';
+      return;
+    }
+
     console.log('📂 Event:', event);
     console.log('📂 Event.target:', event?.target);
     console.log('📂 Event.target.files:', event?.target?.files);
@@ -2177,6 +2201,12 @@ export class MachinesComponent implements OnInit {
    * Exportación del lado del cliente (no requiere backend)
    */
   exportToExcel() {
+    // ===== VERIFICAR PERMISOS =====
+    if (!this.userPermissions().canDownloadTemplate) {
+      this.snackBar.open('No tienes permiso para exportar a Excel', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
     try {
       // ===== ACTIVAR INDICADOR DE CARGA =====
       this.loading.set(true);
@@ -2287,37 +2317,62 @@ export class MachinesComponent implements OnInit {
           'Cerrar',
           { duration: 5000 }
         );
-      }).catch(error => {
-        console.error('❌ Error cargando librería xlsx:', error);
-        this.snackBar.open(
-          'Error al cargar la librería de Excel',
-          'Cerrar',
-          { duration: 5000 }
-        );
       });
-
-    } catch (error: any) {
-      // ===== MANEJO DE ERRORES =====
+    } catch (error) {
       console.error('❌ Error exportando a Excel:', error);
-
-      // ===== MOSTRAR ERROR AL USUARIO =====
-      this.snackBar.open(
-        `Error al exportar: ${error.message || 'Error desconocido'}`,
-        'Cerrar',
-        { duration: 5000 }
-      );
-
-    } finally {
-      // ===== DESACTIVAR INDICADOR DE CARGA =====
       this.loading.set(false);
     }
   }
 
+  /**
+   * Limpiar toda la programación de máquinas
+   * Requiere confirmación del usuario y permisos adecuados
+   */
+  async clearAllProgramming() {
+    // ===== VERIFICAR PERMISOS =====
+    if (!this.userPermissions().canClearPrograms) {
+      this.snackBar.open('No tienes permiso para limpiar la programación', 'Cerrar', { duration: 3000 });
+      return;
+    }
 
+    // ===== CONFIRMACIÓN =====
+    if (!confirm('¿Estás seguro de que deseas ELIMINAR TODA la programación? Esta acción no se puede deshacer.')) {
+      return;
+    }
 
-  // ===== MÉTODO PARA REFRESCAR/RECARGAR DATOS DE MÁQUINAS =====
-  // Método asíncrono que recarga todos los programas desde la base de datos
-  // Útil para sincronizar datos cuando hay cambios externos o para actualizar la vista
+    try {
+      this.loading.set(true);
+      console.log('🗑️ Limpiando toda la programación...');
+
+      const response = await firstValueFrom(
+        this.http.delete<any>(`${environment.apiUrl}/maquinas/clear-all`)
+      );
+
+      if (response && response.success) {
+        this.snackBar.open(response.message || 'Programación limpiada exitosamente', 'Cerrar', { duration: 5000 });
+
+        // Limpiar mensajes locales también
+        this.programMessages.set(new Map());
+        this.saveMessagesToStorage();
+
+        // Recargar datos (estará vacío)
+        await this.loadPrograms();
+
+        console.log('✅ Programación limpiada exitosamente');
+      } else {
+        throw new Error(response?.message || 'Error al limpiar programación');
+      }
+    } catch (error: any) {
+      console.error('❌ Error limpiando programación:', error);
+      this.snackBar.open(error.message || 'Error al conectar con el servidor', 'Cerrar', { duration: 5000 });
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Método para refrescar los datos de todas las máquinas
+   */
   async refreshData() {
     try {
       // ===== LOG DE INICIO DE RECARGA =====

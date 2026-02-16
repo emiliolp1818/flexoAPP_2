@@ -30,8 +30,8 @@
         <input #fileInput type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" style="display: none;">
 
         <!-- ✅ Botón Agregar Programación - Cargar archivo Excel con programación -->
-        <button mat-raised-button color="primary" (click)="fileInput.click()" class="load-programming-btn"
-          [disabled]="loading()" matTooltip="Agregar programación desde archivo Excel">
+        <button *ngIf="userPermissions().canLoadExcel" mat-raised-button color="primary" (click)="fileInput.click()"
+          class="load-programming-btn" [disabled]="loading()" matTooltip="Agregar programación desde archivo Excel">
           <!-- Spinner mostrado durante el procesamiento del archivo -->
           <mat-spinner *ngIf="loading()" diameter="16"></mat-spinner>
           <!-- Icono de agregar cuando no está cargando -->
@@ -43,12 +43,20 @@
         </button>
 
         <!-- ✅ Botón Exportar - Descargar programación a Excel -->
-        <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn" [disabled]="loading()"
-          matTooltip="Exportar programación a archivo Excel">
+        <button *ngIf="userPermissions().canDownloadTemplate" mat-raised-button color="accent" (click)="exportToExcel()"
+          class="export-btn" [disabled]="loading()" matTooltip="Exportar programación a archivo Excel">
           <!-- Icono de descarga -->
           <mat-icon>download</mat-icon>
           <!-- Texto del botón -->
           Exportar
+        </button>
+
+        <!-- ✅ Botón Limpiar Programación - Útil para administradores -->
+        <button *ngIf="userPermissions().canClearPrograms" mat-raised-button color="warn"
+          (click)="clearAllProgramming()" class="clear-btn" [disabled]="loading()"
+          matTooltip="ELIMINAR TODA la programación de máquinas">
+          <mat-icon>delete_forever</mat-icon>
+          Limpiar Todo
         </button>
 
         <!-- Botón Actualizar - Para refrescar datos -->
@@ -527,14 +535,14 @@
                         <!-- Botón de MENSAJES - VISIBLE SIEMPRE: Admin/Supervisor pueden enviar, Operarios solo ven -->
                         <button mat-icon-button class="action-btn message-btn"
                           [class.has-message]="hasMessages(element)" [class.visible-always]="hasMessages(element)"
-                          (click)="$event.stopPropagation(); (canSendMessages() || canSendMessagesNew()) ? openMessageDialog(element) : showMessage(element)"
-                          *ngIf="canSendMessages() || canSendMessagesNew() || hasMessages(element)"
-                          matTooltip="{{(canSendMessages() || canSendMessagesNew()) ? (hasMessages(element) ? 'Editar mensaje' : 'Enviar mensaje') : 'Ver mensaje'}}">
+                          (click)="$event.stopPropagation(); (userPermissions().canSendMessages) ? openMessageDialog(element) : showMessage(element)"
+                          *ngIf="userPermissions().canSendMessages || hasMessages(element)"
+                          matTooltip="{{(userPermissions().canSendMessages) ? (hasMessages(element) ? 'Editar mensaje' : 'Enviar mensaje') : 'Ver mensaje'}}">
                           <mat-icon [class.blinking]="hasMessages(element)">campaign</mat-icon>
                         </button>
 
                         <!-- Botón de IMPRIMIR -->
-                        <button mat-icon-button class="action-btn imprimir-btn"
+                        <button *ngIf="userPermissions().canViewFF459" mat-icon-button class="action-btn imprimir-btn"
                           (click)="$event.stopPropagation(); printFF459(element)" [disabled]="!canPrint()">
                           <mat-icon>print</mat-icon>
                         </button>
@@ -696,7 +704,8 @@
       <!-- Título del diálogo con icono -->
       <h3 class="dialog-title">
         <mat-icon>campaign</mat-icon> <!-- Icono de mensaje -->
-        {{ canSendMessages() ? (isEditingMessage ? 'Editar Mensaje' : 'Enviar Mensaje') : 'Mensaje del Administrador' }}
+        {{ userPermissions().canSendMessages ? (isEditingMessage ? 'Editar Mensaje' : 'Enviar Mensaje') : 'Mensaje del
+        Administrador' }}
         <!-- Texto del título -->
       </h3>
       <!-- Botón para cerrar el diálogo -->
@@ -728,12 +737,13 @@
       <div class="message-section">
         <!-- Campo de texto para el mensaje -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>{{ canSendMessages() ? 'Mensaje para el operario' : 'Mensaje' }}</mat-label>
+          <mat-label>{{ userPermissions().canSendMessages ? 'Mensaje para el operario' : 'Mensaje' }}</mat-label>
           <!-- Etiqueta del campo -->
           <!-- Textarea vinculado bidireccional con la variable currentMessage -->
           <textarea matInput [(ngModel)]="currentMessage"
-            [placeholder]="canSendMessages() ? 'Escribe el mensaje para el operario...' : ''"
-            [readonly]="!canSendMessages()" rows="4" [required]="canSendMessages()"></textarea>
+            [placeholder]="userPermissions().canSendMessages ? 'Escribe el mensaje para el operario...' : ''"
+            [readonly]="!userPermissions().canSendMessages" rows="4"
+            [required]="userPermissions().canSendMessages"></textarea>
           <!-- Campo requerido solo para envío -->
         </mat-form-field>
       </div>
@@ -748,15 +758,16 @@
       </button>
 
       <!-- Botón para eliminar mensaje (solo para admin/supervisor y programas TERMINADOS) -->
-      <button *ngIf="canSendMessages() && hasMessages(messageProgram!) && messageProgram?.estado === 'TERMINADO'"
+      <button
+        *ngIf="userPermissions().canSendMessages && hasMessages(messageProgram!) && messageProgram?.estado === 'TERMINADO'"
         mat-stroked-button (click)="deleteMessage(messageProgram!)" class="delete-message-btn">
         <mat-icon>delete</mat-icon> <!-- Icono de eliminar -->
         Eliminar Mensaje <!-- Texto del botón -->
       </button>
 
       <!-- Botón para enviar/actualizar mensaje (solo para admin/supervisor) -->
-      <button *ngIf="canSendMessages()" mat-raised-button (click)="sendMessage()" [disabled]="!currentMessage.trim()"
-        class="send-message-btn">
+      <button *ngIf="userPermissions().canSendMessages" mat-raised-button (click)="sendMessage()"
+        [disabled]="!currentMessage.trim()" class="send-message-btn">
         <mat-icon>{{ isEditingMessage ? 'edit' : 'send' }}</mat-icon> <!-- Icono de enviar o editar -->
         {{ isEditingMessage ? 'Actualizar Mensaje' : 'Enviar Mensaje' }} <!-- Texto del botón -->
       </button>

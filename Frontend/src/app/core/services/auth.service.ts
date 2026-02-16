@@ -1,8 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
+import { PermissionsService } from '../../shared/services/permissions.service';
 
 import { environment } from '../../../environments/environment';
 
@@ -45,12 +46,15 @@ export class AuthService {
   private readonly TOKEN_KEY = 'flexoapp_token';
   private readonly USER_KEY = 'flexoapp_user';
 
+  private permissionsService = inject(PermissionsService);
+
   constructor(
     private http: HttpClient,
     private router: Router
   ) {
     this.loadStoredUser();
   }
+
 
   /**
    * Iniciar sesión
@@ -65,7 +69,7 @@ export class AuthService {
   private tryLoginWithFallback(credentials: LoginRequest, urlIndex: number): Observable<LoginResponse> {
     const fallbackUrls = environment.fallbackUrls || [];
     const urls = [environment.apiUrl, ...fallbackUrls];
-    
+
     if (urlIndex >= urls.length) {
       return throwError(() => new Error('No se pudo conectar con el servidor. Verifique su conexión de red.'));
     }
@@ -82,12 +86,12 @@ export class AuthService {
       }),
       catchError(error => {
         console.warn(`⚠️ Error con ${currentUrl}:`, error.message || error);
-        
+
         // Si es un error de red, intentar con la siguiente URL
         if (error.status === 0 || error.status >= 500 || error.name === 'TimeoutError') {
           return this.tryLoginWithFallback(credentials, urlIndex + 1);
         }
-        
+
         // Si es un error de autenticación (400, 401), no intentar otras URLs
         return throwError(() => error);
       })
@@ -173,6 +177,14 @@ export class AuthService {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUserSubject.next(user);
+
+    // Cargar permisos del usuario al iniciar sesión
+    if (user && user.id) {
+      this.permissionsService.loadCurrentUserPermissions(Number(user.id)).subscribe({
+        next: () => console.log('🔐 Permisos cargados tras inicio de sesión'),
+        error: (err) => console.error('❌ Error cargando permisos tras inicio de sesión:', err)
+      });
+    }
   }
 
   /**
@@ -195,6 +207,14 @@ export class AuthService {
       try {
         const user = JSON.parse(userStr);
         this.currentUserSubject.next(user);
+
+        // Cargar permisos del usuario recuperado
+        if (user && user.id) {
+          this.permissionsService.loadCurrentUserPermissions(Number(user.id)).subscribe({
+            next: () => console.log('🔐 Permisos recuperados de sesión almacenada'),
+            error: (err) => console.error('❌ Error recuperando permisos de sesión:', err)
+          });
+        }
       } catch (error) {
         console.error('Error parsing stored user:', error);
         this.clearSession();
@@ -296,7 +316,7 @@ export class AuthService {
     };
 
     return this.http.post<{ success: boolean; message: string }>(
-      `${environment.apiUrl}/auth/change-password`, 
+      `${environment.apiUrl}/auth/change-password`,
       passwordData
     ).pipe(
       tap(response => {

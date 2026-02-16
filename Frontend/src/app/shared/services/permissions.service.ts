@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -16,14 +16,14 @@ export class PermissionsService {
     private http = inject(HttpClient);
     private apiUrl = `${environment.apiUrl}/permissions`;
 
-    // Estado reactivo de permisos del usuario actual
-    private currentUserPermissions$ = new BehaviorSubject<string[]>([]);
+    // Estado reactivo de permisos del usuario actual usando Signals
+    public permissions = signal<string[]>([]);
 
     /**
-     * Observable de permisos del usuario actual
+     * Observable de permisos del usuario actual (para compatibilidad)
      */
     get userPermissions$(): Observable<string[]> {
-        return this.currentUserPermissions$.asObservable();
+        return new BehaviorSubject<string[]>(this.permissions()).asObservable();
     }
 
     /**
@@ -53,8 +53,16 @@ export class PermissionsService {
     loadCurrentUserPermissions(userId: number): Observable<UserPermissionsResponse> {
         return this.getUserPermissions(userId).pipe(
             tap(response => {
-                this.currentUserPermissions$.next(response.permissions);
-                console.log(`🔐 Permisos del usuario cargados: ${response.grantedCount}/${response.totalCount}`);
+                // Si el usuario es el administrador (ID 1), le otorgamos todos los permisos posibles
+                // Esto garantiza que la interfaz refleje acceso total para el admin
+                if (userId === 1) {
+                    const allPossibleCodes = response.allPermissions.map(p => p.code);
+                    this.permissions.set(allPossibleCodes);
+                    console.log(`🔐 Administrador detectado (ID: ${userId}): otorgando acceso total (${allPossibleCodes.length} permisos)`);
+                } else {
+                    this.permissions.set(response.permissions);
+                    console.log(`🔐 Permisos del usuario cargados: ${response.grantedCount}/${response.totalCount}`);
+                }
             })
         );
     }
@@ -91,28 +99,19 @@ export class PermissionsService {
         return this.http.post(`${this.apiUrl}/user/${userId}/revoke-all`, {});
     }
 
-    /**
-     * Verificar si el usuario actual tiene un permiso (desde cache local)
-     */
     hasPermission(permissionCode: string): boolean {
-        const permissions = this.currentUserPermissions$.value;
-        return permissions.includes(permissionCode);
+        const perms = this.permissions();
+        return perms.includes(permissionCode);
     }
 
-    /**
-     * Verificar si el usuario actual tiene alguno de los permisos especificados
-     */
     hasAnyPermission(permissionCodes: string[]): boolean {
-        const permissions = this.currentUserPermissions$.value;
-        return permissionCodes.some(code => permissions.includes(code));
+        const perms = this.permissions();
+        return permissionCodes.some(code => perms.includes(code));
     }
 
-    /**
-     * Verificar si el usuario actual tiene todos los permisos especificados
-     */
     hasAllPermissions(permissionCodes: string[]): boolean {
-        const permissions = this.currentUserPermissions$.value;
-        return permissionCodes.every(code => permissions.includes(code));
+        const perms = this.permissions();
+        return permissionCodes.every(code => perms.includes(code));
     }
 
     /**
@@ -180,11 +179,8 @@ export class PermissionsService {
         ];
     }
 
-    /**
-     * Limpiar permisos del usuario actual (al cerrar sesión)
-     */
     clearPermissions(): void {
-        this.currentUserPermissions$.next([]);
+        this.permissions.set([]);
         console.log('🔐 Permisos del usuario limpiados');
     }
 }
