@@ -42,6 +42,9 @@ import { CondicionUnicaService } from '../../services/condicion-unica.service';
 // Importar modelo de datos de Condición Única
 import { CondicionUnica } from '../../models/condicion-unica.model';
 
+// Importar servicio de Excel
+import { ExcelService } from '../../services/excel.service';
+
 /**
  * Componente CondicionUnicaComponent
  * Gestiona la visualización y operaciones CRUD de Condición Única
@@ -91,6 +94,9 @@ export class CondicionUnicaComponent implements OnInit {
   
   // Inyectar FormBuilder (aunque no se usa en este componente, está disponible)
   private fb = inject(FormBuilder);
+
+  // Inyectar servicio de Excel
+  private excelService = inject(ExcelService);
 
   // ===== SEÑALES REACTIVAS =====
   // Signals de Angular para manejo de estado reactivo
@@ -432,9 +438,9 @@ export class CondicionUnicaComponent implements OnInit {
   /**
    * Exportar registros a Excel con formato profesional
    * Genera archivo XLSX con estructura ordenada, columnas bien definidas y estilos
-   * Compatible con Excel, Google Sheets y LibreOffice
+   * Compatible con Excel, Google Sheets y LibreOffice usando ExcelJS (sin vulnerabilidades)
    */
-  exportToExcel(): void {
+  async exportToExcel(): Promise<void> {
     try {
       // Obtener los registros filtrados actuales (los que se muestran en la tabla)
       const dataToExport = this.filteredItems();
@@ -447,90 +453,54 @@ export class CondicionUnicaComponent implements OnInit {
         return;
       }
 
-      // Importar la librería XLSX dinámicamente
-      import('xlsx').then(XLSX => {
-        // ===== PREPARAR DATOS PARA EXCEL =====
-        
-        // Crear array de objetos con estructura ordenada y nombres de columnas en español
-        const excelData = dataToExport.map((item, index) => ({
-          'N°': index + 1, // Número de fila
-          'F Artículo': item.fArticulo || '',
-          'Descripción': item.descripcion || '',
-          'Estante': item.estante || '',
-          'Número de Carpeta': item.numeroCarpeta || '',
-          'Estado': item.estado || 'ACTIVO',
-          'Fecha de Creación': item.createdDate 
-            ? new Date(item.createdDate).toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })
-            : '',
-          'Última Modificación': item.lastModified 
-            ? new Date(item.lastModified).toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })
-            : ''
-        }));
+      // ===== PREPARAR DATOS PARA EXCEL =====
+      
+      // Crear array de objetos con estructura ordenada y nombres de columnas en español
+      const excelData = dataToExport.map((item, index) => ({
+        'N°': index + 1, // Número de fila
+        'F Artículo': item.fArticulo || '',
+        'Descripción': item.descripcion || '',
+        'Estante': item.estante || '',
+        'Número de Carpeta': item.numeroCarpeta || '',
+        'Estado': item.estado || 'ACTIVO',
+        'Fecha de Creación': item.createdDate 
+          ? new Date(item.createdDate).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : '',
+        'Última Modificación': item.lastModified 
+          ? new Date(item.lastModified).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : ''
+      }));
 
-        // ===== CREAR HOJA DE EXCEL =====
-        
-        // Convertir datos a hoja de Excel
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
+      // ===== GENERAR NOMBRE DE ARCHIVO =====
+      
+      // Generar nombre de archivo con fecha y hora actual
+      // Formato: CondicionUnica_DD-MM-YYYY_HH-MM
+      const now = new Date();
+      const fecha = now.toLocaleDateString('es-ES').replace(/\//g, '-');
+      const hora = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }).replace(/:/g, '-');
+      const fileName = `CondicionUnica_${fecha}_${hora}`;
 
-        // ===== CONFIGURAR ANCHOS DE COLUMNAS =====
-        
-        // Definir anchos óptimos para cada columna (en caracteres)
-        worksheet['!cols'] = [
-          { wch: 5 },   // N° - ancho 5
-          { wch: 15 },  // F Artículo - ancho 15
-          { wch: 40 },  // Descripción - ancho 40 (más ancho para texto largo)
-          { wch: 12 },  // Estante - ancho 12
-          { wch: 18 },  // Número de Carpeta - ancho 18
-          { wch: 12 },  // Estado - ancho 12
-          { wch: 20 },  // Fecha de Creación - ancho 20
-          { wch: 20 }   // Última Modificación - ancho 20
-        ];
+      // ===== EXPORTAR USANDO EXCELJS =====
+      await this.excelService.exportToExcel(excelData, fileName, 'Condición Única');
 
-        // ===== CREAR LIBRO DE EXCEL =====
-        
-        // Crear libro de Excel (workbook)
-        const workbook = XLSX.utils.book_new();
-        
-        // Agregar hoja al libro con nombre descriptivo
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Condición Única');
-
-        // ===== GENERAR NOMBRE DE ARCHIVO =====
-        
-        // Generar nombre de archivo con fecha y hora actual
-        // Formato: CondicionUnica_DD-MM-YYYY_HH-MM.xlsx
-        const now = new Date();
-        const fecha = now.toLocaleDateString('es-ES').replace(/\//g, '-');
-        const hora = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }).replace(/:/g, '-');
-        const fileName = `CondicionUnica_${fecha}_${hora}.xlsx`;
-
-        // ===== DESCARGAR ARCHIVO =====
-        
-        // Escribir archivo Excel y descargarlo automáticamente
-        XLSX.writeFile(workbook, fileName);
-
-        // Mostrar notificación de éxito con el nombre del archivo y cantidad de registros
-        this.snackBar.open(
-          `✓ Archivo exportado: ${fileName} (${dataToExport.length} registros)`, 
-          'Cerrar', 
-          { duration: 4000 }
-        );
-      }).catch(error => {
-        // Error al cargar la librería XLSX
-        console.error('Error cargando librería XLSX:', error);
-        this.snackBar.open('Error al cargar módulo de exportación', 'Cerrar', { duration: 3000 });
-      });
+      // Mostrar notificación de éxito con el nombre del archivo y cantidad de registros
+      this.snackBar.open(
+        `✓ Archivo exportado: ${fileName}.xlsx (${dataToExport.length} registros)`, 
+        'Cerrar', 
+        { duration: 4000 }
+      );
       
     } catch (error) {
       // Capturar cualquier error durante la exportación

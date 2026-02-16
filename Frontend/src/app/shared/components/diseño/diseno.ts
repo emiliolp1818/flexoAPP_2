@@ -22,6 +22,7 @@ import { environment } from '../../../../environments/environment';
 import { PantoneLiveService, PantoneColor } from '../../services/pantone-live.service';
 import { AniloxService, Anilox, CreateAniloxDto, UpdateAniloxDto } from '../../services/anilox.service';
 import { MachineConfigService } from '../../services/machine-config.service';
+import { ExcelService } from '../../services/excel.service';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { DuplicateDesignDialogComponent } from './duplicate-design-dialog.component';
 import { CreateAniloxDialogComponent } from './create-anilox-dialog.component';
@@ -102,6 +103,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   private machineConfigService = inject(MachineConfigService);
   private pantoneService = inject(PantoneLiveService);
   private aniloxService = inject(AniloxService);
+  private excelService = inject(ExcelService);
 
   // Make Math available in template
   Math = Math;
@@ -2690,7 +2692,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
   /**
-   * Procesar archivo Excel de anilox
+   * Procesar archivo Excel de anilox usando ExcelJS (sin vulnerabilidades)
    */
   async onAniloxExcelSelected(event: any) {
     const file = event.target.files[0];
@@ -2702,12 +2704,8 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       console.log('📂 Leyendo archivo Excel de anilox:', file.name);
 
-      const XLSX = await import('xlsx');
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      // Usar ExcelService para leer el archivo
+      const jsonData = await this.excelService.readExcel(file);
 
       console.log('📊 Datos leídos del Excel:', jsonData.length, 'filas');
 

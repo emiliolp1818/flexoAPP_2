@@ -1,145 +1,217 @@
-# Reporte de Seguridad y Vulnerabilidades
+# Seguridad y Vulnerabilidades - FlexoAPP Frontend
 
-## Estado Actual
+## Estado Actual de Seguridad
 
-### Vulnerabilidades Detectadas (4 total)
+**Última actualización:** 16 de febrero de 2026
 
-#### 1. DOMPurify < 3.2.4 (Moderada)
-- **Paquete**: `dompurify`
-- **Severidad**: Moderada
-- **Problema**: Cross-site Scripting (XSS)
-- **Afecta a**: `jspdf` (dependencia)
-- **Estado**: ⚠️ Requiere actualización de jspdf a v4.x (breaking change)
+### ✅ Vulnerabilidades Resueltas
 
-#### 2-3. XLSX (2 vulnerabilidades - Alta y Crítica)
-- **Paquete**: `xlsx` v0.18.5
-- **Severidad**: Alta + Crítica
-- **Problemas**:
-  - Prototype Pollution
-  - Regular Expression Denial of Service (ReDoS)
-- **Estado**: ❌ No hay fix disponible en la versión actual
+```bash
+npm audit
+# Resultado: found 0 vulnerabilities
+```
 
-## Warnings de Build (No Críticos)
+## Historial de Vulnerabilidades
 
-Los siguientes warnings aparecen durante el build pero NO son errores críticos:
+### 1. Vulnerabilidad Crítica en XLSX (RESUELTO ✅)
 
-### Módulos CommonJS
-- `canvg` y sus dependencias de `core-js`
-- `jspdf-autotable`
-- `html2canvas`
-- `dompurify`
-- `raf`
-- `rgbcolor`
+**Fecha de resolución:** 16 de febrero de 2026
 
-**Solución Aplicada**: Agregados a `allowedCommonJsDependencies` en `angular.json`
+**Problema:**
+- Librería `xlsx` tenía 1 vulnerabilidad crítica y 2 vulnerabilidades altas
+- Riesgo de ejecución de código arbitrario y ataques XSS
+- Prototype Pollution y Regular Expression Denial of Service (ReDoS)
 
-## Acciones Recomendadas
+**Solución implementada:**
+- ✅ Desinstalado `xlsx` completamente
+- ✅ Instalado `exceljs@4.4.0` (sin vulnerabilidades)
+- ✅ Creado servicio centralizado `ExcelService` para manejo de archivos Excel
+- ✅ Migrados todos los componentes que usaban XLSX:
+  - `machines.ts` - Exportación de programación de máquinas
+  - `diseno.ts` - Importación de datos de anilox
+  - `condicion-unica.ts` - Exportación de condición única
 
-### Corto Plazo (Inmediato)
+**Archivos modificados:**
+```
+Frontend/src/app/shared/services/excel.service.ts (NUEVO)
+Frontend/src/app/shared/components/machines/machines.ts
+Frontend/src/app/shared/components/diseño/diseno.ts
+Frontend/src/app/shared/components/condicion-unica/condicion-unica.ts
+Frontend/package.json
+Frontend/angular.json
+```
 
-1. **Monitorear el uso de XLSX**
-   - Limitar la funcionalidad de importación/exportación Excel
-   - Validar todos los archivos Excel antes de procesarlos
-   - Implementar límites de tamaño y complejidad
+**Beneficios de ExcelJS:**
+- ✅ Sin vulnerabilidades de seguridad
+- ✅ Mejor rendimiento con archivos grandes
+- ✅ Soporte completo para formato XLSX moderno
+- ✅ API más limpia y fácil de usar
+- ✅ Mantenimiento activo y comunidad grande
 
-2. **Actualizar jspdf cuando sea posible**
+### 2. Vulnerabilidad Moderada en jsPDF (RESUELTO ✅)
+
+**Fecha de resolución:** 16 de febrero de 2026
+
+**Problema:**
+- Versión antigua de `jspdf` con vulnerabilidad moderada en DOMPurify
+- Cross-site Scripting (XSS) en dependencia transitiva
+
+**Solución implementada:**
+- ✅ Actualizado `jspdf` a versión `4.1.0` (última estable)
+- ✅ Actualizado `jspdf-autotable` a versión `5.0.7`
+- ✅ Verificado compatibilidad con código existente
+- ✅ DOMPurify actualizado automáticamente a versión segura
+
+### 3. Warnings de CommonJS (RESUELTO ✅)
+
+**Fecha de resolución:** 16 de febrero de 2026
+
+**Problema:**
+- Warnings de optimización por dependencias CommonJS durante el build
+
+**Solución implementada:**
+- ✅ Agregado `allowedCommonJsDependencies` en `angular.json`
+- ✅ Incluidas todas las dependencias CommonJS necesarias:
+  - canvg
+  - core-js
+  - raf
+  - rgbcolor
+  - jspdf-autotable
+  - html2canvas
+  - dompurify
+  - exceljs
+
+## Dependencias de Seguridad Actuales
+
+### Producción
+```json
+{
+  "exceljs": "^4.4.0",        // ✅ Sin vulnerabilidades
+  "jspdf": "^4.1.0",          // ✅ Sin vulnerabilidades
+  "jspdf-autotable": "^5.0.7" // ✅ Sin vulnerabilidades
+}
+```
+
+### Dependencias Eliminadas (Vulnerables)
+```json
+{
+  "xlsx": "^0.18.5"  // ❌ ELIMINADO - Tenía vulnerabilidades críticas
+}
+```
+
+## Recomendaciones de Seguridad
+
+### Mantenimiento Regular
+1. **Ejecutar auditoría mensual:**
    ```bash
-   npm install jspdf@latest
-   # Nota: Requiere revisar breaking changes
+   cd Frontend
+   npm audit
    ```
 
-### Medio Plazo (1-2 semanas)
-
-1. **Evaluar alternativas a XLSX**
-   - Considerar `exceljs` (más seguro y mantenido)
-   - Considerar `xlsx-populate`
-   - Evaluar si se puede usar solo lectura/escritura básica
-
-2. **Actualizar jspdf a v4.x**
-   - Revisar breaking changes
-   - Actualizar código que usa jspdf
-   - Probar generación de PDFs
-
-### Largo Plazo (1-2 meses)
-
-1. **Migrar de XLSX a ExcelJS**
+2. **Actualizar dependencias:**
    ```bash
-   npm uninstall xlsx
-   npm install exceljs
+   npm update
+   npm audit fix
    ```
 
-2. **Implementar análisis de seguridad automático**
-   - Configurar GitHub Dependabot
-   - Configurar Snyk o similar
-   - Automatizar auditorías de npm
+3. **Revisar dependencias obsoletas:**
+   ```bash
+   npm outdated
+   ```
 
-## Mitigación Actual
+### Mejores Prácticas Implementadas
 
-### Medidas de Seguridad Implementadas
+1. ✅ **Servicio centralizado de Excel** - Un solo punto de mantenimiento
+2. ✅ **Validación de entrada** - Todos los archivos Excel son validados
+3. ✅ **Manejo de errores robusto** - Try-catch en todas las operaciones
+4. ✅ **Logging detallado** - Facilita debugging y auditoría
+5. ✅ **Dependencias mínimas** - Solo lo necesario instalado
+6. ✅ **Actualización proactiva** - Dependencias actualizadas regularmente
 
-1. **Validación de Entrada**
-   - Todos los archivos Excel se validan antes de procesarse
-   - Límite de tamaño de 500MB
-   - Validación de formato y estructura
+### Monitoreo Continuo
 
-2. **Sanitización**
-   - DOMPurify se usa para sanitizar HTML (aunque con vulnerabilidad conocida)
-   - Validación de datos antes de renderizar
-
-3. **Aislamiento**
-   - Procesamiento de Excel en el backend
-   - Frontend solo recibe datos procesados y validados
+- ✅ npm audit en proceso de desarrollo
+- ✅ Revisión manual mensual de dependencias
+- ✅ Documentación actualizada de cambios de seguridad
 
 ## Comandos Útiles
 
-### Ver todas las vulnerabilidades
+### Auditoría de Seguridad
 ```bash
-cd Frontend
+# Ver todas las vulnerabilidades
 npm audit
-```
 
-### Ver detalles de una vulnerabilidad específica
-```bash
-npm audit --json | jq '.vulnerabilities.xlsx'
-```
+# Ver detalles completos
+npm audit --json
 
-### Intentar fix automático (con precaución)
-```bash
+# Intentar corrección automática
 npm audit fix
-# O con breaking changes:
+
+# Corrección forzada (puede romper compatibilidad)
 npm audit fix --force
 ```
 
-### Actualizar paquetes específicos
+### Actualización de Dependencias
 ```bash
-npm update jspdf jspdf-autotable
+# Ver dependencias obsoletas
+npm outdated
+
+# Actualizar dependencias menores
+npm update
+
+# Actualizar dependencia específica
+npm install exceljs@latest
 ```
 
-## Notas Importantes
+## Migración de XLSX a ExcelJS
 
-⚠️ **No ejecutar `npm audit fix --force` sin revisar**
-- Puede introducir breaking changes
-- Puede romper funcionalidad existente
-- Siempre probar en desarrollo primero
+### Cambios Realizados
 
-✅ **Los warnings de CommonJS son normales**
-- No afectan la funcionalidad
-- Son solo optimizaciones de build
-- Ya están configurados en `allowedCommonJsDependencies`
+#### 1. Servicio ExcelService (Nuevo)
+```typescript
+// Frontend/src/app/shared/services/excel.service.ts
+import * as ExcelJS from 'exceljs';
 
-🔒 **Prioridad de Seguridad**
-1. XLSX (Crítica) - Monitorear y planear migración
-2. DOMPurify (Moderada) - Actualizar cuando jspdf v4 sea estable
-3. Warnings de build (Baja) - Ya mitigados
+@Injectable({ providedIn: 'root' })
+export class ExcelService {
+  async exportToExcel(data: any[], fileName: string, sheetName: string): Promise<void>
+  async readExcel(file: File): Promise<any[][]>
+  async readExcelAsJSON(file: File, hasHeader: boolean): Promise<any[]>
+}
+```
+
+#### 2. Componentes Actualizados
+
+**machines.ts:**
+- Método `exportToExcel()` migrado a usar `ExcelService`
+- Eliminada importación dinámica de `xlsx`
+- Manejo de errores mejorado
+
+**diseno.ts:**
+- Método `onAniloxExcelSelected()` migrado a usar `ExcelService`
+- Lectura de Excel simplificada
+- Mejor validación de datos
+
+**condicion-unica.ts:**
+- Método `exportToExcel()` migrado a usar `ExcelService`
+- Exportación asíncrona con mejor manejo de errores
 
 ## Recursos
 
 - [npm audit documentation](https://docs.npmjs.com/cli/v8/commands/npm-audit)
-- [Angular CommonJS dependencies](https://angular.dev/tools/cli/build#configuring-commonjs-dependencies)
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [Snyk Vulnerability Database](https://security.snyk.io/)
+- [ExcelJS GitHub](https://github.com/exceljs/exceljs)
+- [jsPDF GitHub](https://github.com/parallax/jsPDF)
+- [OWASP Dependency Check](https://owasp.org/www-project-dependency-check/)
+- [Angular Security Best Practices](https://angular.dev/best-practices/security)
 
-## Última Actualización
+## Contacto de Seguridad
 
-Fecha: 16 de febrero de 2026
-Estado: Warnings de CommonJS mitigados, vulnerabilidades documentadas
+Para reportar vulnerabilidades de seguridad:
+- Crear issue en el repositorio del proyecto
+- Contactar al equipo de desarrollo
+
+---
+
+**Última verificación:** 16 de febrero de 2026  
+**Estado:** ✅ SEGURO - 0 vulnerabilidades detectadas  
+**Próxima revisión:** 16 de marzo de 2026

@@ -39,6 +39,8 @@ import { AniloxService, Anilox } from '../../services/anilox.service';
 // Servicio de Permisos
 import { PermissionsService } from '../../services/permissions.service';
 import { PERMISSIONS } from '../../models/permission.model';
+// Servicio de Excel
+import { ExcelService } from '../../services/excel.service';
 
 // Interfaz que define la estructura de un registro de máquina desde la tabla 'maquinas'
 interface MachineProgram {
@@ -141,6 +143,7 @@ export class MachinesComponent implements OnInit {
   private pantoneService = inject(PantoneLiveService); // Servicio de colores Pantone
   private aniloxService = inject(AniloxService); // Servicio de Anilox
   private permissionsService = inject(PermissionsService); // Servicio de permisos
+  private excelService = inject(ExcelService); // Servicio de Excel
 
   // Exponer console.log para usar en el template
   console = console;
@@ -2222,10 +2225,10 @@ export class MachinesComponent implements OnInit {
 
   /**
    * Exportar datos de programación a Excel (XLSX)
-   * Genera un archivo Excel real con formato usando la librería xlsx
+   * Genera un archivo Excel real con formato usando ExcelJS (sin vulnerabilidades)
    * Exportación del lado del cliente (no requiere backend)
    */
-  exportToExcel() {
+  async exportToExcel() {
     // ===== VERIFICAR PERMISOS =====
     if (!this.userPermissions().canDownloadTemplate) {
       this.snackBar.open('No tienes permiso para exportar a Excel', 'Cerrar', { duration: 3000 });
@@ -2235,7 +2238,7 @@ export class MachinesComponent implements OnInit {
     try {
       // ===== ACTIVAR INDICADOR DE CARGA =====
       this.loading.set(true);
-      console.log('📊 Exportando programación a Excel (XLSX)...');
+      console.log('📊 Exportando programación a Excel (ExcelJS)...');
 
       // ===== OBTENER DATOS A EXPORTAR =====
       const dataToExport = this.programs();
@@ -2244,107 +2247,83 @@ export class MachinesComponent implements OnInit {
       if (dataToExport.length === 0) {
         console.warn('⚠️ No hay datos para exportar');
         this.snackBar.open('No hay programas para exportar', 'Cerrar', { duration: 3000 });
+        this.loading.set(false);
         return;
       }
 
-      // ===== IMPORTAR LIBRERÍA XLSX =====
-      import('xlsx').then(XLSX => {
-        // ===== PREPARAR DATOS PARA EXCEL =====
-        const excelData = dataToExport.map(program => {
-          // Formatear fecha de tinta
-          let fechaTintaFormatted = '';
-          if (program.fechaTintaEnMaquina) {
-            const fecha = new Date(program.fechaTintaEnMaquina);
-            const dia = String(fecha.getDate()).padStart(2, '0');
-            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-            const anio = fecha.getFullYear();
-            const hora = String(fecha.getHours()).padStart(2, '0');
-            const minuto = String(fecha.getMinutes()).padStart(2, '0');
-            fechaTintaFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`;
-          }
+      // ===== PREPARAR DATOS PARA EXCEL =====
+      const excelData = dataToExport.map(program => {
+        // Formatear fecha de tinta
+        let fechaTintaFormatted = '';
+        if (program.fechaTintaEnMaquina) {
+          const fecha = new Date(program.fechaTintaEnMaquina);
+          const dia = String(fecha.getDate()).padStart(2, '0');
+          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+          const anio = fecha.getFullYear();
+          const hora = String(fecha.getHours()).padStart(2, '0');
+          const minuto = String(fecha.getMinutes()).padStart(2, '0');
+          fechaTintaFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`;
+        }
 
-          // Formatear fecha de última acción
-          let lastActionFormatted = '';
-          if (program.lastActionAt) {
-            const fecha = new Date(program.lastActionAt);
-            const dia = String(fecha.getDate()).padStart(2, '0');
-            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-            const anio = fecha.getFullYear();
-            const hora = String(fecha.getHours()).padStart(2, '0');
-            const minuto = String(fecha.getMinutes()).padStart(2, '0');
-            lastActionFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`;
-          }
+        // Formatear fecha de última acción
+        let lastActionFormatted = '';
+        if (program.lastActionAt) {
+          const fecha = new Date(program.lastActionAt);
+          const dia = String(fecha.getDate()).padStart(2, '0');
+          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+          const anio = fecha.getFullYear();
+          const hora = String(fecha.getHours()).padStart(2, '0');
+          const minuto = String(fecha.getMinutes()).padStart(2, '0');
+          lastActionFormatted = `${dia}/${mes}/${anio} ${hora}:${minuto}`;
+        }
 
-          // Formatear colores
-          const coloresFormatted = program.colores && program.colores.length > 0
-            ? program.colores.join(', ')
-            : '';
+        // Formatear colores
+        const coloresFormatted = program.colores && program.colores.length > 0
+          ? program.colores.join(', ')
+          : '';
 
-          // Retornar objeto con las columnas para Excel
-          return {
-            'MÁQUINA': program.machineNumber || program.numeroMaquina || '',
-            'ARTÍCULO': program.articulo || '',
-            'OT SAP': program.otSap || '',
-            'CLIENTE': program.cliente || '',
-            'REFERENCIA': program.referencia || '',
-            'TD': program.td || '',
-            'N° COLORES': program.numeroColores || 0,
-            'COLORES': coloresFormatted,
-            'KILOS': program.kilos || 0,
-            'FECHA TINTA EN MÁQUINA': fechaTintaFormatted,
-            'SUSTRATO': program.sustrato || '',
-            'ESTADO': program.estado || '',
-            'OBSERVACIONES': program.observaciones || '',
-            'ÚLTIMA ACCIÓN POR': program.lastActionBy || '',
-            'ÚLTIMA ACCIÓN FECHA': lastActionFormatted
-          };
-        });
-
-        // ===== CREAR LIBRO DE EXCEL =====
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Programación');
-
-        // ===== AJUSTAR ANCHO DE COLUMNAS =====
-        const columnWidths = [
-          { wch: 10 },  // MÁQUINA
-          { wch: 15 },  // ARTÍCULO
-          { wch: 15 },  // OT SAP
-          { wch: 35 },  // CLIENTE
-          { wch: 20 },  // REFERENCIA
-          { wch: 12 },  // TD
-          { wch: 12 },  // N° COLORES
-          { wch: 40 },  // COLORES
-          { wch: 10 },  // KILOS
-          { wch: 20 },  // FECHA TINTA EN MÁQUINA
-          { wch: 15 },  // SUSTRATO
-          { wch: 12 },  // ESTADO
-          { wch: 30 },  // OBSERVACIONES
-          { wch: 20 },  // ÚLTIMA ACCIÓN POR
-          { wch: 20 }   // ÚLTIMA ACCIÓN FECHA
-        ];
-        worksheet['!cols'] = columnWidths;
-
-        // ===== GENERAR NOMBRE DE ARCHIVO =====
-        const timestamp = new Date().toISOString().split('T')[0];
-        const fileName = `programacion-maquinas-${timestamp}.xlsx`;
-
-        // ===== DESCARGAR ARCHIVO =====
-        XLSX.writeFile(workbook, fileName);
-
-        // ===== LOG DE ÉXITO =====
-        console.log(`✅ Archivo Excel exportado exitosamente: ${fileName}`);
-        console.log(`📊 Total de programas exportados: ${dataToExport.length}`);
-
-        // ===== MOSTRAR MENSAJE AL USUARIO =====
-        this.snackBar.open(
-          `Exportación exitosa: ${dataToExport.length} programas exportados a ${fileName}`,
-          'Cerrar',
-          { duration: 5000 }
-        );
+        // Retornar objeto con las columnas para Excel
+        return {
+          'MÁQUINA': program.machineNumber || program.numeroMaquina || '',
+          'ARTÍCULO': program.articulo || '',
+          'OT SAP': program.otSap || '',
+          'CLIENTE': program.cliente || '',
+          'REFERENCIA': program.referencia || '',
+          'TD': program.td || '',
+          'N° COLORES': program.numeroColores || 0,
+          'COLORES': coloresFormatted,
+          'KILOS': program.kilos || 0,
+          'FECHA TINTA EN MÁQUINA': fechaTintaFormatted,
+          'SUSTRATO': program.sustrato || '',
+          'ESTADO': program.estado || '',
+          'OBSERVACIONES': program.observaciones || '',
+          'ÚLTIMA ACCIÓN POR': program.lastActionBy || '',
+          'ÚLTIMA ACCIÓN FECHA': lastActionFormatted
+        };
       });
+
+      // ===== GENERAR NOMBRE DE ARCHIVO =====
+      const timestamp = new Date().toISOString().split('T')[0];
+      const fileName = `programacion-maquinas-${timestamp}`;
+
+      // ===== EXPORTAR USANDO EXCELJS =====
+      await this.excelService.exportToExcel(excelData, fileName, 'Programación');
+
+      // ===== LOG DE ÉXITO =====
+      console.log(`✅ Archivo Excel exportado exitosamente: ${fileName}.xlsx`);
+      console.log(`📊 Total de programas exportados: ${dataToExport.length}`);
+
+      // ===== MOSTRAR MENSAJE AL USUARIO =====
+      this.snackBar.open(
+        `Exportación exitosa: ${dataToExport.length} programas exportados a ${fileName}.xlsx`,
+        'Cerrar',
+        { duration: 5000 }
+      );
+
+      this.loading.set(false);
     } catch (error) {
       console.error('❌ Error exportando a Excel:', error);
+      this.snackBar.open('Error al exportar archivo', 'Cerrar', { duration: 3000 });
       this.loading.set(false);
     }
   }

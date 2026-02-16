@@ -52,8 +52,9 @@
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
     "chart.js": "^4.5.0",
-    "jspdf": "^2.5.2",
-    "jspdf-autotable": "^3.8.4",
+    "exceljs": "^4.4.0",
+    "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
     "m": "^1.10.0",
     "mammoth": "^1.11.0",
     "ng2-charts": "^8.0.0",
@@ -61,7 +62,6 @@
     "rxjs": "^7.8.2",
     "socket.io-client": "^4.8.1",
     "tslib": "^2.3.0",
-    "xlsx": "^0.18.5",
     "zone.js": "^0.15.1"
   },
   "devDependencies": {
