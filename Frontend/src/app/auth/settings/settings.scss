@@ -1,36 +1,36 @@
 // ===== PALETA DE COLORES COPIADA DEL MÓDULO DE DISEÑO =====
-$primary-blue: #2563eb;         // Azul principal
-$primary-blue-light: #3b82f6;   // Azul claro
-$primary-blue-dark: #1d4ed8;    // Azul oscuro
-$primary-blue-50: #eff6ff;      // Azul muy claro para fondos
-$primary-blue-100: #dbeafe;     // Azul claro para elementos suaves
-$primary-blue-200: #bfdbfe;     // Azul medio-claro
-$primary-blue-300: #93c5fd;     // Azul medio
-$primary-blue-400: #60a5fa;     // Azul medio-intenso
-$primary-blue-500: #3b82f6;     // Azul intenso
-$primary-blue-600: #2563eb;     // Azul vibrante
-$primary-blue-700: #1d4ed8;     // Azul profundo
-$primary-blue-800: #1e40af;     // Azul muy profundo
-$primary-blue-900: #1e3a8a;     // Azul empresarial
+$primary-blue: #2563eb; // Azul principal
+$primary-blue-light: #3b82f6; // Azul claro
+$primary-blue-dark: #1d4ed8; // Azul oscuro
+$primary-blue-50: #eff6ff; // Azul muy claro para fondos
+$primary-blue-100: #dbeafe; // Azul claro para elementos suaves
+$primary-blue-200: #bfdbfe; // Azul medio-claro
+$primary-blue-300: #93c5fd; // Azul medio
+$primary-blue-400: #60a5fa; // Azul medio-intenso
+$primary-blue-500: #3b82f6; // Azul intenso
+$primary-blue-600: #2563eb; // Azul vibrante
+$primary-blue-700: #1d4ed8; // Azul profundo
+$primary-blue-800: #1e40af; // Azul muy profundo
+$primary-blue-900: #1e3a8a; // Azul empresarial
 
 // Colores complementarios
-$accent-gray: #6b7280;          // Gris para contraste
-$accent-slate: #4b5563;         // Pizarra para elementos secundarios
-$success-emerald: #10b981;      // Verde esmeralda
-$warning-amber: #f59e0b;        // Ámbar
-$error-red: #ef4444;           // Rojo
+$accent-gray: #6b7280; // Gris para contraste
+$accent-slate: #4b5563; // Pizarra para elementos secundarios
+$success-emerald: #10b981; // Verde esmeralda
+$warning-amber: #f59e0b; // Ámbar
+$error-red: #ef4444; // Rojo
 
 // Escala de grises
-$gray-50: #f8fafc;   // Gris muy claro
-$gray-100: #f1f5f9;  // Gris claro
-$gray-200: #e2e8f0;  // Gris medio-claro
-$gray-300: #cbd5e1;  // Gris medio
-$gray-400: #94a3b8;  // Gris medio-oscuro
-$gray-500: #64748b;  // Gris balanceado
-$gray-600: #475569;  // Gris oscuro
-$gray-700: #334155;  // Gris muy oscuro
-$gray-800: #1e293b;  // Gris profundo
-$gray-900: #0f172a;  // Gris máximo
+$gray-50: #f8fafc; // Gris muy claro
+$gray-100: #f1f5f9; // Gris claro
+$gray-200: #e2e8f0; // Gris medio-claro
+$gray-300: #cbd5e1; // Gris medio
+$gray-400: #94a3b8; // Gris medio-oscuro
+$gray-500: #64748b; // Gris balanceado
+$gray-600: #475569; // Gris oscuro
+$gray-700: #334155; // Gris muy oscuro
+$gray-800: #1e293b; // Gris profundo
+$gray-900: #0f172a; // Gris máximo
 
 // ===== HOST PRINCIPAL =====
 :host {
@@ -59,18 +59,18 @@ $gray-900: #0f172a;  // Gris máximo
 // ===== HEADER FIJO - CORREGIDO PARA EVITAR SUPERPOSICIÓN =====
 // El header ahora usa position: sticky para mantenerse visible sin tapar el contenido
 .settings-header {
-  position: sticky;           // Sticky en lugar de fixed para mejor comportamiento
-  top: 0;                    // Se mantiene en la parte superior al hacer scroll
+  position: sticky; // Sticky en lugar de fixed para mejor comportamiento
+  top: 0; // Se mantiene en la parte superior al hacer scroll
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 16px;
-  margin: 12px 12px 0px 12px;  // Margen inferior eliminado para mejor espaciado
+  margin: 12px 12px 0px 12px; // Margen inferior eliminado para mejor espaciado
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
   overflow: visible;
-  z-index: 100;              // Z-index alto para mantenerse sobre otros elementos
+  z-index: 100; // Z-index alto para mantenerse sobre otros elementos
   display: block;
   margin-top: 68px;
 
@@ -176,7 +176,7 @@ $gray-900: #0f172a;  // Gris máximo
 // Padding superior agregado para dar espacio después del header sticky
 .settings-content {
   flex: 1;
-  padding: 12px 12px 0px 12px;  // Padding superior para separar del header
+  padding: 12px 12px 0px 12px; // Padding superior para separar del header
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -281,7 +281,7 @@ $gray-900: #0f172a;  // Gris máximo
 
 // ===== CONTENIDO DE PESTAÑAS - ESPACIADO ALINEADO CON HEADER =====
 .tab-content {
-  padding: 24px 12px 20px 12px;  // Padding lateral igual al header (12px) para alineación perfecta
+  padding: 24px 12px 20px 12px; // Padding lateral igual al header (12px) para alineación perfecta
   height: 100%;
   overflow: auto;
 }
@@ -292,35 +292,35 @@ $gray-900: #0f172a;  // Gris máximo
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
-  margin-top: 8px;              // Margen superior para separar del borde de la pestaña
-  margin-left: 0px;             // Sin margen lateral - alineado con header mediante padding del tab-content
-  margin-right: 0px;            // Sin margen lateral - consistente con módulo de diseño
+  margin-top: 8px; // Margen superior para separar del borde de la pestaña
+  margin-left: 0px; // Sin margen lateral - alineado con header mediante padding del tab-content
+  margin-right: 0px; // Sin margen lateral - consistente con módulo de diseño
   padding-bottom: 16px;
   border-bottom: 2px solid $gray-200;
 
   .header-actions {
     display: flex;
-    gap: 16px;                  // Mayor espaciado entre botones
+    gap: 16px; // Mayor espaciado entre botones
     align-items: center;
-    justify-content: flex-end;  // Alinear botones a la derecha
-    margin-right: 8px;          // Margen derecho para separar del borde
-    flex-wrap: wrap;            // Permitir wrap en pantallas pequeñas
-    
+    justify-content: flex-end; // Alinear botones a la derecha
+    margin-right: 8px; // Margen derecho para separar del borde
+    flex-wrap: wrap; // Permitir wrap en pantallas pequeñas
+
     .debug-btn {
-      width: 40px !important;   // Botones más grandes
+      width: 40px !important; // Botones más grandes
       height: 40px !important;
       background: linear-gradient(135deg, $error-red 0%, #dc2626 100%) !important;
       box-shadow: 0 2px 6px rgba($error-red, 0.3) !important;
       transition: all 0.3s ease;
-      margin-right: 4px;        // Separación adicional
-      
+      margin-right: 4px; // Separación adicional
+
       mat-icon {
         font-size: 18px;
         width: 18px;
         height: 18px;
         color: white;
       }
-      
+
       &:hover {
         background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
         transform: translateY(-1px) scale(1.05);
@@ -329,13 +329,13 @@ $gray-900: #0f172a;  // Gris máximo
     }
 
     .compact-refresh-btn {
-      width: 44px !important;   // Botones más grandes
+      width: 44px !important; // Botones más grandes
       height: 44px !important;
       background: linear-gradient(135deg, $warning-amber 0%, #d97706 100%) !important;
       box-shadow: 0 2px 8px rgba($warning-amber, 0.3) !important;
       transition: all 0.3s ease;
-      margin-right: 4px;        // Separación adicional
-      
+      margin-right: 4px; // Separación adicional
+
       mat-icon {
         font-size: 20px;
         width: 20px;
@@ -343,83 +343,83 @@ $gray-900: #0f172a;  // Gris máximo
         color: white;
         transition: transform 0.3s ease;
       }
-      
+
       &:hover {
         background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
         transform: translateY(-2px) scale(1.05);
         box-shadow: 0 4px 12px rgba($warning-amber, 0.4) !important;
-        
+
         mat-icon {
           transform: rotate(180deg);
         }
       }
-      
+
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        
+
         &:hover {
           transform: none;
           box-shadow: 0 2px 8px rgba($warning-amber, 0.3) !important;
-          
+
           mat-icon {
             transform: none;
           }
         }
       }
     }
-    
+
     .compact-add-btn {
-      width: 56px !important;   // Botón principal más grande
+      width: 56px !important; // Botón principal más grande
       height: 56px !important;
       background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%) !important;
       box-shadow: 0 3px 12px rgba($primary-blue, 0.4) !important;
       transition: all 0.3s ease;
-      margin-right: 0px;        // Sin margen derecho para el último botón
-      
+      margin-right: 0px; // Sin margen derecho para el último botón
+
       mat-icon {
         font-size: 28px;
         width: 28px;
         height: 28px;
         color: white;
       }
-      
+
       &:hover {
         background: linear-gradient(135deg, $primary-blue-dark 0%, $primary-blue-800 100%) !important;
         transform: translateY(-3px) scale(1.1);
         box-shadow: 0 6px 20px rgba($primary-blue, 0.5) !important;
       }
-      
+
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
-        
+
         &:hover {
           transform: none;
           box-shadow: 0 3px 12px rgba($primary-blue, 0.4) !important;
         }
       }
     }
-    
+
     // Responsive para móviles
     @media (max-width: 768px) {
       gap: 12px;
       margin-right: 4px;
-      
+
       .debug-btn {
         width: 36px !important;
         height: 36px !important;
       }
-      
+
       .compact-refresh-btn {
         width: 40px !important;
         height: 40px !important;
       }
-      
+
       .compact-add-btn {
         width: 48px !important;
         height: 48px !important;
-        
+
         mat-icon {
           font-size: 24px;
           width: 24px;
@@ -483,32 +483,32 @@ $gray-900: #0f172a;  // Gris máximo
 .users-table-container {
   background: white;
   border-radius: 12px;
-  overflow-x: auto;      // Scroll horizontal si la tabla es muy ancha
-  overflow-y: auto;      // Scroll vertical para ver todos los usuarios
+  overflow-x: auto; // Scroll horizontal si la tabla es muy ancha
+  overflow-y: auto; // Scroll vertical para ver todos los usuarios
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 2px solid $gray-200;
   border-top: 3px solid $primary-blue;
-  max-height: calc(100vh - 280px);  // Altura máxima para activar scroll
-  display: block;        // Cambiar a block para permitir scroll
+  max-height: calc(100vh - 280px); // Altura máxima para activar scroll
+  display: block; // Cambiar a block para permitir scroll
   margin-top: 8px;
   margin-left: 0px;
   margin-right: 0px;
-  
+
   // Estilo del scrollbar
   &::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: $gray-100;
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: $primary-blue-300;
     border-radius: 4px;
-    
+
     &:hover {
       background: $primary-blue-500;
     }
@@ -616,7 +616,7 @@ $gray-900: #0f172a;  // Gris máximo
 
     .user-avatar {
       flex-shrink: 0;
-      width: 48px;              // Avatar más grande
+      width: 48px; // Avatar más grande
       height: 48px;
       border-radius: 50%;
       overflow: hidden;
@@ -624,7 +624,7 @@ $gray-900: #0f172a;  // Gris máximo
       box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
       transition: all 0.3s ease;
       position: relative;
-      background: $gray-100;    // Fondo por defecto mientras carga
+      background: $gray-100; // Fondo por defecto mientras carga
 
       &:hover {
         transform: scale(1.15);
@@ -640,21 +640,23 @@ $gray-900: #0f172a;  // Gris máximo
         display: block;
         transition: all 0.3s ease;
         background: $gray-100;
-        
+
         // Mejorar la carga de imágenes
-        &[src=""], &[src="null"], &[src="undefined"] {
+        &[src=""],
+        &[src="null"],
+        &[src="undefined"] {
           display: none !important;
         }
-        
+
         // Asegurar que la imagen se muestre correctamente
         &:not([src=""]):not([src="null"]):not([src="undefined"]) {
           display: block !important;
         }
-        
+
         &:hover {
           transform: scale(1.08);
         }
-        
+
         // Indicador de carga
         &:not([complete]) {
           background: linear-gradient(90deg, $gray-200 25%, $gray-100 50%, $gray-200 75%);
@@ -671,11 +673,11 @@ $gray-900: #0f172a;  // Gris máximo
         justify-content: center;
         color: white;
         font-weight: 700;
-        font-size: 16px;          // Texto más grande
+        font-size: 16px; // Texto más grande
         text-transform: uppercase;
         background: linear-gradient(135deg, var(--avatar-color, #{$primary-blue}) 0%, var(--avatar-color-dark, #{$primary-blue-dark}) 100%);
         position: relative;
-        
+
         &::before {
           content: '';
           position: absolute;
@@ -708,15 +710,15 @@ $gray-900: #0f172a;  // Gris máximo
       &:hover::after {
         opacity: 1;
       }
-      
+
       // Estado de error de imagen
       &.image-error {
         border-color: $warning-amber;
-        
+
         .profile-image {
           display: none;
         }
-        
+
         .default-avatar {
           background: linear-gradient(135deg, $warning-amber 0%, #d97706 100%);
         }
@@ -738,7 +740,7 @@ $gray-900: #0f172a;  // Gris máximo
         overflow: hidden;
         text-overflow: ellipsis;
         transition: color 0.2s ease;
-        
+
         &:hover {
           color: $primary-blue;
         }
@@ -755,7 +757,7 @@ $gray-900: #0f172a;  // Gris máximo
         border: 1px solid $gray-200;
         font-weight: 500;
         transition: all 0.2s ease;
-        
+
         &:hover {
           background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
           border-color: $primary-blue-200;
@@ -887,21 +889,21 @@ $gray-900: #0f172a;  // Gris máximo
 
 // ===== CELDA DE ACCIONES - BOTONES MEJORADOS Y SEPARADOS =====
 .actions-cell {
-  min-width: 160px;           // Más ancho para acomodar botones más grandes
+  min-width: 160px; // Más ancho para acomodar botones más grandes
   text-align: center;
-  padding-right: 12px;        // Separación del borde derecho
+  padding-right: 12px; // Separación del borde derecho
 
   .action-buttons {
     display: flex;
-    gap: 10px;                // Mayor separación entre botones
+    gap: 10px; // Mayor separación entre botones
     justify-content: center;
     align-items: center;
-    margin-right: 8px;        // Margen derecho adicional
+    margin-right: 8px; // Margen derecho adicional
 
     .action-btn {
-      width: 42px;            // Botones más grandes
+      width: 42px; // Botones más grandes
       height: 42px;
-      border-radius: 10px;    // Bordes más redondeados
+      border-radius: 10px; // Bordes más redondeados
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
@@ -926,7 +928,7 @@ $gray-900: #0f172a;  // Gris máximo
       &:hover {
         transform: translateY(-3px) scale(1.2);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-        
+
         mat-icon {
           transform: scale(1.15);
         }
@@ -936,7 +938,7 @@ $gray-900: #0f172a;  // Gris máximo
       &.edit-btn {
         background: rgba($primary-blue, 0.12);
         border: 2px solid rgba($primary-blue, 0.25);
-        
+
         &:hover {
           background: rgba($primary-blue, 0.2);
           color: $primary-blue;
@@ -948,7 +950,7 @@ $gray-900: #0f172a;  // Gris máximo
       &.reset-btn {
         background: rgba($warning-amber, 0.12);
         border: 2px solid rgba($warning-amber, 0.25);
-        
+
         &:hover {
           background: rgba($warning-amber, 0.2);
           color: $warning-amber;
@@ -960,7 +962,7 @@ $gray-900: #0f172a;  // Gris máximo
       &.delete-btn {
         background: rgba($error-red, 0.12);
         border: 2px solid rgba($error-red, 0.25);
-        
+
         &:hover {
           background: rgba($error-red, 0.2);
           color: $error-red;
@@ -980,7 +982,7 @@ $gray-900: #0f172a;  // Gris máximo
           transform: none;
           box-shadow: none;
           background: rgba($gray-300, 0.1);
-          
+
           mat-icon {
             transform: none;
           }
@@ -1387,6 +1389,7 @@ $gray-900: #0f172a;  // Gris máximo
 
 // ===== ESTILOS DE NOTIFICACIONES (SNACKBAR) =====
 ::ng-deep {
+
   // Estilos básicos para notificaciones generales
   .success-snackbar {
     background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
@@ -1415,10 +1418,11 @@ $gray-900: #0f172a;  // Gris máximo
   // ===== NOTIFICACIONES DE USUARIO ACTIVO/INACTIVO =====
   // Contenedor principal - Posicionamiento a la altura del header (h3) + 3cm más abajo
   .mat-mdc-snack-bar-container {
+
     &.user-active-snackbar,
     &.user-inactive-snackbar {
       // Posicionar en la parte superior (altura del h3 del header + 3cm)
-      top: 260px !important;  // 140px original + 120px (aprox 3cm)
+      top: 260px !important; // 140px original + 120px (aprox 3cm)
       left: 50% !important;
       transform: translateX(-50%) !important;
       margin: 0 !important;
@@ -1431,28 +1435,28 @@ $gray-900: #0f172a;  // Gris máximo
     // Fondo blanco translúcido con efecto glassmorphism
     background: rgba(255, 255, 255, 0.98) !important;
     backdrop-filter: blur(20px) !important;
-    
+
     // Texto verde
     color: #059669 !important;
     font-weight: 600 !important;
     font-size: 13px !important;
-    
+
     // Espaciado compacto
     padding: 10px 16px !important;
     border-radius: 12px !important;
-    
+
     // Sombra suave verde
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12), 
-                0 0 0 1px rgba(16, 185, 129, 0.08) !important;
-    
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12),
+      0 0 0 1px rgba(16, 185, 129, 0.08) !important;
+
     // Línea indicadora verde más gruesa (5px)
     border-left: 5px solid #10b981 !important;
-    
+
     // Ancho ajustado al contenido
     min-width: auto !important;
     max-width: fit-content !important;
     width: auto !important;
-    
+
     // Superficie interna transparente
     .mdc-snackbar__surface {
       background: transparent !important;
@@ -1460,7 +1464,7 @@ $gray-900: #0f172a;  // Gris máximo
       min-width: auto !important;
       max-width: fit-content !important;
     }
-    
+
     // Etiqueta de texto centrada
     .mat-mdc-snack-bar-label {
       color: #059669 !important;
@@ -1482,28 +1486,28 @@ $gray-900: #0f172a;  // Gris máximo
     // Fondo blanco translúcido con efecto glassmorphism
     background: rgba(255, 255, 255, 0.98) !important;
     backdrop-filter: blur(20px) !important;
-    
+
     // Texto naranja
     color: #d97706 !important;
     font-weight: 600 !important;
     font-size: 13px !important;
-    
+
     // Espaciado compacto
     padding: 10px 16px !important;
     border-radius: 12px !important;
-    
+
     // Sombra suave naranja
-    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.12), 
-                0 0 0 1px rgba(245, 158, 11, 0.08) !important;
-    
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.12),
+      0 0 0 1px rgba(245, 158, 11, 0.08) !important;
+
     // Línea indicadora naranja más gruesa (5px)
     border-left: 5px solid #f59e0b !important;
-    
+
     // Ancho ajustado al contenido
     min-width: auto !important;
     max-width: fit-content !important;
     width: auto !important;
-    
+
     // Superficie interna transparente
     .mdc-snackbar__surface {
       background: transparent !important;
@@ -1511,7 +1515,7 @@ $gray-900: #0f172a;  // Gris máximo
       min-width: auto !important;
       max-width: fit-content !important;
     }
-    
+
     // Etiqueta de texto centrada
     .mat-mdc-snack-bar-label {
       color: #d97706 !important;
@@ -1534,6 +1538,7 @@ $gray-900: #0f172a;  // Gris máximo
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -1541,6 +1546,7 @@ $gray-900: #0f172a;  // Gris máximo
 
 // ===== MEJORAS ADICIONALES PARA FOTOS DE PERFIL =====
 .user-avatar {
+
   // Indicador de carga de imagen
   &.loading {
     .profile-image {
@@ -1550,7 +1556,7 @@ $gray-900: #0f172a;  // Gris máximo
       animation: loading-shimmer 1.5s infinite;
     }
   }
-  
+
   // Estado cuando la imagen se carga exitosamente
   &.loaded {
     .profile-image {
@@ -1558,14 +1564,14 @@ $gray-900: #0f172a;  // Gris máximo
       animation: none;
     }
   }
-  
+
   // Estado de error mejorado
   &.error {
     border-color: $warning-amber !important;
-    
+
     .default-avatar {
       background: linear-gradient(135deg, $warning-amber 0%, #d97706 100%) !important;
-      
+
       &::after {
         content: '!';
         position: absolute;
@@ -1578,7 +1584,7 @@ $gray-900: #0f172a;  // Gris máximo
       }
     }
   }
-  
+
   // Estilos para botones FAB compactos
   .settings-container {
     .mat-mdc-fab.compact-refresh-btn {
@@ -1586,17 +1592,356 @@ $gray-900: #0f172a;  // Gris máximo
         border-radius: 50%;
       }
     }
-    
+
     .mat-mdc-fab.compact-add-btn {
       .mat-mdc-button-persistent-ripple {
         border-radius: 50%;
       }
     }
-    
+
     .mat-mdc-mini-fab.compact-refresh-btn {
       .mat-mdc-button-persistent-ripple {
         border-radius: 50%;
       }
+    }
+  }
+}
+
+// ===== SISTEMA DE PERMISOS COMPACTO =====
+.permissions-tab {
+  padding: 16px 12px !important;
+}
+
+.permissions-container-compact {
+  max-width: 100%;
+  margin: 0;
+}
+
+// Header compacto con selector inline
+.permissions-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, $gray-50 0%, white 100%);
+  border-radius: 12px;
+  border: 2px solid $gray-200;
+  gap: 16px;
+
+  .header-left {
+    flex: 1;
+    
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: $gray-800;
+
+      mat-icon {
+        color: $primary-blue;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    .admin-note {
+      display: inline-block;
+      color: $warning-amber;
+      font-weight: 600;
+      font-size: 0.8rem;
+      margin-top: 2px;
+    }
+  }
+
+  .user-selector-compact {
+    min-width: 280px;
+    margin: 0;
+
+    ::ng-deep {
+      .mat-mdc-form-field-flex {
+        background: white;
+        border-radius: 8px;
+      }
+
+      .mat-mdc-text-field-wrapper {
+        background: white;
+      }
+
+      .mat-mdc-form-field-infix {
+        padding: 8px 0;
+        min-height: 40px;
+      }
+    }
+  }
+}
+
+// Grid de categorías de permisos
+.permissions-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+// Tarjeta de categoría compacta
+.permission-category-compact {
+  background: white;
+  border: 2px solid $gray-200;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    border-color: $primary-blue-300;
+    transform: translateY(-2px);
+  }
+}
+
+// Header de categoría
+.category-header-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
+  border-bottom: 2px solid $primary-blue-200;
+
+  mat-icon {
+    color: $primary-blue;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .category-name {
+    flex: 1;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: $gray-800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .category-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $primary-blue;
+    background: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid $primary-blue-200;
+  }
+}
+
+// Grid de items de permisos
+.permissions-grid-items {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 12px;
+}
+
+// Tarjeta de permiso individual compacta
+.permission-card-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: $gray-50;
+  border: 2px solid $gray-200;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  gap: 12px;
+
+  &:hover {
+    background: white;
+    border-color: $primary-blue-200;
+    box-shadow: 0 2px 8px rgba($primary-blue, 0.1);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.1) 100%);
+    border-color: rgba(16, 185, 129, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.15) 100%);
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+  }
+}
+
+.permission-content {
+  flex: 1;
+  min-width: 0;
+
+  .permission-name-compact {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: $gray-800;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+
+  .permission-desc-compact {
+    font-size: 0.75rem;
+    color: $gray-600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+// Botón toggle mejorado con colores verde/rojo
+.permission-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  min-width: 80px;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    transition: all 0.3s ease;
+  }
+
+  // Estado INACTIVO (rojo)
+  &:not(.active) {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+
+    mat-icon {
+      color: white;
+    }
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+
+      mat-icon {
+        transform: rotate(180deg);
+      }
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+  }
+
+  // Estado ACTIVO (verde)
+  &.active {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+
+    mat-icon {
+      color: white;
+    }
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+
+      mat-icon {
+        transform: rotate(360deg);
+      }
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+  }
+
+  // Estado DESHABILITADO
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, $gray-400 0%, $gray-500 100%);
+    box-shadow: none;
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+
+      mat-icon {
+        transform: none;
+      }
+    }
+  }
+}
+
+// Mensaje cuando no hay usuario seleccionado
+.no-user-selected-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: $gray-500;
+  background: linear-gradient(135deg, $gray-50 0%, white 100%);
+  border-radius: 12px;
+  border: 2px dashed $gray-300;
+  margin-top: 20px;
+
+  mat-icon {
+    font-size: 56px;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+    color: $gray-400;
+  }
+
+  p {
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+// Responsive para móviles
+@media (max-width: 768px) {
+  .permissions-header-compact {
+    flex-direction: column;
+    align-items: stretch;
+
+    .user-selector-compact {
+      min-width: 100%;
+    }
+  }
+
+  .permissions-grid-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .permission-card-compact {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+
+    .permission-toggle-btn {
+      width: 100%;
     }
   }
 }

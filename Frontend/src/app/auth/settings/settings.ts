@@ -36,6 +36,10 @@ import { EditUserDialogComponent } from './edit-user-dialog/edit-user-dialog.com
 // Importaciones de RxJS para programación reactiva
 import { interval, Subscription } from 'rxjs';                              // Observables para actualizaciones automáticas
 
+// Importaciones del sistema de permisos
+import { PermissionsService } from '../../shared/services/permissions.service'; // Servicio de permisos
+import { Permission, PermissionCategory, UserPermissionsResponse } from '../../shared/models/permission.model'; // Modelos de permisos
+
 // Interfaz para configuraciones del sistema - Define la estructura de cada configuración
 interface SystemConfig {
   id: string;                                          // Identificador único de la configuración
@@ -84,6 +88,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   private sessionTimeoutService = inject(SessionTimeoutService); // Servicio de timeout de sesión
   private snackBar = inject(MatSnackBar);             // Servicio para mostrar notificaciones toast
   private dialog = inject(MatDialog);                 // Servicio para abrir diálogos modales
+  private permissionsService = inject(PermissionsService); // Servicio de permisos
 
   // Señales reactivas (Angular Signals) - Estado reactivo del componente
   currentUser = signal<User | null>(null);            // Usuario actualmente autenticado
@@ -91,6 +96,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
   selectedTabIndex = signal<number>(0);               // Índice de la pestaña actualmente seleccionada
   users = signal<User[]>([]);                        // Lista de todos los usuarios del sistema
   systemConfigs = signal<SystemConfig[]>([]);        // Configuraciones del sistema
+
+  // Señales para sistema de permisos
+  selectedUserForPermissions = signal<number | null>(null); // Usuario seleccionado para gestionar permisos
+  permissionCategories = signal<PermissionCategory[]>([]); // Categorías de permisos con sus permisos
 
   // Configuración de tabla de usuarios - Columnas mostradas en formato compacto
   userDisplayedColumns: string[] = ['user', 'contact', 'role', 'status', 'lastLogin', 'actions'];
@@ -111,6 +120,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.checkDatabaseConnection();                    // Verificar conectividad con la base de datos MySQL
     this.loadUsers();                                  // Cargar lista completa de usuarios desde la BD
     this.loadSystemConfigs();                          // Cargar configuraciones del sistema desde el backend
+    this.initializePermissionCategories();             // Inicializar categorías de permisos
     this.startRealTimeUpdates();                       // Iniciar actualizaciones automáticas cada 2 minutos
     this.setupVisibilityListener();                    // Configurar listener para pausar updates cuando la página no es visible
   }
@@ -1370,6 +1380,140 @@ Esta acción eliminará el usuario de la base de datos flexoapp_bd.
       duration: 4000,
       panelClass: ['info-snackbar']
     });
+  }
+
+  // ===== SISTEMA DE PERMISOS =====
+
+  /**
+   * Inicializar categorías de permisos
+   */
+  initializePermissionCategories() {
+    const categories = this.permissionsService.initializePermissionCategories();
+    this.permissionCategories.set(categories);
+    console.log('🔐 Categorías de permisos inicializadas');
+  }
+
+  /**
+   * Cargar permisos del usuario seleccionado
+   */
+  async loadUserPermissions() {
+    const userId = this.selectedUserForPermissions();
+    if (!userId) {
+      console.warn('⚠️ No hay usuario seleccionado para cargar permisos');
+      return;
+    }
+
+    try {
+      console.log(`🔍 Cargando permisos del usuario ${userId}...`);
+
+      const response = await this.permissionsService.getUserPermissions(userId).toPromise();
+
+      if (response) {
+        console.log(`✅ Permisos cargados: ${response.grantedCount}/${response.totalCount}`);
+
+        // Actualizar estado de permisos en las categorías
+        const categories = this.permissionCategories();
+        const updatedCategories = categories.map(category => ({
+          ...category,
+          permissions: category.permissions.map(permission => ({
+            ...permission,
+            isGranted: response.permissions.includes(permission.code)
+          }))
+        }));
+
+        this.permissionCategories.set(updatedCategories);
+      }
+    } catch (error: any) {
+      console.error('❌ Error cargando permisos del usuario:', error);
+      this.snackBar.open('Error al cargar permisos del usuario', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+    }
+  }
+
+  /**
+   * Alternar permiso de un usuario
+   */
+  async togglePermission(permission: Permission, isGranted: boolean) {
+    if (!this.isAdmin()) {
+      this.snackBar.open('Solo los administradores pueden modificar permisos', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
+
+    const userId = this.selectedUserForPermissions();
+    if (!userId) {
+      console.warn('⚠️ No hay usuario seleccionado');
+      return;
+    }
+
+    const currentUser = this.currentUser();
+    const grantedBy = currentUser?.id ? parseInt(currentUser.id, 10) : undefined;
+
+    try {
+      console.log(`🔧 ${isGranted ? 'Concediendo' : 'Revocando'} permiso '${permission.code}' para usuario ${userId}`);
+
+      await this.permissionsService.updateUserPermission(userId, permission.code, isGranted, grantedBy).toPromise();
+
+      // Actualizar localmente
+      const categories = this.permissionCategories();
+      const updatedCategories = categories.map(category => ({
+        ...category,
+        permissions: category.permissions.map(p =>
+          p.code === permission.code ? { ...p, isGranted } : p
+        )
+      }));
+
+      this.permissionCategories.set(updatedCategories);
+
+      this.snackBar.open(
+        `Permiso "${permission.name}" ${isGranted ? 'activado' : 'desactivado'}`,
+        'Cerrar',
+        {
+          duration: 2000,
+          panelClass: [isGranted ? 'success-snackbar' : 'info-snackbar']
+        }
+      );
+
+      console.log(`✅ Permiso '${permission.code}' ${isGranted ? 'concedido' : 'revocado'}`);
+    } catch (error: any) {
+      console.error('❌ Error actualizando permiso:', error);
+      this.snackBar.open('Error al actualizar permiso', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+
+      // Revertir cambio
+      await this.loadUserPermissions();
+    }
+  }
+
+  /**
+   * Verificar si el usuario actual es administrador
+   */
+  isAdmin(): boolean {
+    const user = this.currentUser();
+    return user?.role?.toLowerCase() === 'admin';
+  }
+
+  /**
+   * Obtener cantidad de permisos concedidos en una categoría
+   */
+  getGrantedCount(category: PermissionCategory): number {
+    return category.permissions.filter(p => p.isGranted).length;
+  }
+
+  /**
+   * Manejar cambio de usuario seleccionado para permisos
+   */
+  onUserForPermissionsChange(userId: number | null) {
+    this.selectedUserForPermissions.set(userId);
+    if (userId) {
+      this.loadUserPermissions();
+    }
   }
 
 }

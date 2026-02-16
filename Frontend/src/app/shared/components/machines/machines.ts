@@ -36,6 +36,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PantoneLiveService } from '../../services/pantone-live.service';
 // Servicio de Anilox
 import { AniloxService, Anilox } from '../../services/anilox.service';
+// Servicio de Permisos
+import { PermissionsService } from '../../services/permissions.service';
+import { PERMISSIONS } from '../../models/permission.model';
 
 // Interfaz que define la estructura de un registro de máquina desde la tabla 'maquinas'
 interface MachineProgram {
@@ -133,6 +136,7 @@ export class MachinesComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef); // Detector de cambios para forzar actualización de vista
   private pantoneService = inject(PantoneLiveService); // Servicio de colores Pantone
   private aniloxService = inject(AniloxService); // Servicio de Anilox
+  private permissionsService = inject(PermissionsService); // Servicio de permisos
 
   // Exponer console.log para usar en el template
   console = console;
@@ -2845,6 +2849,79 @@ export class MachinesComponent implements OnInit {
    */
   canSendMessages(): boolean {
     return this.userPermissions().canSendMessages;
+  }
+
+  // ===== MÉTODOS DE VERIFICACIÓN DE PERMISOS PARA ACCIONES DE MÁQUINAS =====
+
+  /**
+   * Verificar si el usuario puede cambiar el estado a PREPARANDO
+   */
+  canChangeToPreparando(): boolean {
+    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_PREALISTANDO);
+  }
+
+  /**
+   * Verificar si el usuario puede cambiar el estado a LISTO
+   */
+  canChangeToListo(): boolean {
+    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_LISTO);
+  }
+
+  /**
+   * Verificar si el usuario puede cambiar el estado a CORRIENDO
+   */
+  canChangeToCorriendo(): boolean {
+    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_CORRIENDO);
+  }
+
+  /**
+   * Verificar si el usuario puede cambiar el estado a TERMINADO
+   */
+  canChangeToTerminado(): boolean {
+    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_TERMINADO);
+  }
+
+  /**
+   * Verificar si el usuario puede cambiar el estado a SUSPENDIDO
+   */
+  canChangeToSuspendido(): boolean {
+    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_SUSPENDIDO);
+  }
+
+  /**
+   * Verificar si el usuario puede enviar mensajes (usando el nuevo sistema de permisos)
+   */
+  canSendMessagesNew(): boolean {
+    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_SEND_MESSAGE);
+  }
+
+  /**
+   * Verificar si el usuario puede imprimir
+   */
+  canPrint(): boolean {
+    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_PRINT);
+  }
+
+  /**
+   * Verificar si el usuario puede cambiar a un estado específico
+   * @param status El estado al que se quiere cambiar
+   * @returns true si tiene permiso, false si no
+   */
+  canChangeToStatus(status: MachineProgram['estado']): boolean {
+    switch (status) {
+      case 'PREPARANDO':
+        return this.canChangeToPreparando();
+      case 'LISTO':
+        return this.canChangeToListo();
+      case 'CORRIENDO':
+        return this.canChangeToCorriendo();
+      case 'TERMINADO':
+        return this.canChangeToTerminado();
+      case 'SUSPENDIDO':
+        return this.canChangeToSuspendido();
+      default:
+        return false;
+    }
   }
 
   /**

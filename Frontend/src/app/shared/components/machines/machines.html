@@ -487,12 +487,12 @@
                         <mat-menu #playMenu="matMenu">
                           <button mat-menu-item
                             (click)="handleActionWithValidation(currentProgramForMenu!, 'PREPARANDO')"
-                            [disabled]="currentProgramForMenu?.estado === 'PREPARANDO'">
+                            [disabled]="currentProgramForMenu?.estado === 'PREPARANDO' || !canChangeToPreparando()">
                             <mat-icon>schedule</mat-icon>
                             <span>Preparando</span>
                           </button>
                           <button mat-menu-item (click)="handleActionWithValidation(currentProgramForMenu!, 'LISTO')"
-                            [disabled]="currentProgramForMenu?.estado === 'LISTO' || currentProgramForMenu?.estado !== 'PREPARANDO'">
+                            [disabled]="currentProgramForMenu?.estado === 'LISTO' || currentProgramForMenu?.estado !== 'PREPARANDO' || !canChangeToListo()">
                             <mat-icon>check_circle</mat-icon>
                             <span>Listo</span>
                           </button>
@@ -505,11 +505,13 @@
                         </button>
 
                         <mat-menu #stopMenu="matMenu">
-                          <button mat-menu-item (click)="handleAction(currentProgramForMenu!, 'CORRIENDO')">
+                          <button mat-menu-item (click)="handleAction(currentProgramForMenu!, 'CORRIENDO')"
+                            [disabled]="!canChangeToCorriendo()">
                             <mat-icon>play_circle</mat-icon>
                             <span>Corriendo</span>
                           </button>
-                          <button mat-menu-item (click)="handleAction(currentProgramForMenu!, 'TERMINADO')">
+                          <button mat-menu-item (click)="handleAction(currentProgramForMenu!, 'TERMINADO')"
+                            [disabled]="!canChangeToTerminado()">
                             <mat-icon>check_circle_outline</mat-icon>
                             <span>Terminado</span>
                           </button>
@@ -518,22 +520,22 @@
                         <!-- Botón de SUSPENDER -->
                         <button mat-icon-button class="action-btn suspendido-btn"
                           (click)="$event.stopPropagation(); suspendProgram(element)"
-                          [disabled]="element.estado === 'SUSPENDIDO'">
+                          [disabled]="element.estado === 'SUSPENDIDO' || !canChangeToSuspendido()">
                           <mat-icon>pause_circle</mat-icon>
                         </button>
 
                         <!-- Botón de MENSAJES - VISIBLE SIEMPRE: Admin/Supervisor pueden enviar, Operarios solo ven -->
                         <button mat-icon-button class="action-btn message-btn"
                           [class.has-message]="hasMessages(element)" [class.visible-always]="hasMessages(element)"
-                          (click)="$event.stopPropagation(); canSendMessages() ? openMessageDialog(element) : showMessage(element)"
-                          *ngIf="canSendMessages() || hasMessages(element)"
-                          matTooltip="{{canSendMessages() ? (hasMessages(element) ? 'Editar mensaje' : 'Enviar mensaje') : 'Ver mensaje'}}">
+                          (click)="$event.stopPropagation(); (canSendMessages() || canSendMessagesNew()) ? openMessageDialog(element) : showMessage(element)"
+                          *ngIf="canSendMessages() || canSendMessagesNew() || hasMessages(element)"
+                          matTooltip="{{(canSendMessages() || canSendMessagesNew()) ? (hasMessages(element) ? 'Editar mensaje' : 'Enviar mensaje') : 'Ver mensaje'}}">
                           <mat-icon [class.blinking]="hasMessages(element)">campaign</mat-icon>
                         </button>
 
                         <!-- Botón de IMPRIMIR -->
                         <button mat-icon-button class="action-btn imprimir-btn"
-                          (click)="$event.stopPropagation(); printFF459(element)">
+                          (click)="$event.stopPropagation(); printFF459(element)" [disabled]="!canPrint()">
                           <mat-icon>print</mat-icon>
                         </button>
 

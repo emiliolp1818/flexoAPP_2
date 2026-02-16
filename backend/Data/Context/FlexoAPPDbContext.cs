@@ -23,6 +23,8 @@ namespace FlexoAPP.API.Data.Context
         public DbSet<Documento> Documentos { get; set; } // Tabla de documentos
         public DbSet<SystemConfig> SystemConfigs { get; set; } // Tabla de configuraciones del sistema
         public DbSet<Anilox> Anilox { get; set; } // Tabla de anilox
+        public DbSet<Permission> Permissions { get; set; } // Tabla de permisos del sistema
+        public DbSet<UserPermission> UserPermissions { get; set; } // Tabla de permisos de usuarios
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

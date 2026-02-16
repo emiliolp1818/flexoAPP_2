@@ -290,80 +290,70 @@
               Permisos
             </ng-template>
             <ng-template matTabContent>
-              <div class="tab-content">
-                <div class="section-header">
-                  <div>
-                    <h3>Gestión de Permisos y Roles</h3>
-                    <p class="section-description">
-                      Configura los permisos para cada rol del sistema
-                    </p>
+              <div class="tab-content permissions-tab">
+                <div class="permissions-container-compact">
+                  <!-- Header compacto -->
+                  <div class="permissions-header-compact">
+                    <div class="header-left">
+                      <h3>
+                        <mat-icon>security</mat-icon>
+                        Permisos de Usuario
+                      </h3>
+                      <span class="admin-note" *ngIf="!isAdmin()">
+                        ⚠️ Solo administradores
+                      </span>
+                    </div>
+                    
+                    <!-- Selector de Usuario compacto -->
+                    <mat-form-field appearance="outline" class="user-selector-compact">
+                      <mat-label>Usuario</mat-label>
+                      <mat-select [(value)]="selectedUserForPermissions"
+                        (selectionChange)="onUserForPermissionsChange($event.value)">
+                        <mat-option *ngFor="let user of users()" [value]="user.id">
+                          {{ user.firstName }} {{ user.lastName }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
                   </div>
-                </div>
 
-                <div class="roles-permissions">
-                  <mat-accordion multi="true">
-                    <mat-expansion-panel *ngFor="let role of roles" [expanded]="role === 'admin'">
-                      <mat-expansion-panel-header>
-                        <mat-panel-title>
-                          <mat-icon>{{ role === 'admin' ? 'admin_panel_settings' :
-                            role === 'supervisor' ? 'supervisor_account' :
-                            role === 'pre-alistador' ? 'list_alt' :
-                            role === 'matizador' ? 'palette' :
-                            role === 'operario' ? 'person' :
-                            role === 'retornos' ? 'assignment_return' : 'person' }}
-                          </mat-icon>
-                          {{ getRoleDisplayName(role) }}
-                        </mat-panel-title>
-                        <mat-panel-description>
-                          Permisos para el rol {{ getRoleDisplayName(role) }}
-                        </mat-panel-description>
-                      </mat-expansion-panel-header>
+                  <!-- Grid de Permisos Compacto -->
+                  <div class="permissions-grid-compact" *ngIf="selectedUserForPermissions()">
+                    <div *ngFor="let category of permissionCategories()" class="permission-category-compact">
+                      <!-- Header de categoría -->
+                      <div class="category-header-compact">
+                        <mat-icon>{{ category.icon }}</mat-icon>
+                        <span class="category-name">{{ category.name }}</span>
+                        <span class="category-count">{{ getGrantedCount(category) }}/{{ category.permissions.length }}</span>
+                      </div>
 
-                      <div class="permissions-grid">
-                        <div class="permission-category">
-                          <h4>Usuarios</h4>
-                          <mat-checkbox [checked]="role === 'admin' || role === 'supervisor'">
-                            Ver usuarios
-                          </mat-checkbox>
-                          <mat-checkbox [checked]="role === 'admin'">
-                            Crear usuarios
-                          </mat-checkbox>
-                          <mat-checkbox [checked]="role === 'admin'">
-                            Editar usuarios
-                          </mat-checkbox>
-                          <mat-checkbox [checked]="role === 'admin'">
-                            Eliminar usuarios
-                          </mat-checkbox>
-                        </div>
-
-
-
-                        <div class="permission-category">
-                          <h4>Configuraciones</h4>
-                          <mat-checkbox [checked]="role === 'admin'">
-                            Configuraciones del sistema
-                          </mat-checkbox>
-
-                          <mat-checkbox [checked]="role === 'admin'">
-                            Gestión de permisos
-                          </mat-checkbox>
-                        </div>
-
-                        <div class="permission-category">
-                          <h4>Reportes</h4>
-                          <mat-checkbox [checked]="true">
-                            Ver reportes básicos
-                          </mat-checkbox>
-                          <mat-checkbox [checked]="role === 'admin' || role === 'supervisor'">
-                            Reportes avanzados
-                          </mat-checkbox>
-                          <mat-checkbox [checked]="role === 'admin' || role === 'supervisor'">
-                            Exportar reportes
-                          </mat-checkbox>
+                      <!-- Grid de permisos -->
+                      <div class="permissions-grid-items">
+                        <div *ngFor="let permission of category.permissions" class="permission-card-compact"
+                          [class.active]="permission.isGranted">
+                          <div class="permission-content">
+                            <div class="permission-name-compact">{{ permission.name }}</div>
+                            <div class="permission-desc-compact">{{ permission.description }}</div>
+                          </div>
+                          
+                          <!-- Botón toggle mejorado -->
+                          <button class="permission-toggle-btn" 
+                            [class.active]="permission.isGranted"
+                            [disabled]="!isAdmin()"
+                            (click)="togglePermission(permission, !permission.isGranted)"
+                            [matTooltip]="permission.isGranted ? 'Desactivar permiso' : 'Activar permiso'">
+                            <mat-icon>{{ permission.isGranted ? 'check_circle' : 'cancel' }}</mat-icon>
+                            <span>{{ permission.isGranted ? 'ON' : 'OFF' }}</span>
+                          </button>
                         </div>
                       </div>
-                    </mat-expansion-panel>
-                  </mat-accordion>
+                    </div>
+                  </div>
+
+                  <!-- Mensaje si no hay usuario seleccionado -->
+                  <div class="no-user-selected-compact" *ngIf="!selectedUserForPermissions()">
+                    <mat-icon>person_search</mat-icon>
+                    <p>Selecciona un usuario para gestionar permisos</p>
+                  </div>
                 </div>
               </div>
             </ng-template>
