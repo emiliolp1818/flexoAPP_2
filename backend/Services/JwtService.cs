@@ -10,12 +10,12 @@ namespace FlexoAPP.API.Services
     public class JwtService : IJwtService
     {
         private readonly IConfiguration _configuration;
-        
+
         public JwtService(IConfiguration configuration)
         {
             _configuration = configuration;
         }
-        
+
         public string GenerateToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -23,11 +23,11 @@ namespace FlexoAPP.API.Services
             var issuer = jwtSettings["Issuer"] ?? "FlexoAPP";
             var audience = jwtSettings["Audience"] ?? "FlexoAPP-Users";
             var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
-            
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            
-            // Optimized claims - NO ProfileImage to avoid 431 error
+
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -37,7 +37,7 @@ namespace FlexoAPP.API.Services
                 new Claim("HasProfileImage", (!string.IsNullOrEmpty(user.ProfileImage)).ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
-            
+
             var token = new JwtSecurityToken(
                 issuer: issuer,
                 audience: audience,
@@ -45,10 +45,10 @@ namespace FlexoAPP.API.Services
                 expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
                 signingCredentials: credentials
             );
-            
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        
+
         public string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
@@ -56,7 +56,7 @@ namespace FlexoAPP.API.Services
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
-        
+
         public bool ValidateToken(string token)
         {
             try
@@ -65,9 +65,9 @@ namespace FlexoAPP.API.Services
                 var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
                 var issuer = jwtSettings["Issuer"] ?? "FlexoAPP";
                 var audience = jwtSettings["Audience"] ?? "FlexoAPP-Users";
-                
+
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-                
+
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var validationParameters = new TokenValidationParameters
                 {
@@ -80,7 +80,7 @@ namespace FlexoAPP.API.Services
                     IssuerSigningKey = key,
                     ClockSkew = TimeSpan.Zero
                 };
-                
+
                 tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
                 return true;
             }
@@ -89,7 +89,7 @@ namespace FlexoAPP.API.Services
                 return false;
             }
         }
-        
+
         public int? GetUserIdFromToken(string token)
         {
             try
@@ -97,12 +97,12 @@ namespace FlexoAPP.API.Services
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var jsonToken = tokenHandler.ReadJwtToken(token);
                 var userIdClaim = jsonToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-                
+
                 if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
                 {
                     return userId;
                 }
-                
+
                 return null;
             }
             catch

@@ -3,71 +3,71 @@
 <!-- Contenedor raíz que ocupa toda la ventana (100vw x 100vh) con flexbox vertical -->
 <div class="design-container">
 
-  <!-- ===== HEADER FIJO ===== -->
-  <!-- Header principal que permanece fijo en la parte superior con estilo del perfil -->
-  <!-- Contenedor del header con fondo blanco translúcido y blur effect -->
+
+
+
   <div class="design-header">
-    <!-- Contenedor interno del header con flexbox para distribuir contenido -->
+
     <div class="header-content">
-      <!-- Sección izquierda: Información del header (título y subtítulo) -->
+
       <div class="header-info">
-        <!-- Título principal con icono de diseño y tipografía bold -->
+
         <h1 class="page-title">
-          <!-- Icono Material Design para servicios de diseño -->
+
           <mat-icon>design_services</mat-icon>
-          <!-- Texto del título principal -->
+
           Gestión de Diseños Flexográficos
         </h1>
-        <!-- Subtítulo descriptivo con información sobre la funcionalidad -->
+
         <p class="page-subtitle">
           Base de datos completa de diseños flexográficos con especificaciones técnicas detalladas
         </p>
       </div>
     </div>
-    <!-- Fin del contenedor interno del header -->
+
 
   </div>
-  <!-- Fin del header fijo -->
 
 
 
-  <!-- ===== PESTAÑAS DE NAVEGACIÓN ===== -->
+
+
   <mat-tab-group class="design-tabs" animationDuration="300ms">
-    
-    <!-- ===== PESTAÑA DISEÑOS ===== -->
+
+
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">design_services</mat-icon>
         <span class="tab-label">Diseños</span>
       </ng-template>
 
-  <!-- ===== ÁREA DE TABLA SCROLLABLE ===== -->
-  <!-- Contenedor principal de la tabla que ocupa el resto del espacio disponible -->
-  <!-- Utiliza flexbox para ocupar todo el espacio restante después del header y búsqueda -->
+
+
+
   <div class="scrollable-table-area">
 
-    <!-- ===== TARJETA DE TABLA ESTILO EXCEL ===== -->
-    <!-- Tabla principal con diseño profesional estilo Excel y Material Design -->
-    <!-- Contenedor Material Card para la tabla con bordes redondeados y sombra -->
+
+
+
     <mat-card class="table-card">
 
-      <!-- Header de la tabla con información, búsqueda y estadísticas -->
+
       <mat-card-header>
         <div class="header-with-search">
-          <!-- Título del header con icono y contador de registros -->
+
           <div class="title-section">
             <mat-card-title>
-              <!-- Icono Material Design para vista de tabla -->
+
               <mat-icon>table_view</mat-icon>
-              <!-- Título descriptivo de la tabla -->
+
               Base de Datos de Diseños Flexográficos
-              <!-- Contador dinámico de registros - Solo visible cuando no está cargando -->
+
               <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
                 ({{ filteredDesigns().length }} registros)
               </span>
             </mat-card-title>
-            
-            <!-- Resultados de búsqueda debajo del título -->
+
+
             <div class="search-results-inline" *ngIf="searchTerm()">
               <span class="results-count">
                 {{ filteredDesigns().length }} resultado(s) para "{{ searchTerm() }}"
@@ -75,9 +75,9 @@
             </div>
           </div>
 
-          <!-- Sección derecha: Búsqueda y Botones de acción -->
+
           <div class="search-and-actions-section">
-            <!-- Campo de búsqueda -->
+
             <div class="search-section-inline">
               <mat-form-field appearance="outline" class="search-field-inline">
                 <mat-label>Buscar diseños</mat-label>
@@ -86,23 +86,23 @@
                 <mat-icon matSuffix>search</mat-icon>
               </mat-form-field>
 
-              <!-- Botón para limpiar búsqueda -->
+
               <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm()" class="clear-search-btn-inline"
                 matTooltip="Limpiar búsqueda">
                 <mat-icon>clear</mat-icon>
               </button>
             </div>
 
-            <!-- Botones de acción -->
+
             <div class="header-actions-inline">
-              <!-- Botón Crear Diseño -->
+
               <button mat-raised-button (click)="createNewDesign()" class="create-design-btn"
                 [disabled]="loading()" matTooltip="Crear nuevo diseño flexográfico">
                 <mat-icon>add</mat-icon>
                 Crear
               </button>
 
-              <!-- Botón Importar Excel -->
+
               <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn" [disabled]="uploading()"
                 matTooltip="Subir diseños desde Excel">
                 <mat-icon>cloud_upload</mat-icon>
@@ -110,14 +110,14 @@
                 <span *ngIf="uploading()">{{uploadProgress()}}%</span>
               </button>
 
-              <!-- Botón Exportar Excel -->
+
               <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn"
                 matTooltip="Exportar diseños a Excel">
                 <mat-icon>download</mat-icon>
                 Exportar
               </button>
 
-              <!-- Botón Actualizar/Refrescar -->
+
               <button mat-icon-button (click)="refreshDesigns()" class="refresh-btn" [disabled]="loading()"
                 matTooltip="Actualizar lista de diseños">
                 <mat-icon [class.spinning]="loading()">refresh</mat-icon>
@@ -126,21 +126,21 @@
           </div>
         </div>
       </mat-card-header>
-      <!-- Fin del header de la tabla -->
 
-      <!-- Contenido principal de la tabla -->
+
+
       <mat-card-content>
-        <!-- Contenedor de la tabla con scroll independiente -->
-        <!-- Permite scroll horizontal y vertical mientras mantiene el header fijo -->
+
+
         <div class="table-container">
 
-          <!-- ===== TABLA PRINCIPAL ESTILO EXCEL ===== -->
-          <!-- Tabla Angular Material con scroll horizontal y vertical, headers fijos -->
-          <!-- DataSource conectado a la señal reactiva filteredDesigns() -->
+
+
+
           <table mat-table [dataSource]="filteredDesigns()" class="excel-table designs-table-modern">
 
-            <!-- ===== COLUMNA ARTÍCULO F ===== -->
-            <!-- Código único del diseño flexográfico (ej: F204567) -->
+
+
             <ng-container matColumnDef="articleF">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -153,7 +153,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA CLIENTE ===== -->
+
             <ng-container matColumnDef="client">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -166,7 +166,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA DESCRIPCIÓN ===== -->
+
             <ng-container matColumnDef="description">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -179,7 +179,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA SUSTRATO ===== -->
+
             <ng-container matColumnDef="substrate">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -192,7 +192,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA TIPO DE PRODUCTO ===== -->
+
             <ng-container matColumnDef="type">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -205,7 +205,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA ANCHO MM ===== -->
+
             <ng-container matColumnDef="anchoMm">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -218,7 +218,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA TIPO DE IMPRESIÓN ===== -->
+
             <ng-container matColumnDef="printType">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -231,7 +231,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA PALETA DE COLORES - ESTILO MÁQUINAS ===== -->
+
             <ng-container matColumnDef="colors">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -250,7 +250,7 @@
                     <mat-icon class="colors-icon-small">palette</mat-icon>
                     <span class="numero-colores-text">{{ design.colorCount || 0 }}</span>
                   </button>
-                  
+
                   <div class="colors-chips-inline" *ngIf="isColorsExpanded(design.id?.toString() || '')">
                     <div *ngFor="let colorName of design.colors; let i = index" class="color-chip">
                       <span class="chip-num">{{ i + 1 }}</span>
@@ -262,7 +262,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA ESTADO ===== -->
+
             <ng-container matColumnDef="status">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -275,7 +275,7 @@
               </td>
             </ng-container>
 
-            <!-- ===== COLUMNA ACCIONES ===== -->
+
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="excel-header">
                 <div class="header-content">
@@ -303,55 +303,55 @@
               </td>
             </ng-container>
 
-            <!-- ===== FILAS DE LA TABLA ===== -->
+
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="excel-row"
               [attr.data-design-id]="row.id"
               [attr.data-article]="row.articleF"></tr>
           </table>
-          <!-- Fin de la tabla principal -->
 
-          <!-- ===== MENSAJE SIN DATOS ===== -->
-          <!-- Mostrado cuando no hay diseños o no se encuentran resultados de búsqueda -->
-          <!-- Condicional: solo visible cuando no hay datos Y no está cargando -->
+
+
+
+
           <div *ngIf="filteredDesigns().length === 0 && !loading()" class="no-data">
-            <!-- Icono grande para estado vacío -->
+
             <mat-icon>design_services</mat-icon>
-            <!-- Mensaje condicional cuando no hay diseños en la base de datos -->
+
             <p *ngIf="!searchTerm()">No hay diseños registrados en la base de datos</p>
-            <!-- Mensaje condicional cuando la búsqueda no arroja resultados -->
+
             <p *ngIf="searchTerm()">No se encontraron diseños que coincidan con "{{ searchTerm() }}"</p>
-            <!-- Botón de acción para crear el primer diseño - Solo visible sin búsqueda activa -->
+
             <button mat-raised-button (click)="createNewDesign()" *ngIf="!searchTerm()">
-              <!-- Icono de agregar -->
+
               <mat-icon>add</mat-icon>
               Crear Primer Diseño
             </button>
           </div>
 
-          <!-- ===== MENSAJE DE CARGA ===== -->
-          <!-- Mostrado mientras se cargan los datos desde la base de datos MySQL -->
-          <!-- Solo visible cuando la señal loading() es true -->
+
+
+
           <div *ngIf="loading()" class="loading-container">
-            <!-- Icono animado de carga con rotación CSS -->
+
             <mat-icon class="loading-icon">refresh</mat-icon>
-            <!-- Mensaje informativo durante la carga -->
+
             <p>Cargando diseños desde la base de datos...</p>
           </div>
 
         </div>
-        <!-- Fin del contenedor de la tabla -->
 
-        <!-- ===== PAGINACIÓN REIMAGINADA ===== -->
+
+
         <div class="pagination-controls" *ngIf="filteredDesigns().length > 0">
-          <!-- Información de registros (Izquierda) -->
+
           <div class="pagination-info">
             Mostrando <b>{{ (currentPage() - 1) * pageSize() + 1 }} - {{ Math.min(currentPage() * pageSize(),
               filteredDesigns().length)
               }}</b> de <b>{{ filteredDesigns().length }}</b> diseños
           </div>
 
-          <!-- Controles de acción (Centro) -->
+
           <div class="pagination-actions">
             <button (click)="previousPage()" [disabled]="currentPage() === 1 || loading()" mat-ripple
               class="nav-btn prev-btn">
@@ -369,7 +369,7 @@
             </button>
           </div>
 
-          <!-- Selector de tamaño (Derecha) -->
+
           <div class="page-size-container">
             <mat-form-field appearance="outline" class="page-size-select mini-select">
               <mat-select [ngModel]="pageSize()" (selectionChange)="onPageSizeChange($event.value)">
@@ -381,16 +381,16 @@
           </div>
         </div>
       </mat-card-content>
-      <!-- Fin del contenido de la tarjeta -->
+
     </mat-card>
-    <!-- Fin de la tarjeta de la tabla -->
+
   </div>
-  <!-- Fin del área de tabla scrollable -->
+
 
     </mat-tab>
-    <!-- Fin pestaña Diseños -->
 
-    <!-- ===== PESTAÑA ANILOX ===== -->
+
+
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon class="tab-icon">grid_on</mat-icon>
@@ -398,21 +398,21 @@
       </ng-template>
 
       <div class="anilox-tab-content">
-        
-        <!-- Layout con sidebar y tabla -->
+
+
         <div class="anilox-layout">
-          
-          <!-- Sidebar izquierdo con máquinas -->
+
+
           <div class="anilox-sidebar">
             <div class="sidebar-header">
               <mat-icon>precision_manufacturing</mat-icon>
               <h3>Máquinas</h3>
             </div>
-            
+
             <div class="machine-buttons">
               <div class="machine-item" *ngFor="let machine of availableMachines">
-                <button 
-                  mat-raised-button 
+                <button
+                  mat-raised-button
                   [class.active]="selectedMachine === machine.toString()"
                   (click)="selectMachine(machine)"
                   class="machine-btn">
@@ -420,9 +420,9 @@
                   <span>MQ {{ machine }}</span>
                 </button>
                 <mat-form-field class="carga-muestra-input" appearance="outline">
-                  <input 
-                    matInput 
-                    type="number" 
+                  <input
+                    matInput
+                    type="number"
                     step="0.01"
                     [value]="machinesCargaMuestra[machine] || ''"
                     (blur)="updateMachineCargaMuestra(machine, $event)"
@@ -430,9 +430,9 @@
                     class="carga-input">
                 </mat-form-field>
               </div>
-              
-              <button 
-                mat-raised-button 
+
+              <button
+                mat-raised-button
                 [class.active]="selectedMachine === 'all'"
                 (click)="selectMachine('all')"
                 class="machine-btn all-machines">
@@ -442,17 +442,17 @@
             </div>
           </div>
 
-          <!-- Área principal con tabla -->
+
           <div class="anilox-main-area">
-            
-            <!-- Header con título y botones a la derecha -->
+
+
             <div class="anilox-header">
               <div class="header-title">
                 <mat-icon>grid_on</mat-icon>
                 <h2>Inventario de Anilox</h2>
                 <span class="record-count">{{ filteredAniloxData.length }} registros</span>
               </div>
-              
+
               <div class="header-actions">
                 <button mat-raised-button color="primary" class="create-anilox-btn" (click)="createAnilox()">
                   <mat-icon>add</mat-icon>
@@ -466,11 +466,11 @@
               </div>
             </div>
 
-            <!-- Tabla de anilox -->
+
             <div class="anilox-table-container">
               <table mat-table [dataSource]="filteredAniloxData" class="anilox-table">
 
-                <!-- Columna Código -->
+
                 <ng-container matColumnDef="codigo">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -483,7 +483,7 @@
                   </td>
                 </ng-container>
 
-                <!-- Columna Máquina -->
+
                 <ng-container matColumnDef="maquina">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -496,7 +496,7 @@
                   </td>
                 </ng-container>
 
-                <!-- Columna BCM -->
+
                 <ng-container matColumnDef="bcm">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -509,7 +509,7 @@
                   </td>
                 </ng-container>
 
-                <!-- Columna Lineatura -->
+
                 <ng-container matColumnDef="lineatura">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -522,7 +522,7 @@
                   </td>
                 </ng-container>
 
-                <!-- Columna Marca -->
+
                 <ng-container matColumnDef="marca">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -531,15 +531,15 @@
                     </div>
                   </th>
                   <td mat-cell *matCellDef="let anilox" class="anilox-cell marca-cell">
-                    <span class="marca-badge" [class.apex]="anilox.marca === 'APEX'" 
-                          [class.zecher]="anilox.marca === 'ZECHER'" 
+                    <span class="marca-badge" [class.apex]="anilox.marca === 'APEX'"
+                          [class.zecher]="anilox.marca === 'ZECHER'"
                           [class.harper]="anilox.marca === 'HARPER'">
                       {{ anilox.marca }}
                     </span>
                   </td>
                 </ng-container>
 
-                <!-- Columna Volumen Real -->
+
                 <ng-container matColumnDef="volumenReal">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -552,7 +552,7 @@
                   </td>
                 </ng-container>
 
-                <!-- Columna Factor Eficiencia -->
+
                 <ng-container matColumnDef="factorEficiencia">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -565,7 +565,7 @@
                   </td>
                 </ng-container>
 
-                <!-- Columna Densidad -->
+
                 <ng-container matColumnDef="densidad">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -578,7 +578,7 @@
                   </td>
                 </ng-container>
 
-                <!-- Columna Acciones -->
+
                 <ng-container matColumnDef="actions">
                   <th mat-header-cell *matHeaderCellDef class="anilox-header-cell">
                     <div class="header-content">
@@ -603,7 +603,7 @@
 
               </table>
 
-              <!-- Mensaje sin datos -->
+
               <div *ngIf="filteredAniloxData.length === 0" class="no-anilox-data">
                 <mat-icon>grid_on</mat-icon>
                 <p *ngIf="selectedMachine === 'all'">No hay anilox registrados</p>
@@ -617,10 +617,10 @@
       </div>
 
     </mat-tab>
-    <!-- Fin pestaña Anilox -->
+
 
   </mat-tab-group>
-  <!-- Fin pestañas -->
+
 
 </div>
 <!-- Fin del contenedor principal de diseños -->
@@ -630,7 +630,7 @@
 <div class="dialog-overlay" *ngIf="showCreateForm()" (click)="cancelCreateDesign()">
   <div class="dialog-container" (click)="$event.stopPropagation()">
 
-    <!-- Header del diálogo -->
+
     <div class="dialog-header">
       <div class="dialog-title">
         <mat-icon>add_circle</mat-icon>
@@ -641,11 +641,11 @@
       </button>
     </div>
 
-    <!-- Contenido scrollable del diálogo -->
+
     <div class="dialog-content">
       <form [formGroup]="createDesignForm" class="create-design-form">
 
-        <!-- Fila 1: Artículo F y Cliente -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Artículo F *</mat-label>
@@ -666,7 +666,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Fila 2: Descripción -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Descripción *</mat-label>
@@ -679,7 +679,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Fila 3: Sustrato y Tipo -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Sustrato *</mat-label>
@@ -701,7 +701,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Fila 4: Tipo de Impresión y Número de Colores -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Tipo de Impresión *</mat-label>
@@ -720,7 +720,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Fila 5: Selección de Colores Pantone Live -->
+
         <div class="form-row colors-section" *ngIf="createDesignForm.get('colorCount')?.value > 0">
           <div class="colors-header">
             <h4>
@@ -732,7 +732,7 @@
             </p>
           </div>
 
-          <!-- Colores más utilizados -->
+
           <div class="most-used-colors">
             <span class="section-label">Más utilizados:</span>
             <div class="color-chips">
@@ -743,7 +743,7 @@
             </div>
           </div>
 
-          <!-- Selector de colores por posición -->
+
           <div class="color-selectors">
             <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
               <label class="color-label">Color {{ i + 1 }}:</label>
@@ -771,7 +771,7 @@
                 </mat-autocomplete>
               </mat-form-field>
 
-              <!-- Vista previa del color seleccionado -->
+
               <div class="selected-color-preview">
                 <div class="color-swatch" [style.background-color]="color.hex"
                   [title]="color.displayName + ' - ' + color.hex">
@@ -785,7 +785,7 @@
           </div>
         </div>
 
-        <!-- Fila 6: Estado -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Estado *</mat-label>
@@ -800,7 +800,7 @@
       </form>
     </div>
 
-    <!-- Footer del diálogo con botones de acción -->
+
     <div class="dialog-footer">
       <button mat-button (click)="cancelCreateDesign()" [disabled]="loading()" class="cancel-btn">
         <mat-icon>cancel</mat-icon>
@@ -823,7 +823,7 @@
 <div class="dialog-overlay" *ngIf="showEditForm()" (click)="cancelEditDesign()">
   <div class="dialog-container" (click)="$event.stopPropagation()">
 
-    <!-- Header del diálogo de edición -->
+
     <div class="dialog-header edit-header">
       <div class="dialog-title">
         <mat-icon>edit</mat-icon>
@@ -834,11 +834,11 @@
       </button>
     </div>
 
-    <!-- Contenido scrollable del diálogo de edición -->
+
     <div class="dialog-content">
       <form [formGroup]="editDesignForm" class="create-design-form">
 
-        <!-- Fila 1: Artículo F y Cliente -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Artículo F *</mat-label>
@@ -857,7 +857,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Fila 2: Descripción -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Descripción *</mat-label>
@@ -870,7 +870,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Fila 3: Sustrato y Tipo -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Sustrato *</mat-label>
@@ -892,7 +892,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Fila 4: Tipo de Impresión y Número de Colores -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Tipo de Impresión *</mat-label>
@@ -911,7 +911,7 @@
           </mat-form-field>
         </div>
 
-        <!-- Fila 5: Selección de Colores Pantone Live -->
+
         <div class="form-row colors-section" *ngIf="editDesignForm.get('colorCount')?.value > 0">
           <div class="colors-header">
             <h4>
@@ -923,7 +923,7 @@
             </p>
           </div>
 
-          <!-- Colores más utilizados -->
+
           <div class="most-used-colors">
             <span class="section-label">Más utilizados:</span>
             <div class="color-chips">
@@ -934,7 +934,7 @@
             </div>
           </div>
 
-          <!-- Selector de colores por posición -->
+
           <div class="color-selectors">
             <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
               <label class="color-label">Color {{ i + 1 }}:</label>
@@ -962,7 +962,7 @@
                 </mat-autocomplete>
               </mat-form-field>
 
-              <!-- Vista previa del color seleccionado -->
+
               <div class="selected-color-preview">
                 <div class="color-swatch" [style.background-color]="color.hex"
                   [title]="color.displayName + ' - ' + color.hex">
@@ -976,7 +976,7 @@
           </div>
         </div>
 
-        <!-- Fila 6: Estado -->
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Estado *</mat-label>
@@ -991,7 +991,7 @@
       </form>
     </div>
 
-    <!-- Footer del diálogo con botones de acción -->
+
     <div class="dialog-footer">
       <button mat-button (click)="cancelEditDesign()" [disabled]="loading()" class="cancel-btn">
         <mat-icon>cancel</mat-icon>

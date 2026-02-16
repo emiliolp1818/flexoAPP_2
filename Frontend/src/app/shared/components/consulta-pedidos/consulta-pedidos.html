@@ -1,10 +1,10 @@
 <!-- ===== CONTENEDOR PRINCIPAL DE CONSULTA DE PEDIDOS ===== -->
 <div class="consulta-container">
 
-  <!-- ===== HEADER FIJO ===== -->
+
   <div class="consulta-header">
     <div class="header-content">
-      <!-- Sección izquierda: Información del header -->
+
       <div class="header-info">
         <h1 class="page-title">
           <mat-icon>search</mat-icon>
@@ -15,16 +15,16 @@
         </p>
       </div>
 
-      <!-- Sección derecha: Acciones del header -->
+
       <div class="header-actions">
-        <!-- Botón Exportar -->
+
         <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn" [disabled]="loading()"
           matTooltip="Exportar consulta a archivo Excel">
           <mat-icon>download</mat-icon>
           Exportar
         </button>
 
-        <!-- Botón Actualizar -->
+
         <button mat-icon-button (click)="refreshPedidos()" class="refresh-btn" [disabled]="loading()"
           matTooltip="Actualizar lista de pedidos">
           <mat-icon [class.spinning]="loading()">refresh</mat-icon>
@@ -33,16 +33,16 @@
     </div>
   </div>
 
-  <!-- ===== ÁREA DE TABLA SCROLLABLE ===== -->
+
   <div class="scrollable-table-area">
 
-    <!-- ===== TARJETA DE TABLA ===== -->
+
     <mat-card class="table-card">
 
-      <!-- Header de la tabla con búsqueda -->
+
       <mat-card-header>
         <div class="header-with-search">
-          <!-- Título y campos de búsqueda en la misma línea -->
+
           <div class="title-and-search">
             <mat-card-title>
               <mat-icon>inventory_2</mat-icon>
@@ -52,27 +52,27 @@
               </span>
             </mat-card-title>
 
-            <!-- Campos de búsqueda a la derecha -->
+
             <div class="search-and-actions-section">
-              <!-- Búsqueda por OT SAP -->
+
               <div class="search-section-inline">
                 <mat-form-field appearance="outline" class="search-field-inline">
                   <input matInput [(ngModel)]="searchTermOT" placeholder="Buscar por OT SAP" (ngModelChange)="cargarPedidos()">
                   <mat-icon matSuffix>search</mat-icon>
                 </mat-form-field>
-                <button mat-icon-button (click)="searchTermOT.set(''); cargarPedidos()" *ngIf="searchTermOT()" 
+                <button mat-icon-button (click)="searchTermOT.set(''); cargarPedidos()" *ngIf="searchTermOT()"
                   class="clear-search-btn-inline" matTooltip="Limpiar">
                   <mat-icon>clear</mat-icon>
                 </button>
               </div>
 
-              <!-- Búsqueda por Artículo -->
+
               <div class="search-section-inline">
                 <mat-form-field appearance="outline" class="search-field-inline">
                   <input matInput [(ngModel)]="searchTermArticulo" placeholder="Buscar por Artículo" (ngModelChange)="cargarPedidos()">
                   <mat-icon matSuffix>search</mat-icon>
                 </mat-form-field>
-                <button mat-icon-button (click)="searchTermArticulo.set(''); cargarPedidos()" *ngIf="searchTermArticulo()" 
+                <button mat-icon-button (click)="searchTermArticulo.set(''); cargarPedidos()" *ngIf="searchTermArticulo()"
                   class="clear-search-btn-inline" matTooltip="Limpiar">
                   <mat-icon>clear</mat-icon>
                 </button>
@@ -80,7 +80,7 @@
             </div>
           </div>
 
-          <!-- Resultados de búsqueda debajo -->
+
           <div class="search-results-row" *ngIf="searchTermOT() || searchTermArticulo()">
             <span class="results-count">
               <mat-icon>search</mat-icon>
@@ -90,20 +90,20 @@
         </div>
       </mat-card-header>
 
-      <!-- Contenido de la tabla -->
+
       <mat-card-content>
-        
-        <!-- Spinner de carga -->
+
+
         <div *ngIf="loading()" class="loading-container">
           <mat-spinner diameter="50"></mat-spinner>
           <p>Cargando pedidos...</p>
         </div>
 
-        <!-- Tabla de pedidos agrupados -->
+
         <div *ngIf="!loading()" class="table-container">
           <table mat-table [dataSource]="paginatedPedidos()" class="pedidos-table">
 
-            <!-- Columna: Artículo -->
+
             <ng-container matColumnDef="articulo">
               <th mat-header-cell *matHeaderCellDef class="header-cell">
                 <div class="header-content">
@@ -116,7 +116,7 @@
               </td>
             </ng-container>
 
-            <!-- Columna: Colores/Pantones -->
+
             <ng-container matColumnDef="colores">
               <th mat-header-cell *matHeaderCellDef class="header-cell">
                 <div class="header-content">
@@ -137,7 +137,7 @@
               </td>
             </ng-container>
 
-            <!-- Columna: Kilos Totales -->
+
             <ng-container matColumnDef="kilosTotales">
               <th mat-header-cell *matHeaderCellDef class="header-cell">
                 <div class="header-content">
@@ -150,7 +150,7 @@
               </td>
             </ng-container>
 
-            <!-- Columna: Cantidad OTs -->
+
             <ng-container matColumnDef="cantidadOTs">
               <th mat-header-cell *matHeaderCellDef class="header-cell">
                 <div class="header-content">
@@ -163,7 +163,7 @@
               </td>
             </ng-container>
 
-            <!-- Columna: OTs SAP -->
+
             <ng-container matColumnDef="otsSap">
               <th mat-header-cell *matHeaderCellDef class="header-cell">
                 <div class="header-content">
@@ -180,7 +180,7 @@
               </td>
             </ng-container>
 
-            <!-- Columna: Máquinas -->
+
             <ng-container matColumnDef="maquinas">
               <th mat-header-cell *matHeaderCellDef class="header-cell">
                 <div class="header-content">
@@ -199,7 +199,7 @@
               </td>
             </ng-container>
 
-            <!-- Columna: Estado (solo en histórico) -->
+
             <ng-container matColumnDef="estado">
               <th mat-header-cell *matHeaderCellDef class="header-cell">
                 <div class="header-content">
@@ -216,7 +216,7 @@
               </td>
             </ng-container>
 
-            <!-- Columna: Info Backup (solo en histórico) -->
+
             <ng-container matColumnDef="backupInfo">
               <th mat-header-cell *matHeaderCellDef class="header-cell">
                 <div class="header-content">
@@ -246,11 +246,11 @@
               </td>
             </ng-container>
 
-            <!-- Definir filas -->
+
             <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
 
-            <!-- Fila cuando no hay datos -->
+
             <tr class="mat-row no-data-row" *matNoDataRow>
               <td class="mat-cell" [attr.colspan]="displayedColumns.length">
                 <div class="no-data-container">
@@ -263,15 +263,15 @@
           </table>
         </div>
 
-        <!-- Paginación personalizada -->
+
         <div class="pagination-controls" *ngIf="filteredPedidos().length > 0">
-          <!-- Información de registros (Izquierda) -->
+
           <div class="pagination-info">
-            Mostrando <b>{{ (pageIndex() * pageSize()) + 1 }} - {{ Math.min((pageIndex() + 1) * pageSize(), filteredPedidos().length) }}</b> 
+            Mostrando <b>{{ (pageIndex() * pageSize()) + 1 }} - {{ Math.min((pageIndex() + 1) * pageSize(), filteredPedidos().length) }}</b>
             de <b>{{ filteredPedidos().length }}</b> pedidos
           </div>
 
-          <!-- Controles de acción (Centro) -->
+
           <div class="pagination-actions">
             <button (click)="previousPage()" [disabled]="pageIndex() === 0 || loading()" mat-ripple
               class="nav-btn prev-btn">
@@ -289,7 +289,7 @@
             </button>
           </div>
 
-          <!-- Selector de tamaño (Derecha) -->
+
           <div class="page-size-container">
             <mat-form-field appearance="outline" class="page-size-select mini-select">
               <mat-select [ngModel]="pageSize()" (selectionChange)="onPageSizeChange($event.value)">

@@ -18,10 +18,10 @@ namespace FlexoAPP.API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Obtener todos los permisos del sistema
-        /// GET: api/permissions
-        /// </summary>
+
+
+
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Permission>>> GetAllPermissions()
         {
@@ -43,10 +43,10 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener permisos por categoría
-        /// GET: api/permissions/category/{category}
-        /// </summary>
+
+
+
+
         [HttpGet("category/{category}")]
         public async Task<ActionResult<IEnumerable<Permission>>> GetPermissionsByCategory(string category)
         {
@@ -67,30 +67,30 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener permisos de un usuario específico
-        /// GET: api/permissions/user/{userId}
-        /// </summary>
+
+
+
+
         [HttpGet("user/{userId}")]
         public async Task<ActionResult> GetUserPermissions(int userId)
         {
             try
             {
-                // Verificar que el usuario existe
+
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
                     return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
                 }
 
-                // Obtener todos los permisos del sistema
+
                 var allPermissions = await _context.Permissions
                     .Where(p => p.IsActive)
                     .OrderBy(p => p.Category)
                     .ThenBy(p => p.Name)
                     .ToListAsync();
 
-                // Obtener permisos concedidos al usuario
+
                 var userPermissions = await _context.UserPermissions
                     .Where(up => up.UserId == userId && up.IsGranted)
                     .Select(up => up.PermissionCode)
@@ -117,10 +117,10 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Actualizar permiso de un usuario
-        /// PUT: api/permissions/user/{userId}
-        /// </summary>
+
+
+
+
         [HttpPut("user/{userId}")]
         public async Task<ActionResult> UpdateUserPermission(int userId, [FromBody] UpdatePermissionRequest request)
         {
@@ -128,29 +128,29 @@ namespace FlexoAPP.API.Controllers
             {
                 _logger.LogInformation($"🔧 Actualizando permiso '{request.PermissionCode}' para usuario {userId}: {request.IsGranted}");
 
-                // Verificar que el usuario existe
+
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
                     return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
                 }
 
-                // Verificar que el permiso existe
+
                 var permission = await _context.Permissions
                     .FirstOrDefaultAsync(p => p.Code == request.PermissionCode);
-                
+
                 if (permission == null)
                 {
                     return NotFound(new { message = $"Permiso '{request.PermissionCode}' no encontrado" });
                 }
 
-                // Buscar si ya existe el registro de permiso del usuario
+
                 var userPermission = await _context.UserPermissions
                     .FirstOrDefaultAsync(up => up.UserId == userId && up.PermissionCode == request.PermissionCode);
 
                 if (userPermission == null)
                 {
-                    // Crear nuevo registro
+
                     userPermission = new UserPermission
                     {
                         UserId = userId,
@@ -166,7 +166,7 @@ namespace FlexoAPP.API.Controllers
                 }
                 else
                 {
-                    // Actualizar registro existente
+
                     userPermission.IsGranted = request.IsGranted;
                     userPermission.GrantedAt = DateTime.Now;
                     userPermission.GrantedBy = request.GrantedBy;
@@ -194,18 +194,18 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Verificar si un usuario tiene un permiso específico
-        /// GET: api/permissions/user/{userId}/check/{permissionCode}
-        /// </summary>
+
+
+
+
         [HttpGet("user/{userId}/check/{permissionCode}")]
         public async Task<ActionResult> CheckUserPermission(int userId, string permissionCode)
         {
             try
             {
                 var hasPermission = await _context.UserPermissions
-                    .AnyAsync(up => up.UserId == userId && 
-                                   up.PermissionCode == permissionCode && 
+                    .AnyAsync(up => up.UserId == userId &&
+                                   up.PermissionCode == permissionCode &&
                                    up.IsGranted);
 
                 return Ok(new
@@ -222,10 +222,10 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Conceder todos los permisos a un usuario (útil para admins)
-        /// POST: api/permissions/user/{userId}/grant-all
-        /// </summary>
+
+
+
+
         [HttpPost("user/{userId}/grant-all")]
         public async Task<ActionResult> GrantAllPermissions(int userId, [FromBody] GrantAllRequest request)
         {
@@ -233,14 +233,14 @@ namespace FlexoAPP.API.Controllers
             {
                 _logger.LogInformation($"🔓 Concediendo todos los permisos al usuario {userId}");
 
-                // Verificar que el usuario existe
+
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
                     return NotFound(new { message = $"Usuario con ID {userId} no encontrado" });
                 }
 
-                // Obtener todos los permisos activos
+
                 var allPermissions = await _context.Permissions
                     .Where(p => p.IsActive)
                     .ToListAsync();
@@ -294,10 +294,10 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Revocar todos los permisos de un usuario
-        /// POST: api/permissions/user/{userId}/revoke-all
-        /// </summary>
+
+
+
+
         [HttpPost("user/{userId}/revoke-all")]
         public async Task<ActionResult> RevokeAllPermissions(int userId)
         {
@@ -334,7 +334,7 @@ namespace FlexoAPP.API.Controllers
         }
     }
 
-    // DTOs para las peticiones
+
     public class UpdatePermissionRequest
     {
         public string PermissionCode { get; set; } = string.Empty;

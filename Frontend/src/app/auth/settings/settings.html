@@ -1,5 +1,5 @@
 <div class="settings-container">
-  <!-- Header Banner - Similar al módulo de máquinas -->
+
   <div class="settings-header fixed-header">
     <div class="header-content">
       <div class="header-info">
@@ -22,7 +22,7 @@
         <mat-tab-group [selectedIndex]="selectedTabIndex()" (selectedTabChange)="onTabChange($event.index)"
           animationDuration="0ms">
 
-          <!-- Tab: Gestión de Usuarios -->
+
           <mat-tab>
             <ng-template mat-tab-label>
               <mat-icon>people</mat-icon>
@@ -53,7 +53,7 @@
                 <div class="users-table-container">
                   <table mat-table [dataSource]="users()" class="users-table compact-table">
 
-                    <!-- Usuario (Foto + Nombre + Código) -->
+
                     <ng-container matColumnDef="user">
                       <th mat-header-cell *matHeaderCellDef class="excel-header">
                         <div class="header-content">
@@ -63,7 +63,7 @@
                       </th>
                       <td mat-cell *matCellDef="let user" class="excel-cell user-cell">
                         <div class="user-profile">
-                          <!-- Foto de perfil o avatar por defecto - OPTIMIZADO -->
+
                           <div class="user-avatar">
                             <img *ngIf="hasProfileImage(user)" [src]="getProfileImageUrl(user.profileImage || '')"
                               [attr.data-original-src]="user.profileImage" [attr.data-user-code]="user.userCode"
@@ -77,7 +77,7 @@
                               {{ getInitials(user.firstName, user.lastName) }}
                             </div>
                           </div>
-                          <!-- Información del usuario -->
+
                           <div class="user-details">
                             <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
                             <span class="user-code">{{ user.userCode }}</span>
@@ -86,7 +86,7 @@
                       </td>
                     </ng-container>
 
-                    <!-- Información de Contacto -->
+
                     <ng-container matColumnDef="contact">
                       <th mat-header-cell *matHeaderCellDef class="excel-header">
                         <div class="header-content">
@@ -112,7 +112,7 @@
                       </td>
                     </ng-container>
 
-                    <!-- Rol -->
+
                     <ng-container matColumnDef="role">
                       <th mat-header-cell *matHeaderCellDef class="excel-header">
                         <div class="header-content">
@@ -128,7 +128,7 @@
                       </td>
                     </ng-container>
 
-                    <!-- Estado -->
+
                     <ng-container matColumnDef="status">
                       <th mat-header-cell *matHeaderCellDef class="excel-header">
                         <div class="header-content">
@@ -149,7 +149,7 @@
                       </td>
                     </ng-container>
 
-                    <!-- Último Acceso -->
+
                     <ng-container matColumnDef="lastLogin">
                       <th mat-header-cell *matHeaderCellDef class="excel-header">
                         <div class="header-content">
@@ -169,7 +169,7 @@
                       </td>
                     </ng-container>
 
-                    <!-- Acciones -->
+
                     <ng-container matColumnDef="actions">
                       <th mat-header-cell *matHeaderCellDef class="excel-header">
                         <div class="header-content">
@@ -213,7 +213,7 @@
             </ng-template>
           </mat-tab>
 
-          <!-- Tab: Configuraciones del Sistema -->
+
           <mat-tab>
             <ng-template mat-tab-label>
               <mat-icon>settings</mat-icon>
@@ -252,24 +252,24 @@
                           </div>
 
                           <div class="config-control">
-                            <!-- String Input -->
+
                             <mat-form-field *ngIf="config.type === 'string'" appearance="outline">
                               <input matInput [value]="config.value"
                                 (blur)="updateSystemConfig(config, $event.target.value)">
                             </mat-form-field>
 
-                            <!-- Number Input -->
+
                             <mat-form-field *ngIf="config.type === 'number'" appearance="outline">
                               <input matInput type="number" [value]="config.value"
                                 (blur)="updateSystemConfig(config, +$event.target.value)">
                             </mat-form-field>
 
-                            <!-- Boolean Toggle -->
+
                             <mat-slide-toggle *ngIf="config.type === 'boolean'" [checked]="config.value"
                               (change)="updateSystemConfig(config, $event.checked)">
                             </mat-slide-toggle>
 
-                            <!-- Select Dropdown -->
+
                             <mat-form-field *ngIf="config.type === 'select'" appearance="outline">
                               <mat-select [value]="config.value"
                                 (selectionChange)="updateSystemConfig(config, $event.value)">
@@ -288,7 +288,7 @@
             </ng-template>
           </mat-tab>
 
-          <!-- Tab: Permisos y Roles -->
+
           <mat-tab>
             <ng-template mat-tab-label>
               <mat-icon>security</mat-icon>
@@ -297,7 +297,7 @@
             <ng-template matTabContent>
               <div class="tab-content permissions-tab">
                 <div class="permissions-container-compact">
-                  <!-- Header compacto -->
+
                   <div class="permissions-header-compact">
                     <div class="header-left">
                       <h3>
@@ -308,8 +308,8 @@
                         ⚠️ Solo administradores
                       </span>
                     </div>
-                    
-                    <!-- Selector de Usuario compacto -->
+
+
                     <mat-form-field appearance="outline" class="user-selector-compact">
                       <mat-label>Usuario</mat-label>
                       <mat-select [(value)]="selectedUserForPermissions"
@@ -321,17 +321,17 @@
                     </mat-form-field>
                   </div>
 
-                  <!-- Grid de Permisos Compacto -->
+
                   <div class="permissions-grid-compact" *ngIf="selectedUserForPermissions()">
                     <div *ngFor="let category of permissionCategories()" class="permission-category-compact">
-                      <!-- Header de categoría -->
+
                       <div class="category-header-compact">
                         <mat-icon>{{ category.icon }}</mat-icon>
                         <span class="category-name">{{ category.name }}</span>
                         <span class="category-count">{{ getGrantedCount(category) }}/{{ category.permissions.length }}</span>
                       </div>
 
-                      <!-- Grid de permisos -->
+
                       <div class="permissions-grid-items">
                         <div *ngFor="let permission of category.permissions" class="permission-card-compact"
                           [class.active]="permission.isGranted">
@@ -339,9 +339,9 @@
                             <div class="permission-name-compact">{{ permission.name }}</div>
                             <div class="permission-desc-compact">{{ permission.description }}</div>
                           </div>
-                          
-                          <!-- Botón toggle mejorado -->
-                          <button class="permission-toggle-btn" 
+
+
+                          <button class="permission-toggle-btn"
                             [class.active]="permission.isGranted"
                             [disabled]="!isAdmin()"
                             (click)="togglePermission(permission, !permission.isGranted)"
@@ -354,7 +354,7 @@
                     </div>
                   </div>
 
-                  <!-- Mensaje si no hay usuario seleccionado -->
+
                   <div class="no-user-selected-compact" *ngIf="!selectedUserForPermissions()">
                     <mat-icon>person_search</mat-icon>
                     <p>Selecciona un usuario para gestionar permisos</p>
@@ -364,7 +364,7 @@
             </ng-template>
           </mat-tab>
 
-          <!-- Tab: Información del Sistema -->
+
           <mat-tab>
             <ng-template mat-tab-label>
               <mat-icon>info</mat-icon>

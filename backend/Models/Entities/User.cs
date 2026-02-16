@@ -4,140 +4,140 @@ using FlexoAPP.API.Models.Enums;
 
 namespace FlexoAPP.API.Models.Entities
 {
-    /// <summary>
-    /// Entidad User - Representa un usuario del sistema FlexoAPP
-    /// Tabla en MySQL: users (base de datos: flexoapp_bd)
-    /// </summary>
-    [Table("users")] // Mapeo a la tabla "users" en MySQL
+
+
+
+
+    [Table("users")]
     public class User
     {
-        /// <summary>
-        /// ID único del usuario (clave primaria autoincremental)
-        /// Columna MySQL: Id INT AUTO_INCREMENT PRIMARY KEY
-        /// </summary>
+
+
+
+
         [Key]
-        [Column("Id")] // Mapeo explícito a la columna "Id" (PascalCase en MySQL)
+        [Column("Id")]
         public int Id { get; set; }
 
-        /// <summary>
-        /// Código único de usuario (ej: admin, 90009, 54190)
-        /// Columna MySQL: UserCode VARCHAR(50) NOT NULL UNIQUE
-        /// </summary>
+
+
+
+
         [Required]
-        [Column("UserCode")] // Mapeo explícito a la columna "UserCode"
+        [Column("UserCode")]
         [StringLength(50)]
         public string UserCode { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Contraseña hasheada con bcrypt
-        /// Columna MySQL: Password VARCHAR(255) NOT NULL
-        /// IMPORTANTE: Nunca se almacena en texto plano
-        /// </summary>
+
+
+
+
+
         [Required]
-        [Column("Password")] // Mapeo explícito a la columna "Password"
+        [Column("Password")]
         [StringLength(255)]
         public string Password { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Primer nombre del usuario
-        /// Columna MySQL: FirstName VARCHAR(50) NULL
-        /// </summary>
-        [Column("FirstName")] // Mapeo explícito a la columna "FirstName"
+
+
+
+
+        [Column("FirstName")]
         [StringLength(50)]
         public string? FirstName { get; set; }
 
-        /// <summary>
-        /// Apellido del usuario
-        /// Columna MySQL: LastName VARCHAR(50) NULL
-        /// </summary>
-        [Column("LastName")] // Mapeo explícito a la columna "LastName"
+
+
+
+
+        [Column("LastName")]
         [StringLength(50)]
         public string? LastName { get; set; }
 
-        /// <summary>
-        /// Rol del usuario (Admin, Supervisor, Operador, Prealistador, Matizadores, etc.)
-        /// Columna MySQL: Role VARCHAR(255) NOT NULL
-        /// Se convierte de enum UserRole a string en la base de datos
-        /// </summary>
-        [Column("Role")] // Mapeo explícito a la columna "Role"
+
+
+
+
+
+        [Column("Role")]
         public UserRole Role { get; set; } = UserRole.Operario;
 
-        /// <summary>
-        /// Permisos específicos del usuario en formato JSON
-        /// Columna MySQL: Permissions JSON NULL
-        /// Ejemplo: {"canEdit": true, "canDelete": false}
-        /// </summary>
-        [Column("Permissions")] // Mapeo explícito a la columna "Permissions"
+
+
+
+
+
+        [Column("Permissions")]
         public string? Permissions { get; set; }
 
-        /// <summary>
-        /// Imagen de perfil en formato base64 o URL
-        /// Columna MySQL: ProfileImage LONGTEXT NULL
-        /// Puede contener: imagen base64 (data:image/...) o ruta de archivo (/uploads/profiles/...)
-        /// </summary>
-        [Column("ProfileImage")] // Mapeo explícito a la columna "ProfileImage"
+
+
+
+
+
+        [Column("ProfileImage")]
         public string? ProfileImage { get; set; }
 
-        /// <summary>
-        /// Correo electrónico del usuario
-        /// Columna MySQL: Email VARCHAR(100) NULL
-        /// </summary>
-        [Column("Email")] // Mapeo explícito a la columna "Email"
+
+
+
+
+        [Column("Email")]
         [StringLength(100)]
         public string? Email { get; set; }
 
-        /// <summary>
-        /// Número de teléfono del usuario
-        /// Columna MySQL: Phone VARCHAR(20) NULL
-        /// </summary>
-        [Column("Phone")] // Mapeo explícito a la columna "Phone"
+
+
+
+
+        [Column("Phone")]
         [StringLength(20)]
         public string? Phone { get; set; }
 
-        /// <summary>
-        /// Indica si el usuario está activo (true) o deshabilitado (false)
-        /// Columna MySQL: IsActive TINYINT(1) NOT NULL DEFAULT 1
-        /// </summary>
-        [Column("IsActive")] // Mapeo explícito a la columna "IsActive"
+
+
+
+
+        [Column("IsActive")]
         public bool IsActive { get; set; } = true;
 
-        /// <summary>
-        /// Fecha y hora de creación del usuario
-        /// Columna MySQL: CreatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-        /// </summary>
-        [Column("CreatedAt")] // Mapeo explícito a la columna "CreatedAt"
+
+
+
+
+        [Column("CreatedAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        /// <summary>
-        /// Fecha y hora de última actualización del usuario
-        /// Columna MySQL: UpdatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
-        /// Se actualiza automáticamente en MySQL al modificar el registro
-        /// </summary>
-        [Column("UpdatedAt")] // Mapeo explícito a la columna "UpdatedAt"
+
+
+
+
+
+        [Column("UpdatedAt")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-        
-        /// <summary>
-        /// Fecha y hora de último acceso del usuario
-        /// Columna MySQL: LastLogin DATETIME(6) NULL
-        /// </summary>
-        [NotMapped] // Ignorar esta propiedad ya que no existe en la BD actual
+
+
+
+
+
+        [NotMapped]
         public DateTime? LastLogin { get; set; }
 
-        // ===== PROPIEDADES DE NAVEGACIÓN =====
-        // Estas propiedades NO se mapean a columnas en la base de datos
-        // Se usan para relaciones entre entidades en Entity Framework
-        
-        /// <summary>
-        /// Máquinas creadas por este usuario
-        /// Relación: User (1) -> Maquinas (N)
-        /// </summary>
+
+
+
+
+
+
+
+
         [InverseProperty("CreatedByUser")]
         public virtual ICollection<Maquina> CreatedMaquinas { get; set; } = new List<Maquina>();
-        
-        /// <summary>
-        /// Máquinas actualizadas por este usuario
-        /// Relación: User (1) -> Maquinas (N)
-        /// </summary>
+
+
+
+
+
         [InverseProperty("UpdatedByUser")]
         public virtual ICollection<Maquina> UpdatedMaquinas { get; set; } = new List<Maquina>();
     }

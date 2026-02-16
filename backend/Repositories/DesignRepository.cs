@@ -19,16 +19,16 @@ namespace FlexoAPP.API.Repositories
         {
             try
             {
-                // OPTIMIZACIÓN: No cargar navegaciones innecesarias
+
                 return await _context.Designs
-                    .AsNoTracking() // Mejora rendimiento al no trackear cambios
+                    .AsNoTracking()
                     .OrderByDescending(d => d.LastModified)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error accessing database: {ex.Message}");
-                // Return empty list if database has issues
+
                 return new List<Design>();
             }
         }
@@ -62,22 +62,22 @@ namespace FlexoAPP.API.Repositories
         {
             design.CreatedDate = DateTime.UtcNow;
             design.LastModified = DateTime.UtcNow;
-            
+
             _context.Designs.Add(design);
             await _context.SaveChangesAsync();
-            
-            // Reload with navigation properties
+
+
             return await GetDesignByIdAsync(design.Id) ?? design;
         }
 
         public async Task<Design> UpdateDesignAsync(Design design)
         {
             design.LastModified = DateTime.UtcNow;
-            
+
             _context.Entry(design).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            
-            // Reload with navigation properties
+
+
             return await GetDesignByIdAsync(design.Id) ?? design;
         }
 
@@ -100,10 +100,10 @@ namespace FlexoAPP.API.Repositories
         public async Task<bool> ArticleFExistsAsync(string articleF, int? excludeId = null)
         {
             var query = _context.Designs.Where(d => d.ArticleF == articleF);
-            
+
             if (excludeId.HasValue)
                 query = query.Where(d => d.Id != excludeId.Value);
-                
+
             return await query.AnyAsync();
         }
 
@@ -111,11 +111,11 @@ namespace FlexoAPP.API.Repositories
         {
             var query = _context.Designs.Include(d => d.CreatedBy).AsQueryable();
 
-            // Apply filters
+
             if (!string.IsNullOrEmpty(searchDto.SearchTerm))
             {
                 var searchTerm = searchDto.SearchTerm.ToLower();
-                query = query.Where(d => 
+                query = query.Where(d =>
                     (d.ArticleF ?? "").ToLower().Contains(searchTerm) ||
                     (d.Client ?? "").ToLower().Contains(searchTerm) ||
                     (d.Description ?? "").ToLower().Contains(searchTerm) ||
@@ -132,30 +132,30 @@ namespace FlexoAPP.API.Repositories
                 query = query.Where(d => d.Type == searchDto.Type);
             }
 
-            // Get total count before pagination
+
             var totalCount = await query.CountAsync();
 
-            // Apply sorting
+
             query = searchDto.SortBy?.ToLower() switch
             {
-                "articlef" => searchDto.SortDirection?.ToLower() == "asc" 
-                    ? query.OrderBy(d => d.ArticleF) 
+                "articlef" => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.ArticleF)
                     : query.OrderByDescending(d => d.ArticleF),
-                "client" => searchDto.SortDirection?.ToLower() == "asc" 
-                    ? query.OrderBy(d => d.Client) 
+                "client" => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.Client)
                     : query.OrderByDescending(d => d.Client),
-                "createddate" => searchDto.SortDirection?.ToLower() == "asc" 
-                    ? query.OrderBy(d => d.CreatedDate) 
+                "createddate" => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.CreatedDate)
                     : query.OrderByDescending(d => d.CreatedDate),
-                "substrate" => searchDto.SortDirection?.ToLower() == "asc" 
-                    ? query.OrderBy(d => d.Substrate) 
+                "substrate" => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.Substrate)
                     : query.OrderByDescending(d => d.Substrate),
-                _ => searchDto.SortDirection?.ToLower() == "asc" 
-                    ? query.OrderBy(d => d.LastModified) 
+                _ => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.LastModified)
                     : query.OrderByDescending(d => d.LastModified)
             };
 
-            // Apply pagination
+
             var designs = await query
                 .Skip((searchDto.Page - 1) * searchDto.PageSize)
                 .Take(searchDto.PageSize)
@@ -172,8 +172,8 @@ namespace FlexoAPP.API.Repositories
             var laminaDesigns = await _context.Designs.CountAsync(d => d.Type == "LAMINA");
             var tubularDesigns = await _context.Designs.CountAsync(d => d.Type == "TUBULAR");
             var semitubularDesigns = await _context.Designs.CountAsync(d => d.Type == "SEMITUBULAR");
-            var averageColors = totalDesigns > 0 
-                ? await _context.Designs.AverageAsync(d => (double)(d.ColorCount ?? 0)) 
+            var averageColors = totalDesigns > 0
+                ? await _context.Designs.AverageAsync(d => (double)(d.ColorCount ?? 0))
                 : 0;
 
             return new DesignStatsDto
@@ -192,16 +192,16 @@ namespace FlexoAPP.API.Repositories
         {
             var designList = designs.ToList();
             var now = DateTime.UtcNow;
-            
+
             foreach (var design in designList)
             {
                 design.CreatedDate = now;
                 design.LastModified = now;
             }
-            
+
             _context.Designs.AddRange(designList);
             await _context.SaveChangesAsync();
-            
+
             return designList;
         }
 
@@ -213,8 +213,8 @@ namespace FlexoAPP.API.Repositories
 
             design.Status = status;
             design.LastModified = DateTime.UtcNow;
-            design.CreatedByUserId = modifiedBy; // This should be ModifiedBy when we add that field
-            
+            design.CreatedByUserId = modifiedBy;
+
             await _context.SaveChangesAsync();
             return true;
         }
@@ -282,11 +282,11 @@ namespace FlexoAPP.API.Repositories
             try
             {
                 var designsList = designs.ToList();
-                
-                // Obtener IDs existentes para evitar duplicados
+
+
                 var idsToCheck = designsList.Where(d => d.Id > 0).Select(d => d.Id).ToList();
                 var existingIds = new HashSet<int>();
-                
+
                 if (idsToCheck.Any())
                 {
                     existingIds = (await _context.Designs
@@ -302,23 +302,23 @@ namespace FlexoAPP.API.Repositories
                 {
                     if (design.Id > 0 && existingIds.Contains(design.Id))
                     {
-                        // Actualizar diseño existente
+
                         designsToUpdate.Add(design);
                     }
                     else
                     {
-                        // Insertar nuevo diseño
+
                         designsToInsert.Add(design);
                     }
                 }
 
-                // Insertar nuevos diseños
+
                 if (designsToInsert.Any())
                 {
                     await _context.Designs.AddRangeAsync(designsToInsert);
                 }
 
-                // Actualizar diseños existentes
+
                 foreach (var design in designsToUpdate)
                 {
                     var existingDesign = await _context.Designs.FindAsync(design.Id);
@@ -342,13 +342,13 @@ namespace FlexoAPP.API.Repositories
             {
                 var allDesigns = await _context.Designs.ToListAsync();
                 var count = allDesigns.Count;
-                
+
                 if (count > 0)
                 {
                     _context.Designs.RemoveRange(allDesigns);
                     await _context.SaveChangesAsync();
                 }
-                
+
                 return count;
             }
             catch (Exception ex)
@@ -357,51 +357,51 @@ namespace FlexoAPP.API.Repositories
             }
         }
 
-        // ===== OPTIMIZED METHODS FOR FAST LOADING =====
 
-        /// <summary>
-        /// Get designs with pagination (OPTIMIZED)
-        /// </summary>
+
+
+
+
         public async Task<(IEnumerable<Design> designs, int totalCount)> GetDesignsPaginatedAsync(
             int page, int pageSize, string? search = null, string? sortBy = "LastModified", string? sortOrder = "desc")
         {
             try
             {
                 var query = _context.Designs
-                    .AsNoTracking() // Mejora rendimiento
+                    .AsNoTracking()
                     .AsQueryable();
 
-                // Apply search filter
+
                 if (!string.IsNullOrEmpty(search))
                 {
-                    query = query.Where(d => 
+                    query = query.Where(d =>
                         (d.ArticleF ?? string.Empty).Contains(search) ||
                         (d.Client ?? string.Empty).Contains(search) ||
                         (d.Description ?? string.Empty).Contains(search) ||
                         (d.Substrate ?? string.Empty).Contains(search));
                 }
 
-                // Get total count before pagination
+
                 var totalCount = await query.CountAsync();
 
-                // Apply sorting
+
                 query = sortBy?.ToLower() switch
                 {
-                    "articlef" => sortOrder?.ToLower() == "asc" 
-                        ? query.OrderBy(d => d.ArticleF) 
+                    "articlef" => sortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(d => d.ArticleF)
                         : query.OrderByDescending(d => d.ArticleF),
-                    "client" => sortOrder?.ToLower() == "asc" 
-                        ? query.OrderBy(d => d.Client) 
+                    "client" => sortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(d => d.Client)
                         : query.OrderByDescending(d => d.Client),
-                    "createddate" => sortOrder?.ToLower() == "asc" 
-                        ? query.OrderBy(d => d.CreatedDate) 
+                    "createddate" => sortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(d => d.CreatedDate)
                         : query.OrderByDescending(d => d.CreatedDate),
-                    _ => sortOrder?.ToLower() == "asc" 
-                        ? query.OrderBy(d => d.LastModified) 
+                    _ => sortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(d => d.LastModified)
                         : query.OrderByDescending(d => d.LastModified)
                 };
 
-                // Apply pagination
+
                 var designs = await query
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -415,15 +415,15 @@ namespace FlexoAPP.API.Repositories
             }
         }
 
-        /// <summary>
-        /// Get designs summary (ULTRA FAST - Only essential fields)
-        /// </summary>
+
+
+
         public async Task<IEnumerable<Design>> GetDesignsSummaryAsync()
         {
             try
             {
                 return await _context.Designs
-                    .AsNoTracking() // No trackear cambios
+                    .AsNoTracking()
                     .Select(d => new Design
                     {
                         Id = d.Id,
@@ -442,15 +442,15 @@ namespace FlexoAPP.API.Repositories
             }
         }
 
-        /// <summary>
-        /// Get designs with lazy loading (Load basic info only)
-        /// </summary>
+
+
+
         public async Task<IEnumerable<Design>> GetDesignsLazyAsync()
         {
             try
             {
                 return await _context.Designs
-                    .AsNoTracking() // No trackear cambios
+                    .AsNoTracking()
                     .Select(d => new Design
                     {
                         Id = d.Id,
@@ -460,7 +460,7 @@ namespace FlexoAPP.API.Repositories
                         Status = d.Status,
                         ColorCount = d.ColorCount,
                         LastModified = d.LastModified
-                        // Colors and other details not loaded initially
+
                     })
                     .OrderByDescending(d => d.LastModified)
                     .ToListAsync();
@@ -471,18 +471,18 @@ namespace FlexoAPP.API.Repositories
             }
         }
 
-        /// <summary>
-        /// Get design colors only
-        /// </summary>
+
+
+
         public async Task<List<string>> GetDesignColorsAsync(int designId)
         {
             try
             {
                 var design = await _context.Designs
                     .Where(d => d.Id == designId)
-                    .Select(d => new { 
+                    .Select(d => new {
                         d.Color1, d.Color2, d.Color3, d.Color4, d.Color5,
-                        d.Color6, d.Color7, d.Color8, d.Color9, d.Color10 
+                        d.Color6, d.Color7, d.Color8, d.Color9, d.Color10
                     })
                     .FirstOrDefaultAsync();
 
@@ -508,9 +508,9 @@ namespace FlexoAPP.API.Repositories
             }
         }
 
-        /// <summary>
-        /// Get design with full details
-        /// </summary>
+
+
+
         public async Task<Design?> GetDesignWithDetailsAsync(int designId)
         {
             try
@@ -523,14 +523,14 @@ namespace FlexoAPP.API.Repositories
                 throw new Exception($"Error getting design details: {ex.Message}", ex);
             }
         }
-        /// <summary>
-        /// Obtener todos los colores únicos usados en las columnas Color1-Color10
-        /// </summary>
+
+
+
         public async Task<IEnumerable<string>> GetUniqueUsedColorsAsync()
         {
             try
             {
-                // Unir todos los colores de todas las columnas en una sola consulta
+
                 var c1 = await _context.Designs.Where(d => d.Color1 != null).Select(d => d.Color1!).Distinct().ToListAsync();
                 var c2 = await _context.Designs.Where(d => d.Color2 != null).Select(d => d.Color2!).Distinct().ToListAsync();
                 var c3 = await _context.Designs.Where(d => d.Color3 != null).Select(d => d.Color3!).Distinct().ToListAsync();
@@ -542,7 +542,7 @@ namespace FlexoAPP.API.Repositories
                 var c9 = await _context.Designs.Where(d => d.Color9 != null).Select(d => d.Color9!).Distinct().ToListAsync();
                 var c10 = await _context.Designs.Where(d => d.Color10 != null).Select(d => d.Color10!).Distinct().ToListAsync();
 
-                // Combinar listas en memoria y obtener el set final de únicos
+
                 var allColors = c1.Concat(c2).Concat(c3).Concat(c4).Concat(c5)
                                   .Concat(c6).Concat(c7).Concat(c8).Concat(c9).Concat(c10)
                                   .Where(c => !string.IsNullOrWhiteSpace(c))
@@ -559,9 +559,9 @@ namespace FlexoAPP.API.Repositories
             }
         }
 
-        /// <summary>
-        /// Obtener colores Pantone (que empiezan con P-) de un artículo específico
-        /// </summary>
+
+
+
         public async Task<List<string>> GetPantoneColorsByArticleAsync(string articleF)
         {
             try
@@ -576,11 +576,11 @@ namespace FlexoAPP.API.Repositories
                 }
 
                 var pantoneColors = new List<string>();
-                
-                // Revisar cada columna de color y agregar solo los que empiezan con "P-"
-                var colors = new[] { 
+
+
+                var colors = new[] {
                     design.Color1, design.Color2, design.Color3, design.Color4, design.Color5,
-                    design.Color6, design.Color7, design.Color8, design.Color9, design.Color10 
+                    design.Color6, design.Color7, design.Color8, design.Color9, design.Color10
                 };
 
                 foreach (var color in colors)
@@ -588,7 +588,7 @@ namespace FlexoAPP.API.Repositories
                     if (!string.IsNullOrWhiteSpace(color))
                     {
                         var colorTrimmed = color.Trim().ToUpper();
-                        // Verificar si empieza con "P-" (case insensitive)
+
                         if (colorTrimmed.StartsWith("P-"))
                         {
                             pantoneColors.Add(colorTrimmed);

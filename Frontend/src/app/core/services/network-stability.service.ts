@@ -26,35 +26,31 @@ export class NetworkStabilityService {
 
   public networkStatus$ = this.networkStatusSubject.asObservable();
   private currentApiUrl = environment.apiUrl;
-  private checkInterval = 30000; // 30 segundos
+  private checkInterval = 30000;
   private maxFailedAttempts = 3;
 
   constructor(private http: HttpClient) {
-    // Only start monitoring if not disabled in environment
+
     if (!environment.disableNetworkStability) {
       this.startNetworkMonitoring();
       this.setupOnlineOfflineListeners();
     }
   }
 
-  /**
-   * Obtener la URL de API actual
-   */
+
   getCurrentApiUrl(): string {
     return this.currentApiUrl;
   }
 
-  /**
-   * Verificar conectividad de red
-   */
+
   checkNetworkConnectivity(): Observable<boolean> {
-    // If network stability is disabled, always return true
+
     if (environment.disableNetworkStability) {
       return of(true);
     }
 
     const startTime = Date.now();
-    
+
     return this.http.get(`${this.currentApiUrl.replace('/api', '')}/health-simple`, {
       timeout: 5000
     }).pipe(
@@ -64,7 +60,7 @@ export class NetworkStabilityService {
       }),
       catchError((error: HttpErrorResponse) => {
         console.warn('❌ Conectividad fallida con:', this.currentApiUrl, error.message);
-        // Only try fallback URLs if network mode is enabled
+
         if (environment.networkMode) {
           return this.tryFallbackUrls().pipe(
             catchError(() => {
@@ -81,12 +77,10 @@ export class NetworkStabilityService {
     );
   }
 
-  /**
-   * Intentar URLs de respaldo
-   */
+
   private tryFallbackUrls(): Observable<boolean> {
     const fallbackUrls = environment.fallbackUrls || [];
-    
+
     if (fallbackUrls.length === 0) {
       return of(false);
     }
@@ -94,9 +88,7 @@ export class NetworkStabilityService {
     return this.testUrls(fallbackUrls);
   }
 
-  /**
-   * Probar múltiples URLs
-   */
+
   private testUrls(urls: string[]): Observable<boolean> {
     if (urls.length === 0) {
       return of(false);
@@ -124,9 +116,7 @@ export class NetworkStabilityService {
     );
   }
 
-  /**
-   * Actualizar estado de red
-   */
+
   private updateNetworkStatus(isOnline: boolean, responseTime: number, failedAttempts: number): void {
     const status: NetworkStatus = {
       isOnline,
@@ -139,22 +129,18 @@ export class NetworkStabilityService {
     this.networkStatusSubject.next(status);
   }
 
-  /**
-   * Iniciar monitoreo de red
-   */
+
   private startNetworkMonitoring(): void {
-    // Verificación inicial
+
     this.checkNetworkConnectivity().subscribe();
 
-    // Verificación periódica
+
     timer(this.checkInterval, this.checkInterval).pipe(
       switchMap(() => this.checkNetworkConnectivity())
     ).subscribe();
   }
 
-  /**
-   * Configurar listeners de online/offline
-   */
+
   private setupOnlineOfflineListeners(): void {
     window.addEventListener('online', () => {
       console.log('🌐 Conexión a internet restaurada');
@@ -166,30 +152,24 @@ export class NetworkStabilityService {
       this.updateNetworkStatus(false, 0, this.maxFailedAttempts);
     });
 
-    // Verificar cuando la ventana vuelve a tener foco
+
     window.addEventListener('focus', () => {
       this.checkNetworkConnectivity().subscribe();
     });
   }
 
-  /**
-   * Forzar reconexión
-   */
+
   forceReconnect(): Observable<boolean> {
     console.log('🔄 Forzando reconexión...');
     return this.checkNetworkConnectivity();
   }
 
-  /**
-   * Obtener estado actual de la red
-   */
+
   getNetworkStatus(): NetworkStatus {
     return this.networkStatusSubject.value;
   }
 
-  /**
-   * Verificar si la red está disponible
-   */
+
   isNetworkAvailable(): boolean {
     const status = this.networkStatusSubject.value;
     return status.isOnline && status.failedAttempts < this.maxFailedAttempts;

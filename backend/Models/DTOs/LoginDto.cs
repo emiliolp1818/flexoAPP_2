@@ -7,11 +7,11 @@ namespace FlexoAPP.API.Models.DTOs
     {
         [Required]
         public string UserCode { get; set; } = string.Empty;
-        
+
         [Required]
         public string Password { get; set; } = string.Empty;
     }
-    
+
     public class LoginResponseDto
     {
         public string Token { get; set; } = string.Empty;
@@ -19,13 +19,13 @@ namespace FlexoAPP.API.Models.DTOs
         public UserDto User { get; set; } = new();
         public DateTime ExpiresAt { get; set; }
     }
-    
+
     public class RefreshTokenDto
     {
         [Required]
         public string RefreshToken { get; set; } = string.Empty;
     }
-    
+
     public class RefreshTokenResult
     {
         public string Token { get; set; } = string.Empty;

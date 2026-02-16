@@ -1,5 +1,5 @@
-// Configuración de entorno HÍBRIDO - FlexoApp Frontend
-// Solo para desarrollo local
+
+
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:10000/api',

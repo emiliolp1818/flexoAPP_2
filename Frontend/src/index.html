@@ -6,23 +6,23 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.jpg">
-  <!-- Preload critical resources -->
+
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"></noscript>
-  
-  <!-- Material Icons with preload -->
+
+
   <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap"></noscript>
-  
-  <!-- Material Symbols with preload -->
+
+
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap"></noscript>
-  
-  <!-- Performance optimizations -->
+
+
   <meta name="theme-color" content="#2563eb">
   <meta name="description" content="Sistema de gestión de producción flexográfica">
-  
-  <!-- Loading indicator styles -->
+
+
   <style>
     app-root {
       display: flex;
@@ -31,12 +31,12 @@
       min-height: 100vh;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-    
+
     .loading-container {
       text-align: center;
       color: white;
     }
-    
+
     .loading-spinner {
       width: 50px;
       height: 50px;
@@ -46,12 +46,12 @@
       animation: spin 1s linear infinite;
       margin: 0 auto 20px;
     }
-    
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    
+
     .loading-text {
       font-family: 'Roboto', sans-serif;
       font-size: 18px;
@@ -61,12 +61,12 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  
-  <!-- Eruda - Consola de debugging para móviles (solo en desarrollo) -->
+
+
   <script>
     // Solo cargar Eruda si estamos en desarrollo o si hay un parámetro ?debug=true en la URL
-    if (window.location.hostname === 'localhost' || 
-        window.location.hostname === '127.0.0.1' || 
+    if (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
         window.location.search.includes('debug=true') ||
         window.location.hostname.match(/^192\.168\./)) {
       (function() {
@@ -83,7 +83,7 @@
 </head>
 <body>
   <app-root>
-    <!-- Loading indicator while app loads -->
+
     <div class="loading-container">
       <div class="loading-spinner"></div>
       <div class="loading-text">Cargando FlexoAPP...</div>

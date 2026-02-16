@@ -42,16 +42,16 @@ export class CreateUserDialogComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private http = inject(HttpClient);
 
-  // Señales reactivas
+
   loading = signal<boolean>(false);
   hidePassword = signal<boolean>(true);
   profileImagePreview = signal<string | null>(null);
   selectedFile = signal<File | null>(null);
 
-  // Formulario reactivo
+
   userForm!: FormGroup;
 
-  // Opciones de roles disponibles - ACTUALIZADAS PARA MYSQL
+
   availableRoles: RoleOption[] = [
     { value: 'Admin', label: 'Administrador', icon: 'admin_panel_settings' },
     { value: 'Supervisor', label: 'Supervisor', icon: 'supervisor_account' },
@@ -67,9 +67,7 @@ export class CreateUserDialogComponent implements OnInit {
     this.initializeForm();
   }
 
-  /**
-   * Inicializar formulario reactivo
-   */
+
   private initializeForm() {
     this.userForm = this.fb.group({
       userCode: ['', [
@@ -102,20 +100,16 @@ export class CreateUserDialogComponent implements OnInit {
     });
   }
 
-  /**
-   * Alternar visibilidad de contraseña
-   */
+
   togglePasswordVisibility() {
     this.hidePassword.set(!this.hidePassword());
   }
 
-  /**
-   * Manejar selección de archivo de imagen
-   */
+
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      // Validar tipo de archivo
+
       if (!file.type.startsWith('image/')) {
         this.snackBar.open('Solo se permiten archivos de imagen', 'Cerrar', {
           duration: 3000,
@@ -124,11 +118,11 @@ export class CreateUserDialogComponent implements OnInit {
         return;
       }
 
-      // SIN LÍMITE DE TAMAÑO - Validación eliminada para permitir cualquier tamaño de imagen
+
 
       this.selectedFile.set(file);
 
-      // Crear vista previa
+
       const reader = new FileReader();
       reader.onload = (e) => {
         this.profileImagePreview.set(e.target?.result as string);
@@ -137,17 +131,13 @@ export class CreateUserDialogComponent implements OnInit {
     }
   }
 
-  /**
-   * Remover imagen seleccionada
-   */
+
   removeImage() {
     this.selectedFile.set(null);
     this.profileImagePreview.set(null);
   }
 
-  /**
-   * Obtener iniciales para vista previa del avatar
-   */
+
   getPreviewInitials(): string {
     const firstName = this.userForm.get('firstName')?.value || '';
     const lastName = this.userForm.get('lastName')?.value || '';
@@ -156,9 +146,7 @@ export class CreateUserDialogComponent implements OnInit {
     return firstInitial + lastInitial || 'NU';
   }
 
-  /**
-   * Obtener color de avatar para vista previa
-   */
+
   getPreviewAvatarColor(): string {
     const firstName = this.userForm.get('firstName')?.value || 'default';
     const colors = [
@@ -174,16 +162,12 @@ export class CreateUserDialogComponent implements OnInit {
     return colors[Math.abs(hash) % colors.length];
   }
 
-  /**
-   * Cancelar y cerrar diálogo
-   */
+
   onCancel() {
     this.dialogRef.close();
   }
 
-  /**
-   * Guardar nuevo usuario
-   */
+
   async onSave() {
     if (!this.userForm.valid) {
       this.markFormGroupTouched();
@@ -195,7 +179,7 @@ export class CreateUserDialogComponent implements OnInit {
     try {
       const formData = this.userForm.value;
 
-      // Preparar datos del usuario - CORREGIDO PARA MYSQL CON IMAGEN BASE64
+
       const createUserDto = {
         userCode: formData.userCode.trim(),
         firstName: formData.firstName.trim(),
@@ -205,7 +189,7 @@ export class CreateUserDialogComponent implements OnInit {
         phone: formData.phone && formData.phone.trim() ? formData.phone.trim() : null,
         password: formData.password,
         isActive: formData.isActive,
-        profileImage: this.profileImagePreview() || null, // Imagen base64 directamente
+        profileImage: this.profileImagePreview() || null,
         profileImageUrl: null
       };
 
@@ -214,14 +198,14 @@ export class CreateUserDialogComponent implements OnInit {
 
       console.log('🔄 Creando usuario:', createUserDto);
 
-      // Crear usuario en la base de datos MySQL
+
       console.log('🔄 Enviando datos a:', `${environment.apiUrl}/auth/users`);
       const response = await this.http.post<any>(`${environment.apiUrl}/auth/users`, createUserDto).toPromise() || { success: false };
 
       if (response) {
         console.log('✅ Usuario creado exitosamente:', response);
 
-        // La imagen ya se envió como base64 en el createUserDto
+
         if (this.profileImagePreview()) {
           console.log('✅ Imagen de perfil incluida como base64 en la creación del usuario');
         }
@@ -231,7 +215,7 @@ export class CreateUserDialogComponent implements OnInit {
           panelClass: ['success-snackbar']
         });
 
-        // Cerrar diálogo y retornar el usuario creado
+
         this.dialogRef.close(response);
       }
     } catch (error: any) {
@@ -255,9 +239,7 @@ export class CreateUserDialogComponent implements OnInit {
     }
   }
 
-  /**
-   * Subir imagen de perfil
-   */
+
   private async uploadProfileImage(userId: string) {
     const file = this.selectedFile();
     if (!file) return;
@@ -279,9 +261,7 @@ export class CreateUserDialogComponent implements OnInit {
     }
   }
 
-  /**
-   * Marcar todos los campos del formulario como tocados para mostrar errores
-   */
+
   private markFormGroupTouched() {
     Object.keys(this.userForm.controls).forEach(key => {
       const control = this.userForm.get(key);

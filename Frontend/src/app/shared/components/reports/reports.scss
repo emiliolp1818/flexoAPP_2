@@ -1,8 +1,8 @@
-// ============================================================================
-// ESTILOS DEL REPORTE DE AUDITORÍA - DISEÑO UNIFICADO
-// ============================================================================
 
-// Variables de colores
+
+
+
+
 $primary-blue: #2563eb;
 $primary-blue-light: #3b82f6;
 $primary-blue-dark: #1d4ed8;
@@ -46,7 +46,7 @@ $gray-900: #0f172a;
   position: relative;
 }
 
-// ===== HEADER FIJO =====
+
 .reports-header {
   position: relative;
   background: rgba(255, 255, 255, 0.95);
@@ -240,10 +240,10 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== ÁREA DE CONTENIDO SCROLLABLE =====
+
 .scrollable-content-area {
   flex: 1;
-  padding: 0 12px 12px 12px; // Volver a tener padding lateral para la tabla
+  padding: 0 12px 12px 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -251,19 +251,19 @@ $gray-900: #0f172a;
   gap: 12px;
 }
 
-// Tarjeta de filtros compacta
+
 .filters-card-compact {
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 0; // Sin bordes redondeados para ocupar todo el ancho
+  border-radius: 0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: none; // Sin borde lateral
+  border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   position: relative;
   padding: 0;
-  margin: 0 !important; // Sin márgenes laterales para ocupar todo el ancho
-  overflow: visible !important; // CRÍTICO: Permitir que los dropdowns se muestren
+  margin: 0 !important;
+  overflow: visible !important;
 
   &::before {
     content: '';
@@ -273,16 +273,16 @@ $gray-900: #0f172a;
     right: 0;
     height: 3px;
     background: $primary-blue;
-    border-radius: 0; // Sin bordes redondeados
+    border-radius: 0;
   }
 
   mat-card-content {
-    padding: 16px !important; // Aumentado de 12px a 16px para más espacio vertical
-    overflow: visible !important; // CRÍTICO: Permitir que los dropdowns se muestren
+    padding: 16px !important;
+    overflow: visible !important;
   }
 }
 
-// Mensaje informativo de filtros
+
 .filter-info-message {
   display: flex;
   align-items: center;
@@ -314,13 +314,13 @@ $gray-900: #0f172a;
     gap: 8px;
     align-items: center;
     flex-wrap: wrap;
-    overflow: visible !important; // CRÍTICO: Permitir que los dropdowns se muestren
+    overflow: visible !important;
 
     .filter-field-compact {
       flex: 1 1 auto;
       min-width: 140px;
       max-width: 200px;
-      overflow: visible !important; // CRÍTICO: Permitir que los dropdowns se muestren
+      overflow: visible !important;
 
       &.filter-date {
         min-width: 120px;
@@ -381,7 +381,7 @@ $gray-900: #0f172a;
   }
 }
 
-// Spinner de carga
+
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -405,7 +405,7 @@ $gray-900: #0f172a;
   }
 }
 
-// Tarjeta de actividades
+
 .activities-card {
   flex: 1;
   display: flex;
@@ -500,7 +500,7 @@ $gray-900: #0f172a;
   }
 }
 
-// Tabla estilo Excel
+
 .excel-table {
   width: 100%;
   background: white;
@@ -574,7 +574,7 @@ $gray-900: #0f172a;
   }
 }
 
-// Celdas específicas
+
 .timestamp-cell {
   display: flex;
   flex-direction: column;
@@ -642,7 +642,7 @@ $gray-900: #0f172a;
   }
 }
 
-// Mensaje sin datos
+
 .no-data {
   display: flex;
   flex-direction: column;
@@ -665,7 +665,7 @@ $gray-900: #0f172a;
   }
 }
 
-// Responsive
+
 @media (max-width: 768px) {
   .reports-container {
     padding: 12px;
@@ -718,22 +718,22 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== ESTILOS GLOBALES PARA PANELES DE ANGULAR MATERIAL =====
-// Asegurar que los paneles de select y autocomplete se muestren correctamente
+
+
 ::ng-deep {
   .cdk-overlay-container {
     z-index: 10000 !important;
   }
-  
+
   .cdk-overlay-pane {
     z-index: 10000 !important;
   }
-  
+
   .mat-mdc-select-panel {
     max-height: 300px !important;
     overflow-y: auto !important;
   }
-  
+
   .mat-mdc-autocomplete-panel {
     max-height: 300px !important;
     overflow-y: auto !important;
@@ -741,7 +741,7 @@ $gray-900: #0f172a;
 }
 
 
-// Estilos para el input de búsqueda dentro del select
+
 ::ng-deep {
   .user-search-input {
     width: 100%;
@@ -750,7 +750,7 @@ $gray-900: #0f172a;
     border-radius: 4px;
     font-size: 0.85rem;
     margin: 4px 0;
-    
+
     &:focus {
       outline: none;
       border-color: $primary-blue;
@@ -763,7 +763,7 @@ $gray-900: #0f172a;
   }
 }
 
-// Dropdown personalizado para búsqueda de usuarios
+
 .user-dropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -790,7 +790,7 @@ $gray-900: #0f172a;
   &::-webkit-scrollbar-thumb {
     background: $gray-400;
     border-radius: 4px;
-    
+
     &:hover {
       background: $gray-500;
     }
@@ -820,27 +820,27 @@ $gray-900: #0f172a;
   }
 }
 
-// Asegurar que el mat-form-field tenga position relative para el dropdown
+
 .filter-field-compact {
   position: relative;
 }
 
-// Contenedor para el campo de búsqueda de usuario
+
 .user-search-container {
   position: relative;
   flex: 1 1 auto;
   min-width: 140px;
   max-width: 200px;
   z-index: 10;
-  
-  // Asegurar que el dropdown sea visible
+
+
   .mat-mdc-form-field {
     position: relative;
     z-index: 1;
   }
 }
 
-// ===== DETALLES EXPANDIBLES =====
+
 .detail-row {
   height: 0;
   overflow: hidden;
@@ -957,7 +957,7 @@ $gray-900: #0f172a;
   &::-webkit-scrollbar-thumb {
     background: $gray-600;
     border-radius: 4px;
-    
+
     &:hover {
       background: $gray-500;
     }
@@ -988,9 +988,9 @@ $gray-900: #0f172a;
 }
 
 
-// ============================================================================
-// ESTILOS PARA VISTA POR MÓDULOS (ÍTEMS SEPARADOS)
-// ============================================================================
+
+
+
 
 .modules-container {
   display: flex;
@@ -1098,7 +1098,7 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== ESTADÍSTICAS DE MÁQUINAS =====
+
 .machine-stats {
   margin-bottom: 24px;
 
@@ -1152,7 +1152,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // ===== LISTA DE PEDIDOS =====
+
   .orders-list {
     background: $gray-50;
     border-radius: 12px;
@@ -1199,7 +1199,7 @@ $gray-900: #0f172a;
         letter-spacing: 0.5px;
       }
 
-      // Información del usuario en la parte superior
+
       .order-user-info {
         background: linear-gradient(135deg, $primary-blue-50 0%, $primary-blue-100 100%);
         border-radius: 6px;
@@ -1262,7 +1262,7 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== TABLA DE ACTIVIDADES DEL MÓDULO =====
+
 .module-activities-table {
   margin-top: 20px;
 
@@ -1374,7 +1374,7 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== RESPONSIVE =====
+
 @media (max-width: 768px) {
   .machine-stats {
     .stats-summary {

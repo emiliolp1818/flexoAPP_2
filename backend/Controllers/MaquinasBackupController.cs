@@ -21,7 +21,7 @@ namespace FlexoAPP.API.Controllers
             _logger = logger;
         }
 
-        // GET: api/maquinasbackup/search
+
         [HttpGet("search")]
         public async Task<IActionResult> SearchBackup(
             [FromQuery] string? articulo = null,
@@ -42,7 +42,7 @@ namespace FlexoAPP.API.Controllers
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
 
-                // Construir query dinámico
+
                 var whereClauses = new List<string>();
                 var command = new MySqlCommand { Connection = connection };
 
@@ -90,14 +90,14 @@ namespace FlexoAPP.API.Controllers
 
                 var whereClause = whereClauses.Count > 0 ? "WHERE " + string.Join(" AND ", whereClauses) : "";
 
-                // Contar total de registros
+
                 command.CommandText = $"SELECT COUNT(*) FROM maquinas_backup {whereClause}";
                 var totalRecords = Convert.ToInt32(await command.ExecuteScalarAsync());
 
-                // Obtener registros paginados
+
                 var offset = (page - 1) * pageSize;
                 command.CommandText = $@"
-                    SELECT 
+                    SELECT
                         backup_id, ot_sap, Articulo, NumeroMaquina, Cliente, Referencia, Td,
                         tipo_impresion, NumeroColores, Colores, Kilos, Metros,
                         FechaTintaEnMaquina, Sustrato, Estado, Observaciones,
@@ -167,7 +167,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // POST: api/maquinasbackup/create
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateBackup([FromBody] CreateBackupRequest request)
         {
@@ -207,7 +207,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // POST: api/maquinasbackup/create-by-estado
+
         [HttpPost("create-by-estado")]
         public async Task<IActionResult> CreateBackupByEstado([FromBody] CreateBackupByEstadoRequest request)
         {
@@ -249,7 +249,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // GET: api/maquinasbackup/stats
+
         [HttpGet("stats")]
         public async Task<IActionResult> GetBackupStats()
         {
@@ -259,7 +259,7 @@ namespace FlexoAPP.API.Controllers
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand(@"
-                    SELECT 
+                    SELECT
                         COUNT(*) as total_backups,
                         COUNT(DISTINCT Articulo) as articulos_unicos,
                         COUNT(DISTINCT NumeroMaquina) as maquinas_usadas,

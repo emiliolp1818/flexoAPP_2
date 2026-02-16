@@ -7,7 +7,7 @@ namespace FlexoAPP.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous] // Permitir acceso sin autenticación para pruebas - cambiar a [Authorize] en producción
+    [AllowAnonymous]
     public class ReportsController : ControllerBase
     {
         private readonly IReportsService _reportsService;
@@ -15,7 +15,7 @@ namespace FlexoAPP.API.Controllers
         private readonly IActivityLoggerService _activityLogger;
 
         public ReportsController(
-            IReportsService reportsService, 
+            IReportsService reportsService,
             ILogger<ReportsController> logger,
             IActivityLoggerService activityLogger)
         {
@@ -42,8 +42,8 @@ namespace FlexoAPP.API.Controllers
                 };
 
                 var summary = await _reportsService.GetReportSummaryAsync(filter);
-                
-                // ✅ Registrar actividad de consulta de resumen de reportes
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -57,7 +57,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning(logEx, "Error registrando actividad de consulta de resumen");
                 }
-                
+
                 return Ok(summary);
             }
             catch (Exception ex)
@@ -89,8 +89,8 @@ namespace FlexoAPP.API.Controllers
                 };
 
                 var reports = await _reportsService.GetProductionReportAsync(filter);
-                
-                // ✅ Registrar actividad de consulta de reporte de producción
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -104,7 +104,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning(logEx, "Error registrando actividad de consulta de reporte de producción");
                 }
-                
+
                 return Ok(reports);
             }
             catch (Exception ex)
@@ -241,8 +241,8 @@ namespace FlexoAPP.API.Controllers
 
                 var fileBytes = await _reportsService.ExportToExcelAsync(type, filter);
                 var fileName = $"reporte_{type}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-                
-                // ✅ Registrar actividad de exportación a Excel
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -256,7 +256,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning(logEx, "Error registrando actividad de exportación a Excel");
                 }
-                
+
                 return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception ex)
@@ -290,8 +290,8 @@ namespace FlexoAPP.API.Controllers
 
                 var fileBytes = await _reportsService.ExportToPDFAsync(type, filter);
                 var fileName = $"reporte_{type}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-                
-                // ✅ Registrar actividad de exportación a PDF
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -305,7 +305,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning(logEx, "Error registrando actividad de exportación a PDF");
                 }
-                
+
                 return File(fileBytes, "application/pdf", fileName);
             }
             catch (Exception ex)
@@ -315,9 +315,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener actividades de usuario por código
-        /// </summary>
+
+
+
         [HttpGet("user-activities/{userCode}")]
         public async Task<IActionResult> GetUserActivities(
             string userCode,
@@ -347,7 +347,7 @@ namespace FlexoAPP.API.Controllers
 
                 var activities = await _reportsService.GetUserActivitiesAsync(filter);
 
-                // ✅ Registrar actividad de consulta de reporte de actividades
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -381,9 +381,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener reporte de máquinas por usuario y fecha
-        /// </summary>
+
+
+
         [HttpGet("machine-activities/{userCode}")]
         public async Task<IActionResult> GetMachineActivitiesByUser(
             string userCode,
@@ -428,9 +428,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener reporte de máquinas desde backup
-        /// </summary>
+
+
+
         [HttpGet("machine-activities/backup/{backupId}")]
         public async Task<IActionResult> GetMachineActivitiesFromBackup(string backupId)
         {
@@ -476,9 +476,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener lista de usuarios disponibles para reportes
-        /// </summary>
+
+
+
         [HttpGet("users/list")]
         public async Task<IActionResult> GetUsersForReports()
         {
@@ -505,10 +505,10 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// TEST: Obtener todas las actividades recientes (últimas 50)
-        /// Para verificar que se están registrando correctamente
-        /// </summary>
+
+
+
+
         [HttpGet("test/recent-activities")]
         public async Task<IActionResult> GetRecentActivitiesTest()
         {
@@ -540,9 +540,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// TEST: Obtener estadísticas de la tabla Activities
-        /// </summary>
+
+
+
         [HttpGet("test/activities-stats")]
         public async Task<IActionResult> GetActivitiesStatsTest()
         {

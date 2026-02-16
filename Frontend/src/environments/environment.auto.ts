@@ -1,4 +1,4 @@
-// Auto-detection environment for network connections
+
 export const environment = {
   production: false,
   apiUrl: 'http://192.168.1.6:7003/api',
@@ -13,6 +13,6 @@ export const environment = {
   enableDebugMode: true,
   cacheTimeout: 5 * 60 * 1000,
   retryAttempts: 5,
-  connectionTimeout: 10000, // 10 seconds
+  connectionTimeout: 10000,
   enableNetworkDetection: true
 };

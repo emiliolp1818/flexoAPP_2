@@ -149,11 +149,11 @@ namespace FlexoAPP.API.Models.DTOs
         public string FileName { get; set; } = string.Empty;
     }
 
-    // ===== OPTIMIZED DTOs FOR FAST LOADING =====
 
-    /// <summary>
-    /// Paginated designs response (OPTIMIZED)
-    /// </summary>
+
+
+
+
     public class PaginatedDesignsDto
     {
         public IEnumerable<DesignDto> Items { get; set; } = new List<DesignDto>();
@@ -166,9 +166,9 @@ namespace FlexoAPP.API.Models.DTOs
         public TimeSpan LoadTime { get; set; }
     }
 
-    /// <summary>
-    /// Design summary DTO (ULTRA FAST - Only essential fields)
-    /// </summary>
+
+
+
     public class DesignSummaryDto
     {
         public int Id { get; set; }
@@ -179,9 +179,9 @@ namespace FlexoAPP.API.Models.DTOs
         public DateTime LastModified { get; set; }
     }
 
-    /// <summary>
-    /// Design lazy loading DTO (Load details on demand)
-    /// </summary>
+
+
+
     public class DesignLazyDto
     {
         public int Id { get; set; }
@@ -191,21 +191,21 @@ namespace FlexoAPP.API.Models.DTOs
         public string Status { get; set; } = string.Empty;
         public int ColorCount { get; set; }
         public DateTime LastModified { get; set; }
-        
-        // Colors loaded on demand
+
+
         public bool ColorsLoaded { get; set; } = false;
         public List<string>? Colors { get; set; }
-        
-        // Additional details loaded on demand
+
+
         public bool DetailsLoaded { get; set; } = false;
         public string? Substrate { get; set; }
         public string? Type { get; set; }
         public string? PrintType { get; set; }
     }
 
-    /// <summary>
-    /// Bulk operations response DTO
-    /// </summary>
+
+
+
     public class BulkOperationResultDto
     {
         public int SuccessCount { get; set; }
@@ -216,9 +216,9 @@ namespace FlexoAPP.API.Models.DTOs
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Design cache info DTO
-    /// </summary>
+
+
+
     public class DesignCacheInfoDto
     {
         public int CachedCount { get; set; }

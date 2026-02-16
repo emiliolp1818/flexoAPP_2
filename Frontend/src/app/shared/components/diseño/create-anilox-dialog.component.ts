@@ -35,7 +35,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
       <div class="dialog-content">
         <form [formGroup]="aniloxForm" class="anilox-form">
-          
+
           <!-- Fila 1: Código y Máquina -->
           <div class="form-row">
             <mat-form-field appearance="outline" class="half-width">
@@ -150,7 +150,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
           <mat-icon>close</mat-icon>
           Cancelar
         </button>
-        <button mat-raised-button color="primary" (click)="onCreate()" 
+        <button mat-raised-button color="primary" (click)="onCreate()"
                 [disabled]="!aniloxForm.valid" class="save-btn">
           <mat-icon>save</mat-icon>
           Crear Anilox

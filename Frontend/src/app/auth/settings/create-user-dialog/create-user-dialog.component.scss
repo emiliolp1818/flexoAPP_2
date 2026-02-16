@@ -94,7 +94,7 @@
     }
   }
 
-  // Responsive design
+
   @media (max-width: 600px) {
     .profile-section {
       .profile-image-container {
@@ -122,7 +122,7 @@
   }
 }
 
-// Estilos globales para el diálogo
+
 ::ng-deep .mat-mdc-dialog-container {
   .create-user-dialog {
     .mat-mdc-form-field {
@@ -149,7 +149,7 @@
   }
 }
 
-// Estilos para los botones de acción del diálogo
+
 .mat-mdc-dialog-actions {
   padding: 16px 24px !important;
   gap: 8px;
@@ -159,7 +159,7 @@
   }
 }
 
-// Estilos para errores de validación
+
 .mat-mdc-form-field.mat-form-field-invalid {
   .mat-mdc-text-field-wrapper {
     .mat-mdc-form-field-flex {
@@ -170,12 +170,12 @@
   }
 }
 
-// Estilos para el toggle de contraseña
+
 .mat-mdc-form-field-type-mat-input {
   .mat-mdc-form-field-icon-suffix {
     button {
       color: #6b7280;
-      
+
       &:hover {
         color: #374151;
       }

@@ -6,7 +6,7 @@ namespace FlexoAPP.API.Models.DTOs
     {
         [Required]
         public string UserCode { get; set; } = string.Empty;
-        
+
         [Required]
         public DateTime ReportDate { get; set; }
     }

@@ -1,6 +1,6 @@
-// ============================================================================
-// REPORTE DE AUDITORÍA COMPLETO DEL SISTEMA
-// ============================================================================
+
+
+
 
 import { Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -27,9 +27,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
-// ============================================================================
-// INTERFACES
-// ============================================================================
+
+
+
 
 interface AuditActivity {
   id: number;
@@ -47,7 +47,7 @@ interface AuditActivity {
   duration?: number;
   oldValues?: string;
   newValues?: string;
-  expanded?: boolean; // Para controlar el estado de expansión
+  expanded?: boolean;
   user?: {
     id: number;
     userCode: string;
@@ -99,39 +99,39 @@ interface AuditFilters {
   ]
 })
 export class ReportsComponent implements OnInit {
-  // Señales reactivas
+
   loading = signal(false);
   activities = signal<AuditActivity[]>([]);
   filteredActivities = signal<AuditActivity[]>([]);
   users = signal<any[]>([]);
-  filteredUsers = signal<any[]>([]); // Para el filtro de búsqueda de usuarios
+  filteredUsers = signal<any[]>([]);
 
-  // Variables para búsqueda de usuario
+
   userSearchText: string = '';
 
-  // Formulario de filtros
+
   filterForm: FormGroup;
 
-  // Módulo seleccionado para visualización
+
   selectedModule = signal<string | null>(null);
 
-  // Cache para estadísticas de máquinas (evita recalcular en cada render)
+
   private machineStatsCache: any = null;
   private machineStatsActivitiesCount: number = 0;
 
-  // Cache para actividades por módulo (evita recalcular en cada render)
+
   private activitiesByModuleCache: Map<string, AuditActivity[]> = new Map();
   private activitiesCacheVersion: number = 0;
 
-  // Cache para colores Pantone por artículo
+
   private pantoneColorsCache: Map<string, number> = new Map();
 
-  // Función para mostrar el valor en el autocomplete (YA NO SE USA)
-  // displayUserFn(user: any): string {
-  //   return user ? user.userCode : '';
-  // }
 
-  // Módulos disponibles
+
+
+
+
+
   modules = [
     { value: 'AUTH', label: 'Autenticación', icon: 'lock' },
     { value: 'MACHINES', label: 'Máquinas', icon: 'precision_manufacturing' },
@@ -144,7 +144,7 @@ export class ReportsComponent implements OnInit {
     { value: 'CONDICION_UNICA', label: 'Condición Única', icon: 'label' }
   ];
 
-  // Columnas de la tabla
+
   displayedColumns = ['timestamp', 'user', 'module', 'action', 'description', 'details'];
 
   constructor(
@@ -171,7 +171,7 @@ export class ReportsComponent implements OnInit {
 
       let usersData: any[] = [];
 
-      // El backend puede devolver directamente un array o un objeto con { success, data }
+
       if (Array.isArray(response)) {
         usersData = response;
       } else if (response && response.success && Array.isArray(response.data)) {
@@ -192,7 +192,7 @@ export class ReportsComponent implements OnInit {
   async loadActivities() {
     this.loading.set(true);
 
-    // Limpiar cache de estadísticas y actividades por módulo
+
     this.machineStatsCache = null;
     this.machineStatsActivitiesCount = 0;
     this.activitiesByModuleCache.clear();
@@ -212,12 +212,12 @@ export class ReportsComponent implements OnInit {
         pageSize: 1000
       };
 
-      // Agregar userId si está seleccionado (OPCIONAL)
+
       if (filters.userId && filters.userId > 0) {
         params.userId = filters.userId;
         console.log('✅ FILTRO DE USUARIO APLICADO - userId:', filters.userId);
 
-        // Buscar el usuario en la lista para mostrar su información
+
         const selectedUser = this.users().find(u => u.id === filters.userId);
         if (selectedUser) {
           console.log('✅ Usuario seleccionado:', {
@@ -231,15 +231,15 @@ export class ReportsComponent implements OnInit {
         console.log('⚠️ Razón: userId =', filters.userId, '(debe ser > 0)');
       }
 
-      // NO aplicar filtro de fechas por defecto - mostrar TODAS las actividades
-      // Solo filtrar si el usuario selecciona fechas específicas
+
+
       if (filters.startDate) {
         params.startDate = filters.startDate.toISOString();
         console.log('✅ FILTRO DE FECHA INICIO:', filters.startDate);
       }
 
       if (filters.endDate) {
-        // Ajustar endDate para incluir todo el día
+
         const endDate = new Date(filters.endDate);
         endDate.setHours(23, 59, 59, 999);
         params.endDate = endDate.toISOString();
@@ -266,7 +266,7 @@ export class ReportsComponent implements OnInit {
 
         console.log('📊 Total de actividades a mostrar:', activities.length);
 
-        // Enriquecer actividades de máquinas con colores Pantone
+
         await this.enrichActivitiesWithPantoneColors(activities);
 
         this.activities.set(activities);
@@ -291,15 +291,15 @@ export class ReportsComponent implements OnInit {
     }
   }
 
-  // Enriquecer actividades de máquinas con colores Pantone desde la base de datos
+
   private async enrichActivitiesWithPantoneColors(activities: AuditActivity[]) {
     console.log('🎨 ===== INICIO ENRIQUECIMIENTO DE COLORES PANTONE =====');
 
-    // Filtrar solo actividades de máquinas
+
     const machineActivities = activities.filter(a => a.module === 'MACHINES');
     console.log(`🎨 Total actividades de máquinas: ${machineActivities.length}`);
 
-    // Extraer artículos únicos con más detalle
+
     const uniqueArticles = new Set<string>();
     const articulosDebug: any[] = [];
 
@@ -329,7 +329,7 @@ export class ReportsComponent implements OnInit {
       return;
     }
 
-    // Consultar colores Pantone para cada artículo único
+
     for (const articulo of uniqueArticles) {
       if (this.pantoneColorsCache.has(articulo)) {
         console.log(`✅ Colores Pantone para ${articulo} ya en cache:`, this.pantoneColorsCache.get(articulo));
@@ -371,21 +371,21 @@ export class ReportsComponent implements OnInit {
     this.userSearchText = '';
     this.filteredUsers.set(this.users());
 
-    // Limpiar las actividades mostradas
+
     this.activities.set([]);
     this.filteredActivities.set([]);
 
-    // Limpiar cache de estadísticas y actividades por módulo
+
     this.machineStatsCache = null;
     this.machineStatsActivitiesCount = 0;
     this.activitiesByModuleCache.clear();
     this.activitiesCacheVersion++;
 
-    // Cargar actividades sin filtros automáticamente
+
     this.loadActivities();
   }
 
-  // Búsqueda de usuario - Mejorada para buscar por código numérico y autoseleccionar
+
   onUserSearch() {
     const searchTerm = this.userSearchText.toLowerCase().trim();
 
@@ -398,12 +398,12 @@ export class ReportsComponent implements OnInit {
       return;
     }
 
-    // Buscar por código exacto primero
+
     const exactCodeMatch = this.users().find(user =>
       user.userCode.toLowerCase() === searchTerm
     );
 
-    // Si hay coincidencia exacta por código, seleccionar automáticamente
+
     if (exactCodeMatch) {
       console.log('✅ Usuario encontrado por código exacto:', exactCodeMatch);
       console.log('✅ Configurando userId en formulario:', exactCodeMatch.id);
@@ -411,54 +411,54 @@ export class ReportsComponent implements OnInit {
       this.filterForm.patchValue({ userId: exactCodeMatch.id });
       this.filteredUsers.set([exactCodeMatch]);
 
-      // Verificar que el valor se guardó correctamente
+
       const currentUserId = this.filterForm.get('userId')?.value;
       console.log('✅ userId después de patchValue:', currentUserId);
 
       return;
     }
 
-    // Si no hay coincidencia exacta, filtrar por código, nombre o apellido
+
     const filtered = this.users().filter(user =>
-      // Buscar por código de usuario (exacto o parcial)
+
       user.userCode.toLowerCase().includes(searchTerm) ||
-      // Buscar por nombre
+
       user.firstName.toLowerCase().includes(searchTerm) ||
-      // Buscar por apellido
+
       user.lastName.toLowerCase().includes(searchTerm) ||
-      // Buscar por nombre completo
+
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm)
     );
 
     console.log('🔍 Usuarios filtrados:', filtered.length);
     this.filteredUsers.set(filtered);
 
-    // Si solo hay un resultado, seleccionarlo automáticamente
+
     if (filtered.length === 1) {
       console.log('✅ Usuario único encontrado:', filtered[0]);
       console.log('✅ Configurando userId en formulario:', filtered[0].id);
       this.userSearchText = filtered[0].userCode;
       this.filterForm.patchValue({ userId: filtered[0].id });
 
-      // Verificar que el valor se guardó correctamente
+
       const currentUserId = this.filterForm.get('userId')?.value;
       console.log('✅ userId después de patchValue:', currentUserId);
     } else {
-      // Si hay múltiples resultados o ninguno, limpiar la selección
+
       console.log('⚠️ Múltiples resultados o ninguno - limpiando userId');
       this.filterForm.patchValue({ userId: null });
     }
   }
 
-  // Cuando se selecciona un usuario del autocomplete (YA NO SE USA)
-  // onUserSelected(event: MatAutocompleteSelectedEvent) {
-  //   const user = event.option.value;
-  //   this.userSearchText = user.userCode;
-  //   this.filterForm.patchValue({ userId: user.id });
-  //   console.log('✅ Usuario seleccionado:', user);
-  // }
 
-  // Limpiar búsqueda de usuario
+
+
+
+
+
+
+
+
   clearUserSearch() {
     this.userSearchText = '';
     this.filteredUsers.set(this.users());
@@ -486,21 +486,21 @@ export class ReportsComponent implements OnInit {
   }
 
   formatDuration(seconds: number | undefined): string {
-    // Si es undefined o null, retornar guion
+
     if (seconds === undefined || seconds === null) return '-';
 
-    // Si es NaN, retornar guion
+
     if (isNaN(seconds)) return '-';
 
-    // Si es 0, retornar "0s" en lugar de guion
+
     if (seconds === 0) return '0s';
 
-    // Calcular horas, minutos y segundos
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
 
-    // Formato: HH:MM:SS o MM:SS dependiendo si hay horas
+
     if (hours > 0) {
       return `${hours}h ${minutes}m ${secs}s`;
     } else if (minutes > 0) {
@@ -509,14 +509,14 @@ export class ReportsComponent implements OnInit {
     return `${secs}s`;
   }
 
-  // Extraer duración de la actividad (desde duration o desde la descripción)
+
   getDuration(activity: AuditActivity): string {
-    // 1. Si existe duration y es válido, usarlo
+
     if (activity.duration && !isNaN(activity.duration) && activity.duration > 0) {
       return this.formatDuration(activity.duration);
     }
 
-    // 2. Intentar extraer de la descripción (formato: "Duración: X,XX min" o "Duración: X.XX min")
+
     if (activity.description) {
       const durationMatch = activity.description.match(/Duración:\s*(\d+)[,.](\d+)\s*min/i);
       if (durationMatch) {
@@ -526,7 +526,7 @@ export class ReportsComponent implements OnInit {
         return this.formatDuration(totalSeconds);
       }
 
-      // Formato alternativo: "X min Y s"
+
       const altMatch = activity.description.match(/(\d+)\s*min\s*(\d+)\s*s/i);
       if (altMatch) {
         const minutes = parseInt(altMatch[1]);
@@ -536,7 +536,7 @@ export class ReportsComponent implements OnInit {
       }
     }
 
-    // 3. Intentar extraer de details
+
     if (activity.details) {
       try {
         const details = JSON.parse(activity.details);
@@ -547,7 +547,7 @@ export class ReportsComponent implements OnInit {
           }
         }
       } catch (e) {
-        // Ignorar error
+
       }
     }
 
@@ -579,7 +579,7 @@ export class ReportsComponent implements OnInit {
     }
   }
 
-  // Método para hacer toggle del estado expandido
+
   toggleExpanded(activity: AuditActivity, event: Event) {
     event.stopPropagation();
     activity.expanded = !activity.expanded;
@@ -591,53 +591,49 @@ export class ReportsComponent implements OnInit {
       hasNewValues: !!activity.newValues
     });
 
-    // Forzar actualización de la tabla
+
     const currentActivities = this.filteredActivities();
     this.filteredActivities.set([...currentActivities]);
   }
 
-  /**
-   * Parsea un string en formato TimeSpan de C# a segundos totales
-   * Formato esperado: "HH:mm:ss.fffffff" o "d.HH:mm:ss.fffffff"
-   * Ejemplos: "00:28:31.7063456", "1.05:30:15.123"
-   */
+
   parseTimeSpanToSeconds(timeSpanString: string): number {
     if (!timeSpanString || typeof timeSpanString !== 'string') {
       return 0;
     }
 
     try {
-      // Remover espacios en blanco
+
       const trimmed = timeSpanString.trim();
 
-      // Formato: [días.]horas:minutos:segundos[.fracciones]
+
       const parts = trimmed.split('.');
       let days = 0;
       let timePart = '';
       let fractionPart = 0;
 
       if (parts.length === 1) {
-        // Solo tiempo: "HH:mm:ss"
+
         timePart = parts[0];
       } else if (parts.length === 2) {
-        // Puede ser "HH:mm:ss.fff" o "d.HH:mm:ss"
+
         if (parts[0].includes(':')) {
-          // Es "HH:mm:ss.fff"
+
           timePart = parts[0];
           fractionPart = parseFloat('0.' + parts[1]);
         } else {
-          // Es "d.HH:mm:ss"
+
           days = parseInt(parts[0]);
           timePart = parts[1];
         }
       } else if (parts.length === 3) {
-        // Es "d.HH:mm:ss.fff"
+
         days = parseInt(parts[0]);
         timePart = parts[1];
         fractionPart = parseFloat('0.' + parts[2]);
       }
 
-      // Parsear la parte de tiempo HH:mm:ss
+
       const timeComponents = timePart.split(':');
       if (timeComponents.length !== 3) {
         console.warn('⚠️ Formato de TimeSpan inválido:', timeSpanString);
@@ -648,7 +644,7 @@ export class ReportsComponent implements OnInit {
       const minutes = parseInt(timeComponents[1]) || 0;
       const seconds = parseInt(timeComponents[2]) || 0;
 
-      // Calcular total en segundos
+
       const totalSeconds = (days * 24 * 60 * 60) +
         (hours * 60 * 60) +
         (minutes * 60) +
@@ -663,16 +659,16 @@ export class ReportsComponent implements OnInit {
     }
   }
 
-  // Extraer solo el número de máquina
+
   getNumeroMaquina(activity: AuditActivity): string | null {
     try {
       let numeroMaquina: string | null = null;
 
-      // 1. Intentar extraer de details primero (más específico)
+
       if (activity.details) {
         try {
           const details = JSON.parse(activity.details);
-          // PRIORIDAD: buscar 'maquina' primero (es el campo que viene del backend)
+
           numeroMaquina = details.maquina || details.Maquina ||
             details.numeroMaquina || details.NumeroMaquina ||
             details.machineNumber || details.MachineNumber ||
@@ -684,15 +680,15 @@ export class ReportsComponent implements OnInit {
             return numeroMaquina.toString();
           }
         } catch (e) {
-          // Ignorar error
+
         }
       }
 
-      // 2. Intentar extraer de newValues
+
       if (activity.newValues) {
         try {
           const newVals = JSON.parse(activity.newValues);
-          // PRIORIDAD: buscar 'maquina' primero
+
           numeroMaquina = newVals.maquina || newVals.Maquina ||
             newVals.numeroMaquina || newVals.NumeroMaquina ||
             newVals.machineNumber || newVals.MachineNumber ||
@@ -704,15 +700,15 @@ export class ReportsComponent implements OnInit {
             return numeroMaquina.toString();
           }
         } catch (e) {
-          // Ignorar error
+
         }
       }
 
-      // 3. Intentar extraer de oldValues
+
       if (activity.oldValues) {
         try {
           const oldVals = JSON.parse(activity.oldValues);
-          // PRIORIDAD: buscar 'maquina' primero
+
           numeroMaquina = oldVals.maquina || oldVals.Maquina ||
             oldVals.numeroMaquina || oldVals.NumeroMaquina ||
             oldVals.machineNumber || oldVals.MachineNumber ||
@@ -724,11 +720,11 @@ export class ReportsComponent implements OnInit {
             return numeroMaquina.toString();
           }
         } catch (e) {
-          // Ignorar error
+
         }
       }
 
-      // 4. Si el módulo es MACHINES y entityType es Maquina, usar entityId
+
       if (activity.module === 'MACHINES' && activity.entityType &&
         (activity.entityType.toLowerCase().includes('machine') || activity.entityType.toLowerCase().includes('maquina'))) {
         if (activity.entityId) {
@@ -750,7 +746,7 @@ export class ReportsComponent implements OnInit {
     }
   }
 
-  // Extraer información de máquinas de los detalles
+
   getMachineInfo(activity: AuditActivity): any {
     try {
       let machineInfo: any = {
@@ -762,7 +758,7 @@ export class ReportsComponent implements OnInit {
 
       let hasData = false;
 
-      // Si el entityType es Machine o Maquina, usar entityName como número de máquina
+
       if (activity.entityType && (activity.entityType.toLowerCase().includes('machine') || activity.entityType.toLowerCase().includes('maquina'))) {
         if (activity.entityName) {
           machineInfo.numeroMaquina = activity.entityName;
@@ -770,7 +766,7 @@ export class ReportsComponent implements OnInit {
         }
       }
 
-      // Intentar parsear los detalles si existen
+
       if (activity.details) {
         try {
           const details = JSON.parse(activity.details);
@@ -779,7 +775,7 @@ export class ReportsComponent implements OnInit {
           machineInfo.articulo = details.articulo || details.Articulo || details.article || details.Article || machineInfo.articulo;
           machineInfo.otSap = details.otSap || details.OtSap || details.ot_sap || details.OT_SAP || details.orderNumber || details.OrderNumber || machineInfo.otSap;
           machineInfo.descripcion = details.descripcion || details.Descripcion || details.referencia || details.Referencia || details.description || details.Description || machineInfo.descripcion;
-          // PRIORIDAD: buscar 'maquina' primero
+
           machineInfo.numeroMaquina = machineInfo.numeroMaquina || details.maquina || details.Maquina ||
             details.numeroMaquina || details.NumeroMaquina ||
             details.machineNumber || details.MachineNumber ||
@@ -794,7 +790,7 @@ export class ReportsComponent implements OnInit {
         }
       }
 
-      // Si no hay detalles, intentar extraer de newValues
+
       if (activity.newValues) {
         try {
           const newVals = JSON.parse(activity.newValues);
@@ -803,7 +799,7 @@ export class ReportsComponent implements OnInit {
           machineInfo.articulo = machineInfo.articulo || newVals.articulo || newVals.Articulo || newVals.article || newVals.Article;
           machineInfo.otSap = machineInfo.otSap || newVals.otSap || newVals.OtSap || newVals.ot_sap || newVals.OT_SAP || newVals.orderNumber || newVals.OrderNumber;
           machineInfo.descripcion = machineInfo.descripcion || newVals.descripcion || newVals.Descripcion || newVals.referencia || newVals.Referencia || newVals.description || newVals.Description;
-          // PRIORIDAD: buscar 'maquina' primero
+
           machineInfo.numeroMaquina = machineInfo.numeroMaquina || newVals.maquina || newVals.Maquina ||
             newVals.numeroMaquina || newVals.NumeroMaquina ||
             newVals.machineNumber || newVals.MachineNumber ||
@@ -818,7 +814,7 @@ export class ReportsComponent implements OnInit {
         }
       }
 
-      // Si no hay detalles ni newValues, intentar oldValues
+
       if (activity.oldValues) {
         try {
           const oldVals = JSON.parse(activity.oldValues);
@@ -827,7 +823,7 @@ export class ReportsComponent implements OnInit {
           machineInfo.articulo = machineInfo.articulo || oldVals.articulo || oldVals.Articulo || oldVals.article || oldVals.Article;
           machineInfo.otSap = machineInfo.otSap || oldVals.otSap || oldVals.OtSap || oldVals.ot_sap || oldVals.OT_SAP || oldVals.orderNumber || oldVals.OrderNumber;
           machineInfo.descripcion = machineInfo.descripcion || oldVals.descripcion || oldVals.Descripcion || oldVals.referencia || oldVals.Referencia || oldVals.description || oldVals.Description;
-          // PRIORIDAD: buscar 'maquina' primero
+
           machineInfo.numeroMaquina = machineInfo.numeroMaquina || oldVals.maquina || oldVals.Maquina ||
             oldVals.numeroMaquina || oldVals.NumeroMaquina ||
             oldVals.machineNumber || oldVals.MachineNumber ||
@@ -851,36 +847,36 @@ export class ReportsComponent implements OnInit {
     }
   }
 
-  // Predicate function to determine which rows should show the expanded detail
+
   isExpandedRow = (index: number, row: AuditActivity) => row.expanded === true;
 
-  // Agrupar actividades por módulo (CON CACHE)
+
   getActivitiesByModule(module: string): AuditActivity[] {
-    // Verificar si existe en cache
+
     if (this.activitiesByModuleCache.has(module)) {
       return this.activitiesByModuleCache.get(module)!;
     }
 
-    // Calcular y guardar en cache
+
     const activities = this.filteredActivities().filter(a => a.module === module);
     this.activitiesByModuleCache.set(module, activities);
 
     return activities;
   }
 
-  // Obtener conteo de actividades por módulo (CON CACHE)
+
   getModuleCount(module: string): number {
     return this.getActivitiesByModule(module).length;
   }
 
-  // Seleccionar módulo para ver detalles
+
   selectModule(module: string | null) {
     this.selectedModule.set(module);
   }
 
-  // Calcular estadísticas para módulo de máquinas (CON CACHE)
+
   getMachineStats(activities: AuditActivity[]): any {
-    // Si el cache es válido, retornarlo
+
     if (this.machineStatsCache && this.machineStatsActivitiesCount === activities.length) {
       console.log('✅ Usando cache de estadísticas de máquinas');
       return this.machineStatsCache;
@@ -889,7 +885,7 @@ export class ReportsComponent implements OnInit {
     console.log('🔧 ===== INICIO getMachineStats (RECALCULANDO) =====');
     console.log('🔧 Total actividades recibidas:', activities.length);
 
-    // DEBUG: Mostrar TODAS las actividades de MACHINES para ver qué hay
+
     const allMachineActivities = activities.filter(a => a.module === 'MACHINES');
     console.log('🔧 Total actividades de MACHINES:', allMachineActivities.length);
 
@@ -903,19 +899,19 @@ export class ReportsComponent implements OnInit {
       })));
     }
 
-    // Contar por action para ver qué tipos hay
+
     const actionCounts: Record<string, number> = {};
     allMachineActivities.forEach(a => {
       actionCounts[a.action] = (actionCounts[a.action] || 0) + 1;
     });
     console.log('🔧 Conteo por action:', actionCounts);
 
-    // Filtrar actividades de máquinas que cambiaron de estado
-    // INCLUIR: PREPARANDO, LISTO, CORRIENDO, SUSPENDIDO, TERMINADO
+
+
     const machineActivities = activities.filter(a => {
       if (a.module !== 'MACHINES') return false;
 
-      // Verificar en description (case-insensitive)
+
       const descriptionMatch = a.description &&
         (a.description.toUpperCase().includes('TERMINADO') ||
           a.description.toUpperCase().includes('LISTO') ||
@@ -923,7 +919,7 @@ export class ReportsComponent implements OnInit {
           a.description.toUpperCase().includes('SUSPENDIDO') ||
           a.description.toUpperCase().includes('CORRIENDO'));
 
-      // Verificar en newValues
+
       let newValuesMatch = false;
       if (a.newValues) {
         try {
@@ -933,11 +929,11 @@ export class ReportsComponent implements OnInit {
             estadoUpper === 'PREPARANDO' || estadoUpper === 'SUSPENDIDO' ||
             estadoUpper === 'CORRIENDO';
         } catch (e) {
-          // Ignorar error de parseo
+
         }
       }
 
-      // Verificar en action (por si el action incluye algún estado)
+
       const actionMatch = a.action &&
         (a.action.toUpperCase().includes('TERMINADO') ||
           a.action.toUpperCase().includes('LISTO') ||
@@ -951,7 +947,7 @@ export class ReportsComponent implements OnInit {
     console.log('🔧 Actividades filtradas (PREPARANDO, LISTO, CORRIENDO, SUSPENDIDO, TERMINADO):', machineActivities.length);
     console.log('🔧 Diferencia:', allMachineActivities.length - machineActivities.length, 'actividades descartadas');
 
-    // DEBUG: Mostrar las actividades filtradas
+
     if (machineActivities.length > 0) {
       console.log('🔧 Primera actividad con cambio de estado:', machineActivities[0]);
     } else {
@@ -962,7 +958,7 @@ export class ReportsComponent implements OnInit {
       console.warn('   - description con algún estado válido, o newValues.estado con estado válido');
     }
 
-    // Agrupar actividades por pedido (artículo + OT SAP)
+
     const pedidosMap = new Map<string, {
       articulo: string;
       otSap: string;
@@ -970,7 +966,7 @@ export class ReportsComponent implements OnInit {
       numeroMaquina: string;
       numeroColores: number;
       totalDuration: number;
-      totalDurationListo: number; // Solo tiempo en estado LISTO
+      totalDurationListo: number;
       historialEstados: Array<{
         estado: string;
         timestamp: string;
@@ -1003,21 +999,21 @@ export class ReportsComponent implements OnInit {
         }
       }
 
-      // Extraer número de colores Pantone desde el cache
+
       let numeroColores = 0;
 
       if (articulo && articulo !== '-' && this.pantoneColorsCache.has(articulo)) {
         numeroColores = this.pantoneColorsCache.get(articulo) || 0;
       } else if (articulo && articulo !== '-') {
         console.log(`⚠️ Artículo ${articulo} no encontrado en cache de colores Pantone`);
-        // Fallback: intentar extraer de details o newValues
+
         if (a.details) {
           try {
             const details = JSON.parse(a.details);
             numeroColores = details.numeroColores || details.NumeroColores ||
               details.numero_colores || details.colorCount || 0;
           } catch (e) {
-            // Ignorar error
+
           }
         }
 
@@ -1027,12 +1023,12 @@ export class ReportsComponent implements OnInit {
             numeroColores = newVals.numeroColores || newVals.NumeroColores ||
               newVals.numero_colores || newVals.colorCount || 0;
           } catch (e) {
-            // Ignorar error
+
           }
         }
       }
 
-      // Extraer estado y observaciones
+
       let estadoPedido = '-';
       let observaciones = '';
       if (a.newValues) {
@@ -1040,13 +1036,13 @@ export class ReportsComponent implements OnInit {
           const newVals = typeof a.newValues === 'string' ? JSON.parse(a.newValues) : a.newValues;
           estadoPedido = newVals.estado || newVals.Estado || '-';
 
-          // Extraer observaciones según el estado
+
           let rawObservaciones = newVals.observaciones || newVals.Observaciones || '';
 
-          // DEBUG: Log para ver qué observaciones vienen del backend
+
           console.log(`🔍 [${otSap}] Estado: ${estadoPedido}, Observaciones raw:`, rawObservaciones);
 
-          // Filtrar el mensaje automático del sistema
+
           const mensajesFiltrar = [
             'Programa nuevo - Información de tabla de diseño - Pendiente de asignación de estado por operario',
             'Programa nuevo',
@@ -1054,21 +1050,21 @@ export class ReportsComponent implements OnInit {
             'Pendiente de asignación de estado por operario'
           ];
 
-          // Si las observaciones contienen alguno de los mensajes a filtrar, limpiarlas
+
           let observacionesLimpias = rawObservaciones;
           for (const mensaje of mensajesFiltrar) {
             observacionesLimpias = observacionesLimpias.replace(mensaje, '').trim();
           }
 
-          // Limpiar guiones y espacios extras
+
           observacionesLimpias = observacionesLimpias.replace(/^[\s\-]+|[\s\-]+$/g, '').trim();
 
           observaciones = observacionesLimpias;
 
-          // DEBUG: Log para ver las observaciones después del filtrado
+
           console.log(`🔍 [${otSap}] Observaciones después de filtrar:`, observaciones);
         } catch (e) {
-          // Ignorar error
+
         }
       }
 
@@ -1079,11 +1075,11 @@ export class ReportsComponent implements OnInit {
         }
       }
 
-      // Extraer información del usuario
+
       const userCode = a.user?.userCode || a.userCode || '-';
       const userName = a.user?.fullName || `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.trim() || '-';
 
-      // Si el pedido ya existe, agregar al historial
+
       if (pedidosMap.has(key)) {
         const pedido = pedidosMap.get(key)!;
         pedido.historialEstados.push({
@@ -1095,16 +1091,16 @@ export class ReportsComponent implements OnInit {
           userName: userName
         });
         pedido.totalDuration += duration;
-        // Sumar duración solo si el estado es LISTO
+
         if (estadoPedido.toUpperCase() === 'LISTO') {
           pedido.totalDurationListo += duration;
         }
-        // Actualizar número de colores si es mayor
+
         if (numeroColores > pedido.numeroColores) {
           pedido.numeroColores = numeroColores;
         }
       } else {
-        // Crear nuevo pedido
+
         const durationListo = estadoPedido.toUpperCase() === 'LISTO' ? duration : 0;
         pedidosMap.set(key, {
           articulo: articulo,
@@ -1126,12 +1122,12 @@ export class ReportsComponent implements OnInit {
       }
     });
 
-    // Convertir el mapa a array y ordenar historial de estados por fecha
-    // SOLO INCLUIR pedidos que tengan al menos un estado LISTO
+
+
     const orderDetails = Array.from(pedidosMap.values())
       .filter(pedido => pedido.historialEstados.some(h => h.estado.toUpperCase() === 'LISTO'))
       .map(pedido => {
-        // Ordenar historial por timestamp (más antiguo primero)
+
         pedido.historialEstados.sort((a, b) =>
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
@@ -1142,9 +1138,9 @@ export class ReportsComponent implements OnInit {
           descripcion: pedido.descripcion,
           numeroMaquina: pedido.numeroMaquina,
           numeroColores: pedido.numeroColores,
-          duration: pedido.totalDurationListo, // Solo tiempo en estado LISTO
+          duration: pedido.totalDurationListo,
           historialEstados: pedido.historialEstados,
-          // Para compatibilidad, usar el último estado y timestamp
+
           estado: pedido.historialEstados[pedido.historialEstados.length - 1]?.estado || '-',
           timestamp: pedido.historialEstados[pedido.historialEstados.length - 1]?.timestamp || ''
         };
@@ -1163,7 +1159,7 @@ export class ReportsComponent implements OnInit {
       });
     });
 
-    // Calcular totales correctos basados en pedidos únicos
+
     const totalOrders = orderDetails.length;
     const totalDuration = orderDetails.reduce((sum, order) => sum + order.duration, 0);
     const avgDuration = totalOrders > 0 ? totalDuration / totalOrders : 0;
@@ -1175,7 +1171,7 @@ export class ReportsComponent implements OnInit {
     console.log('🔧 Total Duration (formateado):', this.formatDuration(totalDuration));
     console.log('🔧 Avg Duration (formateado):', this.formatDuration(avgDuration));
 
-    // Calcular estadísticas de colores
+
     const coloresStats = orderDetails.reduce((acc, order) => {
       if (order.numeroColores > 0) {
         acc.totalColores += order.numeroColores;
@@ -1184,7 +1180,7 @@ export class ReportsComponent implements OnInit {
       return acc;
     }, { totalColores: 0, pedidosConColores: 0 });
 
-    // Promedio de colores = Total de colores / Número de pedidos
+
     const avgColores = totalOrders > 0
       ? coloresStats.totalColores / totalOrders
       : 0;
@@ -1195,7 +1191,7 @@ export class ReportsComponent implements OnInit {
     console.log('🔧 Total de pedidos:', totalOrders);
     console.log('🔧 Promedio de colores (total colores / total pedidos):', avgColores);
 
-    // Guardar en cache
+
     this.machineStatsCache = {
       totalOrders,
       totalDuration,
@@ -1212,7 +1208,7 @@ export class ReportsComponent implements OnInit {
   }
 
   exportToPDF() {
-    // Preguntar qué módulo exportar
+
     const moduleToExport = prompt('¿Qué módulo deseas exportar?\n\nOpciones:\n- AUTH (Autenticación)\n- MACHINES (Máquinas)\n- DESIGNS (Diseños)\n- DOCUMENTS (Documentos)\n- REPORTS (Reportes)\n- CONFIG (Configuración)\n- SETTINGS (Ajustes)\n- PROFILE (Perfil)\n- CONDICION_UNICA (Condición Única)\n- ALL (Todos)\n\nEscribe el nombre del módulo:');
 
     if (!moduleToExport) {
@@ -1236,16 +1232,16 @@ export class ReportsComponent implements OnInit {
 
     const doc = new jsPDF();
 
-    // Título
+
     doc.setFontSize(18);
     doc.text(`Reporte de Auditoría - ${moduleToExport.toUpperCase()}`, 14, 20);
 
-    // Fecha del reporte
+
     doc.setFontSize(10);
     doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 28);
     doc.text(`Total de registros: ${activities.length}`, 14, 34);
 
-    // Tabla
+
     const tableData = activities.map(a => [
       new Date(a.timestamp).toLocaleString(),
       a.user?.fullName || a.userCode,
@@ -1267,7 +1263,7 @@ export class ReportsComponent implements OnInit {
   }
 
   exportToExcel() {
-    // Preguntar qué módulo exportar
+
     const moduleToExport = prompt('¿Qué módulo deseas exportar?\n\nOpciones:\n- AUTH (Autenticación)\n- MACHINES (Máquinas)\n- DESIGNS (Diseños)\n- DOCUMENTS (Documentos)\n- REPORTS (Reportes)\n- CONFIG (Configuración)\n- SETTINGS (Ajustes)\n- PROFILE (Perfil)\n- CONDICION_UNICA (Condición Única)\n- ALL (Todos)\n\nEscribe el nombre del módulo:');
 
     if (!moduleToExport) {
@@ -1301,14 +1297,14 @@ export class ReportsComponent implements OnInit {
       'Duración': this.formatDuration(a.duration)
     }));
 
-    // Convertir a CSV
+
     const headers = Object.keys(data[0]);
     const csv = [
       headers.join(','),
       ...data.map(row => headers.map(h => `"${(row as any)[h]}"`).join(','))
     ].join('\n');
 
-    // Descargar
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -1318,13 +1314,11 @@ export class ReportsComponent implements OnInit {
     this.snackBar.open('Excel generado exitosamente', 'Cerrar', { duration: 3000 });
   }
 
-  // ===== NUEVOS MÉTODOS DE EXPORTACIÓN POR MÓDULO =====
 
-  /**
-   * Exportar módulo específico a PDF con diseño compacto y organizado
-   */
+
+
   exportModuleToPDF(moduleValue: string, event: Event) {
-    event.stopPropagation(); // Evitar que se expanda/colapse el módulo
+    event.stopPropagation();
 
     const activities = this.getActivitiesByModule(moduleValue);
 
@@ -1336,18 +1330,18 @@ export class ReportsComponent implements OnInit {
     const doc = new jsPDF();
     const moduleLabel = this.getModuleLabel(moduleValue);
 
-    // ===== ENCABEZADO COMPACTO =====
-    doc.setFillColor(37, 99, 235); // Azul primario
-    doc.rect(0, 0, 210, 20, 'F'); // Reducido de 35 a 20
 
-    // Título principal
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, 210, 20, 'F');
+
+
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14); // Reducido de 20 a 14
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text(`Auditoría - ${moduleLabel}`, 14, 10);
 
-    // Fecha de generación (misma línea, a la derecha)
-    doc.setFontSize(8); // Reducido de 14 a 8
+
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     const fechaGeneracion = new Date().toLocaleString('es-ES', {
       day: '2-digit',
@@ -1358,20 +1352,20 @@ export class ReportsComponent implements OnInit {
     });
     doc.text(fechaGeneracion, 196, 10, { align: 'right' });
 
-    // Total de registros (segunda línea)
+
     doc.text(`Total: ${activities.length} registros`, 14, 16);
 
-    // ===== INFORMACIÓN DE FILTROS (COMPACTA) =====
+
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(7); // Reducido de 9 a 7
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
 
     const filters = this.filterForm.value;
     const selectedUser = filters.userId ? this.users().find(u => u.id === filters.userId) : null;
 
-    let yPos = 24; // Reducido de 42 a 24
+    let yPos = 24;
 
-    // Mostrar filtros en una sola línea si es posible
+
     let filtrosTexto = '';
     if (selectedUser) {
       filtrosTexto += `Usuario: ${selectedUser.userCode} - ${selectedUser.firstName} ${selectedUser.lastName}`;
@@ -1395,12 +1389,12 @@ export class ReportsComponent implements OnInit {
       yPos += 2;
     }
 
-    // ===== TABLA DE DATOS =====
+
     if (moduleValue === 'MACHINES') {
-      // Exportación especial para MÁQUINAS con estadísticas
+
       const stats = this.getMachineStats(activities);
 
-      // Estadísticas generales en formato compacto (2 columnas)
+
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(37, 99, 235);
@@ -1411,17 +1405,17 @@ export class ReportsComponent implements OnInit {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
 
-      // Primera columna
+
       doc.text(`Pedidos: ${stats.totalOrders}`, 14, yPos);
       doc.text(`Tiempo total: ${this.formatDuration(stats.totalDuration)}`, 14, yPos + 4);
 
-      // Segunda columna
+
       doc.text(`Tiempo promedio: ${this.formatDuration(stats.avgDuration)}`, 105, yPos);
       doc.text(`Promedio colores: ${stats.avgColores ? stats.avgColores.toFixed(1) : '-'}`, 105, yPos + 4);
 
       yPos += 10;
 
-      // Tabla de pedidos compacta
+
       const tableData = stats.orderDetails.map((order: any, index: number) => [
         `${index + 1}`,
         order.articulo,
@@ -1438,8 +1432,8 @@ export class ReportsComponent implements OnInit {
         head: [['#', 'Artículo', 'OT SAP', 'Descripción', 'Máq', 'Col', 'Tiempo', 'Est']],
         body: tableData,
         styles: {
-          fontSize: 6, // Reducido de 7 a 6
-          cellPadding: 1.5, // Reducido de 2 a 1.5
+          fontSize: 6,
+          cellPadding: 1.5,
           lineColor: [220, 220, 220],
           lineWidth: 0.1
         },
@@ -1466,7 +1460,7 @@ export class ReportsComponent implements OnInit {
         margin: { left: 10, right: 10 }
       });
 
-      // Agregar detalle de historial de estados en nueva página si hay espacio
+
       const finalY = (doc as any).lastAutoTable.finalY;
       if (finalY > 250) {
         doc.addPage();
@@ -1475,14 +1469,14 @@ export class ReportsComponent implements OnInit {
         yPos = finalY + 8;
       }
 
-      // Título de historial
+
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(37, 99, 235);
       doc.text('Historial de Estados', 14, yPos);
       yPos += 5;
 
-      // Tabla de historial
+
       const historialData: any[] = [];
       stats.orderDetails.forEach((order: any, index: number) => {
         order.historialEstados.forEach((estado: any) => {
@@ -1532,7 +1526,7 @@ export class ReportsComponent implements OnInit {
       });
 
     } else {
-      // Exportación estándar para otros módulos
+
       const tableData = activities.map(a => [
         new Date(a.timestamp).toLocaleDateString('es-ES') + '\n' +
         new Date(a.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
@@ -1573,7 +1567,7 @@ export class ReportsComponent implements OnInit {
       });
     }
 
-    // ===== PIE DE PÁGINA COMPACTO =====
+
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -1587,7 +1581,7 @@ export class ReportsComponent implements OnInit {
       );
     }
 
-    // Guardar PDF
+
     const timestamp = new Date().getTime();
     const fileName = `auditoria_${moduleValue.toLowerCase()}_${timestamp}.pdf`;
     doc.save(fileName);
@@ -1595,11 +1589,9 @@ export class ReportsComponent implements OnInit {
     this.snackBar.open('PDF generado exitosamente', 'Cerrar', { duration: 2000 });
   }
 
-  /**
-   * Exportar módulo específico a Excel con diseño organizado igual que el PDF
-   */
+
   exportModuleToExcel(moduleValue: string, event: Event) {
-    event.stopPropagation(); // Evitar que se expanda/colapse el módulo
+    event.stopPropagation();
 
     const activities = this.getActivitiesByModule(moduleValue);
 
@@ -1614,7 +1606,7 @@ export class ReportsComponent implements OnInit {
 
     let csvContent = '';
 
-    // ===== ENCABEZADO =====
+
     const fechaGeneracion = new Date().toLocaleString('es-ES', {
       day: '2-digit',
       month: '2-digit',
@@ -1627,7 +1619,7 @@ export class ReportsComponent implements OnInit {
     csvContent += `Fecha de generación:;${fechaGeneracion};;;\n`;
     csvContent += `Total de registros:;${activities.length};;;\n`;
 
-    // Filtros aplicados
+
     let filtrosTexto = '';
     if (selectedUser) {
       filtrosTexto = `Usuario: ${selectedUser.userCode} - ${selectedUser.firstName} ${selectedUser.lastName}`;
@@ -1644,16 +1636,16 @@ export class ReportsComponent implements OnInit {
       csvContent += `Filtros aplicados:;${filtrosTexto};;;\n`;
     }
 
-    csvContent += ';;;;\n'; // Línea en blanco separadora
+    csvContent += ';;;;\n';
 
-    // ===== DATOS ORGANIZADOS POR MÓDULO =====
+
     if (moduleValue === 'MACHINES') {
-      // ========================================
-      // MÓDULO MÁQUINAS - ESTRUCTURA ORGANIZADA
-      // ========================================
+
+
+
       const stats = this.getMachineStats(activities);
 
-      // === SECCIÓN 1: RESUMEN DE ESTADÍSTICAS ===
+
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += 'RESUMEN DE ESTADÍSTICAS;;;;\n';
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
@@ -1667,7 +1659,7 @@ export class ReportsComponent implements OnInit {
       csvContent += ';;;;\n';
       csvContent += ';;;;\n';
 
-      // === SECCIÓN 2: TABLA DE PEDIDOS COMPLETADOS ===
+
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += 'PEDIDOS COMPLETADOS;;;;\n';
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
@@ -1675,13 +1667,13 @@ export class ReportsComponent implements OnInit {
 
       csvContent += '#;Artículo;OT SAP;Descripción;Máquina;Colores Pantone;Tiempo en LISTO;Cantidad de Estados\n';
       stats.orderDetails.forEach((order: any, index: number) => {
-        const descripcion = order.descripcion.replace(/;/g, ','); // Reemplazar punto y coma por coma
+        const descripcion = order.descripcion.replace(/;/g, ',');
         csvContent += `${index + 1};${order.articulo};${order.otSap};${descripcion};${order.numeroMaquina};${order.numeroColores || '-'};${this.formatDuration(order.duration)};${order.historialEstados.length}\n`;
       });
       csvContent += ';;;;\n';
       csvContent += ';;;;\n';
 
-      // === SECCIÓN 3: HISTORIAL DETALLADO DE ESTADOS ===
+
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += 'HISTORIAL DETALLADO DE ESTADOS;;;;\n';
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
@@ -1692,21 +1684,21 @@ export class ReportsComponent implements OnInit {
         order.historialEstados.forEach((estado: any, estadoIndex: number) => {
           const fecha = new Date(estado.timestamp).toLocaleDateString('es-ES');
           const hora = new Date(estado.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-          const observaciones = (estado.observaciones || '-').replace(/;/g, ','); // Reemplazar punto y coma por coma
+          const observaciones = (estado.observaciones || '-').replace(/;/g, ',');
 
           csvContent += `#${index + 1};${order.articulo};${order.otSap};${estado.estado};${fecha};${hora};${this.formatDuration(estado.duration)};${estado.userCode};${estado.userName};${observaciones}\n`;
         });
 
-        // Línea en blanco entre pedidos para mejor separación visual
+
         if (index < stats.orderDetails.length - 1) {
           csvContent += ';;;;\n';
         }
       });
 
     } else {
-      // ========================================
-      // OTROS MÓDULOS - ESTRUCTURA ESTÁNDAR
-      // ========================================
+
+
+
 
       csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
       csvContent += 'ACTIVIDADES DEL MÓDULO;;;;\n';
@@ -1721,7 +1713,7 @@ export class ReportsComponent implements OnInit {
         const userCode = a.user?.userCode || a.userCode || '-';
         const userName = a.user?.fullName || 'Sistema';
         const action = a.action;
-        const description = a.description.replace(/;/g, ','); // Reemplazar punto y coma por coma
+        const description = a.description.replace(/;/g, ',');
         const duration = this.getDuration(a);
         const ip = a.ipAddress || '-';
         const entity = a.entityName || '-';
@@ -1730,7 +1722,7 @@ export class ReportsComponent implements OnInit {
       });
     }
 
-    // ===== PIE DE PÁGINA =====
+
     csvContent += ';;;;\n';
     csvContent += ';;;;\n';
     csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
@@ -1738,8 +1730,8 @@ export class ReportsComponent implements OnInit {
     csvContent += `Generado el ${fechaGeneracion};;;;\n`;
     csvContent += '════════════════════════════════════════════════════════════════════════════════;;;;\n';
 
-    // ===== DESCARGAR ARCHIVO =====
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' }); // \ufeff es BOM para UTF-8
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     const timestamp = new Date().getTime();

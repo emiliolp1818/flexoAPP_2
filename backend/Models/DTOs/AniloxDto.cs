@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FlexoAPP.API.Models.DTOs
 {
-    /// <summary>
-    /// DTO para mostrar información de un anilox
-    /// </summary>
+
+
+
     public class AniloxDto
     {
         public int Id { get; set; }
@@ -18,9 +18,9 @@ namespace FlexoAPP.API.Models.DTOs
         public DateTime UpdatedAt { get; set; }
     }
 
-    /// <summary>
-    /// DTO para crear un nuevo anilox
-    /// </summary>
+
+
+
     public class CreateAniloxDto
     {
         [Required(ErrorMessage = "El código es requerido")]
@@ -48,9 +48,9 @@ namespace FlexoAPP.API.Models.DTOs
         public decimal VolumenReal { get; set; }
     }
 
-    /// <summary>
-    /// DTO para actualizar un anilox existente
-    /// </summary>
+
+
+
     public class UpdateAniloxDto
     {
         [Required(ErrorMessage = "El código es requerido")]
@@ -78,10 +78,10 @@ namespace FlexoAPP.API.Models.DTOs
         public decimal VolumenReal { get; set; }
     }
 
-    /// <summary>
-    /// DTO para importar anilox desde Excel
-    /// Estructura: C=Codigo, D=Maquina, E=Lineatura, F=AporteTeorico, G=Proveedor, H=Aporte, I=FactorEficiencia, J=Densidad
-    /// </summary>
+
+
+
+
     public class ImportAniloxDto
     {
         public string Codigo { get; set; } = string.Empty;
@@ -90,7 +90,7 @@ namespace FlexoAPP.API.Models.DTOs
         public int AporteTeorico { get; set; }
         public string? Proveedor { get; set; }
         public decimal Aporte { get; set; }
-        public decimal? FactorEficiencia { get; set; } = 35.00m; // Columna I - Valor por defecto 35%
-        public decimal? Densidad { get; set; } = 0.885m; // Columna J - Valor por defecto 0.885
+        public decimal? FactorEficiencia { get; set; } = 35.00m;
+        public decimal? Densidad { get; set; } = 0.885m;
     }
 }

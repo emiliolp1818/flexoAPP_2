@@ -58,9 +58,7 @@ export class MaquinasBackupService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/maquinasbackup`;
 
-  /**
-   * Buscar en el backup de máquinas
-   */
+
   searchBackup(filters: {
     articulo?: string;
     otSap?: string;
@@ -87,9 +85,7 @@ export class MaquinasBackupService {
     return this.http.get<BackupSearchResponse>(`${this.apiUrl}/search`, { params });
   }
 
-  /**
-   * Crear backup de una máquina específica
-   */
+
   createBackup(otSap: string, reason: string, userId?: number, userName?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/create`, {
       otSap,
@@ -99,9 +95,7 @@ export class MaquinasBackupService {
     });
   }
 
-  /**
-   * Crear backup masivo por estado
-   */
+
   createBackupByEstado(estado: string, userId?: number, userName?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/create-by-estado`, {
       estado,
@@ -110,9 +104,7 @@ export class MaquinasBackupService {
     });
   }
 
-  /**
-   * Obtener estadísticas del backup
-   */
+
   getStats(): Observable<BackupStats[]> {
     return this.http.get<BackupStats[]>(`${this.apiUrl}/stats`);
   }

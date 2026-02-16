@@ -16,14 +16,14 @@ namespace FlexoAPP.API.Controllers
             _logger = logger;
         }
 
-        // GET: api/machineconfig
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
             {
                 _logger.LogInformation("📋 Obteniendo todas las configuraciones de máquinas");
-                
+
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
 
@@ -53,7 +53,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // GET: api/machineconfig/{numeroMaquina}
+
         [HttpGet("{numeroMaquina}")]
         public async Task<IActionResult> GetByMachine(int numeroMaquina)
         {
@@ -90,7 +90,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // PUT: api/machineconfig/{numeroMaquina}/carga-muestra
+
         [HttpPut("{numeroMaquina}/carga-muestra")]
         public async Task<IActionResult> UpdateCargaMuestra(int numeroMaquina, [FromBody] UpdateCargaMuestraDto dto)
         {
@@ -100,23 +100,23 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogInformation("📝 Máquina: {NumeroMaquina}", numeroMaquina);
                 _logger.LogInformation("📝 Valor recibido: {CargaMuestra}", dto.CargaMuestra);
                 _logger.LogInformation("📝 DTO completo: {@Dto}", dto);
-                
+
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
 
-                // Verificar si existe la configuración
+
                 using var checkCommand = new MySqlCommand(
                     "SELECT id FROM machine_config WHERE numero_maquina = @NumeroMaquina",
                     connection);
                 checkCommand.Parameters.AddWithValue("@NumeroMaquina", numeroMaquina);
 
                 var existingId = await checkCommand.ExecuteScalarAsync();
-                
+
                 _logger.LogInformation("🔍 Verificando si existe configuración: {ExistingId}", existingId);
 
                 if (existingId != null)
                 {
-                    // Actualizar existente
+
                     _logger.LogInformation("🔄 Actualizando configuración existente ID: {Id}", existingId);
                     using var updateCommand = new MySqlCommand(
                         "UPDATE machine_config SET carga_muestra = @CargaMuestra WHERE numero_maquina = @NumeroMaquina",
@@ -129,7 +129,7 @@ namespace FlexoAPP.API.Controllers
                 }
                 else
                 {
-                    // Crear nuevo
+
                     _logger.LogInformation("➕ Creando nueva configuración para máquina {NumeroMaquina}", numeroMaquina);
                     using var insertCommand = new MySqlCommand(
                         "INSERT INTO machine_config (numero_maquina, carga_muestra) VALUES (@NumeroMaquina, @CargaMuestra)",
@@ -158,31 +158,31 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // POST: api/machineconfig/setup
+
         [HttpPost("setup")]
         public async Task<IActionResult> SetupMachineConfig()
         {
             try
             {
                 _logger.LogInformation("🔧 Iniciando setup de machine_config");
-                
+
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
 
-                // Verificar si la tabla existe
+
                 using var checkTableCommand = new MySqlCommand(
-                    @"SELECT COUNT(*) 
-                      FROM information_schema.tables 
-                      WHERE table_schema = DATABASE() 
+                    @"SELECT COUNT(*)
+                      FROM information_schema.tables
+                      WHERE table_schema = DATABASE()
                       AND table_name = 'machine_config'",
                     connection);
-                
+
                 var tableExists = Convert.ToInt32(await checkTableCommand.ExecuteScalarAsync()) > 0;
                 _logger.LogInformation("📊 Tabla machine_config existe: {TableExists}", tableExists);
 
                 if (!tableExists)
                 {
-                    // Crear la tabla
+
                     _logger.LogInformation("➕ Creando tabla machine_config");
                     using var createTableCommand = new MySqlCommand(
                         @"CREATE TABLE `machine_config` (
@@ -198,12 +198,12 @@ namespace FlexoAPP.API.Controllers
                     _logger.LogInformation("✅ Tabla machine_config creada");
                 }
 
-                // Verificar cuántos registros hay
+
                 using var countCommand = new MySqlCommand("SELECT COUNT(*) FROM machine_config", connection);
                 var recordCount = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
                 _logger.LogInformation("📊 Registros actuales en machine_config: {RecordCount}", recordCount);
 
-                // Insertar registros para todas las máquinas si no existen
+
                 var machinesInserted = 0;
                 for (int machineNumber = 11; machineNumber <= 21; machineNumber++)
                 {
@@ -221,7 +221,7 @@ namespace FlexoAPP.API.Controllers
 
                 _logger.LogInformation("✅ Setup completado. {MachinesInserted} máquinas insertadas", machinesInserted);
 
-                // Obtener el estado final
+
                 using var finalCommand = new MySqlCommand("SELECT * FROM machine_config ORDER BY numero_maquina", connection);
                 using var reader = await finalCommand.ExecuteReaderAsync();
 

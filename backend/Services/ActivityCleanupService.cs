@@ -8,7 +8,7 @@ namespace FlexoAPP.API.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ActivityCleanupService> _logger;
-        private readonly TimeSpan _period = TimeSpan.FromHours(6); // Ejecutar cada 6 horas
+        private readonly TimeSpan _period = TimeSpan.FromHours(6);
 
         public ActivityCleanupService(IServiceProvider serviceProvider, ILogger<ActivityCleanupService> logger)
         {
@@ -35,7 +35,7 @@ namespace FlexoAPP.API.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error en el servicio de limpieza de actividades");
-                    await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken); // Esperar 30 min antes de reintentar
+                    await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken);
                 }
             }
         }
@@ -47,10 +47,10 @@ namespace FlexoAPP.API.Services
 
             try
             {
-                // El método GetUserActivitiesAsync ya incluye la limpieza automática
-                // Solo necesitamos llamarlo para activar la limpieza
+
+
                 await activityService.GetAllActivitiesAsync(1);
-                
+
                 _logger.LogInformation("Limpieza automática de actividades ejecutada correctamente");
             }
             catch (Exception ex)

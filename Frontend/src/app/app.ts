@@ -28,8 +28,8 @@ export class AppComponent implements OnInit, OnDestroy {
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.isLoginPage = event.url === '/login';
-        
-        // Iniciar monitoreo de sesión si el usuario está logueado y no está en login
+
+
         if (!this.isLoginPage && this.authService.isLoggedIn()) {
           this.sessionTimeoutService.startMonitoring();
         } else {
@@ -37,7 +37,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       });
 
-    // Iniciar monitoreo si ya está logueado
+
     if (this.authService.isLoggedIn() && !this.isLoginPage) {
       this.sessionTimeoutService.startMonitoring();
     }

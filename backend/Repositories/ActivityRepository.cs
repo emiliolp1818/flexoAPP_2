@@ -59,7 +59,7 @@ namespace FlexoAPP.API.Repositories
         public async Task<List<Activity>> GetExpiredActivitiesAsync()
         {
             var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
-            
+
             return await _context.Activities
                 .Where(a => a.Timestamp <= thirtyDaysAgo)
                 .OrderBy(a => a.Timestamp)

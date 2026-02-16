@@ -20,9 +20,9 @@ namespace flexoAPP.Repositories
             try
             {
                 return await _context.Maquinas
-                    // NOTA: Include comentado - no hay propiedades de navegación
-                    // .Include(m => m.CreatedByUser)
-                    // .Include(m => m.UpdatedByUser)
+
+
+
                     .OrderBy(m => m.NumeroMaquina)
                     .ThenBy(m => m.FechaTintaEnMaquina)
                     .ToListAsync();
@@ -39,9 +39,9 @@ namespace flexoAPP.Repositories
             try
             {
                 return await _context.Maquinas
-                    // NOTA: Include comentado - no hay propiedades de navegación
-                    // .Include(m => m.CreatedByUser)
-                    // .Include(m => m.UpdatedByUser)
+
+
+
                     .FirstOrDefaultAsync(m => m.Articulo == articulo);
             }
             catch (Exception ex)
@@ -70,9 +70,9 @@ namespace flexoAPP.Repositories
             try
             {
                 return await _context.Maquinas
-                    // NOTA: Include comentado - no hay propiedades de navegación
-                    // .Include(m => m.CreatedByUser)
-                    // .Include(m => m.UpdatedByUser)
+
+
+
                     .Where(m => m.NumeroMaquina == numeroMaquina)
                     .OrderBy(m => m.FechaTintaEnMaquina)
                     .ToListAsync();
@@ -89,9 +89,9 @@ namespace flexoAPP.Repositories
             try
             {
                 return await _context.Maquinas
-                    // NOTA: Include comentado - no hay propiedades de navegación
-                    // .Include(m => m.CreatedByUser)
-                    // .Include(m => m.UpdatedByUser)
+
+
+
                     .Where(m => m.Estado == estado)
                     .OrderBy(m => m.NumeroMaquina)
                     .ThenBy(m => m.FechaTintaEnMaquina)
@@ -114,7 +114,7 @@ namespace flexoAPP.Repositories
                 _context.Maquinas.Add(maquina);
                 await _context.SaveChangesAsync();
 
-                // Recargar con las relaciones
+
                 return await GetByOtSapAsync(maquina.OtSap) ?? maquina;
             }
             catch (Exception ex)
@@ -133,7 +133,7 @@ namespace flexoAPP.Repositories
                 _context.Maquinas.Update(maquina);
                 await _context.SaveChangesAsync();
 
-                // Recargar con las relaciones
+
                 return await GetByOtSapAsync(maquina.OtSap) ?? maquina;
             }
             catch (Exception ex)

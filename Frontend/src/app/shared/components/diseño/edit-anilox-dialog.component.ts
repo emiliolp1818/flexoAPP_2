@@ -35,7 +35,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
       <div class="dialog-content">
         <form [formGroup]="aniloxForm" class="anilox-form">
-          
+
           <!-- Fila 1: Código y Máquina -->
           <div class="form-row">
             <mat-form-field appearance="outline" class="half-width">
@@ -120,7 +120,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
           <div class="form-row">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Factor Eficiencia</mat-label>
-              <input matInput formControlName="factorEficiencia" placeholder="Ej: 0.85" type="text" 
+              <input matInput formControlName="factorEficiencia" placeholder="Ej: 0.85" type="text"
                      (input)="onFactorEficienciaInput($event)" (blur)="formatFactorEficiencia()">
               <mat-icon matSuffix>speed</mat-icon>
               <mat-error *ngIf="aniloxForm.get('factorEficiencia')?.hasError('min')">
@@ -133,7 +133,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Densidad</mat-label>
-              <input matInput formControlName="densidad" placeholder="Ej: 0.889" type="text" 
+              <input matInput formControlName="densidad" placeholder="Ej: 0.889" type="text"
                      (input)="onDensidadInput($event)">
               <mat-icon matSuffix>opacity</mat-icon>
               <mat-error *ngIf="aniloxForm.get('densidad')?.hasError('min')">
@@ -153,7 +153,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
           <mat-icon>close</mat-icon>
           Cancelar
         </button>
-        <button mat-raised-button color="primary" (click)="onUpdate()" 
+        <button mat-raised-button color="primary" (click)="onUpdate()"
                 class="save-btn">
           <mat-icon>save</mat-icon>
           Guardar Cambios
@@ -349,7 +349,7 @@ export class EditAniloxDialogComponent {
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any) {
     console.log('🔵 EditAniloxDialogComponent - Data recibida:', data);
-    
+
     this.aniloxForm = this.fb.group({
       codigo: [data.codigo || '', [Validators.required, Validators.maxLength(50)]],
       maquina: [data.maquina || null, [Validators.required]],
@@ -360,15 +360,15 @@ export class EditAniloxDialogComponent {
       factorEficiencia: [data.factor_eficiencia || null, [Validators.min(0), Validators.max(1)]],
       densidad: [data.densidad || null, [Validators.min(0)]]
     });
-    
-    // Log para debug
+
+
     this.aniloxForm.statusChanges.subscribe(status => {
       console.log('📝 Form status:', status);
       console.log('📝 Form valid:', this.aniloxForm.valid);
       console.log('📝 Form errors:', this.aniloxForm.errors);
       console.log('📝 Form values:', this.aniloxForm.value);
-      
-      // Mostrar errores de cada campo
+
+
       Object.keys(this.aniloxForm.controls).forEach(key => {
         const control = this.aniloxForm.get(key);
         if (control && control.errors) {
@@ -376,8 +376,8 @@ export class EditAniloxDialogComponent {
         }
       });
     });
-    
-    // Log inicial
+
+
     console.log('📝 Form inicial valid:', this.aniloxForm.valid);
     console.log('📝 Form inicial values:', this.aniloxForm.value);
   }
@@ -385,21 +385,21 @@ export class EditAniloxDialogComponent {
   onDensidadInput(event: any): void {
     let value = event.target.value;
     console.log('📝 Densidad input original:', value, 'tipo:', typeof value);
-    
-    // Reemplazar coma por punto
+
+
     if (value.includes(',')) {
       value = value.replace(',', '.');
       console.log('📝 Densidad convertida:', value);
-      // Actualizar el valor visual en el input
+
       event.target.value = value;
     }
-    
-    // Actualizar el valor del formulario
+
+
     if (value === '' || value === null) {
       this.aniloxForm.patchValue({ densidad: null }, { emitEvent: false });
       console.log('📝 Densidad: null');
     } else {
-      // Usar Number() en lugar de parseFloat() para mejor precisión
+
       const numValue = Number(value);
       if (!isNaN(numValue) && isFinite(numValue)) {
         this.aniloxForm.patchValue({ densidad: numValue }, { emitEvent: false });
@@ -412,29 +412,29 @@ export class EditAniloxDialogComponent {
   }
 
   formatDensidad(): void {
-    // ELIMINADO - No formatear para mantener el valor exacto
-    // El valor se mantiene tal cual fue ingresado
+
+
   }
 
   onFactorEficienciaInput(event: any): void {
     let value = event.target.value;
     console.log('📝 Factor Eficiencia input original:', value);
-    
-    // Reemplazar coma por punto
+
+
     if (value.includes(',')) {
       value = value.replace(',', '.');
       console.log('📝 Factor Eficiencia convertida:', value);
-      // Actualizar el valor visual en el input
+
       event.target.value = value;
     }
-    
-    // Actualizar el valor del formulario SIN PARSEAR (mantener precisión)
+
+
     if (value === '' || value === null) {
       this.aniloxForm.patchValue({ factorEficiencia: null }, { emitEvent: false });
     } else {
       const numValue = parseFloat(value);
       if (!isNaN(numValue)) {
-        // Guardar el número parseado EXACTAMENTE como fue ingresado
+
         this.aniloxForm.patchValue({ factorEficiencia: numValue }, { emitEvent: false });
         console.log('📝 Factor Eficiencia guardado en formulario (SIN redondeo):', numValue);
       }
@@ -442,8 +442,8 @@ export class EditAniloxDialogComponent {
   }
 
   formatFactorEficiencia(): void {
-    // ELIMINADO - No formatear para mantener el valor exacto
-    // El valor se mantiene tal cual fue ingresado
+
+
   }
 
   onCancel(): void {
@@ -454,21 +454,21 @@ export class EditAniloxDialogComponent {
     console.log('🔵 ===== INICIO onUpdate =====');
     console.log('📝 Form valid:', this.aniloxForm.valid);
     console.log('📝 Form value completo:', this.aniloxForm.value);
-    
-    // Validar campos requeridos manualmente
+
+
     const requiredFields = ['codigo', 'maquina', 'bcm', 'lineatura', 'marca', 'volumenReal'];
     const missingFields = requiredFields.filter(field => {
       const value = this.aniloxForm.get(field)?.value;
       return value === null || value === undefined || value === '';
     });
-    
+
     if (missingFields.length > 0) {
       console.log('❌ Campos requeridos faltantes:', missingFields);
       alert(`Por favor completa los siguientes campos: ${missingFields.join(', ')}`);
       return;
     }
-    
-    // Mapear los nombres de campos al formato que espera el backend
+
+
     const formValue = this.aniloxForm.value;
     const dataToSend = {
       codigo: formValue.codigo,
@@ -480,7 +480,7 @@ export class EditAniloxDialogComponent {
       factorEficiencia: formValue.factorEficiencia,
       densidad: formValue.densidad
     };
-    
+
     console.log('📤 Datos a enviar al backend:');
     console.log('   - codigo:', dataToSend.codigo);
     console.log('   - maquina:', dataToSend.maquina);
@@ -491,7 +491,7 @@ export class EditAniloxDialogComponent {
     console.log('   - factorEficiencia:', dataToSend.factorEficiencia, '(tipo:', typeof dataToSend.factorEficiencia, ')');
     console.log('   - densidad:', dataToSend.densidad, '(tipo:', typeof dataToSend.densidad, ')');
     console.log('🔵 ===== FIN onUpdate =====');
-    
+
     this.dialogRef.close(dataToSend);
   }
 }

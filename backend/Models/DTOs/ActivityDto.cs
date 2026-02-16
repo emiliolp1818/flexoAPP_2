@@ -15,7 +15,7 @@ namespace FlexoAPP.API.Models.DTOs
         public string? IpAddress { get; set; }
         public int DaysRemaining { get; set; }
         public DateTime ExpirationDate { get; set; }
-        public bool IsExpiringSoon { get; set; } // Menos de 7 días
+        public bool IsExpiringSoon { get; set; }
     }
 
     public class CreateActivityDto

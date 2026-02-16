@@ -29,16 +29,16 @@ namespace FlexoAPP.API.Controllers
                 lineatura = reader.GetInt32(reader.GetOrdinal("lineatura")),
                 marca = reader.GetString(reader.GetOrdinal("marca")),
                 volumen_real = reader.GetDecimal(reader.GetOrdinal("volumen_real")),
-                factor_eficiencia = reader.IsDBNull(reader.GetOrdinal("factor_eficiencia")) 
-                    ? (decimal?)null 
+                factor_eficiencia = reader.IsDBNull(reader.GetOrdinal("factor_eficiencia"))
+                    ? (decimal?)null
                     : reader.GetDecimal(reader.GetOrdinal("factor_eficiencia")),
-                densidad = reader.IsDBNull(reader.GetOrdinal("densidad")) 
-                    ? (decimal?)null 
+                densidad = reader.IsDBNull(reader.GetOrdinal("densidad"))
+                    ? (decimal?)null
                     : reader.GetDecimal(reader.GetOrdinal("densidad"))
             };
         }
 
-        // GET: api/anilox
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -47,15 +47,15 @@ namespace FlexoAPP.API.Controllers
                 var aniloxList = new List<object>();
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 using var command = new MySqlCommand("SELECT * FROM anilox ORDER BY lineatura, volumen_real", connection);
                 using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
-                
+
                 while (await reader.ReadAsync())
                 {
                     aniloxList.Add(ReadAniloxFromReader(reader));
                 }
-                
+
                 return Ok(aniloxList);
             }
             catch (Exception ex)
@@ -65,7 +65,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // GET: api/anilox/machine/{machineNumber}
+
         [HttpGet("machine/{machineNumber}")]
         public async Task<IActionResult> GetByMachine(int machineNumber)
         {
@@ -74,19 +74,19 @@ namespace FlexoAPP.API.Controllers
                 var aniloxList = new List<object>();
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 using var command = new MySqlCommand(
-                    "SELECT * FROM anilox WHERE maquina = @MachineNumber ORDER BY lineatura, volumen_real", 
+                    "SELECT * FROM anilox WHERE maquina = @MachineNumber ORDER BY lineatura, volumen_real",
                     connection);
                 command.Parameters.AddWithValue("@MachineNumber", machineNumber);
-                
+
                 using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
-                
+
                 while (await reader.ReadAsync())
                 {
                     aniloxList.Add(ReadAniloxFromReader(reader));
                 }
-                
+
                 return Ok(aniloxList);
             }
             catch (Exception ex)
@@ -96,7 +96,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // GET: api/anilox/lineaturas
+
         [HttpGet("lineaturas")]
         public async Task<IActionResult> GetUniqueLineaturas()
         {
@@ -105,15 +105,15 @@ namespace FlexoAPP.API.Controllers
                 var lineaturas = new List<int>();
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 using var command = new MySqlCommand("SELECT DISTINCT lineatura FROM anilox ORDER BY lineatura", connection);
                 using var reader = await command.ExecuteReaderAsync();
-                
+
                 while (await reader.ReadAsync())
                 {
                     lineaturas.Add(reader.GetInt32(0));
                 }
-                
+
                 return Ok(lineaturas);
             }
             catch (Exception ex)
@@ -123,7 +123,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // GET: api/anilox/lineatura/{lineatura}
+
         [HttpGet("lineatura/{lineatura}")]
         public async Task<IActionResult> GetByLineatura(int lineatura)
         {
@@ -132,19 +132,19 @@ namespace FlexoAPP.API.Controllers
                 var aniloxList = new List<object>();
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 using var command = new MySqlCommand(
-                    "SELECT * FROM anilox WHERE lineatura = @Lineatura ORDER BY volumen_real", 
+                    "SELECT * FROM anilox WHERE lineatura = @Lineatura ORDER BY volumen_real",
                     connection);
                 command.Parameters.AddWithValue("@Lineatura", lineatura);
-                
+
                 using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
-                
+
                 while (await reader.ReadAsync())
                 {
                     aniloxList.Add(ReadAniloxFromReader(reader));
                 }
-                
+
                 return Ok(aniloxList);
             }
             catch (Exception ex)
@@ -154,7 +154,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // GET: api/anilox/bcm/{bcm}
+
         [HttpGet("bcm/{bcm}")]
         public async Task<IActionResult> GetByBCM(int bcm)
         {
@@ -163,19 +163,19 @@ namespace FlexoAPP.API.Controllers
                 var aniloxList = new List<object>();
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 using var command = new MySqlCommand(
-                    "SELECT * FROM anilox WHERE bcm = @BCM ORDER BY volumen_real", 
+                    "SELECT * FROM anilox WHERE bcm = @BCM ORDER BY volumen_real",
                     connection);
                 command.Parameters.AddWithValue("@BCM", bcm);
-                
+
                 using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
-                
+
                 while (await reader.ReadAsync())
                 {
                     aniloxList.Add(ReadAniloxFromReader(reader));
                 }
-                
+
                 return Ok(aniloxList);
             }
             catch (Exception ex)
@@ -185,7 +185,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // GET: api/anilox/lineatura/{lineatura}/machine/{machineNumber}
+
         [HttpGet("lineatura/{lineatura}/machine/{machineNumber}")]
         public async Task<IActionResult> GetByLineaturaAndMachine(int lineatura, int machineNumber)
         {
@@ -194,22 +194,22 @@ namespace FlexoAPP.API.Controllers
                 var aniloxList = new List<object>();
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 using var command = new MySqlCommand(
-                    @"SELECT * FROM anilox 
-                      WHERE lineatura = @Lineatura AND maquina = @MachineNumber 
-                      ORDER BY volumen_real", 
+                    @"SELECT * FROM anilox
+                      WHERE lineatura = @Lineatura AND maquina = @MachineNumber
+                      ORDER BY volumen_real",
                     connection);
                 command.Parameters.AddWithValue("@Lineatura", lineatura);
                 command.Parameters.AddWithValue("@MachineNumber", machineNumber);
-                
+
                 using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
-                
+
                 while (await reader.ReadAsync())
                 {
                     aniloxList.Add(ReadAniloxFromReader(reader));
                 }
-                
+
                 return Ok(aniloxList);
             }
             catch (Exception ex)
@@ -219,23 +219,23 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // POST: api/anilox
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAniloxDto dto)
         {
             try
             {
                 _logger.LogInformation($"📝 Creando anilox: {dto.Codigo}");
-                
+
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 using var command = new MySqlCommand(
-                    @"INSERT INTO anilox (codigo, maquina, bcm, lineatura, marca, volumen_real, factor_eficiencia, densidad) 
+                    @"INSERT INTO anilox (codigo, maquina, bcm, lineatura, marca, volumen_real, factor_eficiencia, densidad)
                       VALUES (@Codigo, @Maquina, @BCM, @Lineatura, @Marca, @VolumenReal, @FactorEficiencia, @Densidad);
-                      SELECT LAST_INSERT_ID();", 
+                      SELECT LAST_INSERT_ID();",
                     connection);
-                
+
                 command.Parameters.AddWithValue("@Codigo", dto.Codigo);
                 command.Parameters.AddWithValue("@Maquina", dto.Maquina);
                 command.Parameters.AddWithValue("@BCM", dto.BCM);
@@ -244,28 +244,28 @@ namespace FlexoAPP.API.Controllers
                 command.Parameters.AddWithValue("@VolumenReal", dto.VolumenReal);
                 command.Parameters.AddWithValue("@FactorEficiencia", dto.FactorEficiencia ?? 35.00m);
                 command.Parameters.AddWithValue("@Densidad", dto.Densidad ?? 0.885m);
-                
+
                 var newId = Convert.ToInt32(await command.ExecuteScalarAsync());
-                
+
                 _logger.LogInformation($"✅ Anilox {dto.Codigo} creado con ID: {newId}");
-                
-                // Obtener el anilox recién creado
+
+
                 using var selectCommand = new MySqlCommand("SELECT * FROM anilox WHERE id = @Id", connection);
                 selectCommand.Parameters.AddWithValue("@Id", newId);
-                
+
                 using var reader = (MySqlDataReader)await selectCommand.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
                     return Ok(ReadAniloxFromReader(reader));
                 }
-                
+
                 return StatusCode(500, new { message = "Error al recuperar el anilox creado" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"❌ Error al crear anilox {dto.Codigo}");
-                return StatusCode(500, new { 
-                    message = "Error al crear anilox", 
+                return StatusCode(500, new {
+                    message = "Error al crear anilox",
                     error = ex.Message,
                     stackTrace = ex.StackTrace,
                     innerError = ex.InnerException?.Message
@@ -273,7 +273,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // PUT: api/anilox/{id}
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateAniloxDto dto)
         {
@@ -282,14 +282,14 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogInformation("🔵 ===== INICIO ACTUALIZACIÓN ANILOX =====");
                 _logger.LogInformation("📝 ID: {Id}", id);
                 _logger.LogInformation("📝 DTO recibido: {@Dto}", dto);
-                
+
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 var updates = new List<string>();
                 var command = new MySqlCommand();
                 command.Connection = connection;
-                
+
                 if (!string.IsNullOrEmpty(dto.Codigo))
                 {
                     updates.Add("codigo = @Codigo");
@@ -338,25 +338,25 @@ namespace FlexoAPP.API.Controllers
                     command.Parameters.AddWithValue("@Densidad", dto.Densidad.Value);
                     _logger.LogInformation("📝 Actualizando densidad: {Densidad}", dto.Densidad.Value);
                 }
-                
+
                 if (updates.Count == 0)
                 {
                     _logger.LogWarning("⚠️ No hay campos para actualizar");
                     return BadRequest(new { message = "No hay campos para actualizar" });
                 }
-                
+
                 command.CommandText = $"UPDATE anilox SET {string.Join(", ", updates)} WHERE id = @Id";
                 command.Parameters.AddWithValue("@Id", id);
-                
+
                 _logger.LogInformation("📝 SQL: {SQL}", command.CommandText);
-                
+
                 var rowsAffected = await command.ExecuteNonQueryAsync();
                 _logger.LogInformation("✅ {RowsAffected} fila(s) actualizada(s)", rowsAffected);
-                
-                // Obtener el anilox actualizado
+
+
                 using var selectCommand = new MySqlCommand("SELECT * FROM anilox WHERE id = @Id", connection);
                 selectCommand.Parameters.AddWithValue("@Id", id);
-                
+
                 using var reader = (MySqlDataReader)await selectCommand.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
@@ -365,7 +365,7 @@ namespace FlexoAPP.API.Controllers
                     _logger.LogInformation("🔵 ===== FIN ACTUALIZACIÓN ANILOX =====");
                     return Ok(result);
                 }
-                
+
                 _logger.LogWarning("⚠️ Anilox no encontrado después de actualizar");
                 return NotFound(new { message = "Anilox no encontrado" });
             }
@@ -376,7 +376,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // DELETE: api/anilox/{id}
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -384,17 +384,17 @@ namespace FlexoAPP.API.Controllers
             {
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
-                
+
                 using var command = new MySqlCommand("DELETE FROM anilox WHERE id = @Id", connection);
                 command.Parameters.AddWithValue("@Id", id);
-                
+
                 var rowsAffected = await command.ExecuteNonQueryAsync();
-                
+
                 if (rowsAffected > 0)
                 {
                     return Ok(new { message = "Anilox eliminado exitosamente" });
                 }
-                
+
                 return NotFound(new { message = "Anilox no encontrado" });
             }
             catch (Exception ex)
@@ -404,7 +404,7 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        // POST: api/anilox/import
+
         [HttpPost("import")]
                 public async Task<IActionResult> ImportFromExcel([FromBody] List<ImportAniloxFromExcelDto> aniloxList)
                 {
@@ -426,7 +426,7 @@ namespace FlexoAPP.API.Controllers
                             {
                                 _logger.LogInformation($"Procesando anilox: {item.Codigo}");
 
-                                // Verificar si el anilox ya existe por código
+
                                 using var checkCommand = new MySqlCommand(
                                     "SELECT id FROM anilox WHERE codigo = @Codigo",
                                     connection);
@@ -436,9 +436,9 @@ namespace FlexoAPP.API.Controllers
 
                                 if (existingId != null)
                                 {
-                                    // Actualizar existente
+
                                     using var updateCommand = new MySqlCommand(
-                                        @"UPDATE anilox SET 
+                                        @"UPDATE anilox SET
                                             maquina = @Maquina,
                                             bcm = @BCM,
                                             lineatura = @Lineatura,
@@ -464,11 +464,11 @@ namespace FlexoAPP.API.Controllers
                                 }
                                 else
                                 {
-                                    // Crear nuevo
+
                                     using var insertCommand = new MySqlCommand(
-                                        @"INSERT INTO anilox 
-                                            (codigo, maquina, bcm, lineatura, marca, volumen_real, factor_eficiencia, densidad) 
-                                          VALUES 
+                                        @"INSERT INTO anilox
+                                            (codigo, maquina, bcm, lineatura, marca, volumen_real, factor_eficiencia, densidad)
+                                          VALUES
                                             (@Codigo, @Maquina, @BCM, @Lineatura, @Marca, @VolumenReal, @FactorEficiencia, @Densidad)",
                                         connection);
 
@@ -497,9 +497,9 @@ namespace FlexoAPP.API.Controllers
 
                         _logger.LogInformation($"✅ Importación completada: {created} creados, {updated} actualizados, {errors} errores");
 
-                        return Ok(new { 
-                            created, 
-                            updated, 
+                        return Ok(new {
+                            created,
+                            updated,
                             errors,
                             errorDetails = errors > 0 ? errorDetails : null
                         });
@@ -507,8 +507,8 @@ namespace FlexoAPP.API.Controllers
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "❌ Error crítico al importar anilox");
-                        return StatusCode(500, new { 
-                            message = "Error al importar anilox", 
+                        return StatusCode(500, new {
+                            message = "Error al importar anilox",
                             error = ex.Message,
                             stackTrace = ex.StackTrace,
                             innerError = ex.InnerException?.Message
@@ -516,7 +516,7 @@ namespace FlexoAPP.API.Controllers
                     }
                 }
 
-        // Endpoint de diagnóstico para verificar estructura de tabla
+
         [HttpGet("check-table")]
         public async Task<IActionResult> CheckTableStructure()
         {
@@ -526,7 +526,7 @@ namespace FlexoAPP.API.Controllers
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand(@"
-                    SELECT 
+                    SELECT
                         COLUMN_NAME,
                         DATA_TYPE,
                         COLUMN_DEFAULT,
@@ -539,7 +539,7 @@ namespace FlexoAPP.API.Controllers
 
                 var columns = new List<object>();
                 using var reader = await command.ExecuteReaderAsync();
-                
+
                 while (await reader.ReadAsync())
                 {
                     columns.Add(new
@@ -574,7 +574,7 @@ namespace FlexoAPP.API.Controllers
 
     }
 
-    // DTOs
+
     public class CreateAniloxDto
     {
         public string Codigo { get; set; } = string.Empty;

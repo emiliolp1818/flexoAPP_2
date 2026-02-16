@@ -17,18 +17,18 @@ namespace FlexoAPP.API.Services
 
         public async Task<List<ActivityDto>> GetUserActivitiesAsync(int userId, int limit = 50)
         {
-            // Limpiar actividades expiradas antes de obtener la lista
+
             await CleanupExpiredActivitiesAsync();
-            
+
             var activities = await _activityRepository.GetUserActivitiesAsync(userId, limit);
             return activities.Select(MapToDto).ToList();
         }
 
         public async Task<List<ActivityDto>> GetAllActivitiesAsync(int limit = 100)
         {
-            // Limpiar actividades expiradas antes de obtener la lista
+
             await CleanupExpiredActivitiesAsync();
-            
+
             var activities = await _activityRepository.GetAllActivitiesAsync(limit);
             return activities.Select(MapToDto).ToList();
         }
@@ -36,7 +36,7 @@ namespace FlexoAPP.API.Services
         public async Task<ActivityDto> LogActivityAsync(int userId, string action, string description, string module, string? details = null, string? ipAddress = null)
         {
             var user = await _userRepository.GetByIdAsync(userId);
-            
+
             var activity = new Activity
             {
                 UserId = userId,
@@ -62,7 +62,7 @@ namespace FlexoAPP.API.Services
         {
             var expirationDate = activity.Timestamp.AddDays(30);
             var daysRemaining = (int)(expirationDate - DateTime.UtcNow).TotalDays;
-            
+
             return new ActivityDto
             {
                 Id = activity.Id,
@@ -84,9 +84,9 @@ namespace FlexoAPP.API.Services
         {
             try
             {
-                // Obtener actividades que han pasado 30 días
+
                 var expiredActivities = await _activityRepository.GetExpiredActivitiesAsync();
-                
+
                 foreach (var activity in expiredActivities)
                 {
                     await _activityRepository.DeleteAsync(activity.Id);

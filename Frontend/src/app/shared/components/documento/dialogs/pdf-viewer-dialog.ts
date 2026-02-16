@@ -1,8 +1,8 @@
-// =====================================================
-// VISUALIZADOR DE PDF - FLEXOAPP
-// Propósito: Mostrar documentos convertidos a PDF en un diálogo elegante
-// Soporta: PDF nativos, Excel convertido, Word convertido
-// =====================================================
+
+
+
+
+
 
 import { Component, Inject, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -13,13 +13,13 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 
-// Interfaz para los datos del diálogo
+
 export interface PdfViewerData {
   documentoId: number;
   fileName: string;
   pdfUrl: string;
-  originalFileUrl?: string; // URL del archivo original para descarga
-  fileType?: string; // Tipo de archivo para mostrar en el badge
+  originalFileUrl?: string;
+  fileType?: string;
 }
 
 @Component({
@@ -54,11 +54,11 @@ export interface PdfViewerData {
           <mat-spinner diameter="50"></mat-spinner>
           <p>Cargando documento...</p>
         </div>
-        
-        <iframe 
+
+        <iframe
           #pdfIframe
           *ngIf="safePdfUrl"
-          [src]="safePdfUrl" 
+          [src]="safePdfUrl"
           class="pdf-iframe"
           (load)="onPdfLoad()"
           frameborder="0">
@@ -97,7 +97,7 @@ export interface PdfViewerData {
       border-bottom: 2px solid #e2e8f0;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       position: relative;
-      
+
       &::before {
         content: '';
         position: absolute;
@@ -160,16 +160,16 @@ export interface PdfViewerData {
       height: 40px;
       border-radius: 50%;
       transition: all 0.2s ease;
-      
+
       &:hover {
         background: #fee2e2;
         transform: rotate(90deg);
-        
+
         mat-icon {
           color: #dc2626;
         }
       }
-      
+
       mat-icon {
         font-size: 24px;
         width: 24px;
@@ -204,7 +204,7 @@ export interface PdfViewerData {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
       z-index: 10;
-      
+
       p {
         color: #64748b;
         font-size: 1rem;
@@ -239,13 +239,13 @@ export interface PdfViewerData {
       font-size: 0.95rem;
       font-weight: 600;
       transition: all 0.2s ease;
-      
+
       mat-icon {
         font-size: 20px;
         width: 20px;
         height: 20px;
       }
-      
+
       &:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -255,7 +255,7 @@ export interface PdfViewerData {
     .secondary-btn {
       background: #f1f5f9;
       color: #475569;
-      
+
       &:hover {
         background: #e2e8f0;
       }
@@ -264,7 +264,7 @@ export interface PdfViewerData {
     .primary-btn {
       background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-      
+
       &:hover {
         background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
         box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
@@ -274,7 +274,7 @@ export interface PdfViewerData {
 })
 export class PdfViewerDialogComponent implements OnInit {
   @ViewChild('pdfIframe') pdfIframe!: ElementRef<HTMLIFrameElement>;
-  
+
   loading = true;
   safePdfUrl: SafeResourceUrl | null = null;
 
@@ -287,21 +287,21 @@ export class PdfViewerDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Determinar qué URL usar según el tipo de archivo
-    let urlToShow = this.data.pdfUrl; // Por defecto usar el PDF convertido
-    
-    // Si el archivo original es PDF, usarlo directamente para mejor calidad
+
+    let urlToShow = this.data.pdfUrl;
+
+
     if (this.data.fileType?.toLowerCase().includes('pdf') && this.data.originalFileUrl) {
       urlToShow = this.data.originalFileUrl;
     }
-    
-    // Sanitizar la URL para que Angular la acepte en el iframe
+
+
     this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(urlToShow);
   }
 
   onPdfLoad(): void {
-    // Ocultar el spinner cuando el PDF termine de cargar
-    // Usar setTimeout para evitar ExpressionChangedAfterItHasBeenCheckedError
+
+
     setTimeout(() => {
       this.loading = false;
       this.cdr.detectChanges();
@@ -313,15 +313,15 @@ export class PdfViewerDialogComponent implements OnInit {
   }
 
   onDownload(): void {
-    // Descargar el archivo original (no el PDF convertido)
+
     const downloadUrl = this.data.originalFileUrl || this.data.pdfUrl;
-    
+
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = this.data.fileName || 'documento.pdf';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

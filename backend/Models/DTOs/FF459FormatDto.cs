@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FlexoAPP.API.Models.DTOs
 {
-    /// <summary>
-    /// DTO para el formato FF459 - Formato de impresión de máquinas
-    /// </summary>
+
+
+
     public class FF459FormatDto
     {
         public string Articulo { get; set; } = string.Empty;
@@ -24,9 +24,9 @@ namespace FlexoAPP.API.Models.DTOs
         public string UsuarioImpresion { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// Request para generar el formato FF459
-    /// </summary>
+
+
+
     public class GenerateFF459Request
     {
         [Required(ErrorMessage = "El artículo es requerido")]

@@ -1,14 +1,14 @@
 
-// ========================================
-// IMPORTAR SISTEMA DE TEMAS
-// ========================================
+
+
+
 @use './styles/themes.scss';
 
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
+
+
+
+
+
 @use '@angular/material' as mat;
 
 html {
@@ -22,15 +22,15 @@ html {
   ));
 }
 
-// ========================================
-// ESTILOS GLOBALES - FlexoAPP Frontend
-// ========================================
 
-// ========================================
-// VARIABLES DE COLOR
-// ========================================
 
-// Colores primarios azules
+
+
+
+
+
+
+
 $primary-blue: #2563eb;
 $primary-blue-light: #3b82f6;
 $primary-blue-dark: #1d4ed8;
@@ -39,9 +39,9 @@ $primary-blue-100: #dbeafe;
 $primary-blue-200: #bfdbfe;
 $primary-blue-800: #1e40af;
 
-// ========================================
-// CONFIGURACIÓN DE TEMA ANGULAR MATERIAL
-// ========================================
+
+
+
 
 html {
   @include mat.theme((
@@ -54,9 +54,9 @@ html {
   ));
 }
 
-// ========================================
-// RESET Y CONFIGURACIÓN BASE
-// ========================================
+
+
+
 
 * {
   box-sizing: border-box;
@@ -77,9 +77,9 @@ body {
   overflow-x: hidden;
 }
 
-// ========================================
-// LAYOUT PRINCIPAL
-// ========================================
+
+
+
 
 app-root {
   display: flex;
@@ -89,9 +89,9 @@ app-root {
   z-index: 1;
 }
 
-// ========================================
-// NAVEGACIÓN Y HEADER
-// ========================================
+
+
+
 
 app-header {
   position: relative;
@@ -105,23 +105,23 @@ app-header {
   color: #1f2937;
 }
 
-// Espaciado para contenido con header
+
 router-outlet + * {
   margin-top: 64px;
-  
+
   &.no-header {
     margin-top: 0;
   }
 }
 
-// Excepción para el componente de información - sin margen superior
+
 router-outlet + .informacion-container {
   margin-top: 0 !important;
 }
 
-// ========================================
-// COMPONENTES MATERIAL
-// ========================================
+
+
+
 
 mat-card {
   background: rgba(255, 255, 255, 0.95) !important;
@@ -133,8 +133,7 @@ mat-card {
   z-index: 2;
 }
 
-/* Ensure mat-icon uses the Material Icons font as a fallback when the
-   icon font doesn't load or when multiple icon font families are present. */
+
 mat-icon, .mat-icon {
   font-family: 'Material Icons', 'Material Icons Outlined', 'Material Symbols Outlined', sans-serif !important;
   speak: none;
@@ -159,11 +158,11 @@ mat-icon, .mat-icon {
   z-index: 2;
 }
 
-// ========================================
-// PÁGINAS ESPECÍFICAS
-// ========================================
 
-// Login
+
+
+
+
 body.login-page {
   overflow: hidden;
   height: 100vh;
@@ -178,11 +177,11 @@ app-login {
   z-index: 9999;
 }
 
-// Máquinas
 
-// ========================================
-// UTILIDADES
-// ========================================
+
+
+
+
 
 .loading-spinner {
   display: flex;
@@ -207,15 +206,15 @@ app-login {
   border-left: 4px solid #059669;
 }
 
-// ========================================
-// RESPONSIVE DESIGN
-// ========================================
+
+
+
 
 @media (max-width: 768px) {
   router-outlet + * {
-    margin-top: 56px; // Header más pequeño en móvil
+    margin-top: 56px;
   }
-  
+
   mat-card {
     margin: 8px;
   }
@@ -225,7 +224,7 @@ app-login {
   body {
     font-size: 14px;
   }
-  
+
   .mat-toolbar {
     padding: 0 8px;
   }
@@ -233,76 +232,76 @@ app-login {
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
-// ========================================
-// ESTILOS DE NOTIFICACIONES (SNACKBAR)
-// ========================================
 
-// Notificación de éxito
+
+
+
+
 .success-snackbar {
   background-color: #10b981 !important;
   color: white !important;
-  
+
   .mat-mdc-snack-bar-label {
     color: white !important;
   }
-  
+
   .mat-mdc-button {
     color: white !important;
   }
 }
 
-// Notificación de error
+
 .error-snackbar {
   background-color: #ef4444 !important;
   color: white !important;
-  
+
   .mat-mdc-snack-bar-label {
     color: white !important;
   }
-  
+
   .mat-mdc-button {
     color: white !important;
   }
 }
 
-// Notificación de información
+
 .info-snackbar {
   background-color: #3b82f6 !important;
   color: white !important;
-  
+
   .mat-mdc-snack-bar-label {
     color: white !important;
   }
-  
+
   .mat-mdc-button {
     color: white !important;
   }
 }
 
-// Notificación de advertencia
+
 .warning-snackbar {
   background-color: #f59e0b !important;
   color: white !important;
-  
+
   .mat-mdc-snack-bar-label {
     color: white !important;
   }
-  
+
   .mat-mdc-button {
     color: white !important;
   }
 }
 
-// Estilos generales para todas las notificaciones
+
 .mat-mdc-snack-bar-container {
   border-radius: 8px !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  
+
   .mat-mdc-snack-bar-label {
     font-size: 14px !important;
     font-weight: 500 !important;
   }
-  
+
   .mat-mdc-button {
     font-weight: 600 !important;
   }

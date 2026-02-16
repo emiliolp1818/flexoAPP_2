@@ -11,32 +11,32 @@ namespace FlexoAPP.API.Models.DTOs
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public List<string> Permissions { get; set; } = new List<string>();
-        public string? ProfileImage { get; set; }  // Puede contener base64 o URL de archivo
+        public string? ProfileImage { get; set; }
         public string? ProfileImageUrl { get; set; }
         public string? Phone { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
-        
-        // Computed property for full name
+
+
         public string FullName => $"{FirstName} {LastName}".Trim();
     }
 
-    /// <summary>
-    /// DTO básico de usuario para referencias en otras entidades
-    /// Contiene solo información esencial del usuario
-    /// </summary>
+
+
+
+
     public class UserBasicDto
     {
         public int Id { get; set; }
         public string UserCode { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
-        
-        // Computed property for full name
+
+
         public string FullName => $"{FirstName} {LastName}".Trim();
     }
-    
+
     public class CreateUserDto
     {
         [Required(ErrorMessage = "El código de usuario es requerido")]
@@ -59,7 +59,7 @@ namespace FlexoAPP.API.Models.DTOs
         public string Role { get; set; } = string.Empty;
 
         public List<string>? Permissions { get; set; }
-        public string? ProfileImage { get; set; }  // Puede contener base64 o URL de archivo
+        public string? ProfileImage { get; set; }
         public string? ProfileImageUrl { get; set; }
         [EmailAddress(ErrorMessage = "Email inválido")]
         public string? Email { get; set; }
@@ -67,7 +67,7 @@ namespace FlexoAPP.API.Models.DTOs
         public string? Phone { get; set; }
         public bool IsActive { get; set; } = true;
     }
-    
+
     public class UpdateUserDto
     {
         [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
@@ -81,7 +81,7 @@ namespace FlexoAPP.API.Models.DTOs
 
         public string? Role { get; set; }
         public List<string>? Permissions { get; set; }
-        public string? ProfileImage { get; set; }  // Puede contener base64 o URL de archivo
+        public string? ProfileImage { get; set; }
         public string? ProfileImageUrl { get; set; }
         [EmailAddress(ErrorMessage = "Email inválido")]
         public string? Email { get; set; }

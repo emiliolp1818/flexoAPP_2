@@ -96,7 +96,7 @@
       margin-left: 16px;
     }
 
-    // Sección de información del sistema
+
     &.info-section {
       background: #f8f9fa;
       padding: 20px;
@@ -148,7 +148,7 @@
     }
   }
 
-  // Responsive design
+
   @media (max-width: 600px) {
     .profile-section {
       .profile-image-container {
@@ -187,7 +187,7 @@
   }
 }
 
-// Estilos globales para el diálogo
+
 ::ng-deep .mat-mdc-dialog-container {
   .edit-user-dialog {
     .mat-mdc-form-field {
@@ -212,14 +212,14 @@
       }
     }
 
-    // Deshabilitar campos para administradores
+
     .mat-mdc-slide-toggle.mat-disabled {
       opacity: 0.6;
     }
   }
 }
 
-// Estilos para los botones de acción del diálogo
+
 .mat-mdc-dialog-actions {
   padding: 16px 24px !important;
   gap: 8px;
@@ -233,7 +233,7 @@
   }
 }
 
-// Estilos para errores de validación
+
 .mat-mdc-form-field.mat-form-field-invalid {
   .mat-mdc-text-field-wrapper {
     .mat-mdc-form-field-flex {
@@ -244,7 +244,7 @@
   }
 }
 
-// Estilos para botones de acción especiales
+
 .form-section {
   .form-row {
     button {

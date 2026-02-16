@@ -22,7 +22,7 @@ namespace FlexoAPP.API.Services
         {
             var query = _context.Maquinas.AsQueryable();
 
-            // Aplicar filtros
+
             if (filter.StartDate.HasValue)
                 query = query.Where(p => p.FechaTintaEnMaquina >= filter.StartDate.Value);
 
@@ -45,7 +45,7 @@ namespace FlexoAPP.API.Services
                 SuspendedPrograms = programs.Count(p => p.Estado == "SUSPENDIDO"),
                 ReadyPrograms = programs.Count(p => p.Estado == "LISTO"),
                 TotalKilos = programs.Sum(p => p.Kilos),
-                AverageEfficiency = 0, // No disponible
+                AverageEfficiency = 0,
                 ActiveMachines = programs.Where(p => p.Estado == "CORRIENDO").Select(p => p.NumeroMaquina).Distinct().Count(),
                 TotalMachines = programs.Select(p => p.NumeroMaquina).Distinct().Count()
             };
@@ -57,7 +57,7 @@ namespace FlexoAPP.API.Services
         {
             var query = _context.Maquinas.AsQueryable();
 
-            // Aplicar filtros
+
             if (filter.StartDate.HasValue)
                 query = query.Where(p => p.FechaTintaEnMaquina >= filter.StartDate.Value);
 
@@ -90,7 +90,7 @@ namespace FlexoAPP.API.Services
                 FechaInicio = p.FechaTintaEnMaquina,
                 FechaFin = (p.Estado == "TERMINADO") ? p.LastActionAt : null,
                 Progreso = 0,
-                TiempoTotal = (p.Estado == "TERMINADO" && p.LastActionAt.HasValue) ? 
+                TiempoTotal = (p.Estado == "TERMINADO" && p.LastActionAt.HasValue) ?
                     (p.LastActionAt.Value - p.FechaTintaEnMaquina).TotalHours : null,
                 Eficiencia = 0,
                 OperatorName = p.LastActionBy
@@ -101,7 +101,7 @@ namespace FlexoAPP.API.Services
         {
             var query = _context.Maquinas.AsQueryable();
 
-            // Aplicar filtros
+
             if (filter.StartDate.HasValue)
                 query = query.Where(p => p.FechaTintaEnMaquina >= filter.StartDate.Value);
 
@@ -145,7 +145,7 @@ namespace FlexoAPP.API.Services
         {
             var query = _context.Maquinas.AsQueryable();
 
-            // Aplicar filtros
+
             if (filter.StartDate.HasValue)
                 query = query.Where(p => p.FechaTintaEnMaquina >= filter.StartDate.Value);
 
@@ -239,7 +239,7 @@ namespace FlexoAPP.API.Services
         public async Task<byte[]> ExportToExcelAsync(string reportType, ReportFilterDto filter)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            
+
             using var package = new ExcelPackage();
             var worksheet = package.Workbook.Worksheets.Add($"Reporte {reportType}");
 
@@ -266,7 +266,7 @@ namespace FlexoAPP.API.Services
 
         public async Task<byte[]> ExportToPDFAsync(string reportType, ReportFilterDto filter)
         {
-            // Implementación básica - en producción usar una librería como iTextSharp
+
             var data = reportType.ToLower() switch
             {
                 "production" => await GetProductionDataForExport(filter),
@@ -283,7 +283,7 @@ namespace FlexoAPP.API.Services
         {
             if (program.Estado == "TERMINADO" && program.LastActionAt.HasValue)
             {
-                var expectedHours = (double)program.Kilos / 100; // Ejemplo: 100 kg/hora
+                var expectedHours = (double)program.Kilos / 100;
                 var actualHours = (program.LastActionAt.Value - program.FechaTintaEnMaquina).TotalHours;
                 if (actualHours > 0)
                      return Math.Min(100, (expectedHours / actualHours) * 100);
@@ -293,9 +293,9 @@ namespace FlexoAPP.API.Services
 
         private double CalculateDowntime(List<Maquina> programs)
         {
-            // Cálculo simplificado del tiempo inactivo
+
             var suspendedPrograms = programs.Where(p => p.Estado == "SUSPENDIDO");
-            return suspendedPrograms.Count() * 2; // Ejemplo: 2 horas promedio por suspensión
+            return suspendedPrograms.Count() * 2;
         }
 
         private double CalculateUtilizationRate(List<Maquina> programs)
@@ -310,12 +310,12 @@ namespace FlexoAPP.API.Services
             var reports = await GetProductionReportAsync(filter);
             var csv = new StringBuilder();
             csv.AppendLine("Máquina,Programa,Artículo,Cliente,Kilos,Estado,Progreso,Eficiencia,Operario");
-            
+
             foreach (var report in reports)
             {
                 csv.AppendLine($"{report.MachineNumber},{report.ProgramName},{report.Articulo},{report.Cliente},{report.Kilos},{report.Estado},{report.Progreso},{report.Eficiencia:F1},{report.OperatorName}");
             }
-            
+
             return csv.ToString();
         }
 
@@ -324,12 +324,12 @@ namespace FlexoAPP.API.Services
             var reports = await GetMachineEfficiencyReportAsync(filter);
             var csv = new StringBuilder();
             csv.AppendLine("Máquina,Total Programas,Completados,Kilos Totales,Eficiencia Promedio,Utilización");
-            
+
             foreach (var report in reports)
             {
                 csv.AppendLine($"{report.MachineNumber},{report.TotalPrograms},{report.CompletedPrograms},{report.TotalKilos},{report.AverageEfficiency:F1},{report.UtilizationRate:F1}");
             }
-            
+
             return csv.ToString();
         }
 
@@ -338,12 +338,12 @@ namespace FlexoAPP.API.Services
             var reports = await GetClientReportAsync(filter);
             var csv = new StringBuilder();
             csv.AppendLine("Cliente,Total Programas,Kilos Totales,Completados,Pendientes,Tiempo Promedio");
-            
+
             foreach (var report in reports)
             {
                 csv.AppendLine($"{report.Cliente},{report.TotalPrograms},{report.TotalKilos},{report.CompletedPrograms},{report.PendingPrograms},{report.AverageCompletionTime:F1}");
             }
-            
+
             return csv.ToString();
         }
 
@@ -352,20 +352,20 @@ namespace FlexoAPP.API.Services
             var reports = await GetDailyProductionReportAsync(filter);
             var csv = new StringBuilder();
             csv.AppendLine("Fecha,Total Programas,Completados,Kilos Totales,Máquinas Activas,Eficiencia");
-            
+
             foreach (var report in reports)
             {
                 csv.AppendLine($"{report.Date:yyyy-MM-dd},{report.TotalPrograms},{report.CompletedPrograms},{report.TotalKilos},{report.ActiveMachines},{report.Efficiency:F1}");
             }
-            
+
             return csv.ToString();
         }
 
         private async Task CreateProductionExcel(ExcelWorksheet worksheet, ReportFilterDto filter)
         {
             var reports = await GetProductionReportAsync(filter);
-            
-            // Headers
+
+
             worksheet.Cells[1, 1].Value = "Máquina";
             worksheet.Cells[1, 2].Value = "Programa";
             worksheet.Cells[1, 3].Value = "Artículo";
@@ -376,12 +376,12 @@ namespace FlexoAPP.API.Services
             worksheet.Cells[1, 8].Value = "Eficiencia";
             worksheet.Cells[1, 9].Value = "Operario";
 
-            // Data
+
             for (int i = 0; i < reports.Count; i++)
             {
                 var report = reports[i];
                 var row = i + 2;
-                
+
                 worksheet.Cells[row, 1].Value = report.MachineNumber;
                 worksheet.Cells[row, 2].Value = report.ProgramName;
                 worksheet.Cells[row, 3].Value = report.Articulo;
@@ -399,8 +399,8 @@ namespace FlexoAPP.API.Services
         private async Task CreateEfficiencyExcel(ExcelWorksheet worksheet, ReportFilterDto filter)
         {
             var reports = await GetMachineEfficiencyReportAsync(filter);
-            
-            // Headers
+
+
             worksheet.Cells[1, 1].Value = "Máquina";
             worksheet.Cells[1, 2].Value = "Total Programas";
             worksheet.Cells[1, 3].Value = "Completados";
@@ -408,12 +408,12 @@ namespace FlexoAPP.API.Services
             worksheet.Cells[1, 5].Value = "Eficiencia Promedio";
             worksheet.Cells[1, 6].Value = "Utilización";
 
-            // Data
+
             for (int i = 0; i < reports.Count; i++)
             {
                 var report = reports[i];
                 var row = i + 2;
-                
+
                 worksheet.Cells[row, 1].Value = report.MachineNumber;
                 worksheet.Cells[row, 2].Value = report.TotalPrograms;
                 worksheet.Cells[row, 3].Value = report.CompletedPrograms;
@@ -428,8 +428,8 @@ namespace FlexoAPP.API.Services
         private async Task CreateClientsExcel(ExcelWorksheet worksheet, ReportFilterDto filter)
         {
             var reports = await GetClientReportAsync(filter);
-            
-            // Headers
+
+
             worksheet.Cells[1, 1].Value = "Cliente";
             worksheet.Cells[1, 2].Value = "Total Programas";
             worksheet.Cells[1, 3].Value = "Kilos Totales";
@@ -437,12 +437,12 @@ namespace FlexoAPP.API.Services
             worksheet.Cells[1, 5].Value = "Pendientes";
             worksheet.Cells[1, 6].Value = "Tiempo Promedio";
 
-            // Data
+
             for (int i = 0; i < reports.Count; i++)
             {
                 var report = reports[i];
                 var row = i + 2;
-                
+
                 worksheet.Cells[row, 1].Value = report.Cliente;
                 worksheet.Cells[row, 2].Value = report.TotalPrograms;
                 worksheet.Cells[row, 3].Value = report.TotalKilos;
@@ -457,8 +457,8 @@ namespace FlexoAPP.API.Services
         private async Task CreateDailyExcel(ExcelWorksheet worksheet, ReportFilterDto filter)
         {
             var reports = await GetDailyProductionReportAsync(filter);
-            
-            // Headers
+
+
             worksheet.Cells[1, 1].Value = "Fecha";
             worksheet.Cells[1, 2].Value = "Total Programas";
             worksheet.Cells[1, 3].Value = "Completados";
@@ -466,12 +466,12 @@ namespace FlexoAPP.API.Services
             worksheet.Cells[1, 5].Value = "Máquinas Activas";
             worksheet.Cells[1, 6].Value = "Eficiencia";
 
-            // Data
+
             for (int i = 0; i < reports.Count; i++)
             {
                 var report = reports[i];
                 var row = i + 2;
-                
+
                 worksheet.Cells[row, 1].Value = report.Date.ToString("yyyy-MM-dd");
                 worksheet.Cells[row, 2].Value = report.TotalPrograms;
                 worksheet.Cells[row, 3].Value = report.CompletedPrograms;
@@ -483,7 +483,7 @@ namespace FlexoAPP.API.Services
             worksheet.Cells.AutoFitColumns();
         }
 
-        // Nuevos métodos para actividades de usuario
+
         public async Task<List<UserActivityDto>> GetUserActivitiesAsync(UserActivityFilterDto filter)
         {
             try
@@ -492,69 +492,69 @@ namespace FlexoAPP.API.Services
                 _logger.LogInformation("📅 Rango de fechas: {StartDate} - {EndDate}", filter.StartDate, filter.EndDate);
                 _logger.LogInformation("📦 Módulo: {Module}", filter.Module ?? "TODOS");
 
-                // Primero, verificar cuántas actividades hay en total para este usuario
+
                 var totalForUser = await _context.Activities
                     .Where(a => a.UserCode == filter.UserCode)
                     .CountAsync();
-                
+
                 _logger.LogInformation("📊 Total de actividades para {UserCode}: {Total}", filter.UserCode, totalForUser);
 
-                // Consulta a la tabla Activities
+
                 var query = _context.Activities.AsQueryable();
 
-                // Filtrar por código de usuario
+
                 query = query.Where(a => a.UserCode == filter.UserCode);
 
-                // Aplicar filtro de fecha de inicio
+
                 if (filter.StartDate.HasValue)
                 {
-                    var startDate = filter.StartDate.Value.Date; // Solo la fecha, sin hora
+                    var startDate = filter.StartDate.Value.Date;
                     query = query.Where(a => a.Timestamp >= startDate);
                     _logger.LogInformation("🔍 Filtrando desde: {StartDate}", startDate);
                 }
 
-                // Aplicar filtro de fecha de fin
+
                 if (filter.EndDate.HasValue)
                 {
-                    var endDate = filter.EndDate.Value.Date.AddDays(1).AddSeconds(-1); // Hasta el final del día
+                    var endDate = filter.EndDate.Value.Date.AddDays(1).AddSeconds(-1);
                     query = query.Where(a => a.Timestamp <= endDate);
                     _logger.LogInformation("🔍 Filtrando hasta: {EndDate}", endDate);
                 }
 
-                // Aplicar filtro de módulo
+
                 if (!string.IsNullOrEmpty(filter.Module) && filter.Module != "ALL")
                 {
                     query = query.Where(a => a.Module == filter.Module);
                     _logger.LogInformation("🔍 Filtrando por módulo: {Module}", filter.Module);
                 }
 
-                // Contar resultados antes de ejecutar
+
                 var countBeforeExecution = await query.CountAsync();
                 _logger.LogInformation("📊 Actividades que coinciden con filtros: {Count}", countBeforeExecution);
 
-                // Ejecutar consulta y ordenar por fecha descendente
+
                 var activities = await query
                     .OrderByDescending(a => a.Timestamp)
                     .ToListAsync();
 
                 _logger.LogInformation("✅ Actividades obtenidas de la BD: {Count}", activities.Count);
 
-                // Si no hay actividades, mostrar las últimas 5 de cualquier usuario para debug
+
                 if (activities.Count == 0)
                 {
                     _logger.LogWarning("⚠️ No se encontraron actividades para {UserCode}", filter.UserCode);
-                    
+
                     var recentActivities = await _context.Activities
                         .OrderByDescending(a => a.Timestamp)
                         .Take(5)
                         .Select(a => new { a.UserCode, a.Action, a.Timestamp })
                         .ToListAsync();
-                    
-                    _logger.LogInformation("📋 Últimas 5 actividades en la BD (cualquier usuario): {Activities}", 
+
+                    _logger.LogInformation("📋 Últimas 5 actividades en la BD (cualquier usuario): {Activities}",
                         string.Join(", ", recentActivities.Select(a => $"{a.UserCode}:{a.Action}@{a.Timestamp:HH:mm:ss}")));
                 }
 
-                // Mapear a DTOs
+
                 var result = activities.Select(a => new UserActivityDto
                 {
                     Id = a.Id.ToString(),
@@ -565,8 +565,8 @@ namespace FlexoAPP.API.Services
                     Module = a.Module,
                     Component = a.Module,
                     Timestamp = a.Timestamp,
-                    Metadata = a.Details != null ? 
-                        new Dictionary<string, object> { { "details", a.Details } } : 
+                    Metadata = a.Details != null ?
+                        new Dictionary<string, object> { { "details", a.Details } } :
                         new Dictionary<string, object>()
                 }).ToList();
 
@@ -581,45 +581,45 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        /// <summary>
-        /// Obtener actividades de máquinas por usuario desde datos reales
-        /// TODO: Implementar consulta real a la base de datos
-        /// </summary>
+
+
+
+
         public async Task<MachineActivityReportDto> GetMachineActivitiesByUserAsync(MachineActivityFilterDto filter)
         {
-            // Obtener usuario desde la base de datos
+
             var user = await GetUserByCodeAsync(filter.UserCode);
-            
-            // TODO: Implementar consulta real a la base de datos
-            // var completedOrders = await _context.MachinePrograms
-            //     .Where(mp => mp.Estado == "TERMINADO" && mp.CreatedAt.Date == filter.ReportDate.Date)
-            //     .ToListAsync();
-            
-            // Retornar estructura vacía hasta implementar consultas reales
+
+
+
+
+
+
+
             return new MachineActivityReportDto
             {
-                User = user,                    // Usuario obtenido de la base de datos
-                ReportDate = filter.ReportDate, // Fecha del reporte solicitado
-                CompletedOrders = 0,            // Órdenes completadas (desde BD real)
-                SuspendedOrders = 0,            // Órdenes suspendidas (desde BD real)
-                TotalMovements = 0,             // Total de movimientos (desde BD real)
-                ActiveHours = 0,                // Horas activas (calculadas desde BD real)
-                CompletedOrdersList = new List<MachineOrderDto>(),  // Lista vacía hasta implementar
-                SuspendedOrdersList = new List<MachineOrderDto>(),  // Lista vacía hasta implementar
-                UserMovements = new List<UserMovementDto>()         // Lista vacía hasta implementar
+                User = user,
+                ReportDate = filter.ReportDate,
+                CompletedOrders = 0,
+                SuspendedOrders = 0,
+                TotalMovements = 0,
+                ActiveHours = 0,
+                CompletedOrdersList = new List<MachineOrderDto>(),
+                SuspendedOrdersList = new List<MachineOrderDto>(),
+                UserMovements = new List<UserMovementDto>()
             };
         }
 
-        /// <summary>
-        /// Obtener actividades de máquinas desde backup real
-        /// TODO: Implementar restauración real desde archivos de backup
-        /// </summary>
+
+
+
+
         public Task<MachineActivityReportDto> GetMachineActivitiesFromBackupAsync(string backupId)
         {
-            // TODO: Implementar carga real desde archivo de backup
-            // var backupData = await _backupService.RestoreBackup(backupId);
-            
-            // Usuario temporal para representar datos de backup
+
+
+
+
             var backupUser = new UserDto
             {
                 Id = "backup-user",
@@ -631,82 +631,82 @@ namespace FlexoAPP.API.Services
                 IsActive = true
             };
 
-            // Retornar estructura vacía hasta implementar restauración real
+
             var report = new MachineActivityReportDto
             {
-                User = backupUser,              // Usuario representativo del backup
-                ReportDate = DateTime.Now,      // Fecha actual como placeholder
-                CompletedOrders = 0,            // Órdenes desde backup (implementar)
-                SuspendedOrders = 0,            // Órdenes suspendidas desde backup (implementar)
-                TotalMovements = 0,             // Movimientos desde backup (implementar)
-                ActiveHours = 0,                // Horas activas desde backup (implementar)
-                CompletedOrdersList = new List<MachineOrderDto>(),  // Lista desde backup
-                SuspendedOrdersList = new List<MachineOrderDto>(),  // Lista desde backup
-                UserMovements = new List<UserMovementDto>(),        // Movimientos desde backup
-                BackupId = backupId,            // ID del backup utilizado
-                IsFromBackup = true             // Flag indicando origen desde backup
+                User = backupUser,
+                ReportDate = DateTime.Now,
+                CompletedOrders = 0,
+                SuspendedOrders = 0,
+                TotalMovements = 0,
+                ActiveHours = 0,
+                CompletedOrdersList = new List<MachineOrderDto>(),
+                SuspendedOrdersList = new List<MachineOrderDto>(),
+                UserMovements = new List<UserMovementDto>(),
+                BackupId = backupId,
+                IsFromBackup = true
             };
 
             return Task.FromResult(report);
         }
 
-        /// <summary>
-        /// Obtener lista de usuarios desde la base de datos real
-        /// TODO: Implementar consulta real a la tabla Users
-        /// </summary>
+
+
+
+
         public Task<List<UserDto>> GetUsersListAsync()
         {
-            // TODO: Implementar consulta real a la base de datos
-            // return await _context.Users
-            //     .Where(u => u.IsActive)
-            //     .Select(u => new UserDto { ... })
-            //     .ToListAsync();
-            
-            // Por ahora, retornar solo el usuario administrador que existe
+
+
+
+
+
+
+
             var users = new List<UserDto>
             {
-                new UserDto 
-                { 
-                    Id = "1", 
-                    UserCode = "admin", 
-                    FirstName = "Administrador", 
-                    LastName = "del Sistema", 
-                    Email = "admin@flexoapp.com", 
-                    Role = "admin", 
-                    IsActive = true 
+                new UserDto
+                {
+                    Id = "1",
+                    UserCode = "admin",
+                    FirstName = "Administrador",
+                    LastName = "del Sistema",
+                    Email = "admin@flexoapp.com",
+                    Role = "admin",
+                    IsActive = true
                 }
             };
 
             return Task.FromResult(users);
         }
 
-        // Métodos auxiliares para generar datos simulados
+
         private async Task<UserDto> GetUserByCodeAsync(string userCode)
         {
             var users = await GetUsersListAsync();
-            return users.FirstOrDefault(u => u.UserCode.Equals(userCode, StringComparison.OrdinalIgnoreCase)) 
-                ?? new UserDto 
-                { 
-                    Id = userCode, 
-                    UserCode = userCode, 
-                    FirstName = "Usuario", 
-                    LastName = "Sistema", 
-                    Email = $"{userCode}@flexoapp.com", 
-                    Role = "user", 
-                    IsActive = true 
+            return users.FirstOrDefault(u => u.UserCode.Equals(userCode, StringComparison.OrdinalIgnoreCase))
+                ?? new UserDto
+                {
+                    Id = userCode,
+                    UserCode = userCode,
+                    FirstName = "Usuario",
+                    LastName = "Sistema",
+                    Email = $"{userCode}@flexoapp.com",
+                    Role = "user",
+                    IsActive = true
                 };
         }
 
-        /// <summary>
-        /// TEST: Obtener actividades recientes REALES de la base de datos
-        /// </summary>
+
+
+
         public async Task<List<object>> GetRecentActivitiesTestAsync()
         {
             try
             {
                 _logger.LogInformation("🔍 Consultando actividades recientes REALES de la BD");
 
-                // Consulta DIRECTA a la tabla Activities sin filtros
+
                 var activities = await _context.Activities
                     .OrderByDescending(a => a.Timestamp)
                     .Take(50)
@@ -735,9 +735,9 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        /// <summary>
-        /// TEST: Obtener estadísticas REALES de la tabla Activities
-        /// </summary>
+
+
+
         public async Task<object> GetActivitiesStatsTestAsync()
         {
             try
@@ -794,8 +794,8 @@ namespace FlexoAPP.API.Services
                     mostRecentActivity = recentActivity,
                     oldestActivity = oldestActivity,
                     databaseTime = DateTime.Now,
-                    message = totalActivities == 0 
-                        ? "⚠️ No hay actividades en la base de datos" 
+                    message = totalActivities == 0
+                        ? "⚠️ No hay actividades en la base de datos"
                         : $"✅ Base de datos funcionando correctamente con {totalActivities} actividades"
                 };
             }

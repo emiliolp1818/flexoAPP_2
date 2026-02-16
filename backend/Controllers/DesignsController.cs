@@ -14,7 +14,7 @@ namespace FlexoAPP.API.Controllers
         private readonly IActivityLoggerService _activityLogger;
 
         public DesignsController(
-            IDesignService designService, 
+            IDesignService designService,
             ILogger<DesignsController> logger,
             IActivityLoggerService activityLogger)
         {
@@ -23,18 +23,18 @@ namespace FlexoAPP.API.Controllers
             _activityLogger = activityLogger;
         }
 
-        /// <summary>
-        /// Test endpoint
-        /// </summary>
+
+
+
         [HttpGet("test")]
         public IActionResult Test()
         {
             return Ok(new { message = "Designs controller is working", timestamp = DateTime.UtcNow });
         }
 
-        /// <summary>
-        /// Ultra simple test endpoint without dependencies
-        /// </summary>
+
+
+
         [HttpGet("ping")]
         public IActionResult Ping()
         {
@@ -48,22 +48,22 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Even simpler test endpoint
-        /// </summary>
+
+
+
         [HttpGet("hello")]
         public string Hello()
         {
             return "Hello from DesignsController";
         }
 
-        /// <summary>
-        /// Test endpoint without any dependencies
-        /// </summary>
+
+
+
         [HttpGet("status")]
         public IActionResult GetStatus()
         {
-            return Ok(new { 
+            return Ok(new {
                 controller = "DesignsController",
                 status = "WORKING",
                 timestamp = DateTime.UtcNow,
@@ -71,9 +71,9 @@ namespace FlexoAPP.API.Controllers
             });
         }
 
-        /// <summary>
-        /// Test dependency injection
-        /// </summary>
+
+
+
         [HttpGet("check-dependencies")]
         public IActionResult CheckDependencies()
         {
@@ -92,7 +92,7 @@ namespace FlexoAPP.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { 
+                return BadRequest(new {
                     error = "DEPENDENCY_CHECK_FAILED",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -100,16 +100,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Simple test endpoint for /all route
-        /// </summary>
+
+
+
         [HttpGet("all-test")]
         public IActionResult TestAllRoute()
         {
             try
             {
-                return Ok(new { 
-                    message = "All route is working", 
+                return Ok(new {
+                    message = "All route is working",
                     timestamp = DateTime.UtcNow,
                     route = "/api/designs/all-test",
                     status = "SUCCESS"
@@ -117,7 +117,7 @@ namespace FlexoAPP.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { 
+                return BadRequest(new {
                     error = "Test route failed",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow,
@@ -126,23 +126,23 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Test endpoint to get raw designs from database without DTO mapping
-        /// </summary>
+
+
+
         [HttpGet("all-raw")]
         public async Task<IActionResult> GetAllDesignsRaw()
         {
             try
             {
                 _logger.LogInformation("🧪 Testing raw designs from database...");
-                
-                // Obtener diseños directamente del repositorio sin mapeo
+
+
                 var designs = await _designService.GetAllDesignsRawAsync();
                 var designsList = designs.ToList();
-                
+
                 _logger.LogInformation($"✅ Retrieved {designsList.Count} raw designs");
-                
-                return Ok(new { 
+
+                return Ok(new {
                     count = designsList.Count,
                     designs = designsList.Take(3).Select(d => new {
                         d.Id,
@@ -154,7 +154,7 @@ namespace FlexoAPP.API.Controllers
                         d.PrintType,
                         d.ColorCount,
                         d.Status
-                    }), // Solo los primeros 3 para prueba
+                    }),
                     message = $"Raw designs retrieved successfully - Total: {designsList.Count}",
                     timestamp = DateTime.UtcNow
                 });
@@ -162,7 +162,7 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting raw designs: {Message}", ex.Message);
-                return BadRequest(new { 
+                return BadRequest(new {
                     error = "Error retrieving raw designs",
                     message = ex.Message,
                     details = ex.InnerException?.Message,
@@ -171,17 +171,17 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get count of designs in database
-        /// </summary>
+
+
+
         [HttpGet("count")]
         public async Task<IActionResult> GetDesignsCount()
         {
             try
             {
                 var count = await _designService.GetDesignsCountAsync();
-                
-                return Ok(new { 
+
+                return Ok(new {
                     count = count,
                     message = $"Total designs in database: {count}",
                     isEmpty = count == 0,
@@ -190,7 +190,7 @@ namespace FlexoAPP.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { 
+                return BadRequest(new {
                     error = "Error getting designs count",
                     message = ex.Message,
                     details = ex.InnerException?.Message,
@@ -199,18 +199,18 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Simple database test without complex services
-        /// </summary>
+
+
+
         [HttpGet("db-test")]
         public async Task<IActionResult> TestDatabase()
         {
             try
             {
-                // Intentar una operación simple en la base de datos
+
                 var count = await _designService.GetDesignsCountAsync();
-                
-                return Ok(new { 
+
+                return Ok(new {
                     status = "DB_CONNECTED",
                     message = "Database connection successful",
                     designCount = count,
@@ -220,7 +220,7 @@ namespace FlexoAPP.API.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new { 
+                return Ok(new {
                     status = "DB_ERROR",
                     message = "Database connection failed",
                     error = ex.Message,
@@ -234,9 +234,9 @@ namespace FlexoAPP.API.Controllers
 
 
 
-        /// <summary>
-        /// Get all designs (OPTIMIZED)
-        /// </summary>
+
+
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DesignDto>>> GetAllDesigns()
         {
@@ -245,8 +245,8 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogInformation("🚀 Getting all designs with optimizations...");
                 var designs = await _designService.GetAllDesignsAsync();
                 _logger.LogInformation($"✅ Successfully retrieved {designs.Count()} designs");
-                
-                // ✅ Registrar actividad de consulta de diseños
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -260,13 +260,13 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning(logEx, "Error registrando actividad de consulta de diseños");
                 }
-                
+
                 return Ok(designs);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting all designs");
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     error = "Internal server error",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -274,46 +274,46 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get ALL designs without pagination (for post-import loading)
-        /// </summary>
+
+
+
         [HttpGet("all")]
         public async Task<ActionResult<IEnumerable<DesignDto>>> GetAllDesignsNoPagination()
         {
             try
             {
                 _logger.LogInformation("🚀 Getting ALL designs without pagination (post-import)...");
-                
-                // Verificar conexión a base de datos primero
+
+
                 var designs = await _designService.GetAllDesignsAsync();
                 var designsList = designs.ToList();
-                
+
                 _logger.LogInformation($"✅ Successfully retrieved ALL {designsList.Count} designs");
-                
-                // Si no hay diseños, devolver lista vacía con mensaje informativo
+
+
                 if (designsList.Count == 0)
                 {
                     _logger.LogWarning("⚠️ No designs found in database");
-                    return Ok(new { 
+                    return Ok(new {
                         designs = new List<DesignDto>(),
                         message = "No designs found in database",
                         count = 0,
                         timestamp = DateTime.UtcNow
                     });
                 }
-                
-                // Log detalles de los primeros diseños para debugging
-                _logger.LogInformation("📊 Primeros 3 diseños: {FirstDesigns}", 
+
+
+                _logger.LogInformation("📊 Primeros 3 diseños: {FirstDesigns}",
                     string.Join(", ", designsList.Take(3).Select(d => $"{d.ArticleF} ({d.Client})")));
-                
+
                 return Ok(designsList);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting all designs without pagination: {Message}", ex.Message);
                 _logger.LogError(ex, "❌ Stack trace: {StackTrace}", ex.StackTrace);
-                
-                return BadRequest(new { 
+
+                return BadRequest(new {
                     error = "Error retrieving designs",
                     message = ex.Message,
                     details = ex.InnerException?.Message,
@@ -322,28 +322,28 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get ALL designs with safe mapping (for debugging)
-        /// </summary>
+
+
+
         [HttpGet("all-safe")]
         public async Task<ActionResult<IEnumerable<DesignDto>>> GetAllDesignsSafe()
         {
             try
             {
                 _logger.LogInformation("🚀 Getting ALL designs with safe mapping...");
-                
+
                 var designs = await _designService.GetAllDesignsSafeAsync();
                 var designsList = designs.ToList();
-                
+
                 _logger.LogInformation($"✅ Successfully retrieved ALL {designsList.Count} designs with safe mapping");
-                
+
                 return Ok(designsList);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting designs with safe mapping: {Message}", ex.Message);
-                
-                return BadRequest(new { 
+
+                return BadRequest(new {
                     error = "Error retrieving designs with safe mapping",
                     message = ex.Message,
                     details = ex.InnerException?.Message,
@@ -352,12 +352,12 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get designs with pagination (OPTIMIZED FOR LARGE DATASETS)
-        /// </summary>
+
+
+
         [HttpGet("paginated")]
         public async Task<ActionResult<PaginatedDesignsDto>> GetDesignsPaginated(
-            [FromQuery] int page = 1, 
+            [FromQuery] int page = 1,
             [FromQuery] int pageSize = 50,
             [FromQuery] string? search = null,
             [FromQuery] string? sortBy = "LastModified",
@@ -366,16 +366,16 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 _logger.LogInformation("🚀 Getting paginated designs - Page: {Page}, Size: {PageSize}", page, pageSize);
-                
+
                 var result = await _designService.GetDesignsPaginatedAsync(page, pageSize, search, sortBy, sortOrder);
-                
+
                 _logger.LogInformation("✅ Retrieved {Count} designs from page {Page}", result.Items.Count(), page);
                 return Ok(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting paginated designs");
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     error = "Internal server error",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -383,9 +383,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get designs summary (ULTRA FAST - Only essential fields)
-        /// </summary>
+
+
+
         [HttpGet("summary")]
         public async Task<ActionResult<IEnumerable<DesignSummaryDto>>> GetDesignsSummary()
         {
@@ -399,7 +399,7 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting designs summary");
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     error = "Internal server error",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -407,9 +407,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get designs with lazy loading (Load details on demand)
-        /// </summary>
+
+
+
         [HttpGet("lazy")]
         public async Task<ActionResult<IEnumerable<DesignLazyDto>>> GetDesignsLazy()
         {
@@ -423,7 +423,7 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting lazy designs");
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     error = "Internal server error",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -431,9 +431,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Load colors for a specific design (On-demand loading)
-        /// </summary>
+
+
+
         [HttpGet("{id}/colors")]
         public async Task<ActionResult<List<string>>> LoadDesignColors(int id)
         {
@@ -450,7 +450,7 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error loading colors for design {DesignId}", id);
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     error = "Internal server error",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -458,9 +458,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Load full details for a specific design (On-demand loading)
-        /// </summary>
+
+
+
         [HttpGet("{id}/details")]
         public async Task<ActionResult<DesignLazyDto>> LoadDesignDetails(int id)
         {
@@ -477,7 +477,7 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error loading details for design {DesignId}", id);
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     error = "Internal server error",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -485,9 +485,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get cache information
-        /// </summary>
+
+
+
         [HttpGet("cache/info")]
         public async Task<ActionResult<DesignCacheInfoDto>> GetCacheInfo()
         {
@@ -499,7 +499,7 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting cache info");
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     error = "Internal server error",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -507,16 +507,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Clear cache
-        /// </summary>
+
+
+
         [HttpPost("cache/clear")]
         public async Task<IActionResult> ClearCache()
         {
             try
             {
                 var result = await _designService.ClearCacheAsync();
-                return Ok(new { 
+                return Ok(new {
                     message = "Cache cleared successfully",
                     success = result,
                     timestamp = DateTime.UtcNow
@@ -525,7 +525,7 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error clearing cache");
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     error = "Internal server error",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -533,9 +533,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get design by ID
-        /// </summary>
+
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<DesignDto>> GetDesign(int id)
         {
@@ -555,20 +555,20 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Create a new design
-        /// </summary>
+
+
+
         [HttpPost]
         public async Task<ActionResult<DesignDto>> CreateDesign([FromBody] CreateDesignDto createDto)
         {
             try
             {
                 _logger.LogInformation("🎨 Creating new design: {@CreateDto}", createDto);
-                
-                var userId = 1; // Temporary: use default user ID
+
+                var userId = 1;
                 var design = await _designService.CreateDesignAsync(createDto, userId);
-                
-                // ✅ Registrar actividad de creación de diseño
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -582,7 +582,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning(logEx, "Error registrando actividad de creación de diseño");
                 }
-                
+
                 return CreatedAtAction(nameof(GetDesign), new { id = design.Id }, design);
             }
             catch (InvalidOperationException ex)
@@ -602,18 +602,18 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Update an existing design
-        /// </summary>
+
+
+
         [HttpPut("{id}")]
         public async Task<ActionResult<DesignDto>> UpdateDesign(int id, [FromBody] UpdateDesignDto updateDto)
         {
             try
             {
-                var userId = 1; // Temporary: use default user ID
+                var userId = 1;
                 var design = await _designService.UpdateDesignAsync(id, updateDto, userId);
-                
-                // ✅ Registrar actividad de actualización de diseño
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -627,7 +627,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning(logEx, "Error registrando actividad de actualización de diseño");
                 }
-                
+
                 return Ok(design);
             }
             catch (KeyNotFoundException ex)
@@ -649,9 +649,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Delete a design
-        /// </summary>
+
+
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDesign(int id)
         {
@@ -662,8 +662,8 @@ namespace FlexoAPP.API.Controllers
                 {
                     return NotFound($"Design with ID {id} not found");
                 }
-                
-                // ✅ Registrar actividad de eliminación de diseño
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -677,7 +677,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     _logger.LogWarning(logEx, "Error registrando actividad de eliminación de diseño");
                 }
-                
+
                 return NoContent();
             }
             catch (Exception ex)
@@ -687,15 +687,15 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Duplicate an existing design
-        /// </summary>
+
+
+
         [HttpPost("{id}/duplicate")]
         public async Task<ActionResult<DesignDto>> DuplicateDesign(int id)
         {
             try
             {
-                var userId = 1; // Temporary: use default user ID
+                var userId = 1;
                 var design = await _designService.DuplicateDesignAsync(id, userId);
                 return CreatedAtAction(nameof(GetDesign), new { id = design.Id }, design);
             }
@@ -710,15 +710,15 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Update design status
-        /// </summary>
+
+
+
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> UpdateDesignStatus(int id, [FromBody] DesignStatusUpdateDto statusDto)
         {
             try
             {
-                var userId = 1; // Temporary: use default user ID
+                var userId = 1;
                 var result = await _designService.UpdateDesignStatusAsync(id, statusDto.Status, userId);
                 if (!result)
                 {
@@ -737,9 +737,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get design statistics
-        /// </summary>
+
+
+
         [HttpGet("stats")]
         public async Task<ActionResult<DesignStatsDto>> GetDesignStats()
         {
@@ -755,9 +755,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get recent designs
-        /// </summary>
+
+
+
         [HttpGet("recent")]
         public async Task<ActionResult<IEnumerable<DesignDto>>> GetRecentDesigns([FromQuery] int count = 10)
         {
@@ -773,20 +773,20 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Export designs to Excel
-        /// </summary>
+
+
+
         [HttpGet("export/excel")]
         public async Task<IActionResult> ExportToExcel()
         {
             try
             {
                 var excelData = await _designService.ExportToExcelAsync();
-                
+
                 var fileName = $"Diseños_FlexoAPP_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
-                
-                return File(excelData, 
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+
+                return File(excelData,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     fileName);
             }
             catch (Exception ex)
@@ -796,31 +796,31 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Test import endpoint
-        /// </summary>
+
+
+
         [HttpGet("import/test")]
         public IActionResult TestImportEndpoint()
         {
-            return Ok(new { 
-                message = "Import endpoint is working", 
+            return Ok(new {
+                message = "Import endpoint is working",
                 timestamp = DateTime.UtcNow,
                 maxFileSize = "200MB",
                 supportedFormats = new[] { ".xlsx", ".xls" }
             });
         }
 
-        /// <summary>
-        /// Import designs from Excel file (MASSIVE DATA UPLOAD)
-        /// </summary>
+
+
+
         [HttpPost("import/excel")]
-        [RequestSizeLimit(300_000_000)] // 300MB limit para importación masiva
+        [RequestSizeLimit(300_000_000)]
         public async Task<IActionResult> ImportFromExcel(IFormFile file)
         {
             try
             {
                 _logger.LogInformation("🚀 Starting massive Excel import process...");
-                
+
                 if (file == null || file.Length == 0)
                 {
                     return BadRequest(new { error = "No file uploaded" });
@@ -834,14 +834,14 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogInformation($"📁 Processing file: {file.FileName} ({file.Length / 1024 / 1024:F2} MB)");
 
                 var result = await _designService.ImportFromExcelAsync(file);
-                
+
                 _logger.LogInformation($"✅ Import completed: {result.SuccessCount} successful, {result.ErrorCount} errors");
 
-                return Ok(new { 
+                return Ok(new {
                     message = "Excel import completed successfully",
                     successCount = result.SuccessCount,
                     errorCount = result.ErrorCount,
-                    errors = result.Errors.Take(10), // Only return first 10 errors
+                    errors = result.Errors.Take(10),
                     totalProcessed = result.SuccessCount + result.ErrorCount,
                     fileName = file.FileName,
                     timestamp = DateTime.UtcNow
@@ -850,29 +850,29 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error importing Excel file: {Message}", ex.Message);
-                return StatusCode(500, new { 
-                    error = "Error processing Excel file", 
+                return StatusCode(500, new {
+                    error = "Error processing Excel file",
                     message = ex.Message,
-                    timestamp = DateTime.UtcNow 
+                    timestamp = DateTime.UtcNow
                 });
             }
         }
 
-        /// <summary>
-        /// Clear all existing designs
-        /// </summary>
+
+
+
         [HttpPost("clear-all")]
         public async Task<IActionResult> ClearAllDesigns()
         {
             try
             {
                 _logger.LogInformation("🗑️ Clearing all existing designs...");
-                
+
                 var deletedCount = await _designService.ClearAllDesignsAsync();
-                
+
                 _logger.LogInformation($"✅ Cleared {deletedCount} designs from database");
 
-                return Ok(new { 
+                return Ok(new {
                     message = "All designs cleared successfully",
                     deletedCount = deletedCount,
                     timestamp = DateTime.UtcNow
@@ -881,16 +881,16 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error clearing designs: {Message}", ex.Message);
-                return StatusCode(500, new { 
-                    error = "Error clearing designs", 
+                return StatusCode(500, new {
+                    error = "Error clearing designs",
                     message = ex.Message,
-                    timestamp = DateTime.UtcNow 
+                    timestamp = DateTime.UtcNow
                 });
             }
         }
-        /// <summary>
-        /// Get unique colors used in designs
-        /// </summary>
+
+
+
         [HttpGet("unique-colors")]
         public async Task<IActionResult> GetUniqueColors()
         {
@@ -906,9 +906,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get Pantone colors (starting with P-) for a specific article
-        /// </summary>
+
+
+
         [HttpGet("pantone-colors/{articleF}")]
         public async Task<IActionResult> GetPantoneColorsByArticle(string articleF)
         {
@@ -916,8 +916,8 @@ namespace FlexoAPP.API.Controllers
             {
                 _logger.LogInformation($"🎨 Getting Pantone colors for article: {articleF}");
                 var pantoneColors = await _designService.GetPantoneColorsByArticleAsync(articleF);
-                
-                return Ok(new { 
+
+                return Ok(new {
                     articleF = articleF,
                     pantoneCount = pantoneColors.Count,
                     pantoneColors = pantoneColors,
@@ -927,9 +927,9 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting Pantone colors for article {articleF}");
-                return StatusCode(500, new { 
-                    error = "Error getting Pantone colors", 
-                    message = ex.Message 
+                return StatusCode(500, new {
+                    error = "Error getting Pantone colors",
+                    message = ex.Message
                 });
             }
         }

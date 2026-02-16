@@ -7,9 +7,9 @@ using FlexoAPP.API.Services;
 
 namespace FlexoAPP.API.Controllers
 {
-    /// <summary>
-    /// Controlador para consultar auditoría y reportes de actividades del sistema
-    /// </summary>
+
+
+
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -29,9 +29,9 @@ namespace FlexoAPP.API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Obtiene todas las actividades con filtros opcionales
-        /// </summary>
+
+
+
         [HttpGet("activities")]
         public async Task<IActionResult> GetActivities(
             [FromQuery] int? userId = null,
@@ -44,10 +44,10 @@ namespace FlexoAPP.API.Controllers
         {
             try
             {
-                // Log de parámetros recibidos
+
                 _logger.LogInformation($"🔍 GetActivities llamado con parámetros: userId={userId}, module={module}, action={action}, startDate={startDate}, endDate={endDate}");
-                
-                // Registrar consulta de auditoría
+
+
                 await _activityLogger.LogActivityAsync(
                     "VIEW_AUDIT",
                     "Consulta de auditoría del sistema",
@@ -59,7 +59,7 @@ namespace FlexoAPP.API.Controllers
                     .Include(a => a.User)
                     .AsQueryable();
 
-                // Aplicar filtros
+
                 if (userId.HasValue)
                 {
                     _logger.LogInformation($"✅ Aplicando filtro de userId: {userId.Value}");
@@ -90,14 +90,14 @@ namespace FlexoAPP.API.Controllers
                     query = query.Where(a => a.Timestamp <= endDate.Value);
                 }
 
-                // Ordenar por fecha descendente
+
                 query = query.OrderByDescending(a => a.Timestamp);
 
-                // Contar total de registros
+
                 var totalRecords = await query.CountAsync();
                 _logger.LogInformation($"📊 Total de registros después de filtros: {totalRecords}");
 
-                // Aplicar paginación
+
                 var activities = await query
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -130,8 +130,8 @@ namespace FlexoAPP.API.Controllers
                     .ToListAsync();
 
                 _logger.LogInformation($"📤 Enviando {activities.Count} actividades al frontend");
-                
-                // Verificar si todas las actividades son del usuario correcto
+
+
                 if (userId.HasValue && activities.Any())
                 {
                     var wrongUserActivities = activities.Where(a => a.UserId != userId.Value).ToList();
@@ -165,9 +165,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene actividades de autenticación (login/logout)
-        /// </summary>
+
+
+
         [HttpGet("auth-activities")]
         public async Task<IActionResult> GetAuthActivities(
             [FromQuery] int? userId = null,
@@ -219,9 +219,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene actividades de perfil (cambios de foto, nombre, contraseña)
-        /// </summary>
+
+
+
         [HttpGet("profile-activities")]
         public async Task<IActionResult> GetProfileActivities(
             [FromQuery] int? userId = null,
@@ -274,9 +274,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene actividades de máquinas (cambios de estado, tiempos)
-        /// </summary>
+
+
+
         [HttpGet("machine-activities")]
         public async Task<IActionResult> GetMachineActivities(
             [FromQuery] int? machineId = null,
@@ -330,9 +330,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene actividades de diseños (creación, modificación, eliminación)
-        /// </summary>
+
+
+
         [HttpGet("design-activities")]
         public async Task<IActionResult> GetDesignActivities(
             [FromQuery] int? designId = null,
@@ -387,9 +387,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene actividades de reportes (consultas realizadas)
-        /// </summary>
+
+
+
         [HttpGet("report-activities")]
         public async Task<IActionResult> GetReportActivities(
             [FromQuery] int? userId = null,
@@ -440,9 +440,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene actividades de configuración (cambios de ajustes, usuarios, etc.)
-        /// </summary>
+
+
+
         [HttpGet("config-activities")]
         public async Task<IActionResult> GetConfigActivities(
             [FromQuery] DateTime? startDate = null,
@@ -491,9 +491,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene estadísticas de actividades por módulo
-        /// </summary>
+
+
+
         [HttpGet("stats")]
         public async Task<IActionResult> GetActivityStats(
             [FromQuery] DateTime? startDate = null,
@@ -551,9 +551,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene el historial completo de una entidad específica
-        /// </summary>
+
+
+
         [HttpGet("entity-history")]
         public async Task<IActionResult> GetEntityHistory(
             [FromQuery] string entityType,

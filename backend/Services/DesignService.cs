@@ -25,26 +25,26 @@ namespace FlexoAPP.API.Services
                 _logger.LogInformation("🔍 Getting all designs from repository (OPTIMIZED)...");
                 var designs = await _designRepository.GetAllDesignsAsync();
                 var designsList = designs.ToList();
-                
+
                 _logger.LogInformation($"✅ Retrieved {designsList.Count} designs from repository");
-                
+
                 if (designsList.Count == 0)
                 {
                     _logger.LogWarning("⚠️ No designs found in database");
                     return new List<DesignDto>();
                 }
-                
+
                 _logger.LogInformation("🔄 Starting FAST DTO mapping (no navigation properties)...");
-                // OPTIMIZACIÓN: Usar MapToDtoSafe que no accede a navegaciones
+
                 var mappedDesigns = designsList.Select(MapToDtoSafe).ToList();
                 _logger.LogInformation($"✅ Successfully mapped {mappedDesigns.Count} designs to DTOs");
-                
+
                 return mappedDesigns;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error getting designs from database: {Message}", ex.Message);
-                throw; // Let the controller handle the error
+                throw;
             }
         }
 
@@ -102,16 +102,16 @@ namespace FlexoAPP.API.Services
             try
             {
                 _logger.LogInformation("💾 Creating new design: {ArticleF}", design.ArticleF);
-                
-                // Establecer fechas
+
+
                 design.CreatedDate = DateTime.UtcNow;
                 design.LastModified = DateTime.UtcNow;
                 design.CreatedByUserId = userId;
-                
+
                 var createdDesign = await _designRepository.CreateDesignAsync(design);
-                
+
                 _logger.LogInformation("✅ Design created with ID: {DesignId}", createdDesign.Id);
-                
+
                 return MapToDtoSafe(createdDesign);
             }
             catch (Exception ex)
@@ -126,9 +126,9 @@ namespace FlexoAPP.API.Services
             try
             {
                 _logger.LogInformation("💾 Bulk inserting {Count} designs...", designs.Count);
-                
+
                 await _designRepository.BulkInsertDesignsAsync(designs);
-                
+
                 _logger.LogInformation("✅ Successfully bulk inserted {Count} designs", designs.Count);
             }
             catch (Exception ex)
@@ -152,13 +152,13 @@ namespace FlexoAPP.API.Services
 
         public async Task<DesignDto> CreateDesignAsync(CreateDesignDto createDto, int userId)
         {
-            // Validate the design
+
             if (!await ValidateDesignAsync(createDto))
             {
                 throw new ArgumentException("Invalid design data");
             }
 
-            // Check if ArticleF already exists
+
             if (await _designRepository.ArticleFExistsAsync(createDto.ArticleF))
             {
                 throw new InvalidOperationException($"Design with ArticleF '{createDto.ArticleF}' already exists");
@@ -191,7 +191,7 @@ namespace FlexoAPP.API.Services
 
             var createdDesign = await _designRepository.CreateDesignAsync(design);
             _logger.LogInformation("Design created with ID: {DesignId} by User: {UserId}", createdDesign.Id, userId);
-            
+
             return MapToDto(createdDesign);
         }
 
@@ -203,20 +203,20 @@ namespace FlexoAPP.API.Services
                 throw new KeyNotFoundException($"Design with ID {id} not found");
             }
 
-            // Validate the update
+
             if (!await ValidateDesignUpdateAsync(id, updateDto))
             {
                 throw new ArgumentException("Invalid design update data");
             }
 
-            // Check if ArticleF already exists (excluding current design)
-            if (!string.IsNullOrEmpty(updateDto.ArticleF) && 
+
+            if (!string.IsNullOrEmpty(updateDto.ArticleF) &&
                 await _designRepository.ArticleFExistsAsync(updateDto.ArticleF, id))
             {
                 throw new InvalidOperationException($"Design with ArticleF '{updateDto.ArticleF}' already exists");
             }
 
-            // Update only provided fields
+
             if (!string.IsNullOrEmpty(updateDto.ArticleF))
                 existingDesign.ArticleF = updateDto.ArticleF;
             if (!string.IsNullOrEmpty(updateDto.Client))
@@ -252,7 +252,7 @@ namespace FlexoAPP.API.Services
 
             var updatedDesign = await _designRepository.UpdateDesignAsync(existingDesign);
             _logger.LogInformation("Design updated with ID: {DesignId} by User: {UserId}", id, userId);
-            
+
             return MapToDto(updatedDesign);
         }
 
@@ -269,7 +269,7 @@ namespace FlexoAPP.API.Services
             {
                 _logger.LogInformation("Design deleted with ID: {DesignId}", id);
             }
-            
+
             return result;
         }
 
@@ -281,7 +281,7 @@ namespace FlexoAPP.API.Services
                 throw new KeyNotFoundException($"Design with ID {id} not found");
             }
 
-            // Create a new ArticleF for the duplicate
+
             var baseArticleF = originalDesign.ArticleF ?? "COPY";
             var newArticleF = await GenerateUniqueArticleFAsync(baseArticleF);
 
@@ -305,16 +305,16 @@ namespace FlexoAPP.API.Services
                 Color8 = originalDesign.Color8,
                 Color9 = originalDesign.Color9,
                 Color10 = originalDesign.Color10,
-                Status = "ACTIVO", // Always set duplicates as active
+                Status = "ACTIVO",
 
                 CreatedDate = DateTime.UtcNow,
                 LastModified = DateTime.UtcNow
             };
 
             var createdDesign = await _designRepository.CreateDesignAsync(duplicateDesign);
-            _logger.LogInformation("Design duplicated from ID: {OriginalId} to new ID: {NewId} by User: {UserId}", 
+            _logger.LogInformation("Design duplicated from ID: {OriginalId} to new ID: {NewId} by User: {UserId}",
                 id, createdDesign.Id, userId);
-            
+
             return MapToDto(createdDesign);
         }
 
@@ -341,16 +341,16 @@ namespace FlexoAPP.API.Services
         public async Task<IEnumerable<DesignDto>> CreateMultipleDesignsAsync(BulkCreateDesignDto bulkDto, int userId)
         {
             var designs = new List<Design>();
-            
+
             foreach (var createDto in bulkDto.Designs)
             {
-                // Validate each design
+
                 if (!await ValidateDesignAsync(createDto))
                 {
                     throw new ArgumentException($"Invalid design data for ArticleF: {createDto.ArticleF}");
                 }
 
-                // Check if ArticleF already exists
+
                 if (await _designRepository.ArticleFExistsAsync(createDto.ArticleF))
                 {
                     throw new InvalidOperationException($"Design with ArticleF '{createDto.ArticleF}' already exists");
@@ -385,7 +385,7 @@ namespace FlexoAPP.API.Services
 
             var createdDesigns = await _designRepository.CreateMultipleDesignsAsync(designs);
             _logger.LogInformation("Bulk created {Count} designs by User: {UserId}", designs.Count, userId);
-            
+
             return createdDesigns.Select(MapToDto);
         }
 
@@ -399,10 +399,10 @@ namespace FlexoAPP.API.Services
             var result = await _designRepository.UpdateDesignStatusAsync(id, status, userId);
             if (result)
             {
-                _logger.LogInformation("Design status updated for ID: {DesignId} to {Status} by User: {UserId}", 
+                _logger.LogInformation("Design status updated for ID: {DesignId} to {Status} by User: {UserId}",
                     id, status, userId);
             }
-            
+
             return result;
         }
 
@@ -460,7 +460,7 @@ namespace FlexoAPP.API.Services
 
         public Task<bool> ValidateDesignAsync(CreateDesignDto design)
         {
-            // Basic validation
+
             if (string.IsNullOrWhiteSpace(design.ArticleF) ||
                 string.IsNullOrWhiteSpace(design.Client) ||
                 string.IsNullOrWhiteSpace(design.Description) ||
@@ -472,7 +472,7 @@ namespace FlexoAPP.API.Services
                 return Task.FromResult(false);
             }
 
-            // Validate enums
+
             var validTypes = new[] { "LAMINA", "TUBULAR", "SEMITUBULAR" };
             var validPrintTypes = new[] { "CARA", "DORSO", "CARA_DORSO" };
             var validStatuses = new[] { "ACTIVO", "INACTIVO" };
@@ -484,7 +484,7 @@ namespace FlexoAPP.API.Services
                 return Task.FromResult(false);
             }
 
-            // Validate color count matches colors array
+
             if (design.ColorCount != design.Colors.Count)
             {
                 return Task.FromResult(false);
@@ -495,7 +495,7 @@ namespace FlexoAPP.API.Services
 
         public Task<bool> ValidateDesignUpdateAsync(int id, UpdateDesignDto design)
         {
-            // Validate enums if provided
+
             if (!string.IsNullOrEmpty(design.Type))
             {
                 var validTypes = new[] { "LAMINA", "TUBULAR", "SEMITUBULAR" };
@@ -517,7 +517,7 @@ namespace FlexoAPP.API.Services
                     return Task.FromResult(false);
             }
 
-            // Validate color count matches colors array if both are provided
+
             if (design.ColorCount.HasValue && design.Colors != null)
             {
                 if (design.ColorCount.Value != design.Colors.Count)
@@ -531,14 +531,14 @@ namespace FlexoAPP.API.Services
         {
             var counter = 1;
             string newArticleF;
-            
+
             do
             {
                 newArticleF = $"{baseArticleF}_COPIA{counter}";
                 counter++;
-            } 
+            }
             while (await _designRepository.ArticleFExistsAsync(newArticleF));
-            
+
             return newArticleF;
         }
 
@@ -547,8 +547,8 @@ namespace FlexoAPP.API.Services
             try
             {
                 var colors = new List<string>();
-                
-                // Convertir las columnas separadas de colores a una lista con validación
+
+
                 if (!string.IsNullOrEmpty(design.Color1)) colors.Add(design.Color1);
                 if (!string.IsNullOrEmpty(design.Color2)) colors.Add(design.Color2);
                 if (!string.IsNullOrEmpty(design.Color3)) colors.Add(design.Color3);
@@ -590,9 +590,9 @@ namespace FlexoAPP.API.Services
         {
             try
             {
-                // Construir lista de colores de forma segura
+
                 var colors = new List<string>();
-                
+
                 if (!string.IsNullOrWhiteSpace(design.Color1)) colors.Add(design.Color1);
                 if (!string.IsNullOrWhiteSpace(design.Color2)) colors.Add(design.Color2);
                 if (!string.IsNullOrWhiteSpace(design.Color3)) colors.Add(design.Color3);
@@ -604,7 +604,7 @@ namespace FlexoAPP.API.Services
                 if (!string.IsNullOrWhiteSpace(design.Color9)) colors.Add(design.Color9);
                 if (!string.IsNullOrWhiteSpace(design.Color10)) colors.Add(design.Color10);
 
-                // Versión segura con todos los campos correctos
+
                 return new DesignDto
                 {
                     Id = design.Id,
@@ -620,8 +620,8 @@ namespace FlexoAPP.API.Services
                     Status = design.Status ?? "ACTIVO",
                     CreatedDate = design.CreatedDate ?? DateTime.UtcNow,
                     LastModified = design.LastModified ?? DateTime.UtcNow,
-                    CreatedByUserId = 0, // Valor por defecto
-                    CreatedByUserName = null // Sin navegación
+                    CreatedByUserId = 0,
+                    CreatedByUserName = null
                 };
             }
             catch (Exception ex)
@@ -712,11 +712,11 @@ namespace FlexoAPP.API.Services
         private static byte[] GenerateExcelFile(IEnumerable<DesignDto> designs)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            
+
             using var package = new ExcelPackage();
             var worksheet = package.Workbook.Worksheets.Add("Diseños");
-            
-            // Encabezados
+
+
             worksheet.Cells[1, 1].Value = "ID";
             worksheet.Cells[1, 2].Value = "Artículo F";
             worksheet.Cells[1, 3].Value = "Cliente";
@@ -737,8 +737,8 @@ namespace FlexoAPP.API.Services
             worksheet.Cells[1, 18].Value = "Color 9";
             worksheet.Cells[1, 19].Value = "Color 10";
             worksheet.Cells[1, 20].Value = "Estado";
-            
-            // Estilo del encabezado
+
+
             using (var range = worksheet.Cells[1, 1, 1, 20])
             {
                 range.Style.Font.Bold = true;
@@ -746,13 +746,13 @@ namespace FlexoAPP.API.Services
                 range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(79, 129, 189));
                 range.Style.Font.Color.SetColor(System.Drawing.Color.White);
             }
-            
-            // Datos
+
+
             int row = 2;
             foreach (var design in designs)
             {
                 var colors = design.Colors ?? new List<string>();
-                
+
                 worksheet.Cells[row, 1].Value = design.Id;
                 worksheet.Cells[row, 2].Value = design.ArticleF;
                 worksheet.Cells[row, 3].Value = design.Client;
@@ -773,11 +773,11 @@ namespace FlexoAPP.API.Services
                 worksheet.Cells[row, 18].Value = colors.Count > 8 ? colors[8] : "";
                 worksheet.Cells[row, 19].Value = colors.Count > 9 ? colors[9] : "";
                 worksheet.Cells[row, 20].Value = design.Status;
-                
+
                 row++;
             }
-            
-            // Autoajustar columnas solo si hay datos
+
+
             if (row > 2)
             {
                 worksheet.Cells[1, 1, row - 1, 20].AutoFitColumns();
@@ -786,7 +786,7 @@ namespace FlexoAPP.API.Services
             {
                 worksheet.Cells[1, 1, 1, 20].AutoFitColumns();
             }
-            
+
             return package.GetAsByteArray();
         }
 
@@ -805,7 +805,7 @@ namespace FlexoAPP.API.Services
                 using var stream = file.OpenReadStream();
                 using var package = new OfficeOpenXml.ExcelPackage(stream);
                 var worksheet = package.Workbook.Worksheets[0];
-                
+
                 var rowCount = worksheet.Dimension?.Rows ?? 0;
                 _logger.LogInformation("📊 Found {RowCount} rows in Excel file", rowCount);
 
@@ -815,18 +815,18 @@ namespace FlexoAPP.API.Services
                     return result;
                 }
 
-                // Procesar en lotes más grandes para importación masiva
-                var batchSize = 1000; // Lotes de 1000 registros para mejor rendimiento
+
+                var batchSize = 1000;
                 var totalBatches = (int)Math.Ceiling((double)(rowCount - 1) / batchSize);
-                
+
                 _logger.LogInformation("🔄 Processing {TotalBatches} batches of {BatchSize} records each (MASSIVE IMPORT)", totalBatches, batchSize);
 
                 for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++)
                 {
-                    var startRow = 2 + (batchIndex * batchSize); // Skip header row
+                    var startRow = 2 + (batchIndex * batchSize);
                     var endRow = Math.Min(startRow + batchSize - 1, rowCount);
-                    
-                    _logger.LogInformation("📦 Processing batch {BatchIndex}/{TotalBatches} (rows {StartRow}-{EndRow})", 
+
+                    _logger.LogInformation("📦 Processing batch {BatchIndex}/{TotalBatches} (rows {StartRow}-{EndRow})",
                         batchIndex + 1, totalBatches, startRow, endRow);
 
                     var designs = new List<Models.Entities.Design>();
@@ -849,14 +849,14 @@ namespace FlexoAPP.API.Services
                         }
                     }
 
-                    // Bulk insert batch
+
                     if (designs.Any())
                     {
                         try
                         {
                             await _designRepository.BulkInsertDesignsAsync(designs);
                             result.SuccessCount += designs.Count;
-                            _logger.LogInformation("✅ Successfully inserted batch {BatchIndex}: {Count} records", 
+                            _logger.LogInformation("✅ Successfully inserted batch {BatchIndex}: {Count} records",
                                 batchIndex + 1, designs.Count);
                         }
                         catch (Exception ex)
@@ -870,8 +870,8 @@ namespace FlexoAPP.API.Services
 
                 stopwatch.Stop();
                 result.ProcessingTime = stopwatch.Elapsed;
-                
-                _logger.LogInformation("🎉 Import completed: {SuccessCount} successful, {ErrorCount} errors in {ProcessingTime}", 
+
+                _logger.LogInformation("🎉 Import completed: {SuccessCount} successful, {ErrorCount} errors in {ProcessingTime}",
                     result.SuccessCount, result.ErrorCount, result.ProcessingTime);
 
                 return result;
@@ -890,61 +890,61 @@ namespace FlexoAPP.API.Services
         {
             try
             {
-                // Estructura correcta del Excel según especificación ACTUALIZADA:
-                // A: ID (opcional), B: ArticuloF, C: Cliente, D: Descripcion, E: Sustrato, 
-                // F: #Colores, G: Tipo Impresion, H: TIPO, I: Ancho MM, J-S: Color1-10, T: ESTADO
-                
-                // Columna A (1): ID (opcional - se puede ignorar ya que la BD genera automáticamente)
-                // Columna B (2): ArticleF
+
+
+
+
+
+
                 var articleF = worksheet.Cells[row, 2].Text?.Trim();
                 if (string.IsNullOrEmpty(articleF))
                 {
                     _logger.LogDebug("Fila {Row}: ArticleF vacío, omitiendo fila", row);
-                    return null; // Skip rows without ArticleF
+                    return null;
                 }
 
-                // Log para debugging
+
                 _logger.LogDebug("Procesando fila {Row}: ArticleF={ArticleF}", row, articleF);
 
-                // Leer todos los campos con logging detallado según NUEVA ESTRUCTURA
-                var client = worksheet.Cells[row, 3].Text?.Trim() ?? "";                   // Columna C (3)
-                var description = worksheet.Cells[row, 4].Text?.Trim() ?? "";              // Columna D (4)
-                var substrate = worksheet.Cells[row, 5].Text?.Trim() ?? "";                // Columna E (5)
-                var colorCountText = worksheet.Cells[row, 6].Text?.Trim();                 // Columna F (6) - #Colores
-                var printType = worksheet.Cells[row, 7].Text?.Trim() ?? "CARA";            // Columna G (7) - Tipo Impresión
-                var type = worksheet.Cells[row, 8].Text?.Trim() ?? "LAMINA";               // Columna H (8) - TIPO
-                var anchoMmText = worksheet.Cells[row, 9].Text?.Trim();                    // Columna I (9) - Ancho MM
-                var status = worksheet.Cells[row, 20].Text?.Trim() ?? "ACTIVO";            // Columna T (20) - ESTADO
 
-                // Log detallado para debugging (solo para las primeras 5 filas)
+                var client = worksheet.Cells[row, 3].Text?.Trim() ?? "";
+                var description = worksheet.Cells[row, 4].Text?.Trim() ?? "";
+                var substrate = worksheet.Cells[row, 5].Text?.Trim() ?? "";
+                var colorCountText = worksheet.Cells[row, 6].Text?.Trim();
+                var printType = worksheet.Cells[row, 7].Text?.Trim() ?? "CARA";
+                var type = worksheet.Cells[row, 8].Text?.Trim() ?? "LAMINA";
+                var anchoMmText = worksheet.Cells[row, 9].Text?.Trim();
+                var status = worksheet.Cells[row, 20].Text?.Trim() ?? "ACTIVO";
+
+
                 if (row <= 6)
                 {
-                    _logger.LogInformation("Fila {Row} - ArticleF: '{ArticleF}', Cliente: '{Client}', Descripción: '{Description}', Sustrato: '{Substrate}', #Colores: '{ColorCount}', TipoImpresión: '{PrintType}', Tipo: '{Type}', AnchoMM: '{AnchoMm}', Estado: '{Status}'", 
+                    _logger.LogInformation("Fila {Row} - ArticleF: '{ArticleF}', Cliente: '{Client}', Descripción: '{Description}', Sustrato: '{Substrate}', #Colores: '{ColorCount}', TipoImpresión: '{PrintType}', Tipo: '{Type}', AnchoMM: '{AnchoMm}', Estado: '{Status}'",
                         row, articleF, client, description, substrate, colorCountText, printType, type, anchoMmText, status);
                 }
 
                 var design = new Models.Entities.Design
                 {
-                    // No usar ID del Excel, dejar que la base de datos genere el ID automáticamente
-                    ArticleF = articleF,                                                    // Columna B (2)
-                    Client = client,                                                        // Columna C (3)
-                    Description = description,                                              // Columna D (4)
-                    Substrate = substrate,                                                  // Columna E (5)
-                    ColorCount = int.TryParse(colorCountText, out var colorCount) ? colorCount : 1, // Columna F (6)
-                    PrintType = printType,                                                  // Columna G (7)
-                    Type = type,                                                            // Columna H (8)
-                    AnchoMm = int.TryParse(anchoMmText, out var anchoMm) ? anchoMm : (int?)null, // Columna I (9)
-                    Color1 = worksheet.Cells[row, 10].Text?.Trim(),                        // Columna J (10)
-                    Color2 = worksheet.Cells[row, 11].Text?.Trim(),                        // Columna K (11)
-                    Color3 = worksheet.Cells[row, 12].Text?.Trim(),                        // Columna L (12)
-                    Color4 = worksheet.Cells[row, 13].Text?.Trim(),                        // Columna M (13)
-                    Color5 = worksheet.Cells[row, 14].Text?.Trim(),                        // Columna N (14)
-                    Color6 = worksheet.Cells[row, 15].Text?.Trim(),                        // Columna O (15)
-                    Color7 = worksheet.Cells[row, 16].Text?.Trim(),                        // Columna P (16)
-                    Color8 = worksheet.Cells[row, 17].Text?.Trim(),                        // Columna Q (17)
-                    Color9 = worksheet.Cells[row, 18].Text?.Trim(),                        // Columna R (18)
-                    Color10 = worksheet.Cells[row, 19].Text?.Trim(),                       // Columna S (19)
-                    Status = status,                                                        // Columna T (20)
+
+                    ArticleF = articleF,
+                    Client = client,
+                    Description = description,
+                    Substrate = substrate,
+                    ColorCount = int.TryParse(colorCountText, out var colorCount) ? colorCount : 1,
+                    PrintType = printType,
+                    Type = type,
+                    AnchoMm = int.TryParse(anchoMmText, out var anchoMm) ? anchoMm : (int?)null,
+                    Color1 = worksheet.Cells[row, 10].Text?.Trim(),
+                    Color2 = worksheet.Cells[row, 11].Text?.Trim(),
+                    Color3 = worksheet.Cells[row, 12].Text?.Trim(),
+                    Color4 = worksheet.Cells[row, 13].Text?.Trim(),
+                    Color5 = worksheet.Cells[row, 14].Text?.Trim(),
+                    Color6 = worksheet.Cells[row, 15].Text?.Trim(),
+                    Color7 = worksheet.Cells[row, 16].Text?.Trim(),
+                    Color8 = worksheet.Cells[row, 17].Text?.Trim(),
+                    Color9 = worksheet.Cells[row, 18].Text?.Trim(),
+                    Color10 = worksheet.Cells[row, 19].Text?.Trim(),
+                    Status = status,
                     CreatedDate = DateTime.UtcNow,
                     LastModified = DateTime.UtcNow
                 };
@@ -960,33 +960,33 @@ namespace FlexoAPP.API.Services
         public async Task<int> ClearAllDesignsAsync()
         {
             _logger.LogInformation("🗑️ Clearing all designs from database...");
-            
+
             var deletedCount = await _designRepository.ClearAllDesignsAsync();
-            
+
             _logger.LogInformation("✅ Cleared {DeletedCount} designs", deletedCount);
-            
+
             return deletedCount;
         }
 
-        // ===== OPTIMIZED METHODS FOR FAST LOADING =====
 
-        /// <summary>
-        /// Get designs with pagination (OPTIMIZED)
-        /// </summary>
+
+
+
+
         public async Task<PaginatedDesignsDto> GetDesignsPaginatedAsync(
             int page, int pageSize, string? search = null, string? sortBy = "LastModified", string? sortOrder = "desc")
         {
             var startTime = DateTime.UtcNow;
-            
+
             try
             {
                 _logger.LogInformation("🚀 Getting paginated designs - Page: {Page}, Size: {PageSize}", page, pageSize);
-                
+
                 var (designs, totalCount) = await _designRepository.GetDesignsPaginatedAsync(page, pageSize, search, sortBy, sortOrder);
-                
+
                 var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
                 var loadTime = DateTime.UtcNow - startTime;
-                
+
                 var result = new PaginatedDesignsDto
                 {
                     Items = designs.Select(MapToDto),
@@ -998,9 +998,9 @@ namespace FlexoAPP.API.Services
                     HasPreviousPage = page > 1,
                     LoadTime = loadTime
                 };
-                
+
                 _logger.LogInformation("✅ Retrieved {Count} designs in {LoadTime}ms", designs.Count(), loadTime.TotalMilliseconds);
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -1010,19 +1010,19 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        /// <summary>
-        /// Get designs summary (ULTRA FAST - Only essential fields)
-        /// </summary>
+
+
+
         public async Task<IEnumerable<DesignSummaryDto>> GetDesignsSummaryAsync()
         {
             var startTime = DateTime.UtcNow;
-            
+
             try
             {
                 _logger.LogInformation("⚡ Getting designs summary (ultra fast)...");
-                
+
                 var designs = await _designRepository.GetDesignsSummaryAsync();
-                
+
                 var result = designs.Select(d => new DesignSummaryDto
                 {
                     Id = d.Id,
@@ -1032,10 +1032,10 @@ namespace FlexoAPP.API.Services
                     ColorCount = d.ColorCount ?? 0,
                     LastModified = d.LastModified ?? DateTime.UtcNow
                 });
-                
+
                 var loadTime = DateTime.UtcNow - startTime;
                 _logger.LogInformation("✅ Retrieved {Count} design summaries in {LoadTime}ms", result.Count(), loadTime.TotalMilliseconds);
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -1045,19 +1045,19 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        /// <summary>
-        /// Get designs with lazy loading (Load details on demand)
-        /// </summary>
+
+
+
         public async Task<IEnumerable<DesignLazyDto>> GetDesignsLazyAsync()
         {
             var startTime = DateTime.UtcNow;
-            
+
             try
             {
                 _logger.LogInformation("🔄 Getting designs with lazy loading...");
-                
+
                 var designs = await _designRepository.GetDesignsLazyAsync();
-                
+
                 var result = designs.Select(d => new DesignLazyDto
                 {
                     Id = d.Id,
@@ -1070,10 +1070,10 @@ namespace FlexoAPP.API.Services
                     ColorsLoaded = false,
                     DetailsLoaded = false
                 });
-                
+
                 var loadTime = DateTime.UtcNow - startTime;
                 _logger.LogInformation("✅ Retrieved {Count} lazy designs in {LoadTime}ms", result.Count(), loadTime.TotalMilliseconds);
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -1083,19 +1083,19 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        /// <summary>
-        /// Load colors for lazy design
-        /// </summary>
+
+
+
         public async Task<List<string>> LoadDesignColorsAsync(int designId)
         {
             try
             {
                 _logger.LogInformation("🎨 Loading colors for design {DesignId}", designId);
-                
+
                 var colors = await _designRepository.GetDesignColorsAsync(designId);
-                
+
                 _logger.LogInformation("✅ Loaded {ColorCount} colors for design {DesignId}", colors.Count, designId);
-                
+
                 return colors;
             }
             catch (Exception ex)
@@ -1105,23 +1105,23 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        /// <summary>
-        /// Load full details for lazy design
-        /// </summary>
+
+
+
         public async Task<DesignLazyDto> LoadDesignDetailsAsync(int designId)
         {
             try
             {
                 _logger.LogInformation("📋 Loading full details for design {DesignId}", designId);
-                
+
                 var design = await _designRepository.GetDesignWithDetailsAsync(designId);
                 if (design == null)
                 {
                     throw new KeyNotFoundException($"Design with ID {designId} not found");
                 }
-                
+
                 var colors = await _designRepository.GetDesignColorsAsync(designId);
-                
+
                 var result = new DesignLazyDto
                 {
                     Id = design.Id,
@@ -1138,9 +1138,9 @@ namespace FlexoAPP.API.Services
                     Type = design.Type ?? string.Empty,
                     PrintType = design.PrintType ?? string.Empty
                 };
-                
+
                 _logger.LogInformation("✅ Loaded full details for design {DesignId}", designId);
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -1150,20 +1150,20 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        /// <summary>
-        /// Get cache information (Mock implementation)
-        /// </summary>
+
+
+
         public async Task<DesignCacheInfoDto> GetCacheInfoAsync()
         {
             try
             {
                 var totalDesigns = await _designRepository.GetDesignStatsAsync();
-                
+
                 return new DesignCacheInfoDto
                 {
                     CachedCount = totalDesigns.TotalDesigns,
-                    LastCacheUpdate = DateTime.UtcNow.AddMinutes(-5), // Mock
-                    CacheAge = TimeSpan.FromMinutes(5), // Mock
+                    LastCacheUpdate = DateTime.UtcNow.AddMinutes(-5),
+                    CacheAge = TimeSpan.FromMinutes(5),
                     IsCacheValid = true,
                     CacheStatus = "Active"
                 };
@@ -1175,20 +1175,20 @@ namespace FlexoAPP.API.Services
             }
         }
 
-        /// <summary>
-        /// Clear cache (Mock implementation)
-        /// </summary>
+
+
+
         public async Task<bool> ClearCacheAsync()
         {
             try
             {
                 _logger.LogInformation("🧹 Clearing design cache...");
-                
-                // Mock cache clearing
+
+
                 await Task.Delay(100);
-                
+
                 _logger.LogInformation("✅ Design cache cleared");
-                
+
                 return true;
             }
             catch (Exception ex)

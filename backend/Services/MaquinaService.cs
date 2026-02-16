@@ -17,8 +17,8 @@ namespace flexoAPP.Services
         private readonly FlexoAPP.API.Services.IActivityLoggerService _activityLogger;
 
         public MaquinaService(
-            IMaquinaRepository repository, 
-            ILogger<MaquinaService> logger, 
+            IMaquinaRepository repository,
+            ILogger<MaquinaService> logger,
             FlexoAPPDbContext context,
             FlexoAPP.API.Services.IActivityLoggerService activityLogger)
         {
@@ -39,19 +39,19 @@ namespace flexoAPP.Services
                 using var conn = new MySqlConnector.MySqlConnection(cs);
                 conn.Open();
 
-                // 1. Verificar si existe la columna 'id'
+
                 using var checkIdCmd = conn.CreateCommand();
                 checkIdCmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'maquinas' AND COLUMN_NAME = 'id'";
                 var idExists = Convert.ToInt32(checkIdCmd.ExecuteScalar()) > 0;
 
-                // 2. Verificar si 'ot_sap' es la PRIMARY KEY
+
                 using var checkPkCmd = conn.CreateCommand();
                 checkPkCmd.CommandText = @"
-                    SELECT COUNT(*) 
+                    SELECT COUNT(*)
                     FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
                     JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
-                    WHERE tc.TABLE_SCHEMA = DATABASE() 
-                    AND tc.TABLE_NAME = 'maquinas' 
+                    WHERE tc.TABLE_SCHEMA = DATABASE()
+                    AND tc.TABLE_NAME = 'maquinas'
                     AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
                     AND kcu.COLUMN_NAME = 'ot_sap'";
                 var otSapIsPk = Convert.ToInt32(checkPkCmd.ExecuteScalar()) > 0;
@@ -59,33 +59,33 @@ namespace flexoAPP.Services
                 if (idExists || !otSapIsPk)
                 {
                     _logger.LogInformation("⚠️ Iniciando migración de esquema de BD: Estableciendo OT SAP como Primary Key...");
-                    
+
                     using var cmd = conn.CreateCommand();
 
-                    // Paso 1: Eliminar PRIMARY KEY existente 
+
                     try {
                         cmd.CommandText = "ALTER TABLE maquinas DROP PRIMARY KEY";
                         cmd.ExecuteNonQuery();
                     } catch {}
 
-                    // Paso 2: Eliminar columna 'id' si existe
+
                     if (idExists)
                     {
                         cmd.CommandText = "ALTER TABLE maquinas DROP COLUMN id";
                         cmd.ExecuteNonQuery();
                     }
 
-                    // Paso 3: Asegurar que 'ot_sap' sea NOT NULL
+
                     cmd.CommandText = "ALTER TABLE maquinas MODIFY COLUMN ot_sap VARCHAR(50) NOT NULL";
                     cmd.ExecuteNonQuery();
 
-                    // Paso 4: Establecer 'ot_sap' como PRIMARY KEY
+
                     cmd.CommandText = "ALTER TABLE maquinas ADD PRIMARY KEY (ot_sap)";
                     cmd.ExecuteNonQuery();
                     _logger.LogInformation("✅ Nueva PRIMARY KEY establecida en 'ot_sap'.");
                 }
 
-                // 3. Asegurar que 'estado' permita NULL y no tenga DEFAULT "LISTO"
+
                 using var fixStatusCmd = conn.CreateCommand();
                 fixStatusCmd.CommandText = "ALTER TABLE maquinas MODIFY COLUMN estado VARCHAR(20) NULL DEFAULT NULL";
                 fixStatusCmd.ExecuteNonQuery();
@@ -111,34 +111,34 @@ namespace flexoAPP.Services
 
             var oldStatus = existing.Estado;
             var oldObservaciones = existing.Observaciones;
-            
+
             var estadosValidos = new[] { "SIN_ASIGNAR", "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO", "TERMINADO" };
             var estadoUpper = estado?.ToUpper() ?? "SIN_ASIGNAR";
-            
+
             if (estadoUpper == "EN_PROCESO") estadoUpper = "CORRIENDO";
             if (!estadosValidos.Contains(estadoUpper))
             {
                 throw new ArgumentException($"Estado inválido: {estado}");
             }
 
-            // Gestionar PreparandoStartedAt
+
             if (estadoUpper == "PREPARANDO" && existing.Estado != "PREPARANDO")
             {
                 existing.PreparandoStartedAt = DateTime.Now;
             }
-            
+
             TimeSpan? duration = null;
             if (existing.Estado == "PREPARANDO" && (estadoUpper == "LISTO" || estadoUpper == "TERMINADO") && existing.PreparandoStartedAt.HasValue)
             {
                 duration = DateTime.Now - existing.PreparandoStartedAt.Value;
             }
-            
+
             if (estadoUpper != "PREPARANDO" && estadoUpper != "LISTO")
             {
                 existing.PreparandoStartedAt = null;
             }
 
-            // Limpiar observaciones si deja de estar SUSPENDIDO
+
             if (existing.Estado == "SUSPENDIDO" && estadoUpper != "SUSPENDIDO")
             {
                 existing.Observaciones = null;
@@ -156,8 +156,8 @@ namespace flexoAPP.Services
             existing.LastActionAt = DateTime.Now;
 
             var updated = await _repository.UpdateAsync(existing);
-            
-            // Log de actividad
+
+
             try
             {
                 await _activityLogger.LogDetailedActivityAsync(
@@ -174,7 +174,7 @@ namespace flexoAPP.Services
                 );
             }
             catch {}
-            
+
             return MapToDto(updated);
         }
 
@@ -196,8 +196,8 @@ namespace flexoAPP.Services
                 await conn.OpenAsync();
 
                 using var cmd = conn.CreateCommand();
-                
-                // Forzar recreación de PK en ot_sap
+
+
                 try {
                     cmd.CommandText = "ALTER TABLE maquinas DROP PRIMARY KEY";
                     await cmd.ExecuteNonQueryAsync();
@@ -206,7 +206,7 @@ namespace flexoAPP.Services
 
                 cmd.CommandText = "ALTER TABLE maquinas MODIFY COLUMN ot_sap VARCHAR(50) NOT NULL";
                 await cmd.ExecuteNonQueryAsync();
-                
+
                 cmd.CommandText = "ALTER TABLE maquinas ADD PRIMARY KEY (ot_sap)";
                 await cmd.ExecuteNonQueryAsync();
                 logs.Add("PK establecida en ot_sap.");
@@ -236,7 +236,7 @@ namespace flexoAPP.Services
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "ALTER TABLE maquinas MODIFY COLUMN kilos DECIMAL(10,3) NOT NULL";
                 await cmd.ExecuteNonQueryAsync();
-                
+
                 logs.Add("✅ Columna kilos actualizada a DECIMAL(10,3)");
                 result["success"] = true;
                 return result;
@@ -259,10 +259,10 @@ namespace flexoAPP.Services
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
                     DELETE t1 FROM maquinas t1
-                    INNER JOIN maquinas t2 
-                    WHERE t1.ot_sap = t2.ot_sap 
+                    INNER JOIN maquinas t2
+                    WHERE t1.ot_sap = t2.ot_sap
                     AND t1.updated_at < t2.updated_at";
-                
+
                 var deleted = await cmd.ExecuteNonQueryAsync();
                 _logger.LogInformation("🧹 Duplicados eliminados: {Count}", deleted);
             }

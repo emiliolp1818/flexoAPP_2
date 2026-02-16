@@ -14,10 +14,10 @@ namespace FlexoAPP.API.Services
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        
+
         public AuthService(
-            IUserRepository userRepository, 
-            IJwtService jwtService, 
+            IUserRepository userRepository,
+            IJwtService jwtService,
             IRefreshTokenService refreshTokenService,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor)
@@ -28,40 +28,40 @@ namespace FlexoAPP.API.Services
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
         }
-        
+
         public async Task<LoginResponseDto?> LoginAsync(LoginDto loginDto)
         {
             Console.WriteLine($"AuthService: Attempting login for user: {loginDto.UserCode}");
-            
+
             var user = await _userRepository.GetByUserCodeAsync(loginDto.UserCode);
-            
+
             if (user == null)
             {
                 Console.WriteLine($"AuthService: User not found: {loginDto.UserCode}");
                 return null;
             }
-            
+
             Console.WriteLine($"AuthService: User found - ID: {user.Id}, Active: {user.IsActive}, Role: {user.Role}");
-            
+
             if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
             {
                 Console.WriteLine($"AuthService: Password verification failed for user: {loginDto.UserCode}");
                 return null;
             }
-            
+
             Console.WriteLine($"AuthService: Password verified successfully for user: {loginDto.UserCode}");
-            
+
             var ipAddress = GetIpAddress();
             var token = _jwtService.GenerateToken(user);
             var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id, ipAddress);
-            
+
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
-            
-            // ✅ Actualizar fecha de último acceso (COMENTADO TEMPORALMENTE: Columna LastLogin no existe en BD)
-            // user.LastLogin = DateTime.UtcNow;
-            // await _userRepository.UpdateAsync(user);
-            
+
+
+
+
+
             return new LoginResponseDto
             {
                 Token = token,
@@ -70,33 +70,33 @@ namespace FlexoAPP.API.Services
                 ExpiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes)
             };
         }
-        
+
         public async Task<LoginResponseDto?> RefreshTokenAsync(string refreshToken)
         {
             var ipAddress = GetIpAddress();
             var token = await _refreshTokenService.GetRefreshTokenAsync(refreshToken);
-            
+
             if (token == null || !token.IsActive)
             {
                 return null;
             }
-            
+
             var user = token.User;
             if (user == null || !user.IsActive)
             {
                 return null;
             }
-            
-            // Generate new tokens
+
+
             var newJwtToken = _jwtService.GenerateToken(user);
             var newRefreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id, ipAddress);
-            
-            // Revoke old refresh token
+
+
             await _refreshTokenService.RevokeRefreshTokenAsync(refreshToken, ipAddress, newRefreshToken.Token);
-            
+
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
-            
+
             return new LoginResponseDto
             {
                 Token = newJwtToken,
@@ -105,22 +105,22 @@ namespace FlexoAPP.API.Services
                 ExpiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes)
             };
         }
-        
+
         public async Task<bool> LogoutAsync(string token)
         {
             var ipAddress = GetIpAddress();
-            
-            // Get user ID from JWT token
+
+
             var userId = _jwtService.GetUserIdFromToken(token);
             if (userId.HasValue)
             {
-                // Revoke all refresh tokens for this user
+
                 await _refreshTokenService.RevokeAllUserRefreshTokensAsync(userId.Value, ipAddress);
             }
-            
+
             return true;
         }
-        
+
         public async Task<UserDto?> GetCurrentUserAsync(int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
@@ -141,28 +141,28 @@ namespace FlexoAPP.API.Services
                 return null;
             }
 
-            // Update the profile image
+
             user.ProfileImage = profileImage;
             user.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(user);
 
-            // Log the action with appropriate message
+
             var actionDescription = profileImage == null ? "Profile image removed" : "Profile image updated";
             var actionName = profileImage == null ? "Eliminar Foto Perfil" : "Actualizar Foto Perfil";
-            
-            // TODO: Implementar logging cuando se restaure el servicio de auditoría
-            // await _auditService.LogActionAsync(
-            //     "Users",
-            //     userId,
-            //     actionName,
-            //     actionDescription,
-            //     userId
-            // );
+
+
+
+
+
+
+
+
+
 
             return MapToUserDto(user);
         }
-        
+
         private string GetIpAddress()
         {
             var context = _httpContextAccessor.HttpContext;
@@ -170,7 +170,7 @@ namespace FlexoAPP.API.Services
             {
                 return context.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0].Trim();
             }
-            
+
             return context?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         }
 
@@ -179,32 +179,32 @@ namespace FlexoAPP.API.Services
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) return null;
 
-            // Update only provided fields
+
             if (!string.IsNullOrEmpty(updateUserDto.FirstName))
                 user.FirstName = updateUserDto.FirstName;
-            
+
             if (!string.IsNullOrEmpty(updateUserDto.LastName))
                 user.LastName = updateUserDto.LastName;
-            
+
             if (updateUserDto.Permissions != null)
                 user.Permissions = JsonSerializer.Serialize(updateUserDto.Permissions);
-            
+
             if (!string.IsNullOrEmpty(updateUserDto.Role))
                 user.Role = ParseUserRole(updateUserDto.Role);
-            
+
             if (updateUserDto.ProfileImage != null)
-                user.ProfileImage = updateUserDto.ProfileImage;  // Puede contener base64 o URL de archivo
-            
+                user.ProfileImage = updateUserDto.ProfileImage;
+
             if (updateUserDto.Email != null)
                 user.Email = updateUserDto.Email;
-            
+
             if (updateUserDto.Phone != null)
                 user.Phone = updateUserDto.Phone;
-            
+
             if (updateUserDto.IsActive.HasValue)
                 user.IsActive = updateUserDto.IsActive.Value;
 
-            // ✅ IMPORTANTE: Hashear la contraseña si se está actualizando
+
             if (!string.IsNullOrEmpty(updateUserDto.Password))
             {
                 Console.WriteLine($"🔐 Actualizando contraseña para usuario {user.UserCode}");
@@ -222,11 +222,11 @@ namespace FlexoAPP.API.Services
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) return false;
 
-            // Verify current password
+
             if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.Password))
                 return false;
 
-            // Update password
+
             user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
             user.UpdatedAt = DateTime.UtcNow;
 
@@ -242,7 +242,7 @@ namespace FlexoAPP.API.Services
 
         public async Task<UserDto?> CreateUserAsync(CreateUserDto createUserDto)
         {
-            // Check if user code already exists
+
             var existingUser = await _userRepository.GetByUserCodeAsync(createUserDto.UserCode);
             if (existingUser != null) return null;
 
@@ -252,11 +252,11 @@ namespace FlexoAPP.API.Services
                 Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password),
                 FirstName = createUserDto.FirstName,
                 LastName = createUserDto.LastName,
-                Email = createUserDto.Email,                    // ✅ AGREGADO
-                Phone = createUserDto.Phone,                    // ✅ AGREGADO
+                Email = createUserDto.Email,
+                Phone = createUserDto.Phone,
                 Permissions = JsonSerializer.Serialize(createUserDto.Permissions ?? new List<string>()),
                 Role = ParseUserRole(createUserDto.Role),
-                ProfileImage = createUserDto.ProfileImage,  // Puede contener base64 o URL de archivo
+                ProfileImage = createUserDto.ProfileImage,
                 IsActive = createUserDto.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -273,7 +273,7 @@ namespace FlexoAPP.API.Services
 
             return await _userRepository.DeleteAsync(userId);
         }
-        
+
         private static UserDto MapToUserDto(User user)
         {
             return new UserDto
@@ -283,11 +283,11 @@ namespace FlexoAPP.API.Services
                 FirstName = user.FirstName ?? string.Empty,
                 LastName = user.LastName ?? string.Empty,
                 Email = user.Email ?? string.Empty,
-                Permissions = !string.IsNullOrEmpty(user.Permissions) ? 
-                    JsonSerializer.Deserialize<List<string>>(user.Permissions) ?? new List<string>() : 
+                Permissions = !string.IsNullOrEmpty(user.Permissions) ?
+                    JsonSerializer.Deserialize<List<string>>(user.Permissions) ?? new List<string>() :
                     new List<string>(),
                 Role = user.Role.ToString(),
-                ProfileImage = user.ProfileImage,  // Puede contener base64 o URL de archivo
+                ProfileImage = user.ProfileImage,
                 Phone = user.Phone,
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
@@ -301,7 +301,7 @@ namespace FlexoAPP.API.Services
             {
                 return role;
             }
-            return UserRole.Operario; // Default role
+            return UserRole.Operario;
         }
     }
 }

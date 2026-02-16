@@ -7,16 +7,16 @@ import { LoadingService } from '../services/loading.service';
 
 @Injectable()
 export class LoadingInterceptor implements HttpInterceptor {
-  
+
   constructor(private loadingService: LoadingService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Mostrar indicador de carga
+
     this.loadingService.show();
 
     return next.handle(req).pipe(
       finalize(() => {
-        // Ocultar indicador de carga cuando termine la petición
+
         this.loadingService.hide();
       })
     );

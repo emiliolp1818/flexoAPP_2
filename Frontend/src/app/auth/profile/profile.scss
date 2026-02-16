@@ -1,77 +1,77 @@
-/* ===== CONTENEDOR PRINCIPAL - MÁXIMO APROVECHAMIENTO DEL ESPACIO ===== */
-/* Contenedor principal que ocupa toda la pantalla sin desperdiciar espacio */
+
+
 .profile-container-fixed {
-    position: fixed;                    /* Posición fija para evitar scroll de página */
-    top: 0;                            /* Pegado al borde superior - sin margen */
-    left: 0;                           /* Pegado al borde izquierdo - sin margen */
-    width: 100vw;                      /* Ancho completo de la ventana */
-    height: 100vh;                     /* Alto completo de la ventana */
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); /* Fondo con gradiente */
-    padding-top: 64px;                 /* Espacio mínimo para header fijo del sistema */
-    box-sizing: border-box;            /* Incluir padding en el cálculo del tamaño */
-    overflow: hidden;                  /* Evitar scroll en el contenedor principal */
-    margin: 0;                         /* Sin márgenes externos */
-    padding-left: 0;                   /* Sin padding lateral izquierdo */
-    padding-right: 0;                  /* Sin padding lateral derecho */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding-top: 64px;
+    box-sizing: border-box;
+    overflow: hidden;
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
 }
 
-/* Contenido scrolleable que usa todo el espacio disponible */
+
 .profile-content-scrollable {
-    height: calc(100vh - 64px);       /* Alto completo menos el header - máximo espacio vertical */
-    width: 100%;                       /* Ancho completo - máximo espacio horizontal */
-    overflow-y: auto;                  /* Scroll vertical cuando sea necesario */
-    overflow-x: hidden;                /* Sin scroll horizontal */
-    padding: 12px;                     /* Padding mínimo para no pegar al borde */
-    box-sizing: border-box;            /* Incluir padding en el cálculo */
-    margin: 0;                         /* Sin márgenes para maximizar espacio */
+    height: calc(100vh - 64px);
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+    box-sizing: border-box;
+    margin: 0;
 }
 
-/* ===== ENCABEZADO DEL PERFIL - COMPACTO Y EFICIENTE ===== */
-/* Encabezado principal optimizado para máximo aprovechamiento del espacio */
-.profile-header-responsive {
-    position: relative;                /* Posición relativa para elementos absolutos internos */
-    background: rgba(255, 255, 255, 0.95); /* Fondo blanco semi-transparente */
-    backdrop-filter: blur(20px);       /* Efecto de desenfoque del fondo */
-    border-radius: 12px;               /* Bordes redondeados más compactos */
-    padding: 16px;                     /* Padding reducido para más espacio */
-    margin-bottom: 12px;               /* Margen inferior mínimo */
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06); /* Sombra más sutil */
-    border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
-    overflow: hidden;                  /* Ocultar contenido que se desborde */
-    width: 100%;                       /* Ancho completo para maximizar espacio */
 
-    /* Línea decorativa superior más delgada */
+
+.profile-header-responsive {
+    position: relative;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    width: 100%;
+
+
     &::before {
-        content: '';                   /* Contenido vacío para el pseudo-elemento */
-        position: absolute;            /* Posición absoluta dentro del contenedor */
-        top: 0;                        /* Pegado al borde superior */
-        left: 0;                       /* Pegado al borde izquierdo */
-        right: 0;                      /* Pegado al borde derecho */
-        height: 2px;                   /* Alto reducido de la línea */
-        background: linear-gradient(90deg, #2563eb, #3b82f6); /* Gradiente azul */
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #2563eb, #3b82f6);
     }
 }
 
-/* Fondo decorativo del encabezado */
+
 .header-background-gradient {
-    position: absolute;                /* Posición absoluta */
-    top: 0;                           /* Pegado arriba */
-    left: 0;                          /* Pegado a la izquierda */
-    right: 0;                         /* Pegado a la derecha */
-    height: 100%;                     /* Alto completo */
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%); /* Gradiente sutil */
-    pointer-events: none;             /* No interceptar eventos del mouse */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
+    pointer-events: none;
 }
 
-/* Contenido del encabezado optimizado para máximo espacio */
+
 .header-content-flex {
-    display: flex;                    /* Layout flexbox */
-    align-items: center;              /* Alineación vertical centrada */
-    /* Responsive: En pantallas pequeñas cambiar a columna */
+    display: flex;
+    align-items: center;
+
     @media (max-width: 768px) {
-        flex-direction: column;        /* Cambiar a disposición vertical */
-        text-align: center;           /* Centrar texto */
-        gap: 16px;                    /* Reducir espacio entre elementos */
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
     }
 }
 
@@ -137,7 +137,7 @@
     }
 }
 
-// User Info Moderno
+
 .user-info-modern {
     flex: 1;
     color: #1f2937;
@@ -155,7 +155,7 @@
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px 24px;
         margin-bottom: 20px;
-        
+
         @media (max-width: 768px) {
             grid-template-columns: 1fr;
             gap: 12px;
@@ -198,7 +198,7 @@
 
     .user-status {
         margin-top: 16px;
-        
+
         .status-chip {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
@@ -247,7 +247,7 @@
     }
 }
 
-// Photo Upload Moderno
+
 .photo-upload-modern {
     margin-bottom: 30px;
 
@@ -349,7 +349,7 @@
     }
 }
 
-// Profile Card Moderno
+
 .profile-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
@@ -359,7 +359,7 @@
     overflow: hidden;
 }
 
-// Tabs Styling Moderno
+
 .profile-tabs {
     ::ng-deep {
         .mat-mdc-tab-header {
@@ -399,7 +399,7 @@
     }
 }
 
-// Tab Content Moderno
+
 .tab-content {
     padding: 40px;
 
@@ -408,7 +408,7 @@
     }
 }
 
-// Form Section Title Moderno
+
 .form-section-title {
     display: flex;
     align-items: center;
@@ -429,7 +429,7 @@
     }
 }
 
-// Form Styling Moderno
+
 .profile-form,
 .password-form {
     .form-row {
@@ -506,7 +506,7 @@
     }
 }
 
-// Security Info Moderno
+
 .security-info {
     display: flex;
     gap: 16px;
@@ -548,7 +548,7 @@
     }
 }
 
-// Form Actions Moderno
+
 .form-actions-modern {
     display: flex;
     gap: 16px;
@@ -604,61 +604,61 @@
     }
 }
 
-// Activity Header Section
+
 .activity-header-section {
     margin-bottom: 32px;
-    
+
     .form-section-title {
         margin-bottom: 24px;
     }
-    
+
     .activity-controls {
         display: flex;
         gap: 16px;
         align-items: flex-end;
         flex-wrap: wrap;
-        
+
         @media (max-width: 768px) {
             flex-direction: column;
             align-items: stretch;
             gap: 12px;
         }
-        
+
         .search-field {
             flex: 1;
             min-width: 300px;
-            
+
             @media (max-width: 768px) {
                 min-width: auto;
             }
         }
-        
+
         .refresh-btn, .export-btn {
             height: 56px;
             border-radius: 12px;
             font-weight: 600;
             min-width: 120px;
-            
+
             @media (max-width: 768px) {
                 height: 48px;
                 min-width: auto;
             }
         }
-        
+
         .refresh-btn {
             background: #2563eb;
             color: white;
-            
+
             &:hover:not(:disabled) {
                 background: #1d4ed8;
                 transform: translateY(-2px);
             }
         }
-        
+
         .export-btn {
             border-color: #6b7280;
             color: #6b7280;
-            
+
             &:hover:not(:disabled) {
                 background: #f9fafb;
                 border-color: #374151;
@@ -668,7 +668,7 @@
     }
 }
 
-// Activity Section Moderno
+
 .activity-container {
     .loading-container {
         display: flex;
@@ -699,20 +699,20 @@
         max-height: 400px;
         overflow-y: auto;
         padding-right: 8px;
-        
+
         &::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         &::-webkit-scrollbar-track {
             background: rgba(0, 0, 0, 0.1);
             border-radius: 3px;
         }
-        
+
         &::-webkit-scrollbar-thumb {
             background: #2563eb;
             border-radius: 3px;
-            
+
             &:hover {
                 background: #1d4ed8;
             }
@@ -884,7 +884,7 @@
     }
 }
 
-// Days Remaining Styles Moderno
+
 .days-remaining {
     display: flex;
     align-items: center;
@@ -916,13 +916,13 @@
     }
 }
 
-// Animations
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-// Responsive Design Moderno
+
 @media (max-width: 768px) {
     .profile-container {
         padding: 12px;
@@ -1112,1694 +1112,1694 @@
     }
 }
 
-/* ===== SECCIÓN DEL AVATAR RESPONSIVE ===== */
-/* Contenedor de la sección del avatar del usuario */
+
+
 .user-avatar-section-responsive {
-    display: flex;                    /* Layout flexbox */
-    flex-direction: column;           /* Dirección vertical */
-    align-items: center;              /* Centrar horizontalmente */
-    gap: 12px;                        /* Espacio entre elementos */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
-/* Avatar grande del usuario */
+
 .user-avatar-large-responsive {
-    position: relative;               /* Posición relativa para overlay */
-    width: 120px;                     /* Ancho fijo */
-    height: 120px;                    /* Alto fijo */
-    border-radius: 50%;               /* Forma circular */
-    overflow: hidden;                 /* Ocultar contenido que se desborde */
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); /* Sombra pronunciada */
-    transition: all 0.3s ease;       /* Transición suave para efectos */
-    border: 4px solid rgba(255, 255, 255, 0.8); /* Borde blanco */
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    border: 4px solid rgba(255, 255, 255, 0.8);
 
-    /* Efecto hover */
+
     &:hover {
-        transform: scale(1.05);       /* Aumentar tamaño ligeramente */
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+        transform: scale(1.05);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
     }
 
-    /* Responsive: Tamaño más pequeño en móviles */
+
     @media (max-width: 768px) {
-        width: 100px;                 /* Ancho reducido */
-        height: 100px;                /* Alto reducido */
+        width: 100px;
+        height: 100px;
     }
 }
 
-/* Imagen de perfil responsive */
+
 .profile-image-responsive {
-    width: 100%;                      /* Ancho completo del contenedor */
-    height: 100%;                     /* Alto completo del contenedor */
-    object-fit: cover;                /* Mantener proporción y cubrir área */
-    object-position: center;          /* Centrar la imagen */
-    transition: transform 0.3s ease;  /* Transición suave */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
 
-    /* Efecto hover en la imagen */
+
     &:hover {
-        transform: scale(1.1);        /* Zoom ligero */
+        transform: scale(1.1);
     }
 }
 
-/* Placeholder cuando no hay imagen */
+
 .avatar-placeholder-responsive {
-    width: 100%;                      /* Ancho completo */
-    height: 100%;                     /* Alto completo */
-    display: flex;                    /* Layout flexbox */
-    align-items: center;              /* Centrar verticalmente */
-    justify-content: center;          /* Centrar horizontalmente */
-    background: linear-gradient(135deg, #e2e8f0, #cbd5e1); /* Fondo con gradiente */
-    color: #64748b;                   /* Color del icono */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    color: #64748b;
 }
 
-/* Icono del avatar placeholder */
+
 .avatar-icon-responsive {
-    font-size: 60px !important;       /* Tamaño grande del icono */
-    width: 60px;                      /* Ancho del icono */
-    height: 60px;                     /* Alto del icono */
+    font-size: 60px !important;
+    width: 60px;
+    height: 60px;
 
-    /* Responsive: Icono más pequeño en móviles */
+
     @media (max-width: 768px) {
-        font-size: 48px !important;   /* Tamaño reducido */
-        width: 48px;                  /* Ancho reducido */
-        height: 48px;                 /* Alto reducido */
+        font-size: 48px !important;
+        width: 48px;
+        height: 48px;
     }
 }
 
-/* Overlay para cambiar foto */
+
 .avatar-overlay-responsive {
-    position: absolute;               /* Posición absoluta sobre el avatar */
-    top: 0;                          /* Pegado arriba */
-    left: 0;                         /* Pegado a la izquierda */
-    right: 0;                        /* Pegado a la derecha */
-    bottom: 0;                       /* Pegado abajo */
-    background: rgba(0, 0, 0, 0.6);  /* Fondo oscuro semi-transparente */
-    display: flex;                   /* Layout flexbox */
-    align-items: center;             /* Centrar verticalmente */
-    justify-content: center;         /* Centrar horizontalmente */
-    opacity: 0;                      /* Invisible por defecto */
-    transition: opacity 0.3s ease;   /* Transición suave */
-    border-radius: 50%;              /* Forma circular */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 50%;
 
-    /* Mostrar overlay al hacer hover */
+
     .user-avatar-large-responsive:hover & {
-        opacity: 1;                  /* Hacer visible */
+        opacity: 1;
     }
 }
 
-/* Botón de editar avatar */
+
 .avatar-edit-btn-responsive {
-    background: rgba(37, 99, 235, 0.9) !important; /* Fondo azul semi-transparente */
-    color: white !important;          /* Texto blanco */
-    border: 2px solid white;         /* Borde blanco */
-    
-    /* Efecto hover */
+    background: rgba(37, 99, 235, 0.9) !important;
+    color: white !important;
+    border: 2px solid white;
+
+
     &:hover {
-        background: rgba(37, 99, 235, 1) !important; /* Fondo azul sólido */
-        transform: scale(1.1);        /* Aumentar tamaño */
+        background: rgba(37, 99, 235, 1) !important;
+        transform: scale(1.1);
     }
 }
 
-/* Acciones del avatar */
+
 .avatar-actions-responsive {
-    display: flex;                    /* Layout flexbox */
-    gap: 8px;                        /* Espacio entre botones */
+    display: flex;
+    gap: 8px;
 }
 
-/* Botón para eliminar foto */
+
 .remove-photo-btn-responsive {
-    font-size: 12px;                 /* Tamaño de fuente pequeño */
-    padding: 4px 8px;                /* Espaciado interno reducido */
-    min-width: auto;         /* Sin ancho mínimo */
-    
-    /* Responsive: Ocultar texto en móviles */
+    font-size: 12px;
+    padding: 4px 8px;
+    min-width: auto;
+
+
     @media (max-width: 768px) {
         span {
-            display: none;            /* Ocultar texto */
+            display: none;
         }
     }
 }
-/* ===== SECCIÓN DEL AVATAR - COMPACTA Y RESPONSIVE ===== */
-/* Sección del avatar optimizada para diferentes tamaños de pantalla */
+
+
 .user-avatar-section-responsive {
-    flex-shrink: 0;                   /* No reducir el tamaño del avatar */
-    display: flex;                    /* Layout flexbox */
-    flex-direction: column;           /* Disposición vertical */
-    align-items: center;              /* Centrar horizontalmente */
-    gap: 8px;                         /* Espacio mínimo entre elementos */
-    
-    /* Responsive: Ajustar en pantallas pequeñas */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+
     @media (max-width: 768px) {
-        width: 100%;                  /* Ancho completo en móviles */
-        margin-bottom: 12px;          /* Margen inferior en móviles */
+        width: 100%;
+        margin-bottom: 12px;
     }
 }
 
-/* Contenedor del avatar grande optimizado */
+
 .user-avatar-large-responsive {
-    position: relative;               /* Posición relativa para overlay */
-    width: 100px;                     /* Tamaño compacto del avatar */
-    height: 100px;                    /* Altura igual al ancho */
-    border-radius: 50%;               /* Forma circular */
-    overflow: hidden;                 /* Ocultar contenido que se desborde */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra para profundidad */
-    transition: transform 0.3s ease;  /* Transición suave para hover */
-    cursor: pointer;                  /* Cursor de puntero */
-    
-    /* Efecto hover para interactividad */
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+
+
     &:hover {
-        transform: scale(1.05);       /* Aumentar ligeramente el tamaño */
-        
+        transform: scale(1.05);
+
         .avatar-overlay-responsive {
-            opacity: 1;               /* Mostrar overlay al hacer hover */
+            opacity: 1;
         }
     }
-    
-    /* Responsive: Avatar más pequeño en móviles */
+
+
     @media (max-width: 768px) {
-        width: 80px;                  /* Tamaño reducido en móviles */
-        height: 80px;                 /* Altura proporcional */
+        width: 80px;
+        height: 80px;
     }
 }
 
-/* Imagen de perfil responsive */
+
 .profile-image-responsive {
-    width: 100%;                      /* Ancho completo del contenedor */
-    height: 100%;                     /* Alto completo del contenedor */
-    object-fit: cover;                /* Mantener proporción y cubrir área */
-    object-position: center;          /* Centrar la imagen */
-    transition: opacity 0.3s ease;    /* Transición suave */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: opacity 0.3s ease;
 }
 
-/* Placeholder del avatar cuando no hay imagen */
+
 .avatar-placeholder-responsive {
-    width: 100%;                      /* Ancho completo */
-    height: 100%;                     /* Alto completo */
-    display: flex;                    /* Layout flexbox */
-    align-items: center;              /* Centrar verticalmente */
-    justify-content: center;          /* Centrar horizontalmente */
-    background: linear-gradient(135deg, #e2e8f0, #cbd5e1); /* Fondo gradiente */
-    color: #64748b;                   /* Color del icono */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    color: #64748b;
 }
 
-/* Icono del avatar placeholder */
+
 .avatar-icon-responsive {
-    font-size: 48px !important;       /* Tamaño del icono */
-    width: 48px;                      /* Ancho del icono */
-    height: 48px;                     /* Alto del icono */
-    
-    /* Responsive: Icono más pequeño en móviles */
+    font-size: 48px !important;
+    width: 48px;
+    height: 48px;
+
+
     @media (max-width: 768px) {
-        font-size: 36px !important;   /* Tamaño reducido en móviles */
-        width: 36px;                  /* Ancho reducido */
-        height: 36px;                 /* Alto reducido */
+        font-size: 36px !important;
+        width: 36px;
+        height: 36px;
     }
 }
 
-/* Overlay para cambiar foto */
+
 .avatar-overlay-responsive {
-    position: absolute;               /* Posición absoluta sobre el avatar */
-    top: 0;                          /* Cubrir desde arriba */
-    left: 0;                         /* Cubrir desde la izquierda */
-    right: 0;                        /* Cubrir hasta la derecha */
-    bottom: 0;                       /* Cubrir hasta abajo */
-    background: rgba(0, 0, 0, 0.6);  /* Fondo semi-transparente oscuro */
-    display: flex;                   /* Layout flexbox */
-    align-items: center;             /* Centrar verticalmente */
-    justify-content: center;         /* Centrar horizontalmente */
-    opacity: 0;                      /* Invisible por defecto */
-    transition: opacity 0.3s ease;   /* Transición suave */
-    border-radius: 50%;              /* Forma circular */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 50%;
 }
 
-/* ===== SECCIÓN DEL AVATAR RESPONSIVE ===== */
-/* Contenedor de la sección del avatar del usuario */
+
+
 .user-avatar-section-responsive {
-    display: flex;                    /* Layout flexbox */
-    flex-direction: column;           /* Disposición vertical */
-    align-items: center;              /* Centrado horizontal */
-    gap: 12px;                        /* Espacio entre elementos */
-    flex-shrink: 0;                   /* No reducir tamaño */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
-/* Avatar grande del usuario */
+
 .user-avatar-large-responsive {
-    position: relative;               /* Posición relativa para overlay */
-    width: 120px;                     /* Ancho fijo */
-    height: 120px;                    /* Alto fijo */
-    border-radius: 50%;               /* Forma circular */
-    overflow: hidden;                 /* Ocultar contenido que se desborde */
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* Sombra pronunciada */
-    transition: all 0.3s ease;       /* Transición suave para efectos */
-    cursor: pointer;                  /* Cursor de puntero */
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s ease;
+    cursor: pointer;
 
-    /* Efecto hover */
+
     &:hover {
-        transform: scale(1.05);       /* Aumentar tamaño ligeramente */
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18); /* Sombra más pronunciada */
+        transform: scale(1.05);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
     }
 
-    /* Responsive: Tamaño más pequeño en móviles */
+
     @media (max-width: 768px) {
-        width: 100px;                 /* Ancho reducido */
-        height: 100px;                /* Alto reducido */
+        width: 100px;
+        height: 100px;
     }
 }
 
-/* Imagen de perfil responsive */
+
 .profile-image-responsive {
-    width: 100%;                      /* Ancho completo del contenedor */
-    height: 100%;                     /* Alto completo del contenedor */
-    object-fit: cover;                /* Ajustar imagen manteniendo proporción */
-    object-position: center;          /* Centrar imagen */
-    transition: transform 0.3s ease;  /* Transición suave */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
 
-    /* Efecto hover en la imagen */
+
     &:hover {
-        transform: scale(1.1);        /* Zoom ligero */
+        transform: scale(1.1);
     }
 }
 
-/* Placeholder cuando no hay imagen */
+
 .avatar-placeholder-responsive {
-    width: 100%;                      /* Ancho completo */
-    height: 100%;                     /* Alto completo */
-    display: flex;                    /* Layout flexbox */
-    align-items: center;              /* Centrado vertical */
-    justify-content: center;          /* Centrado horizontal */
-    background: linear-gradient(135deg, #e2e8f0, #cbd5e1); /* Fondo con gradiente */
-    color: #64748b;                   /* Color del icono */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    color: #64748b;
 }
 
-/* Icono del avatar placeholder */
+
 .avatar-icon-responsive {
-    font-size: 48px !important;       /* Tamaño del icono */
-    width: 48px;                      /* Ancho del icono */
-    height: 48px;                     /* Alto del icono */
+    font-size: 48px !important;
+    width: 48px;
+    height: 48px;
 
-    /* Responsive: Icono más pequeño en móviles */
+
     @media (max-width: 768px) {
-        font-size: 40px !important;   /* Tamaño reducido */
-        width: 40px;                  /* Ancho reducido */
-        height: 40px;                 /* Alto reducido */
+        font-size: 40px !important;
+        width: 40px;
+        height: 40px;
     }
 }
 
-/* Overlay para cambiar foto */
+
 .avatar-overlay-responsive {
-    position: absolute;               /* Posición absoluta sobre la imagen */
-    top: 0;                          /* Pegado arriba */
-    left: 0;                         /* Pegado a la izquierda */
-    right: 0;                        /* Pegado a la derecha */
-    bottom: 0;                       /* Pegado abajo */
-    background: rgba(0, 0, 0, 0.6);  /* Fondo oscuro semi-transparente */
-    display: flex;                   /* Layout flexbox */
-    align-items: center;             /* Centrado vertical */
-    justify-content: center;         /* Centrado horizontal */
-    opacity: 0;                      /* Invisible por defecto */
-    transition: opacity 0.3s ease;   /* Transición suave */
-    border-radius: 50%;              /* Forma circular */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 50%;
 
-    /* Mostrar overlay al hacer hover */
+
     .user-avatar-large-responsive:hover & {
-        opacity: 1;                  /* Hacer visible */
+        opacity: 1;
     }
 }
 
-/* Botón de editar avatar */
+
 .avatar-edit-btn-responsive {
-    background: #2563eb !important;  /* Fondo azul */
-    color: white !important;         /* Texto blanco */
-    transform: scale(0.9);           /* Tamaño ligeramente reducido */
-    transition: transform 0.2s ease; /* Transición suave */
+    background: #2563eb !important;
+    color: white !important;
+    transform: scale(0.9);
+    transition: transform 0.2s ease;
 
-    /* Efecto hover en el botón */
+
     &:hover {
-        transform: scale(1);         /* Tamaño normal al hover */
-        background: #1d4ed8 !important; /* Azul más oscuro */
+        transform: scale(1);
+        background: #1d4ed8 !important;
     }
 }
 
-/* Acciones del avatar */
+
 .avatar-actions-responsive {
-    display: flex;                   /* Layout flexbox */
-    gap: 8px;                        /* Espacio entre botones */
-    justify-content: center;         /* Centrado horizontal */
+    display: flex;
+    gap: 8px;
+    justify-content: center;
 }
 
-/* Botón de eliminar foto */
+
 .remove-photo-btn-responsive {
-    font-size: 12px;                 /* Tamaño de fuente pequeño */
-    padding: 4px 8px;                /* Espaciado interno reducido */
-    min-width: auto;                 /* Sin ancho mínimo */
-    border-color: #ef4444;           /* Borde rojo */
-    color: #ef4444;                  /* Texto rojo */
+    font-size: 12px;
+    padding: 4px 8px;
+    min-width: auto;
+    border-color: #ef4444;
+    color: #ef4444;
 
-    /* Efecto hover */
+
     &:hover:not(:disabled) {
-        background: #fef2f2;         /* Fondo rojo muy claro */
-        border-color: #dc2626;       /* Borde rojo más oscuro */
+        background: #fef2f2;
+        border-color: #dc2626;
     }
 }
 
-/* ===== INFORMACIÓN DEL USUARIO RESPONSIVE ===== */
-/* Contenedor de la información del usuario - Ocupa todo el espacio disponible */
+
+
 .user-info-responsive {
-    flex: 1;                         /* Ocupar todo el espacio disponible horizontalmente */
-    min-width: 0;                    /* Permitir reducción de tamaño si es necesario */
-    display: flex;                   /* Layout flexbox para organizar contenido */
-    flex-direction: column;          /* Disposición vertical de elementos internos */
-    justify-content: center;         /* Centrar verticalmente el contenido */
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-/* Nombre del usuario - Título principal */
+
 .user-name-responsive {
-    font-size: 28px;                 /* Tamaño de fuente grande para destacar */
-    font-weight: 600;                /* Peso de fuente semi-bold para énfasis */
-    color: #1e293b;                  /* Color gris oscuro para buena legibilidad */
-    margin: 0 0 16px 0;              /* Margen solo inferior para separar de detalles */
-    line-height: 1.2;                /* Altura de línea compacta */
+    font-size: 28px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 16px 0;
+    line-height: 1.2;
 
-    /* Responsive: Tamaño más pequeño en móviles */
+
     @media (max-width: 768px) {
-        font-size: 24px;             /* Tamaño reducido para pantallas pequeñas */
-        text-align: center;          /* Centrado en móviles */
+        font-size: 24px;
+        text-align: center;
     }
 }
 
-/* Contenedor de detalles del usuario - Grid para distribución horizontal */
+
 .user-details-responsive {
-    display: grid;                   /* Layout grid para distribución en cuadrícula */
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Columnas automáticas que se ajustan */
-    gap: 12px 16px;                  /* Espacio entre filas (12px) y columnas (16px) */
-    margin-bottom: 16px;             /* Margen inferior para separar del estado */
-    width: 100%;                     /* Ocupar todo el ancho disponible */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px 16px;
+    margin-bottom: 16px;
+    width: 100%;
 
-    /* Responsive: Cambiar a 2 columnas en tablets */
+
     @media (max-width: 1024px) and (min-width: 769px) {
-        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    /* Responsive: Cambiar a 1 columna en móviles */
+
     @media (max-width: 768px) {
-        grid-template-columns: 1fr;  /* 1 columna en móviles */
-        gap: 8px;                    /* Espacio reducido */
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
 }
 
-/* Elemento individual de detalle - Tarjeta con icono y texto */
+
 .detail-item-responsive {
-    display: flex;                   /* Layout flexbox para alinear icono y texto */
-    align-items: center;             /* Alineación vertical centrada */
-    gap: 8px;                        /* Espacio entre icono y texto */
-    font-size: 14px;                 /* Tamaño de fuente pequeño */
-    color: #64748b;                  /* Color gris medio */
-    padding: 8px 12px;               /* Espaciado interno para crear tarjeta */
-    background: rgba(255, 255, 255, 0.6); /* Fondo blanco semi-transparente */
-    border-radius: 8px;              /* Bordes redondeados */
-    border: 1px solid rgba(37, 99, 235, 0.1); /* Borde azul muy sutil */
-    transition: all 0.3s ease;       /* Transición suave para efectos hover */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #64748b;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    transition: all 0.3s ease;
 
-    /* Efecto hover - Resaltar al pasar el mouse */
+
     &:hover {
-        background: rgba(255, 255, 255, 0.9); /* Fondo más opaco */
-        border-color: rgba(37, 99, 235, 0.2); /* Borde más visible */
-        transform: translateY(-2px); /* Elevación ligera */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Sombra suave */
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(37, 99, 235, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    /* Responsive: Centrado en móviles */
+
     @media (max-width: 768px) {
-        justify-content: center;     /* Centrado horizontal en móviles */
+        justify-content: center;
     }
 }
 
-/* Icono de detalle - Icono visual para cada campo */
+
 .detail-icon-responsive {
-    font-size: 18px !important;      /* Tamaño del icono */
-    width: 18px;                     /* Ancho fijo para consistencia */
-    height: 18px;                    /* Alto fijo para consistencia */
-    color: #2563eb;                  /* Color azul para destacar */
-    flex-shrink: 0;                  /* No reducir tamaño del icono */
+    font-size: 18px !important;
+    width: 18px;
+    height: 18px;
+    color: #2563eb;
+    flex-shrink: 0;
 }
 
-/* Texto de detalle - Información del usuario */
+
 .detail-text-responsive {
-    font-weight: 500;                /* Peso de fuente medio para legibilidad */
-    color: #374151;                  /* Color gris oscuro para contraste */
-    white-space: nowrap;             /* No permitir salto de línea */
-    overflow: hidden;                /* Ocultar texto que se desborde */
-    text-overflow: ellipsis;         /* Mostrar puntos suspensivos si es muy largo */
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Estado del usuario - Chips de estado activo/inactivo */
+
 .user-status-responsive {
-    display: flex;                   /* Layout flexbox para alinear chips */
-    gap: 8px;                        /* Espacio entre chips */
-    flex-wrap: wrap;                 /* Permitir salto de línea si hay muchos chips */
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 
-    /* Responsive: Centrado en móviles */
+
     @media (max-width: 768px) {
-        justify-content: center;     /* Centrado horizontal en móviles */
+        justify-content: center;
     }
 }
 
-/* Chip de estado activo */
+
 .status-chip-active-responsive {
-    background: #dcfce7 !important;  /* Fondo verde claro */
-    color: #166534 !important;       /* Texto verde oscuro */
-    font-weight: 500;                /* Peso de fuente medio */
-    font-size: 12px;                 /* Tamaño de fuente pequeño */
-    padding: 4px 8px;                /* Espaciado interno */
-    border-radius: 12px;             /* Bordes muy redondeados */
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    font-weight: 500;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
 
-    /* Icono dentro del chip */
+
     mat-icon {
-        font-size: 14px !important;  /* Tamaño del icono */
-        width: 14px;                 /* Ancho del icono */
-        height: 14px;                /* Alto del icono */
-        margin-right: 4px;           /* Margen derecho */
+        font-size: 14px !important;
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
     }
 }
 
-/* ===== SECCIÓN DE CARGA DE FOTO RESPONSIVE ===== */
-/* Contenedor de carga de foto */
+
+
 .photo-upload-responsive {
-    margin-bottom: 24px;             /* Margen inferior */
-    animation: slideDown 0.3s ease;  /* Animación de entrada */
+    margin-bottom: 24px;
+    animation: slideDown 0.3s ease;
 }
 
-/* Animación de deslizamiento hacia abajo */
+
 @keyframes slideDown {
     from {
-        opacity: 0;                  /* Invisible al inicio */
-        transform: translateY(-10px); /* Desplazado hacia arriba */
+        opacity: 0;
+        transform: translateY(-10px);
     }
     to {
-        opacity: 1;                  /* Visible al final */
-        transform: translateY(0);    /* Posición normal */
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* Tarjeta de carga */
+
 .upload-card-responsive {
-    border: 2px dashed #3b82f6;     /* Borde punteado azul */
-    background: #f8fafc;            /* Fondo gris muy claro */
-    transition: all 0.3s ease;      /* Transición suave */
+    border: 2px dashed #3b82f6;
+    background: #f8fafc;
+    transition: all 0.3s ease;
 
-    /* Efecto hover */
+
     &:hover {
-        border-color: #2563eb;       /* Borde azul más oscuro */
-        background: #f1f5f9;         /* Fondo ligeramente más oscuro */
-        transform: translateY(-2px); /* Elevación ligera */
+        border-color: #2563eb;
+        background: #f1f5f9;
+        transform: translateY(-2px);
     }
 }
 
-/* Contenido de la carga */
+
 .upload-content-responsive {
-    display: flex;                   /* Layout flexbox */
-    gap: 16px;                       /* Espacio entre elementos */
-    align-items: center;             /* Alineación vertical centrada */
-    padding: 16px;                   /* Espaciado interno */
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 16px;
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;      /* Disposición vertical */
-        text-align: center;          /* Centrado de texto */
+        flex-direction: column;
+        text-align: center;
     }
 }
 
-/* Vista previa de la imagen */
+
 .upload-preview-responsive {
-    flex-shrink: 0;                  /* No reducir tamaño */
-    width: 80px;                     /* Ancho fijo */
-    height: 80px;                    /* Alto fijo */
-    border-radius: 8px;              /* Bordes redondeados */
-    overflow: hidden;                /* Ocultar desbordamiento */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Imagen de vista previa */
+
 .preview-image-responsive {
-    width: 100%;                     /* Ancho completo */
-    height: 100%;                    /* Alto completo */
-    object-fit: cover;               /* Ajustar manteniendo proporción */
-    object-position: center;         /* Centrar imagen */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
-/* Información de carga */
+
 .upload-info-responsive {
-    flex: 1;                         /* Ocupar espacio disponible */
-    min-width: 0;                    /* Permitir reducción */
+    flex: 1;
+    min-width: 0;
 }
 
-/* Encabezado de carga */
+
 .upload-header-responsive {
-    display: flex;                   /* Layout flexbox */
-    align-items: center;             /* Alineación vertical centrada */
-    gap: 8px;                        /* Espacio entre elementos */
-    margin-bottom: 8px;              /* Margen inferior */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
 
-    /* Responsive: Centrado en móviles */
+
     @media (max-width: 768px) {
-        justify-content: center;     /* Centrado horizontal */
+        justify-content: center;
     }
 }
 
-/* Icono de carga */
+
 .upload-icon-responsive {
-    color: #3b82f6;                  /* Color azul */
-    font-size: 20px !important;      /* Tamaño del icono */
+    color: #3b82f6;
+    font-size: 20px !important;
 }
 
-/* Título de carga */
+
 .upload-title-responsive {
-    margin: 0;                       /* Sin margen */
-    font-size: 16px;                 /* Tamaño de fuente */
-    font-weight: 600;                /* Peso semi-bold */
-    color: #1e293b;                  /* Color gris oscuro */
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
 }
 
-/* Descripción de carga */
+
 .upload-description-responsive {
-    margin: 0 0 16px 0;              /* Margen solo inferior */
-    font-size: 14px;                 /* Tamaño de fuente pequeño */
-    color: #64748b;                  /* Color gris medio */
-    line-height: 1.4;               /* Altura de línea */
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.4;
 }
 
-/* Acciones de carga */
+
 .upload-actions-responsive {
-    display: flex;                   /* Layout flexbox */
-    gap: 8px;                        /* Espacio entre botones */
-    flex-wrap: wrap;                 /* Permitir salto de línea */
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 
-    /* Responsive: Centrado en móviles */
+
     @media (max-width: 768px) {
-        justify-content: center;     /* Centrado horizontal */
+        justify-content: center;
     }
 }
 
-/* Botón de guardar */
+
 .save-btn-responsive {
-    background: #2563eb !important;  /* Fondo azul */
-    color: white !important;         /* Texto blanco */
-    font-weight: 500;                /* Peso medio */
-    padding: 8px 16px;               /* Espaciado interno */
-    border-radius: 8px;              /* Bordes redondeados */
-    transition: all 0.2s ease;      /* Transición suave */
+    background: #2563eb !important;
+    color: white !important;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 
-    /* Efecto hover */
+
     &:hover:not(:disabled) {
-        background: #1d4ed8 !important; /* Azul más oscuro */
-        transform: translateY(-1px);  /* Elevación ligera */
+        background: #1d4ed8 !important;
+        transform: translateY(-1px);
     }
 
-    /* Estado deshabilitado */
+
     &:disabled {
-        opacity: 0.6;                /* Opacidad reducida */
-        cursor: not-allowed;         /* Cursor de no permitido */
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 }
 
-/* Botón de cancelar */
+
 .cancel-btn-responsive {
-    border-color: #6b7280;          /* Borde gris */
-    color: #6b7280;                 /* Texto gris */
-    padding: 8px 16px;              /* Espaciado interno */
-    border-radius: 8px;             /* Bordes redondeados */
-    transition: all 0.2s ease;     /* Transición suave */
+    border-color: #6b7280;
+    color: #6b7280;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 
-    /* Efecto hover */
+
     &:hover:not(:disabled) {
-        background: #f9fafb;         /* Fondo gris muy claro */
-        border-color: #4b5563;       /* Borde gris más oscuro */
-        color: #4b5563;              /* Texto gris más oscuro */
+        background: #f9fafb;
+        border-color: #4b5563;
+        color: #4b5563;
     }
-}/* ===== TARJETA PRINCIPAL Y PESTAÑAS RESPONSIVE ===== */
-/* Tarjeta contenedora principal */
-.profile-card-responsive {
-    background: white;               /* Fondo blanco */
-    border-radius: 12px;             /* Bordes redondeados */
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Sombra suave */
-    overflow: hidden;                /* Ocultar desbordamiento */
-    border: 1px solid #e2e8f0;      /* Borde gris claro */
 }
 
-/* Grupo de pestañas responsive */
+.profile-card-responsive {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+
 .profile-tabs-responsive {
-    /* Personalización de las pestañas de Angular Material */
+
     ::ng-deep {
-        /* Encabezados de las pestañas */
+
         .mat-mdc-tab-header {
-            border-bottom: 1px solid #e2e8f0; /* Borde inferior */
-            background: #f8fafc;      /* Fondo gris muy claro */
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
         }
 
-        /* Etiquetas de las pestañas */
+
         .mat-mdc-tab {
-            min-width: 120px;          /* Ancho mínimo */
-            padding: 0 16px;           /* Espaciado horizontal */
-            font-weight: 500;          /* Peso medio */
-            color: #64748b;            /* Color gris */
-            transition: all 0.3s ease; /* Transición suave */
+            min-width: 120px;
+            padding: 0 16px;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s ease;
 
-            /* Responsive: Ancho completo en móviles */
+
             @media (max-width: 768px) {
-                min-width: auto;       /* Sin ancho mínimo */
-                flex: 1;               /* Ocupar espacio disponible */
-                font-size: 12px;       /* Fuente más pequeña */
+                min-width: auto;
+                flex: 1;
+                font-size: 12px;
             }
 
-            /* Pestaña activa */
+
             &.mdc-tab--active {
-                color: #2563eb;        /* Color azul */
-                background: rgba(37, 99, 235, 0.05); /* Fondo azul muy claro */
+                color: #2563eb;
+                background: rgba(37, 99, 235, 0.05);
             }
 
-            /* Efecto hover */
+
             &:hover:not(.mdc-tab--active) {
-                background: rgba(100, 116, 139, 0.05); /* Fondo gris claro */
-                color: #475569;        /* Color gris más oscuro */
+                background: rgba(100, 116, 139, 0.05);
+                color: #475569;
             }
         }
 
-        /* Indicador de pestaña activa */
+
         .mat-mdc-tab-group .mat-mdc-tab-header .mat-mdc-tab-header-pagination-after,
         .mat-mdc-tab-group .mat-mdc-tab-header .mat-mdc-tab-header-pagination-before {
-            display: none;             /* Ocultar paginación */
+            display: none;
         }
 
-        /* Línea indicadora */
+
         .mdc-tab-indicator__content--underline {
-            border-color: #2563eb;     /* Color azul */
-            border-width: 3px;         /* Grosor de línea */
+            border-color: #2563eb;
+            border-width: 3px;
         }
 
-        /* Cuerpo de las pestañas */
+
         .mat-mdc-tab-body-wrapper {
-            padding: 0;                /* Sin espaciado */
+            padding: 0;
         }
     }
 }
 
-/* ===== CONTENIDO DE PESTAÑAS RESPONSIVE ===== */
-/* Contenido de cada pestaña */
-.tab-content-responsive {
-    padding: 24px;                   /* Espaciado interno */
-    min-height: 400px;               /* Altura mínima */
 
-    /* Responsive: Menos padding en móviles */
+
+.tab-content-responsive {
+    padding: 24px;
+    min-height: 400px;
+
+
     @media (max-width: 768px) {
-        padding: 16px;               /* Espaciado reducido */
-        min-height: 300px;           /* Altura mínima reducida */
+        padding: 16px;
+        min-height: 300px;
     }
 }
 
-/* ===== FORMULARIOS RESPONSIVE ===== */
-/* Formulario de perfil */
+
+
 .profile-form-responsive,
 .password-form-responsive {
-    max-width: 600px;               /* Ancho máximo */
-    margin: 0 auto;                 /* Centrado horizontal */
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-/* Título de sección de formulario */
+
 .form-section-title-responsive {
-    display: flex;                  /* Layout flexbox */
-    align-items: center;            /* Alineación vertical centrada */
-    gap: 8px;                       /* Espacio entre icono y texto */
-    font-size: 20px;                /* Tamaño de fuente */
-    font-weight: 600;               /* Peso semi-bold */
-    color: #1e293b;                 /* Color gris oscuro */
-    margin: 0 0 24px 0;             /* Margen solo inferior */
-    padding-bottom: 12px;           /* Espaciado inferior */
-    border-bottom: 2px solid #e2e8f0; /* Borde inferior */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 24px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e2e8f0;
 
-    /* Icono del título */
+
     mat-icon {
-        color: #2563eb;             /* Color azul */
-        font-size: 24px !important; /* Tamaño del icono */
+        color: #2563eb;
+        font-size: 24px !important;
     }
 
-    /* Responsive: Centrado en móviles */
+
     @media (max-width: 768px) {
-        justify-content: center;    /* Centrado horizontal */
-        font-size: 18px;            /* Fuente más pequeña */
+        justify-content: center;
+        font-size: 18px;
     }
 }
 
-/* Fila de formulario */
+
 .form-row-responsive {
-    display: flex;                  /* Layout flexbox */
-    gap: 16px;                      /* Espacio entre campos */
-    margin-bottom: 16px;            /* Margen inferior */
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;     /* Disposición vertical */
-        gap: 8px;                   /* Espacio reducido */
+        flex-direction: column;
+        gap: 8px;
     }
 }
 
-/* Campo de ancho medio */
-.half-width-responsive {
-    flex: 1;                        /* Ocupar espacio disponible */
-    min-width: 0;                   /* Permitir reducción */
 
-    /* Personalización de campos de Angular Material */
+.half-width-responsive {
+    flex: 1;
+    min-width: 0;
+
+
     ::ng-deep {
         .mat-mdc-form-field {
-            width: 100%;            /* Ancho completo */
+            width: 100%;
         }
 
-        /* Etiqueta del campo */
+
         .mat-mdc-form-field-label {
-            color: #64748b;         /* Color gris */
-            font-weight: 500;       /* Peso medio */
+            color: #64748b;
+            font-weight: 500;
         }
 
-        /* Campo enfocado */
+
         .mat-mdc-form-field.mat-focused {
             .mat-mdc-form-field-label {
-                color: #2563eb;     /* Color azul */
+                color: #2563eb;
             }
         }
 
-        /* Borde del campo */
+
         .mdc-notched-outline__leading,
         .mdc-notched-outline__notch,
         .mdc-notched-outline__trailing {
-            border-color: #d1d5db; /* Color gris claro */
-            border-width: 1px;     /* Grosor de borde */
+            border-color: #d1d5db;
+            border-width: 1px;
         }
 
-        /* Campo enfocado */
+
         .mat-mdc-form-field.mat-focused {
             .mdc-notched-outline__leading,
             .mdc-notched-outline__notch,
             .mdc-notched-outline__trailing {
-                border-color: #2563eb; /* Color azul */
-                border-width: 2px;     /* Borde más grueso */
+                border-color: #2563eb;
+                border-width: 2px;
             }
         }
 
-        /* Icono de sufijo */
+
         .mat-mdc-form-field-icon-suffix {
-            color: #64748b;         /* Color gris */
+            color: #64748b;
         }
 
-        /* Input del campo */
+
         .mat-mdc-input-element {
-            color: #1e293b;         /* Color gris oscuro */
-            font-weight: 500;       /* Peso medio */
+            color: #1e293b;
+            font-weight: 500;
         }
 
-        /* Placeholder */
+
         .mat-mdc-input-element::placeholder {
-            color: #9ca3af;         /* Color gris claro */
-            opacity: 1;             /* Opacidad completa */
+            color: #9ca3af;
+            opacity: 1;
         }
     }
 }
 
-/* Campo de ancho completo */
+
 .full-width-responsive {
-    width: 100%;                    /* Ancho completo */
-    
-    /* Heredar estilos de half-width */
+    width: 100%;
+
+
     @extend .half-width-responsive;
 }
 
-/* ===== INFORMACIÓN DE SEGURIDAD ===== */
-/* Contenedor de información de seguridad */
-.security-info-responsive {
-    display: flex;                  /* Layout flexbox */
-    gap: 12px;                      /* Espacio entre elementos */
-    padding: 16px;                  /* Espaciado interno */
-    background: #f0f9ff;            /* Fondo azul muy claro */
-    border: 1px solid #bae6fd;     /* Borde azul claro */
-    border-radius: 8px;             /* Bordes redondeados */
-    margin-bottom: 24px;            /* Margen inferior */
 
-    /* Icono de información */
+
+.security-info-responsive {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    margin-bottom: 24px;
+
+
     mat-icon {
-        color: #0284c7;             /* Color azul */
-        font-size: 20px !important; /* Tamaño del icono */
-        flex-shrink: 0;             /* No reducir tamaño */
-        margin-top: 2px;            /* Margen superior para alineación */
+        color: #0284c7;
+        font-size: 20px !important;
+        flex-shrink: 0;
+        margin-top: 2px;
     }
 
-    /* Contenido de texto */
+
     div {
-        flex: 1;                    /* Ocupar espacio disponible */
-        
+        flex: 1;
+
         p {
-            margin: 0 0 8px 0;      /* Margen solo inferior */
-            font-weight: 600;       /* Peso semi-bold */
-            color: #0c4a6e;         /* Color azul oscuro */
-            font-size: 14px;        /* Tamaño de fuente */
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            color: #0c4a6e;
+            font-size: 14px;
         }
 
         ul {
-            margin: 0;              /* Sin margen */
-            padding-left: 16px;     /* Espaciado izquierdo */
-            
+            margin: 0;
+            padding-left: 16px;
+
             li {
-                font-size: 13px;    /* Tamaño de fuente pequeño */
-                color: #075985;     /* Color azul medio */
-                margin-bottom: 4px; /* Margen inferior */
-                line-height: 1.4;   /* Altura de línea */
+                font-size: 13px;
+                color: #075985;
+                margin-bottom: 4px;
+                line-height: 1.4;
             }
         }
     }
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;     /* Disposición vertical */
-        text-align: center;         /* Centrado de texto */
-        
+        flex-direction: column;
+        text-align: center;
+
         mat-icon {
-            align-self: center;     /* Centrar icono */
-            margin-top: 0;          /* Sin margen superior */
+            align-self: center;
+            margin-top: 0;
         }
     }
 }
 
-/* ===== ACCIONES DE FORMULARIO RESPONSIVE ===== */
-/* Contenedor de botones de acción */
+
+
 .form-actions-responsive {
-    display: flex;                  /* Layout flexbox */
-    gap: 12px;                      /* Espacio entre botones */
-    justify-content: center;        /* Centrado horizontal */
-    margin-top: 32px;               /* Margen superior */
-    padding-top: 24px;              /* Espaciado superior */
-    border-top: 1px solid #e2e8f0;  /* Borde superior */
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e2e8f0;
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;     /* Disposición vertical */
-        gap: 8px;                   /* Espacio reducido */
+        flex-direction: column;
+        gap: 8px;
     }
 }
 
-/* Botón de actualizar perfil */
+
 .update-button-responsive {
-    background: #2563eb !important; /* Fondo azul */
-    color: white !important;        /* Texto blanco */
-    font-weight: 600 !important;    /* Peso semi-bold */
-    padding: 12px 24px !important;  /* Espaciado interno */
-    border-radius: 8px !important;  /* Bordes redondeados */
-    transition: all 0.2s ease;      /* Transición suave */
-    min-width: 150px;               /* Ancho mínimo */
+    background: #2563eb !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+    min-width: 150px;
 
-    /* Efecto hover */
+
     &:hover:not(:disabled) {
-        background: #1d4ed8 !important; /* Azul más oscuro */
-        transform: translateY(-2px);  /* Elevación ligera */
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); /* Sombra azul */
+        background: #1d4ed8 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
-    /* Estado deshabilitado */
+
     &:disabled {
-        opacity: 0.6;               /* Opacidad reducida */
-        cursor: not-allowed;        /* Cursor de no permitido */
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 
-    /* Responsive: Ancho completo en móviles */
+
     @media (max-width: 768px) {
-        width: 100%;                /* Ancho completo */
-        padding: 10px 20px !important; /* Espaciado reducido */
+        width: 100%;
+        padding: 10px 20px !important;
     }
 }
 
-/* Botón de cambiar contraseña */
+
 .change-password-button-responsive {
-    /* Heredar estilos del botón de actualizar */
+
     @extend .update-button-responsive;
 }
 
-/* Botón de restablecer */
+
 .reset-button-responsive {
-    border-color: #6b7280;          /* Borde gris */
-    color: #6b7280;                 /* Texto gris */
-    font-weight: 500;               /* Peso medio */
-    padding: 12px 24px;             /* Espaciado interno */
-    border-radius: 8px;             /* Bordes redondeados */
-    transition: all 0.2s ease;      /* Transición suave */
-    min-width: 120px;               /* Ancho mínimo */
+    border-color: #6b7280;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    min-width: 120px;
 
-    /* Efecto hover */
+
     &:hover:not(:disabled) {
-        background: #f9fafb;         /* Fondo gris muy claro */
-        border-color: #4b5563;       /* Borde gris más oscuro */
-        color: #4b5563;              /* Texto gris más oscuro */
-        transform: translateY(-1px); /* Elevación ligera */
+        background: #f9fafb;
+        border-color: #4b5563;
+        color: #4b5563;
+        transform: translateY(-1px);
     }
 
-    /* Responsive: Ancho completo en móviles */
+
     @media (max-width: 768px) {
-        width: 100%;                /* Ancho completo */
-        padding: 10px 20px;         /* Espaciado reducido */
+        width: 100%;
+        padding: 10px 20px;
     }
 }
 
-/* ===== SECCIÓN DE ACTIVIDAD RESPONSIVE ===== */
-/* Encabezado de la sección de actividad */
+
+
 .activity-header-section-responsive {
-    margin-bottom: 24px;            /* Margen inferior */
+    margin-bottom: 24px;
 }
 
-/* Controles de actividad */
+
 .activity-controls-responsive {
-    display: flex;                  /* Layout flexbox */
-    gap: 12px;                      /* Espacio entre elementos */
-    justify-content: flex-end;      /* Alineación a la derecha */
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;     /* Disposición vertical */
-        gap: 8px;                   /* Espacio reducido */
+        flex-direction: column;
+        gap: 8px;
     }
 }
 
-/* Botón de refrescar actividades */
+
 .refresh-btn-responsive {
-    background: #2563eb !important; /* Fondo azul */
-    color: white !important;        /* Texto blanco */
-    font-weight: 500;               /* Peso medio */
-    padding: 8px 16px;              /* Espaciado interno */
-    border-radius: 8px;             /* Bordes redondeados */
-    transition: all 0.2s ease;      /* Transición suave */
+    background: #2563eb !important;
+    color: white !important;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 
-    /* Efecto hover */
+
     &:hover:not(:disabled) {
-        background: #1d4ed8 !important; /* Azul más oscuro */
-        transform: translateY(-1px);  /* Elevación ligera */
+        background: #1d4ed8 !important;
+        transform: translateY(-1px);
     }
 
-    /* Responsive: Ancho completo en móviles */
+
     @media (max-width: 768px) {
-        width: 100%;                /* Ancho completo */
+        width: 100%;
     }
 }
 
-/* Contenedor de actividades */
+
 .activity-container-responsive {
-    min-height: 300px;              /* Altura mínima */
+    min-height: 300px;
 }
 
-/* Contenedor de carga de actividades */
+
 .loading-container-responsive {
-    display: flex;                  /* Layout flexbox */
-    flex-direction: column;         /* Disposición vertical */
-    align-items: center;            /* Centrado horizontal */
-    justify-content: center;        /* Centrado vertical */
-    padding: 60px 20px;             /* Espaciado interno */
-    color: #64748b;                 /* Color gris */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #64748b;
 
-    /* Icono de carga */
+
     .loading-icon-responsive {
-        font-size: 48px !important;  /* Tamaño grande */
-        width: 48px;                 /* Ancho del icono */
-        height: 48px;                /* Alto del icono */
-        margin-bottom: 16px;         /* Margen inferior */
-        animation: spin 1s linear infinite; /* Animación de rotación */
-        color: #2563eb;              /* Color azul */
+        font-size: 48px !important;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+        animation: spin 1s linear infinite;
+        color: #2563eb;
     }
 
-    /* Texto de carga */
+
     p {
-        margin: 0;                   /* Sin margen */
-        font-size: 16px;             /* Tamaño de fuente */
-        font-weight: 500;            /* Peso medio */
+        margin: 0;
+        font-size: 16px;
+        font-weight: 500;
     }
 }
 
-/* Animación de rotación para el icono de carga */
+
 @keyframes spin {
     from {
-        transform: rotate(0deg);     /* Inicio: sin rotación */
+        transform: rotate(0deg);
     }
     to {
-        transform: rotate(360deg);   /* Fin: rotación completa */
+        transform: rotate(360deg);
     }
 }
 
-/* Lista de actividades */
+
 .activity-list-responsive {
-    display: flex;                   /* Layout flexbox */
-    flex-direction: column;          /* Disposición vertical */
-    gap: 12px;                       /* Espacio entre elementos */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-/* Elemento individual de actividad */
+
 .activity-item-responsive {
-    display: flex;                   /* Layout flexbox */
-    gap: 12px;                       /* Espacio entre elementos */
-    padding: 16px;                   /* Espaciado interno */
-    background: white;               /* Fondo blanco */
-    border: 1px solid #e2e8f0;      /* Borde gris claro */
-    border-radius: 8px;              /* Bordes redondeados */
-    transition: all 0.2s ease;       /* Transición suave */
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 
-    /* Efecto hover */
+
     &:hover {
-        border-color: #cbd5e1;       /* Borde gris más oscuro */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Sombra suave */
-        transform: translateY(-1px);  /* Elevación ligera */
+        border-color: #cbd5e1;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
     }
 
-    /* Responsive: Cambiar disposición en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;      /* Disposición vertical */
-        gap: 8px;                    /* Espacio reducido */
-        padding: 12px;               /* Espaciado reducido */
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
     }
 }
 
-/* Icono de actividad */
-.activity-icon-responsive {
-    flex-shrink: 0;                  /* No reducir tamaño */
-    width: 40px;                     /* Ancho fijo */
-    height: 40px;                    /* Alto fijo */
-    border-radius: 50%;              /* Forma circular */
-    background: #eff6ff;             /* Fondo azul muy claro */
-    display: flex;                   /* Layout flexbox */
-    align-items: center;             /* Centrado vertical */
-    justify-content: center;         /* Centrado horizontal */
 
-    /* Icono dentro del contenedor */
+.activity-icon-responsive {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+
     mat-icon {
-        color: #2563eb;              /* Color azul */
-        font-size: 20px !important;  /* Tamaño del icono */
+        color: #2563eb;
+        font-size: 20px !important;
     }
 
-    /* Variaciones de color según el módulo */
+
     &.icon-auth {
-        background: #fef3c7;         /* Fondo amarillo claro */
-        mat-icon { color: #d97706; } /* Icono naranja */
+        background: #fef3c7;
+        mat-icon { color: #d97706; }
     }
 
     &.icon-profile {
-        background: #dcfce7;         /* Fondo verde claro */
-        mat-icon { color: #16a34a; } /* Icono verde */
+        background: #dcfce7;
+        mat-icon { color: #16a34a; }
     }
 
     &.icon-security {
-        background: #fee2e2;         /* Fondo rojo claro */
-        mat-icon { color: #dc2626; } /* Icono rojo */
+        background: #fee2e2;
+        mat-icon { color: #dc2626; }
     }
 }
 
-/* Contenido de actividad */
+
 .activity-content-responsive {
-    flex: 1;                         /* Ocupar espacio disponible */
-    min-width: 0;                    /* Permitir reducción */
+    flex: 1;
+    min-width: 0;
 }
 
-/* Encabezado de actividad */
+
 .activity-header-responsive {
-    display: flex;                   /* Layout flexbox */
-    justify-content: space-between;  /* Espacio entre elementos */
-    align-items: flex-start;         /* Alineación superior */
-    margin-bottom: 8px;              /* Margen inferior */
-    gap: 12px;                       /* Espacio entre elementos */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 12px;
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;      /* Disposición vertical */
-        gap: 4px;                    /* Espacio reducido */
+        flex-direction: column;
+        gap: 4px;
     }
 }
 
-/* Título de actividad */
+
 .activity-title-responsive {
-    margin: 0;                       /* Sin margen */
-    font-size: 15px;                 /* Tamaño de fuente */
-    font-weight: 600;                /* Peso semi-bold */
-    color: #1e293b;                  /* Color gris oscuro */
-    line-height: 1.4;                /* Altura de línea */
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.4;
 }
 
-/* Metadatos de actividad */
+
 .activity-meta-responsive {
-    display: flex;                   /* Layout flexbox */
-    align-items: center;             /* Alineación vertical centrada */
-    gap: 8px;                        /* Espacio entre elementos */
-    flex-wrap: wrap;                 /* Permitir salto de línea */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
-/* Tiempo de actividad */
+
 .activity-time-responsive {
-    font-size: 13px;                 /* Tamaño de fuente pequeño */
-    color: #64748b;                  /* Color gris */
-    font-weight: 500;                /* Peso medio */
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
 }
 
-/* Descripción de actividad */
+
 .activity-description-responsive {
-    margin: 0 0 12px 0;              /* Margen solo inferior */
-    font-size: 14px;                 /* Tamaño de fuente */
-    color: #475569;                  /* Color gris medio */
-    line-height: 1.5;                /* Altura de línea */
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.5;
 }
 
-/* Días restantes */
+
 .days-remaining-responsive {
-    display: inline-flex;            /* Layout flexbox inline */
-    align-items: center;             /* Alineación vertical centrada */
-    gap: 4px;                        /* Espacio entre elementos */
-    padding: 4px 8px;                /* Espaciado interno */
-    border-radius: 12px;             /* Bordes muy redondeados */
-    font-size: 12px;                 /* Tamaño de fuente pequeño */
-    font-weight: 600;                /* Peso semi-bold */
-    background: #dcfce7;             /* Fondo verde claro */
-    color: #166534;                  /* Texto verde oscuro */
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #dcfce7;
+    color: #166534;
 
-    /* Icono de temporizador */
+
     .timer-icon-responsive {
-        font-size: 14px !important;  /* Tamaño del icono */
-        width: 14px;                 /* Ancho del icono */
-        height: 14px;                /* Alto del icono */
+        font-size: 14px !important;
+        width: 14px;
+        height: 14px;
     }
 
-    /* Estado: expirando pronto */
+
     &.expiring-soon {
-        background: #fef3c7;         /* Fondo amarillo claro */
-        color: #92400e;              /* Texto marrón oscuro */
+        background: #fef3c7;
+        color: #92400e;
     }
 
-    /* Estado: expirado */
+
     &.expired {
-        background: #fee2e2;         /* Fondo rojo claro */
-        color: #991b1b;              /* Texto rojo oscuro */
+        background: #fee2e2;
+        color: #991b1b;
     }
 }
 
-/* Chips de módulo */
-.module-chip-responsive {
-    font-size: 11px !important;      /* Tamaño de fuente muy pequeño */
-    font-weight: 600 !important;     /* Peso semi-bold */
-    padding: 4px 8px !important;     /* Espaciado interno */
-    border-radius: 12px !important;  /* Bordes muy redondeados */
-    height: auto !important;         /* Altura automática */
 
-    /* Variaciones de color según el módulo */
+.module-chip-responsive {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    height: auto !important;
+
+
     &.module-auth {
-        background: #fef3c7 !important; /* Fondo amarillo claro */
-        color: #92400e !important;   /* Texto marrón oscuro */
+        background: #fef3c7 !important;
+        color: #92400e !important;
     }
 
     &.module-profile {
-        background: #dcfce7 !important; /* Fondo verde claro */
-        color: #166534 !important;   /* Texto verde oscuro */
+        background: #dcfce7 !important;
+        color: #166534 !important;
     }
 
     &.module-security {
-        background: #fee2e2 !important; /* Fondo rojo claro */
-        color: #991b1b !important;   /* Texto rojo oscuro */
+        background: #fee2e2 !important;
+        color: #991b1b !important;
     }
 
     &.module-machines {
-        background: #dbeafe !important; /* Fondo azul claro */
-        color: #1e40af !important;   /* Texto azul oscuro */
+        background: #dbeafe !important;
+        color: #1e40af !important;
     }
 
     &.module-design {
-        background: #f3e8ff !important; /* Fondo morado claro */
-        color: #6b21a8 !important;   /* Texto morado oscuro */
+        background: #f3e8ff !important;
+        color: #6b21a8 !important;
     }
 
     &.module-reports {
-        background: #fce7f3 !important; /* Fondo rosa claro */
-        color: #9f1239 !important;   /* Texto rosa oscuro */
+        background: #fce7f3 !important;
+        color: #9f1239 !important;
     }
 
     &.module-settings {
-        background: #f1f5f9 !important; /* Fondo gris claro */
-        color: #475569 !important;   /* Texto gris oscuro */
+        background: #f1f5f9 !important;
+        color: #475569 !important;
     }
 }
 
-/* Chip de advertencia de expiración */
+
 .expiring-chip-responsive {
-    background: #fef3c7 !important;  /* Fondo amarillo claro */
-    color: #92400e !important;       /* Texto marrón oscuro */
-    font-size: 11px !important;      /* Tamaño de fuente muy pequeño */
-    font-weight: 600 !important;     /* Peso semi-bold */
-    padding: 4px 8px !important;     /* Espaciado interno */
-    border-radius: 12px !important;  /* Bordes muy redondeados */
-    height: auto !important;         /* Altura automática */
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    height: auto !important;
 
-    /* Icono de advertencia */
+
     mat-icon {
-        font-size: 14px !important;  /* Tamaño del icono */
-        width: 14px;                 /* Ancho del icono */
-        height: 14px;                /* Alto del icono */
-        margin-right: 4px;           /* Margen derecho */
+        font-size: 14px !important;
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
     }
 }
 
-/* Estado vacío de actividades */
-/* Muestra un mensaje cuando no hay actividades registradas */
+
+
 .empty-activity-responsive {
-    display: flex;                   /* Layout flexbox - permite alinear elementos */
-    flex-direction: column;          /* Disposición vertical - elementos uno debajo del otro */
-    align-items: center;             /* Centrado horizontal - centra elementos en el eje X */
-    justify-content: center;         /* Centrado vertical - centra elementos en el eje Y */
-    padding: 60px 20px;              /* Espaciado interno - 60px arriba/abajo, 20px izq/der */
-    text-align: center;              /* Centrado de texto - alinea el texto al centro */
-    color: #64748b;                  /* Color gris - color de texto por defecto */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: #64748b;
 
-    /* Icono de estado vacío */
-    /* Muestra un icono grande para indicar que no hay datos */
+
+
     mat-icon {
-        font-size: 64px !important;  /* Tamaño muy grande - icono prominente */
-        width: 64px;                 /* Ancho del icono - dimensión horizontal */
-        height: 64px;                /* Alto del icono - dimensión vertical */
-        margin-bottom: 16px;         /* Margen inferior - espacio debajo del icono */
-        opacity: 0.4;                /* Opacidad reducida - icono semi-transparente */
-        color: #cbd5e1;              /* Color gris claro - tono suave */
+        font-size: 64px !important;
+        width: 64px;
+        height: 64px;
+        margin-bottom: 16px;
+        opacity: 0.4;
+        color: #cbd5e1;
     }
 
-    /* Título de estado vacío */
-    /* Mensaje principal que indica que no hay actividades */
+
+
     h3 {
-        margin: 0 0 8px 0;           /* Margen solo inferior - espacio debajo del título */
-        font-size: 18px;             /* Tamaño de fuente - texto mediano */
-        font-weight: 600;            /* Peso semi-bold - texto destacado */
-        color: #6b7280;              /* Color gris - tono medio */
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #6b7280;
     }
 
-    /* Descripción de estado vacío */
-    /* Texto secundario con información adicional */
+
+
     p {
-        margin: 0;                   /* Sin margen - sin espacios externos */
-        font-size: 14px;             /* Tamaño de fuente - texto pequeño */
-        color: #9ca3af;              /* Color gris claro - texto secundario */
+        margin: 0;
+        font-size: 14px;
+        color: #9ca3af;
     }
 }
 
-/* Botón de cambiar contraseña */
+
 .change-password-button-responsive {
-    background: #dc2626 !important; /* Fondo rojo */
-    color: white !important;        /* Texto blanco */
-    font-weight: 600 !important;    /* Peso semi-bold */
-    padding: 12px 24px !important;  /* Espaciado interno */
-    border-radius: 8px !important;  /* Bordes redondeados */
-    min-width: 180px;               /* Ancho mínimo */
-    transition: all 0.3s ease;     /* Transición suave */
+    background: #dc2626 !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    min-width: 180px;
+    transition: all 0.3s ease;
 
-    /* Efecto hover */
+
     &:hover:not(:disabled) {
-        background: #b91c1c !important; /* Rojo más oscuro */
-        transform: translateY(-2px); /* Elevación */
-        box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3); /* Sombra roja */
+        background: #b91c1c !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
     }
 
-    /* Estado deshabilitado */
+
     &:disabled {
-        opacity: 0.6 !important;    /* Opacidad reducida */
-        cursor: not-allowed;        /* Cursor de no permitido */
-        transform: none !important; /* Sin transformación */
+        opacity: 0.6 !important;
+        cursor: not-allowed;
+        transform: none !important;
     }
 
-    /* Responsive: Ancho completo en móviles */
+
     @media (max-width: 768px) {
-        width: 100%;                /* Ancho completo */
-        min-width: auto;            /* Sin ancho mínimo */
+        width: 100%;
+        min-width: auto;
     }
 }
 
-/* Botón de restablecer */
+
 .reset-button-responsive {
-    border-color: #6b7280 !important; /* Borde gris */
-    color: #6b7280 !important;      /* Texto gris */
-    font-weight: 500 !important;    /* Peso medio */
-    padding: 12px 24px !important;  /* Espaciado interno */
-    border-radius: 8px !important;  /* Bordes redondeados */
-    min-width: 140px;               /* Ancho mínimo */
-    transition: all 0.3s ease;     /* Transición suave */
+    border-color: #6b7280 !important;
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    min-width: 140px;
+    transition: all 0.3s ease;
 
-    /* Efecto hover */
+
     &:hover:not(:disabled) {
-        background: #f9fafb !important; /* Fondo gris muy claro */
-        border-color: #4b5563 !important; /* Borde gris más oscuro */
-        color: #4b5563 !important;  /* Texto gris más oscuro */
-        transform: translateY(-1px); /* Elevación ligera */
+        background: #f9fafb !important;
+        border-color: #4b5563 !important;
+        color: #4b5563 !important;
+        transform: translateY(-1px);
     }
 
-    /* Estado deshabilitado */
+
     &:disabled {
-        opacity: 0.5 !important;    /* Opacidad reducida */
-        cursor: not-allowed;        /* Cursor de no permitido */
+        opacity: 0.5 !important;
+        cursor: not-allowed;
     }
 
-    /* Responsive: Ancho completo en móviles */
+
     @media (max-width: 768px) {
-        width: 100%;                /* Ancho completo */
-        min-width: auto;            /* Sin ancho mínimo */
+        width: 100%;
+        min-width: auto;
     }
 }
 
-/* ===== SECCIÓN DE HISTORIAL DE ACTIVIDAD ===== */
-/* Encabezado de la sección de actividad */
+
+
 .activity-header-section-responsive {
-    display: flex;                  /* Layout flexbox */
-    justify-content: space-between; /* Espacio entre elementos */
-    align-items: center;            /* Alineación vertical centrada */
-    margin-bottom: 24px;            /* Margen inferior */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;     /* Disposición vertical */
-        gap: 16px;                  /* Espacio entre elementos */
-        text-align: center;         /* Centrado de texto */
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
     }
 }
 
-/* Controles de actividad */
+
 .activity-controls-responsive {
-    display: flex;                  /* Layout flexbox */
-    gap: 8px;                       /* Espacio entre botones */
+    display: flex;
+    gap: 8px;
 }
 
-/* Botón de actualizar actividad */
-.refresh-btn-responsive {
-    background: #2563eb !important; /* Fondo azul */
-    color: white !important;        /* Texto blanco */
-    font-weight: 500 !important;    /* Peso medio */
-    padding: 8px 16px !important;   /* Espaciado interno */
-    border-radius: 6px !important;  /* Bordes redondeados */
-    transition: all 0.2s ease;     /* Transición suave */
 
-    /* Efecto hover */
+.refresh-btn-responsive {
+    background: #2563eb !important;
+    color: white !important;
+    font-weight: 500 !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease;
+
+
     &:hover:not(:disabled) {
-        background: #1d4ed8 !important; /* Azul más oscuro */
-        transform: translateY(-1px); /* Elevación ligera */
+        background: #1d4ed8 !important;
+        transform: translateY(-1px);
     }
 }
 
-/* Contenedor de actividades */
+
 .activity-container-responsive {
-    min-height: 300px;              /* Altura mínima */
-    position: relative;             /* Posición relativa */
+    min-height: 300px;
+    position: relative;
 }
 
-/* Contenedor de carga */
-.loading-container-responsive {
-    display: flex;                  /* Layout flexbox */
-    flex-direction: column;         /* Disposición vertical */
-    align-items: center;            /* Centrado horizontal */
-    justify-content: center;        /* Centrado vertical */
-    height: 200px;                  /* Altura fija */
-    color: #64748b;                 /* Color gris */
 
-    /* Icono de carga */
+.loading-container-responsive {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #64748b;
+
+
     .loading-icon-responsive {
-        font-size: 32px !important;  /* Tamaño grande */
-        margin-bottom: 8px;         /* Margen inferior */
-        animation: spin 1s linear infinite; /* Animación de rotación */
+        font-size: 32px !important;
+        margin-bottom: 8px;
+        animation: spin 1s linear infinite;
     }
 
     p {
-        margin: 0;                  /* Sin margen */
-        font-size: 14px;            /* Tamaño de fuente */
-        font-weight: 500;           /* Peso medio */
+        margin: 0;
+        font-size: 14px;
+        font-weight: 500;
     }
 }
 
-/* Animación de rotación */
+
 @keyframes spin {
-    from { transform: rotate(0deg); }    /* Inicio: sin rotación */
-    to { transform: rotate(360deg); }    /* Final: rotación completa */
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* Lista de actividades */
+
 .activity-list-responsive {
-    display: flex;                  /* Layout flexbox */
-    flex-direction: column;         /* Disposición vertical */
-    gap: 16px;                      /* Espacio entre elementos */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-/* Elemento individual de actividad */
+
 .activity-item-responsive {
-    display: flex;                  /* Layout flexbox */
-    gap: 16px;                      /* Espacio entre elementos */
-    padding: 16px;                  /* Espaciado interno */
-    background: #f8fafc;            /* Fondo gris muy claro */
-    border-radius: 8px;             /* Bordes redondeados */
-    border: 1px solid #e2e8f0;     /* Borde gris claro */
-    transition: all 0.2s ease;     /* Transición suave */
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
 
-    /* Efecto hover */
+
     &:hover {
-        background: #f1f5f9;        /* Fondo ligeramente más oscuro */
-        border-color: #cbd5e1;      /* Borde más oscuro */
-        transform: translateY(-1px); /* Elevación ligera */
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Sombra suave */
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;     /* Disposición vertical */
-        text-align: center;         /* Centrado de texto */
-        gap: 12px;                  /* Espacio reducido */
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
     }
 }
 
-/* Icono de actividad */
+
 .activity-icon-responsive {
-    flex-shrink: 0;                 /* No reducir tamaño */
-    width: 40px;                    /* Ancho fijo */
-    height: 40px;                   /* Alto fijo */
-    border-radius: 50%;             /* Forma circular */
-    display: flex;                  /* Layout flexbox */
-    align-items: center;            /* Centrado vertical */
-    justify-content: center;        /* Centrado horizontal */
-    background: #dbeafe;            /* Fondo azul claro */
-    color: #2563eb;                 /* Color azul */
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dbeafe;
+    color: #2563eb;
 
-    /* Icono dentro del contenedor */
+
     mat-icon {
-        font-size: 20px !important;  /* Tamaño del icono */
-        width: 20px;                /* Ancho del icono */
-        height: 20px;               /* Alto del icono */
+        font-size: 20px !important;
+        width: 20px;
+        height: 20px;
     }
 
-    /* Responsive: Centrado en móviles */
+
     @media (max-width: 768px) {
-        align-self: center;         /* Centrar elemento */
+        align-self: center;
     }
 }
 
-/* Contenido de actividad */
+
 .activity-content-responsive {
-    flex: 1;                        /* Ocupar espacio disponible */
-    min-width: 0;                   /* Permitir reducción */
+    flex: 1;
+    min-width: 0;
 }
 
-/* Encabezado de actividad */
+
 .activity-header-responsive {
-    display: flex;                  /* Layout flexbox */
-    justify-content: space-between; /* Espacio entre elementos */
-    align-items: flex-start;        /* Alineación superior */
-    margin-bottom: 8px;             /* Margen inferior */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
 
-    /* Responsive: Cambiar a columna en móviles */
+
     @media (max-width: 768px) {
-        flex-direction: column;     /* Disposición vertical */
-        align-items: center;        /* Centrado horizontal */
-        text-align: center;         /* Centrado de texto */
-        gap: 4px;                   /* Espacio entre elementos */
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 4px;
     }
 }
 
-/* Título de actividad */
+
 .activity-title-responsive {
-    margin: 0;                      /* Sin margen */
-    font-size: 16px;                /* Tamaño de fuente */
-    font-weight: 600;               /* Peso semi-bold */
-    color: #1e293b;                 /* Color gris oscuro */
-    line-height: 1.3;              /* Altura de línea */
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.3;
 }
 
-/* Metadatos de actividad */
+
 .activity-meta-responsive {
-    display: flex;                  /* Layout flexbox */
-    flex-direction: column;         /* Disposición vertical */
-    align-items: flex-end;          /* Alineación derecha */
-    gap: 4px;                       /* Espacio entre elementos */
-    font-size: 12px;                /* Tamaño de fuente pequeño */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    font-size: 12px;
 
-    /* Responsive: Centrado en móviles */
+
     @media (max-width: 768px) {
-        align-items: center;        /* Centrado horizontal */
+        align-items: center;
     }
 }
 
-/* Tiempo de actividad */
+
 .activity-time-responsive {
-    color: #64748b;                 /* Color gris */
-    font-weight: 500;               /* Peso medio */
+    color: #64748b;
+    font-weight: 500;
 }
 
-/* Días restantes */
+
 .days-remaining-responsive {
-    display: flex;                  /* Layout flexbox */
-    align-items: center;            /* Alineación vertical centrada */
-    gap: 4px;                       /* Espacio entre elementos */
-    color: #059669;                 /* Color verde */
-    font-weight: 500;               /* Peso medio */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #059669;
+    font-weight: 500;
 
-    /* Icono de tiempo */
+
     .timer-icon-responsive {
-        font-size: 14px !important;  /* Tamaño del icono */
-        width: 14px;                /* Ancho del icono */
-        height: 14px;               /* Alto del icono */
+        font-size: 14px !important;
+        width: 14px;
+        height: 14px;
     }
 
-    /* Estado expirando pronto */
+
     &.expiring-soon {
-        color: #d97706;             /* Color naranja */
+        color: #d97706;
     }
 
-    /* Estado expirado */
+
     &.expired {
-        color: #dc2626;             /* Color rojo */
+        color: #dc2626;
     }
 }
 
-/* Descripción de actividad */
+
 .activity-description-responsive {
-    margin: 0 0 12px 0;             /* Margen solo inferior */
-    font-size: 14px;                /* Tamaño de fuente */
-    color: #64748b;                 /* Color gris */
-    line-height: 1.4;               /* Altura de línea */
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.4;
 }
 
-/* Chip de módulo */
-.module-chip-responsive {
-    font-size: 11px !important;     /* Tamaño de fuente pequeño */
-    font-weight: 600 !important;    /* Peso semi-bold */
-    padding: 4px 8px !important;    /* Espaciado interno */
-    border-radius: 12px !important; /* Bordes muy redondeados */
-    background: #e2e8f0 !important; /* Fondo gris claro */
-    color: #475569 !important;      /* Texto gris oscuro */
 
-    /* Variaciones por módulo */
+.module-chip-responsive {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    background: #e2e8f0 !important;
+    color: #475569 !important;
+
+
     &.module-auth {
-        background: #dbeafe !important; /* Fondo azul claro */
-        color: #1e40af !important;   /* Texto azul oscuro */
+        background: #dbeafe !important;
+        color: #1e40af !important;
     }
 
     &.module-profile {
-        background: #dcfce7 !important; /* Fondo verde claro */
-        color: #166534 !important;   /* Texto verde oscuro */
+        background: #dcfce7 !important;
+        color: #166534 !important;
     }
 
     &.module-machines {
-        background: #fef3c7 !important; /* Fondo amarillo claro */
-        color: #92400e !important;   /* Texto amarillo oscuro */
+        background: #fef3c7 !important;
+        color: #92400e !important;
     }
 
     &.module-design {
-        background: #fce7f3 !important; /* Fondo rosa claro */
-        color: #be185d !important;   /* Texto rosa oscuro */
+        background: #fce7f3 !important;
+        color: #be185d !important;
     }
 
     &.module-reports {
-        background: #e0e7ff !important; /* Fondo índigo claro */
-        color: #3730a3 !important;   /* Texto índigo oscuro */
+        background: #e0e7ff !important;
+        color: #3730a3 !important;
     }
 }
 
-/* Chip de expiración */
+
 .expiring-chip-responsive {
-    background: #fed7aa !important;  /* Fondo naranja claro */
-    color: #c2410c !important;      /* Texto naranja oscuro */
-    font-size: 10px !important;     /* Tamaño de fuente muy pequeño */
-    font-weight: 600 !important;    /* Peso semi-bold */
-    padding: 2px 6px !important;    /* Espaciado interno pequeño */
+    background: #fed7aa !important;
+    color: #c2410c !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    padding: 2px 6px !important;
 
-    /* Icono dentro del chip */
+
     mat-icon {
-        font-size: 12px !important;  /* Tamaño del icono */
-        width: 12px;                /* Ancho del icono */
-        height: 12px;               /* Alto del icono */
-        margin-right: 2px;          /* Margen derecho */
+        font-size: 12px !important;
+        width: 12px;
+        height: 12px;
+        margin-right: 2px;
     }
 }
 
-/* Estado vacío de actividad */
+
 .empty-activity-responsive {
-    display: flex;                  /* Layout flexbox */
-    flex-direction: column;         /* Disposición vertical */
-    align-items: center;            /* Centrado horizontal */
-    justify-content: center;        /* Centrado vertical */
-    height: 200px;                  /* Altura fija */
-    color: #9ca3af;                 /* Color gris claro */
-    text-align: center;             /* Centrado de texto */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #9ca3af;
+    text-align: center;
 
-    /* Icono de estado vacío */
+
     mat-icon {
-        font-size: 48px !important;  /* Tamaño grande */
-        width: 48px;                /* Ancho del icono */
-        height: 48px;               /* Alto del icono */
-        margin-bottom: 16px;        /* Margen inferior */
-        opacity: 0.6;               /* Opacidad reducida */
+        font-size: 48px !important;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+        opacity: 0.6;
     }
 
-    /* Título de estado vacío */
+
     h3 {
-        margin: 0 0 8px 0;          /* Margen solo inferior */
-        font-size: 18px;            /* Tamaño de fuente */
-        font-weight: 600;           /* Peso semi-bold */
-        color: #6b7280;             /* Color gris */
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #6b7280;
     }
 
-    /* Descripción de estado vacío */
+
     p {
-        margin: 0;                  /* Sin margen */
-        font-size: 14px;            /* Tamaño de fuente */
-        color: #9ca3af;             /* Color gris claro */
+        margin: 0;
+        font-size: 14px;
+        color: #9ca3af;
     }
 }
 
-/* ===== RESPONSIVE BREAKPOINTS ADICIONALES ===== */
-/* Tablet en orientación vertical */
+
+
 @media (max-width: 1024px) and (min-width: 769px) {
     .profile-content-scrollable {
-        padding: 16px;              /* Espaciado reducido */
+        padding: 16px;
     }
-    
+
     .profile-header-responsive {
-        padding: 20px;              /* Espaciado reducido */
+        padding: 20px;
     }
-    
+
     .tab-content-responsive {
-        padding: 20px;              /* Espaciado reducido */
+        padding: 20px;
     }
 }
 
-/* Móviles pequeños */
+
 @media (max-width: 480px) {
     .profile-content-scrollable {
-        padding: 12px;              /* Espaciado mínimo */
+        padding: 12px;
     }
-    
+
     .profile-header-responsive {
-        padding: 16px;              /* Espaciado mínimo */
+        padding: 16px;
     }
-    
+
     .tab-content-responsive {
-        padding: 12px;              /* Espaciado mínimo */
+        padding: 12px;
     }
-    
+
     .user-name-responsive {
-        font-size: 20px;            /* Fuente más pequeña */
+        font-size: 20px;
     }
-    
+
     .form-section-title-responsive {
-        font-size: 16px;            /* Fuente más pequeña */
+        font-size: 16px;
     }
 }

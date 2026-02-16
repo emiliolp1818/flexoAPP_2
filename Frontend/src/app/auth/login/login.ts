@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
-// Angular Material imports
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,7 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 
-// Services
+
 import { AuthService, LoginRequest } from '../../core/services/auth.service';
 import { TimeFormatService } from '../../core/services/time-format.service';
 
@@ -24,7 +24,7 @@ import { environment } from '../../../environments/environment';
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -42,8 +42,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
   errorMessage = signal('');
 
-  
-  // Clock signals
+
+
   currentTime = signal('');
   currentDate = signal('');
   private clockInterval: any;
@@ -61,52 +61,48 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Si ya está logueado, redirigir
+
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
     }
 
-    // Inicializar reloj
+
     this.initializeClock();
   }
 
   ngOnDestroy(): void {
-    // Limpiar interval del reloj
+
     if (this.clockInterval) {
       clearInterval(this.clockInterval);
     }
   }
 
-  /**
-   * Inicializar reloj en tiempo real
-   */
+
   private initializeClock(): void {
-    // Actualizar inmediatamente
+
     this.updateClock();
-    
-    // Actualizar cada segundo
+
+
     this.clockInterval = setInterval(() => {
       this.updateClock();
     }, 1000);
   }
 
-  /**
-   * Actualizar hora y fecha actuales
-   */
+
   private updateClock(): void {
     const now = new Date();
-    
-    // Formatear hora usando el servicio de formato de hora
+
+
     const timeString = this.timeFormatService.formatTime(now);
-    
-    // Formatear fecha (Día, DD de Mes de YYYY)
+
+
     const dateString = now.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-    
+
     this.currentTime.set(timeString);
     this.currentDate.set(dateString.charAt(0).toUpperCase() + dateString.slice(1));
   }
@@ -115,15 +111,15 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.loginForm.valid && !this.isLoading()) {
       this.isLoading.set(true);
       this.errorMessage.set('');
-      
+
       const credentials: LoginRequest = {
         userCode: this.loginForm.value.userCode,
         password: this.loginForm.value.password
       };
 
-      console.log('🔄 Intentando login con:', { 
-        userCode: credentials.userCode, 
-        apiUrl: environment.apiUrl 
+      console.log('🔄 Intentando login con:', {
+        userCode: credentials.userCode,
+        apiUrl: environment.apiUrl
       });
 
       this.authService.login(credentials)
@@ -135,7 +131,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             console.log('📥 Respuesta del servidor:', response);
-            // Si tenemos token y user, el login fue exitoso
+
             if (response.token && response.user) {
               console.log('✅ Login exitoso:', response.user);
               this.router.navigate(['/dashboard']);
@@ -151,10 +147,10 @@ export class LoginComponent implements OnInit, OnDestroy {
               message: error.message,
               url: error.url
             });
-            
+
             let errorMsg = 'Error de conexión';
             let errorDetails = '';
-            
+
             if (error.status === 401) {
               errorMsg = 'Usuario o contraseña incorrectos';
             } else if (error.status === 0) {
@@ -171,14 +167,14 @@ export class LoginComponent implements OnInit, OnDestroy {
             } else if (error.message) {
               errorMsg = error.message;
             }
-            
-            // Mostrar error detallado en consola para debugging móvil
+
+
             console.error('🔴 ERROR DE LOGIN:', errorMsg);
             if (errorDetails) {
               console.error('📋 Detalles:', errorDetails);
             }
-            
-            // Mostrar en UI
+
+
             this.errorMessage.set(errorMsg + (errorDetails ? '\n\n' + errorDetails : ''));
           }
         });

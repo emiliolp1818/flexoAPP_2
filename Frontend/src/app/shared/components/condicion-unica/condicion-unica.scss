@@ -1,9 +1,9 @@
-// ===== ESTILOS COMPLETOS PARA GESTIÓN DE CONDICIÓN ÚNICA =====
-// Sistema completo de gestión con paleta del perfil aplicada
-// Diseño moderno y profesional copiado del componente de diseño
-// Incluye optimizaciones de rendimiento y carga rápida de datos
 
-// ===== PALETA DE COLORES COPIADA DEL PERFIL =====
+
+
+
+
+
 $primary-blue: #2563eb;
 $primary-blue-light: #3b82f6;
 $primary-blue-dark: #1d4ed8;
@@ -35,7 +35,7 @@ $gray-700: #334155;
 $gray-800: #1e293b;
 $gray-900: #0f172a;
 
-// ===== CONTENEDOR PRINCIPAL =====
+
 :host {
   display: block;
   width: 100vw;
@@ -46,31 +46,31 @@ $gray-900: #0f172a;
   overflow: auto;
 }
 
-// ===== CONTENEDOR DE CONDICIÓN ÚNICA =====
+
 .condicion-container {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh; // Altura completa de la ventana
+  height: 100vh;
   margin: 0;
   padding: 0px;
   background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
-  overflow: hidden; // Sin scroll en el contenedor principal
+  overflow: hidden;
   padding-top: 16px;
   position: relative;
-  min-height: 100vh; // Asegurar altura mínima
+  min-height: 100vh;
 }
 
-// ===== HEADER FIJO - COMPACTO =====
+
 .condicion-header {
   position: relative;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 12px; // Bordes más compactos
-  padding: 12px; // Padding reducido
+  border-radius: 12px;
+  padding: 12px;
   margin: 12px;
-  margin-bottom: 8px; // Margen inferior reducido
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); // Sombra más sutil
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
   overflow: visible;
@@ -84,7 +84,7 @@ $gray-900: #0f172a;
     top: 0;
     left: 0;
     right: 0;
-    height: 3px; // Borde superior más delgado
+    height: 3px;
     background: $primary-blue;
   }
 
@@ -96,7 +96,7 @@ $gray-900: #0f172a;
     margin: 0px;
     position: relative;
     z-index: 2;
-    min-height: 48px; // Altura mínima reducida
+    min-height: 48px;
     width: 100%;
 
     @media (max-width: 768px) {
@@ -109,7 +109,7 @@ $gray-900: #0f172a;
   .header-info {
     display: flex;
     flex-direction: column;
-    gap: 2px; // Gap reducido
+    gap: 2px;
     flex: 1;
     min-width: 0;
   }
@@ -117,17 +117,17 @@ $gray-900: #0f172a;
   .page-title {
     display: flex;
     align-items: center;
-    gap: 6px; // Gap reducido
+    gap: 6px;
     margin: 0;
     color: #1f2937;
-    font-size: 1.25rem; // Tamaño reducido
+    font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: -0.3px;
     white-space: nowrap;
     overflow: visible;
 
     mat-icon {
-      font-size: 20px; // Icono más pequeño
+      font-size: 20px;
       width: 20px;
       height: 20px;
       color: $primary-blue;
@@ -136,29 +136,29 @@ $gray-900: #0f172a;
   }
 
   .page-subtitle {
-    margin: 2px 0 0 0; // Margen reducido
+    margin: 2px 0 0 0;
     color: #4b5563;
-    font-size: 0.8rem; // Texto más pequeño
+    font-size: 0.8rem;
     font-weight: 500;
     line-height: 1.2;
   }
 
   .header-actions {
     display: flex;
-    gap: 6px; // Gap reducido
+    gap: 6px;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
 
     button {
-      padding: 6px 12px; // Padding reducido
-      border-radius: 8px; // Bordes más compactos
-      font-size: 0.85rem; // Texto más pequeño
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
       font-weight: 600;
       transition: all 0.2s ease;
 
       mat-icon {
-        font-size: 18px; // Icono más pequeño
+        font-size: 18px;
         width: 18px;
         height: 18px;
       }
@@ -170,191 +170,191 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== ÁREA DE BÚSQUEDA FIJA - ULTRA COMPACTA =====
+
 .search-area {
-  padding: 0px 12px 2px 12px; // Padding mínimo
+  padding: 0px 12px 2px 12px;
   background: transparent;
   flex-shrink: 0;
-  margin-top: -10px; // Margen negativo mayor para pegar más al header
+  margin-top: -10px;
   position: relative;
   z-index: 50;
 
   .search-card {
-    // Fondo blanco semi-transparente para efecto glassmorphism
+
     background: rgba(255, 255, 255, 0.95);
-    // Efecto de desenfoque del fondo (glassmorphism)
+
     backdrop-filter: blur(20px);
-    // Bordes redondeados solo en la parte inferior (para que la línea azul superior sea recta)
+
     border-radius: 0 0 8px 8px;
-    // Sombra sutil para dar profundidad a la tarjeta
+
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    // Borde gris claro en los lados y abajo
+
     border: 1px solid rgba(255, 255, 255, 0.3);
-    // Borde superior azul decorativo de 4px - LÍNEA AZUL VISIBLE
+
     border-top: 4px solid $primary-blue;
-    // Transición suave para efectos hover
+
     transition: all 0.3s ease;
-    // Posicionamiento relativo para elementos hijos absolutos
+
     position: relative;
-    // Overflow visible para que el borde superior no se recorte
+
     overflow: visible;
 
-    // Sección principal que contiene el campo de búsqueda y el botón limpiar
+
     .search-section {
-      // Flexbox para alinear horizontalmente el campo y el botón
+
       display: flex;
-      // Alinear verticalmente al centro
+
       align-items: center;
-      // Espacio de 6px entre el campo de búsqueda y el botón limpiar
+
       gap: 6px;
-      // Padding: 8px arriba (espacio desde la línea azul), 8px a los lados, 6px abajo
+
       padding: 8px 8px 6px 8px;
 
-      // Campo de búsqueda (mat-form-field)
+
       .search-field {
-        // Ocupar todo el espacio disponible (empujar el botón a la derecha)
+
         flex: 1;
-        
-        // Estilos profundos para componentes de Angular Material
-        // ::ng-deep permite modificar estilos de componentes encapsulados
+
+
+
         ::ng-deep {
-          // Contenedor principal del form field
+
           .mat-mdc-form-field {
-            // Sin margen superior para pegar al borde de la tarjeta
+
             margin-top: 0 !important;
-            // Sin margen inferior para diseño compacto
+
             margin-bottom: 0 !important;
           }
-          
-          // Contenedor del input (donde va el texto)
+
+
           .mat-mdc-form-field-infix {
-            // Padding superior de 10px para dar espacio al label flotante
+
             padding-top: 10px !important;
-            // Padding inferior de 10px para espacio del texto
+
             padding-bottom: 10px !important;
-            // Altura mínima de 40px para que el campo sea cómodo de usar
+
             min-height: 40px !important;
           }
-          
-          // Wrapper del campo de texto
+
+
           .mat-mdc-text-field-wrapper {
-            // Sin padding para diseño compacto
+
             padding: 0 !important;
-            // Sin margen superior
+
             margin-top: 0 !important;
           }
-          
-          // Contenedor de mensajes de error (oculto para ahorrar espacio)
+
+
           .mat-mdc-form-field-subscript-wrapper {
-            // Ocultar completamente el espacio de mensajes de error
+
             display: none;
           }
-          
-          // Input de texto
+
+
           input {
-            // Tamaño de fuente de 0.875rem (14px) para texto compacto
+
             font-size: 0.875rem;
-            // Altura de línea para centrar verticalmente el texto
+
             line-height: 1.5;
           }
-          
-          // Label flotante (placeholder que sube cuando escribes)
+
+
           .mat-mdc-form-field-label {
-            // Tamaño de fuente del label igual al input
+
             font-size: 0.875rem;
-            // Posición vertical del label cuando está arriba (flotando)
+
             top: 50% !important;
-            // Transformar para centrar verticalmente
+
             transform: translateY(-50%);
           }
-          
-          // Label cuando está flotando (cuando hay texto o focus)
+
+
           .mat-mdc-form-field-label.mdc-floating-label--float-above {
-            // Transformar para mover arriba cuando flota
+
             transform: translateY(-100%) scale(0.85);
           }
         }
       }
 
-      // Botón para limpiar la búsqueda (X)
+
       .clear-search-btn {
-        // No permitir que se encoja (mantener tamaño fijo)
+
         flex-shrink: 0;
-        // Ancho fijo de 32px para botón compacto
+
         width: 32px;
-        // Altura fija de 32px para botón cuadrado
+
         height: 32px;
-        
-        // Icono dentro del botón
+
+
         mat-icon {
-          // Tamaño del icono de 18px
+
           font-size: 18px;
-          // Ancho del icono
+
           width: 18px;
-          // Altura del icono
+
           height: 18px;
         }
       }
     }
 
-    // Sección de resultados de búsqueda (contador de resultados)
+
     .search-results {
-      // Padding: sin padding arriba, 8px a los lados, 6px abajo
+
       padding: 0 8px 6px 8px;
 
-      // Texto del contador de resultados
+
       .results-count {
-        // Color gris medio para texto secundario
+
         color: $gray-600;
-        // Tamaño de fuente pequeño de 0.8rem (12.8px)
+
         font-size: 0.8rem;
-        // Altura de línea compacta
+
         line-height: 1.2;
       }
     }
   }
 }
 
-// ===== ÁREA DE TABLA SCROLLABLE - MAXIMIZADA =====
+
 .scrollable-table-area {
-  flex: 1; // Ocupa todo el espacio disponible
+  flex: 1;
   overflow: hidden;
-  padding: 0 12px 0 12px; // Sin padding inferior para llegar al final
+  padding: 0 12px 0 12px;
   display: flex;
   flex-direction: column;
-  min-height: 0; // Importante para que el flex funcione correctamente
+  min-height: 0;
 }
 
-// ===== TARJETA DE TABLA - MAXIMIZADA =====
+
 .table-card {
-  flex: 1; // Ocupa todo el espacio disponible
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 16px; // Bordes más compactos
+  border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  margin-bottom: 12px; // Margen inferior para separar del borde
-  min-height: 0; // Importante para que el flex funcione
+  margin-bottom: 12px;
+  min-height: 0;
 
   mat-card-header {
     flex-shrink: 0;
-    padding: 8px 12px; // Padding muy reducido
+    padding: 8px 12px;
     border-bottom: 1px solid $gray-200;
 
     mat-card-title {
       display: flex;
       align-items: center;
-      gap: 6px; // Gap reducido
-      font-size: 0.9rem; // Tamaño muy reducido
+      gap: 6px;
+      font-size: 0.9rem;
       font-weight: 600;
       color: $gray-800;
 
       mat-icon {
         color: $primary-blue;
-        font-size: 18px; // Icono muy pequeño
+        font-size: 18px;
         width: 18px;
         height: 18px;
       }
@@ -362,16 +362,16 @@ $gray-900: #0f172a;
   }
 
   mat-card-content {
-    flex: 1; // Ocupa todo el espacio disponible
+    flex: 1;
     overflow: hidden;
     padding: 0;
     display: flex;
     flex-direction: column;
-    min-height: 0; // Importante para que el scroll funcione
+    min-height: 0;
   }
 }
 
-// ===== CONTENEDOR DE TABLA - CON SCROLL =====
+
 .table-container {
   flex: 1;
   overflow: auto;
@@ -401,7 +401,7 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== TABLA ESTILO EXCEL - DISEÑO UNIFORME CON DOCUMENTOS =====
+
 .excel-table {
   width: 100%;
   min-width: 800px;
@@ -413,7 +413,7 @@ $gray-900: #0f172a;
   border: 2px solid #e2e8f0;
   border-top: 3px solid $primary-blue;
 
-  // Header de la tabla
+
   thead {
     position: sticky;
     top: 0;
@@ -461,7 +461,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // Celdas de datos
+
   .excel-cell {
     padding: 12px 10px;
     border-bottom: 1px solid #e2e8f0;
@@ -477,7 +477,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // Filas de datos
+
   .excel-row {
     transition: all 0.2s ease;
 
@@ -497,7 +497,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // Columna de artículo (farticulo)
+
   .farticulo-cell {
     .farticulo-content {
       display: flex;
@@ -519,7 +519,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // Columna de descripción
+
   .descripcion-cell {
     max-width: 300px;
 
@@ -536,7 +536,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // Columna de estante
+
   .estante-cell {
     .estante-badge {
       display: inline-flex;
@@ -564,7 +564,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // Columna de carpeta
+
   .carpeta-cell {
     .carpeta-badge {
       display: inline-block;
@@ -584,7 +584,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // Columna de estado
+
   .estado-cell {
     .estado-badge {
       display: inline-flex;
@@ -602,21 +602,21 @@ $gray-900: #0f172a;
         height: 14px;
       }
 
-      // Estado activo - verde
+
       &.estado-activo {
         background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
         color: #15803d;
         border: 1px solid #86efac;
       }
 
-      // Estado inactivo - rojo
+
       &.estado-inactivo {
         background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
         color: #991b1b;
         border: 1px solid #f87171;
       }
 
-      // Estado en revisión - amarillo
+
       &.estado-revision {
         background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
         color: #a16207;
@@ -629,7 +629,7 @@ $gray-900: #0f172a;
     }
   }
 
-  // Columna de acciones
+
   .actions-cell {
     text-align: center;
 
@@ -656,12 +656,12 @@ $gray-900: #0f172a;
           transform: scale(1.1);
         }
 
-        // Botón de editar - azul
+
         &.edit-btn:hover {
           background: $primary-blue-50;
         }
 
-        // Botón de eliminar - rojo
+
         &.delete-btn:hover {
           background: rgba(239, 68, 68, 0.1);
         }
@@ -670,7 +670,7 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== MENSAJE SIN DATOS =====
+
 .no-data {
   display: flex;
   flex-direction: column;
@@ -693,7 +693,7 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== MENSAJE DE CARGA =====
+
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -725,38 +725,38 @@ $gray-900: #0f172a;
   }
 }
 
-// ===== ESTILOS PARA SNACKBAR DE ERROR =====
-// Estilos globales para el snackbar de error de duplicado
+
+
 ::ng-deep {
   .error-snackbar {
-    // Fondo rojo para indicar error
+
     background-color: #fee2e2 !important;
-    // Borde rojo más oscuro
+
     border-left: 4px solid $error-red !important;
-    
-    // Contenedor del snackbar
+
+
     .mat-mdc-snack-bar-label {
-      // Texto rojo oscuro
+
       color: #991b1b !important;
-      // Texto en negrita para mayor visibilidad
+
       font-weight: 600 !important;
-      // Tamaño de fuente ligeramente mayor
+
       font-size: 0.95rem !important;
     }
-    
-    // Botón de cerrar
+
+
     .mat-mdc-button {
-      // Color del botón rojo
+
       color: $error-red !important;
-      // Texto en negrita
+
       font-weight: 600 !important;
     }
   }
 }
 
-// ===== ESTILOS ADICIONALES PARA BADGES =====
-// Los estilos de badges ahora están integrados en .excel-table
-// Mantenemos estos para compatibilidad con código legacy
+
+
+
 
 .estado-badge {
   display: inline-flex;
@@ -772,21 +772,21 @@ $gray-900: #0f172a;
   white-space: nowrap;
 }
 
-// Estado ACTIVO - Verde
+
 .estado-activo {
   background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
   color: #15803d;
   border: 1px solid #86efac;
 }
 
-// Estado INACTIVO - Rojo
+
 .estado-inactivo {
   background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
   color: #991b1b;
   border: 1px solid #f87171;
 }
 
-// Estado EN REVISIÓN - Amarillo/Naranja
+
 .estado-revision {
   background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
   color: #a16207;

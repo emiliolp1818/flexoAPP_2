@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace FlexoAPP.API.Services
 {
-    /// <summary>
-    /// Memory cache implementation of cache service
-    /// </summary>
+
+
+
     public class MemoryCacheService : ICacheService
     {
         private readonly IMemoryCache _memoryCache;
@@ -61,7 +61,7 @@ namespace FlexoAPP.API.Services
                     Priority = CacheItemPriority.Normal
                 };
 
-                // Add removal callback to track keys
+
                 options.RegisterPostEvictionCallback((evictedKey, evictedValue, reason, state) =>
                 {
                     _keyTracker.TryRemove(evictedKey.ToString()!, out _);
@@ -69,7 +69,7 @@ namespace FlexoAPP.API.Services
 
                 _memoryCache.Set(key, value, options);
                 _keyTracker.TryAdd(key, DateTime.UtcNow);
-                
+
                 _logger.LogDebug("Memory Cache SET for key: {Key}, expiration: {Expiration}", key, expiration ?? _defaultExpiration);
             }
             catch (Exception ex)
@@ -136,7 +136,7 @@ namespace FlexoAPP.API.Services
         {
             try
             {
-                // Clean up expired keys from tracker
+
                 var now = DateTime.UtcNow;
                 var expiredKeys = _keyTracker
                     .Where(kvp => now - kvp.Value > _defaultExpiration)
@@ -148,8 +148,8 @@ namespace FlexoAPP.API.Services
                     _keyTracker.TryRemove(expiredKey, out _);
                 }
 
-                // Estimate memory usage (rough calculation)
-                var estimatedMemoryUsage = _keyTracker.Count * 1024; // Rough estimate: 1KB per cached item
+
+                var estimatedMemoryUsage = _keyTracker.Count * 1024;
 
                 return Task.FromResult(new CacheStatistics
                 {
@@ -180,12 +180,12 @@ namespace FlexoAPP.API.Services
             try
             {
                 var keysToRemove = _keyTracker.Keys.ToList();
-                
+
                 foreach (var key in keysToRemove)
                 {
                     _memoryCache.Remove(key);
                 }
-                
+
                 _keyTracker.Clear();
                 _logger.LogInformation("Memory Cache CLEAR ALL: removed {Count} keys", keysToRemove.Count);
             }

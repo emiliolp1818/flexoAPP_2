@@ -36,24 +36,24 @@ namespace FlexoAPP.API.Models.Entities
         [StringLength(45)]
         public string? IpAddress { get; set; }
 
-        // Campos adicionales para auditoría detallada
-        [StringLength(100)]
-        public string? EntityType { get; set; } // Tipo de entidad afectada (Maquina, Design, User, etc.)
 
-        public int? EntityId { get; set; } // ID de la entidad afectada
+        [StringLength(100)]
+        public string? EntityType { get; set; }
+
+        public int? EntityId { get; set; }
 
         [StringLength(200)]
-        public string? EntityName { get; set; } // Nombre o código de la entidad
+        public string? EntityName { get; set; }
 
-        public TimeSpan? Duration { get; set; } // Duración de la operación (para maquinas)
-
-        [StringLength(2000)]
-        public string? OldValues { get; set; } // Valores anteriores (JSON)
+        public TimeSpan? Duration { get; set; }
 
         [StringLength(2000)]
-        public string? NewValues { get; set; } // Valores nuevos (JSON)
+        public string? OldValues { get; set; }
 
-        // Navigation property
+        [StringLength(2000)]
+        public string? NewValues { get; set; }
+
+
         [ForeignKey("UserId")]
         public virtual User? User { get; set; }
     }

@@ -1,73 +1,73 @@
-// Angular Core - Funcionalidades básicas del framework Angular
-import { Component, signal, OnInit, OnDestroy } from '@angular/core'; // Decoradores y hooks de ciclo de vida
-import { CommonModule } from '@angular/common';                      // Directivas comunes (ngIf, ngFor, pipes)
-import { RouterModule, Router } from '@angular/router';              // Sistema de navegación y enrutamiento
-import { interval, Subscription } from 'rxjs';                      // Observables para actualizaciones automáticas
 
-// Angular Material imports - Componentes de UI con Material Design
-import { MatIconModule } from '@angular/material/icon';              // Iconos de Material Design
-import { MatButtonModule } from '@angular/material/button';          // Botones con estilos Material Design
-import { MatMenuModule } from '@angular/material/menu';              // Menús desplegables contextuales
-import { MatDividerModule } from '@angular/material/divider';        // Líneas divisorias para separar contenido
+import { Component, signal, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { interval, Subscription } from 'rxjs';
 
-// Services - Servicios de la aplicación para lógica de negocio
-import { AuthService } from '../../../core/services/auth.service';   // Servicio de autenticación y gestión de usuarios
-import { LoadingService } from '../../../core/services/loading.service'; // Servicio para manejar estados de carga global
-import { TimeFormatService } from '../../../core/services/time-format.service'; // Servicio de formato de hora
-import { LanguageService } from '../../../core/services/language.service'; // Servicio de idiomas
 
-// Environment configuration - Configuración de entorno para URLs y flags de debug
-import { environment } from '../../../../environments/environment';     // Variables de entorno (URLs del API, flags de debug, etc.)
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 
-// Decorador de componente Angular - Define metadatos del componente header
+
+import { AuthService } from '../../../core/services/auth.service';
+import { LoadingService } from '../../../core/services/loading.service';
+import { TimeFormatService } from '../../../core/services/time-format.service';
+import { LanguageService } from '../../../core/services/language.service';
+
+
+import { environment } from '../../../../environments/environment';
+
+
 @Component({
-  selector: 'app-header',                            // Selector CSS para usar el componente en templates
-  standalone: true,                                  // Componente independiente (no requiere NgModule)
-  imports: [                                         // Módulos importados para uso en el template
-    CommonModule,                                    // Directivas básicas de Angular (ngIf, ngFor, pipes)
-    RouterModule,                                    // Funcionalidades de navegación y enrutamiento
-    MatIconModule,                                   // Iconos de Material Design
-    MatButtonModule,                                 // Botones de Material Design
-    MatMenuModule,                                   // Menús desplegables contextuales
-    MatDividerModule                                 // Líneas divisorias para separar contenido
+  selector: 'app-header',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatDividerModule
   ],
-  templateUrl: './header.html',                      // Ruta al archivo de template HTML
-  styleUrls: ['./header.scss']                      // Ruta al archivo de estilos SCSS
+  templateUrl: './header.html',
+  styleUrls: ['./header.scss']
 })
-// Clase principal del componente header - Implementa hooks de ciclo de vida
+
 export class HeaderComponent implements OnInit, OnDestroy {
-  // Señales reactivas (Angular Signals) - Estado reactivo del componente
-  currentUser = signal<any>(null);                            // Usuario actualmente autenticado
-  currentTime = signal(new Date());                           // Tiempo actual para mostrar en el header
-  isLoading = signal(false);                                  // Estado de carga para activar LED parpadeante
 
-  // Suscripciones para limpieza de memoria
-  private timeSubscription?: Subscription;                    // Suscripción para actualización de tiempo cada minuto
-  private loadingSubscription?: Subscription;                 // Suscripción para estado de carga global
+  currentUser = signal<any>(null);
+  currentTime = signal(new Date());
+  isLoading = signal(false);
 
-  // Constructor con inyección de dependencias
+
+  private timeSubscription?: Subscription;
+  private loadingSubscription?: Subscription;
+
+
   constructor(
-    private authService: AuthService,                         // Servicio de autenticación para gestión de usuarios
-    private router: Router,                                   // Router de Angular para navegación entre páginas
-    private loadingService: LoadingService,                   // Servicio para manejar estados de carga global
-    private timeFormatService: TimeFormatService,             // Servicio de formato de hora
-    public languageService: LanguageService                   // Servicio de idiomas
+    private authService: AuthService,
+    private router: Router,
+    private loadingService: LoadingService,
+    private timeFormatService: TimeFormatService,
+    public languageService: LanguageService
   ) {
-    // Inicializar el usuario actual después de la inyección de dependencias
+
     this.currentUser.set(this.authService.getCurrentUser());
   }
 
   ngOnInit(): void {
-    // Actualizar el tiempo cada segundo para mostrar reloj en tiempo real
+
     this.timeSubscription = interval(1000).subscribe(() => {
       this.currentTime.set(new Date());
     });
 
-    // Actualizar usuario actual
+
     this.authService.currentUser$.subscribe(user => {
       this.currentUser.set(user);
 
-      // Log de diagnóstico para verificar datos del usuario en el header
+
       if (environment.enableDebugMode && user) {
         console.group('🔍 HEADER - Usuario actualizado');
         console.log('👤 Usuario:', user.userCode);
@@ -81,7 +81,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Suscribirse al estado de carga global
+
     this.loadingService.loading$.subscribe(loading => {
       this.isLoading.set(loading);
     });
@@ -92,7 +92,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.loadingSubscription?.unsubscribe();
   }
 
-  // Navigation methods
+
   navigateToHome(): void {
     this.router.navigate(['/dashboard']);
   }
@@ -105,14 +105,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
-  // User display methods
+
   userDisplayName(): string {
     const user = this.currentUser();
     if (!user) return 'Usuario';
     return `${user.firstName} ${user.lastName}`.trim() || user.userCode;
   }
 
-  // Método para mostrar solo el nombre en el saludo
+
   userFirstName(): string {
     const user = this.currentUser();
     if (!user) return 'Usuario';
@@ -130,7 +130,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return roleMap[role] || role;
   }
 
-  // Time-based methods
+
   getCurrentTime(): string {
     const now = this.currentTime();
     return this.timeFormatService.formatTime(now);
@@ -165,38 +165,33 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return isSpanish ? 'Que tengas una buena noche' : 'Have a good night';
   }
 
-  /**
-   * Obtener URL completa de la imagen de perfil - MISMO CÓDIGO QUE SETTINGS
-   * Maneja diferentes tipos de URLs: completas (http/https), base64 (data:image/), y rutas relativas
-   * @param profileImageUrl - URL de la imagen de perfil (puede ser undefined)
-   * @returns URL procesada o cadena vacía si no es válida
-   */
+
   getProfileImageUrl(profileImageUrl: string | undefined): string {
-    // Validar que la URL no esté vacía o sea null/undefined
+
     if (!profileImageUrl || profileImageUrl.trim() === '' || profileImageUrl === 'null' || profileImageUrl === 'undefined') {
       return '';
     }
 
-    // Si es una imagen base64, devolverla directamente (PRIORIDAD MÁXIMA - IGUAL QUE SETTINGS)
+
     if (profileImageUrl.startsWith('data:image/')) {
       return profileImageUrl;
     }
 
-    // Si ya es una URL completa (http/https), devolverla tal como está
+
     if (profileImageUrl.startsWith('http')) {
       return profileImageUrl;
     }
 
-    // Si es una ruta relativa, construir la URL completa
-    // Usar imageBaseUrl del environment si está disponible, sino usar apiUrl sin /api
+
+
     const baseUrl = (environment as any).imageBaseUrl || environment.apiUrl.replace('/api', '');
 
-    // Asegurar que la ruta comience con /
+
     const imagePath = profileImageUrl.startsWith('/') ? profileImageUrl : `/${profileImageUrl}`;
 
     const fullUrl = `${baseUrl}${imagePath}`;
 
-    // Log solo en modo debug para diagnosticar problemas
+
     if (environment.enableDebugMode) {
       console.log(`🖼️ Header - Imagen procesada: "${profileImageUrl}" → "${fullUrl}"`);
     }
@@ -204,11 +199,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return fullUrl;
   }
 
-  /**
-   * Verificar si un usuario tiene imagen de perfil - MISMO CÓDIGO QUE SETTINGS
-   * Valida que profileImage sea válido y no esté vacío
-   * profileImage puede contener: base64 (data:image/...) o URL (/uploads/profiles/...)
-   */
+
   hasProfileImage(user: any): boolean {
     return !!(user?.profileImage &&
       user.profileImage.trim() !== '' &&
@@ -216,25 +207,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
       user.profileImage !== 'undefined');
   }
 
-  /**
-   * Manejar error de carga de imagen - MISMO CÓDIGO QUE SETTINGS
-   * Se ejecuta cuando falla la carga de una imagen de perfil
-   */
-  onImageError(event: any): void {
-    const imgElement = event.target;                    // Elemento img que falló
-    const avatarContainer = imgElement.closest('.user-avatar'); // Contenedor del avatar (CORREGIDO: .user-avatar en lugar de .user-avatar-container)
-    const userCode = imgElement.getAttribute('data-user-code'); // Código del usuario
 
-    // Marcar el avatar como error para aplicar estilos CSS apropiados
+  onImageError(event: any): void {
+    const imgElement = event.target;
+    const avatarContainer = imgElement.closest('.user-avatar');
+    const userCode = imgElement.getAttribute('data-user-code');
+
+
     if (avatarContainer) {
-      avatarContainer.classList.add('error');           // Agregar clase de error
-      avatarContainer.classList.remove('loading', 'loaded'); // Remover estados de carga
+      avatarContainer.classList.add('error');
+      avatarContainer.classList.remove('loading', 'loaded');
     }
 
-    // Ocultar la imagen que falló para mostrar el ícono por defecto
+
     imgElement.style.display = 'none';
 
-    // Diagnóstico detallado del error solo en modo debug
+
     if (environment.enableDebugMode) {
       console.group('❌ ERROR DE IMAGEN DE PERFIL EN HEADER');
       console.log('👤 Usuario:', userCode);
@@ -244,23 +232,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
       console.log('🌐 Estado de red:', navigator.onLine ? 'Online' : 'Offline');
       console.log('💡 Solución: Mostrando avatar por defecto');
 
-      // Intentar diagnosticar el tipo de error
+
       this.diagnoseImageError(imgElement.src);
 
       console.groupEnd();
     }
   }
 
-  /**
-   * Diagnosticar errores específicos de imágenes - MISMO CÓDIGO QUE SETTINGS
-   * Ayuda a identificar problemas de conectividad, CORS, etc.
-   */
+
   private async diagnoseImageError(imageUrl: string) {
     try {
-      // Test de conectividad a la URL de la imagen usando HEAD request
+
       const response = await fetch(imageUrl, {
-        method: 'HEAD',                               // Solo obtener headers, no el contenido
-        mode: 'no-cors'                              // Evitar problemas de CORS en el diagnóstico
+        method: 'HEAD',
+        mode: 'no-cors'
       });
 
       console.log('🔍 Diagnóstico de imagen:');
@@ -273,7 +258,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       console.log('   - Error de red:', error.message);
       console.log('   - Tipo de error:', error.name);
 
-      // Sugerencias de solución basadas en el tipo de error
+
       if (error.message.includes('CORS')) {
         console.log('💡 Sugerencia: Problema de CORS - verificar configuración del servidor');
       } else if (error.message.includes('network')) {
@@ -284,93 +269,75 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Manejar carga exitosa de imagen - MISMO CÓDIGO QUE SETTINGS
-   * Se ejecuta cuando una imagen se carga correctamente
-   */
-  onImageLoad(event: any): void {
-    const imgElement = event.target;                    // Elemento img que se cargó exitosamente
-    const avatarContainer = imgElement.closest('.user-avatar'); // Contenedor del avatar (CORREGIDO: .user-avatar)
 
-    // Marcar el avatar como cargado exitosamente
+  onImageLoad(event: any): void {
+    const imgElement = event.target;
+    const avatarContainer = imgElement.closest('.user-avatar');
+
+
     if (avatarContainer) {
-      avatarContainer.classList.add('loaded');          // Agregar clase de éxito
-      avatarContainer.classList.remove('loading', 'error'); // Remover estados de carga y error
+      avatarContainer.classList.add('loaded');
+      avatarContainer.classList.remove('loading', 'error');
     }
 
-    // Log de éxito en modo debug
+
     if (environment.enableDebugMode) {
       console.log('✅ Header - Imagen cargada exitosamente:', imgElement.src);
     }
   }
 
-  /**
-   * Manejar inicio de carga de imagen - MISMO CÓDIGO QUE SETTINGS
-   * Se ejecuta cuando comienza a cargar una imagen
-   */
-  onImageLoadStart(event: any): void {
-    const imgElement = event.target;                    // Elemento img que está cargando
-    const avatarContainer = imgElement.closest('.user-avatar'); // Contenedor del avatar (CORREGIDO: .user-avatar)
 
-    // Marcar el avatar como en proceso de carga
+  onImageLoadStart(event: any): void {
+    const imgElement = event.target;
+    const avatarContainer = imgElement.closest('.user-avatar');
+
+
     if (avatarContainer) {
-      avatarContainer.classList.add('loading');         // Agregar clase de carga
-      avatarContainer.classList.remove('loaded', 'error'); // Remover estados previos
+      avatarContainer.classList.add('loading');
+      avatarContainer.classList.remove('loaded', 'error');
     }
 
-    // Log de inicio de carga en modo debug
+
     if (environment.enableDebugMode) {
       console.log('⏳ Header - Iniciando carga de imagen:', imgElement.getAttribute('data-original-src'));
     }
   }
 
-  // Método para simular estado de carga (puedes conectarlo con tus servicios)
+
   setLoadingState(loading: boolean): void {
-    this.isLoading.set(loading);                        // Actualizar señal reactiva de estado de carga
+    this.isLoading.set(loading);
   }
 
-  /**
-   * Obtener iniciales del usuario para avatar por defecto - MISMO CÓDIGO QUE SETTINGS
-   * Extrae la primera letra del nombre y apellido para mostrar en el avatar circular
-   * @param firstName - Nombre del usuario
-   * @param lastName - Apellido del usuario
-   * @returns Iniciales en mayúsculas (ej: "JD" para Juan Díaz)
-   */
+
   getInitials(firstName: string, lastName: string): string {
-    const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : ''; // Primera letra del nombre en mayúscula
-    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';    // Primera letra del apellido en mayúscula
-    return firstInitial + lastInitial;                                        // Combinar ambas iniciales
+    const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : '';
+    const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : '';
+    return firstInitial + lastInitial;
   }
 
-  /**
-   * Obtener color de avatar basado en el nombre - MISMO CÓDIGO QUE SETTINGS
-   * Genera un color consistente para cada usuario basado en su nombre
-   * Esto asegura que el mismo usuario siempre tenga el mismo color de avatar
-   * @param name - Nombre del usuario para generar el color
-   * @returns Color hexadecimal (ej: "#2563eb")
-   */
+
   getAvatarColor(name: string): string {
-    // Paleta de colores corporativos para avatares
+
     const colors = [
-      '#2563eb', // Azul primario
-      '#7c3aed', // Púrpura
-      '#dc2626', // Rojo
-      '#059669', // Verde
-      '#d97706', // Naranja
-      '#0891b2', // Cyan
-      '#be185d', // Rosa
-      '#4338ca', // Índigo
-      '#16a34a', // Verde claro
-      '#ea580c'  // Naranja oscuro
+      '#2563eb',
+      '#7c3aed',
+      '#dc2626',
+      '#059669',
+      '#d97706',
+      '#0891b2',
+      '#be185d',
+      '#4338ca',
+      '#16a34a',
+      '#ea580c'
     ];
 
-    // Generar hash del nombre para seleccionar color consistente
-    let hash = 0;                                                             // Inicializar hash en 0
-    for (let i = 0; i < name.length; i++) {                                  // Iterar sobre cada carácter del nombre
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);                     // Algoritmo de hash simple pero efectivo
+
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
 
-    // Seleccionar color basado en el hash (siempre el mismo para el mismo nombre)
-    return colors[Math.abs(hash) % colors.length];                           // Retornar color de la paleta
+
+    return colors[Math.abs(hash) % colors.length];
   }
 }

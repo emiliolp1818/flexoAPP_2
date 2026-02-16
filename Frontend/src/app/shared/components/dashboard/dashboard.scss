@@ -1,306 +1,300 @@
-/* ===========================================
-   DASHBOARD CONTAINER - FULL PAGE LAYOUT
-   =========================================== */
-/* Contenedor principal del dashboard que ocupa toda la pantalla */
+
+
 .dashboard-container {
-  min-height: 100vh;                                           /* Altura mínima de 100% del viewport */
-  width: 100vw;                                                /* Ancho completo del viewport */
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); /* Fondo con gradiente gris claro */
-  padding: 0;                                                  /* Sin padding externo */
-  margin: 0;                                                   /* Sin margen externo */
-  overflow-x: hidden;                                          /* Ocultar scroll horizontal */
-  position: relative;                                          /* Posición relativa para elementos absolutos internos */
-  padding-top: 0;                                              /* Sin espacio superior - eliminado el espacio verde */
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  position: relative;
+  padding-top: 0;
 }
 
-/* HOST COMPONENT - ENSURE FULL WIDTH */
-/* Estilos del componente host para asegurar ancho completo */
+
+
 :host {
-  display: block;                                              /* Mostrar como bloque */
-  width: 100%;                                                 /* Ancho completo */
-  min-height: 100vh;                                           /* Altura mínima de 100% del viewport */
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); /* Fondo con gradiente gris claro */
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
-/* ===========================================
-   MAIN CONTENT AREA - RESPONSIVE LAYOUT
-   =========================================== */
-/* Área de contenido principal con layout responsive */
+
+
 .dashboard-content {
-  padding: 24px 24px 40px 24px;                                /* Padding: 24px arriba, 24px laterales, 40px abajo */
-  max-width: 1400px;                                           /* Ancho máximo de 1400px */
-  margin: 0 auto;                                              /* Centrar horizontalmente */
-  width: 100%;                                                 /* Ancho completo */
-  box-sizing: border-box;                                      /* Incluir padding en el cálculo del ancho */
-  position: relative;                                          /* Posición relativa para elementos absolutos internos */
-  min-height: 100vh;                                           /* Altura mínima de 100% del viewport */
+  padding: 24px 24px 40px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  min-height: 100vh;
 }
 
-/* ===========================================
-   STATISTICS SECTION - MODERN CARD LAYOUT
-   =========================================== */
-/* Sección de estadísticas con diseño moderno de tarjetas */
+
+
 .statistics-section {
-  margin-bottom: 48px;                                         /* Margen inferior de 48px */
+  margin-bottom: 48px;
 
-  /* Section Title with Icon */
-  /* Título de la sección con icono */
+
+
   .section-title {
-    display: flex;                                             /* Layout flexbox */
-    align-items: center;                                       /* Alinear elementos verticalmente al centro */
-    gap: 16px;                                                 /* Espacio de 16px entre elementos */
-    font-size: 2.25rem;                                        /* Tamaño de fuente grande (36px) */
-    font-weight: 800;                                            /* Peso de fuente extra bold */
-    color: #1e293b;                                            /* Color gris oscuro */
-    margin: 0 0 32px 0;                                        /* Margen solo inferior de 32px */
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);                /* Sombra de texto sutil */
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 32px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-    /* Icono del título */
+
     mat-icon {
-      color: #2563eb;                                          /* Color azul para el icono */
-      font-size: 36px;                                         /* Tamaño del icono 36px */
-      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));  /* Sombra azul para el icono */
+      color: #2563eb;
+      font-size: 36px;
+      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));
     }
   }
 
-  /* Statistics Grid - 4 tarjetas en una fila */
-  /* Grid que distribuye las tarjetas de estadísticas horizontalmente */
+
+
   .stats-grid {
-    display: grid;                                             /* Usar CSS Grid para layout */
-    grid-template-columns: repeat(4, 1fr);                     /* 4 columnas de igual tamaño (1fr cada una) */
-    gap: 20px;                                                 /* Espacio de 20px entre tarjetas */
-    max-width: 100%;                                           /* Usar todo el ancho disponible */
-    margin: 0 auto;                                            /* Centrar el grid horizontalmente */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 100%;
+    margin: 0 auto;
 
-    /* Individual Stat Card - Enhanced Design */
-    /* Tarjeta individual de estadística con diseño mejorado */
+
+
     .stat-card {
-      border-radius: 20px;                                     /* Bordes redondeados de 20px */
-      border: 1px solid rgba(37, 99, 235, 0.1);                /* Borde azul semi-transparente */
-      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); /* Fondo con gradiente blanco a gris */
-      backdrop-filter: blur(20px);                             /* Efecto de desenfoque del fondo */
-      box-shadow: 0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08); /* Sombras múltiples */
-      overflow: hidden;                                        /* Ocultar contenido que se desborde */
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);       /* Transición suave con curva de aceleración */
-      position: relative;                                      /* Posición relativa para pseudo-elementos */
+      border-radius: 20px;
+      border: 1px solid rgba(37, 99, 235, 0.1);
+      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
 
-      /* Efecto hover - elevar la tarjeta */
+
       &:hover {
-        transform: translateY(-4px);                           /* Elevar 4px hacia arriba */
-        box-shadow: 0 12px 40px rgba(37, 99, 235, 0.18), 0 4px 16px rgba(0, 0, 0, 0.12); /* Sombras más pronunciadas */
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(37, 99, 235, 0.18), 0 4px 16px rgba(0, 0, 0, 0.12);
       }
 
-      /* Línea decorativa superior */
+
       &::before {
-        content: '';                                           /* Contenido vacío para pseudo-elemento */
-        position: absolute;                                    /* Posición absoluta */
-        top: 0;                                                /* Pegado al borde superior */
-        left: 0;                                               /* Pegado al borde izquierdo */
-        right: 0;                                              /* Pegado al borde derecho */
-        height: 4px;                                           /* Altura de 4px */
-        background: linear-gradient(90deg, #2563eb, #3b82f6);  /* Gradiente azul horizontal */
-        z-index: 1;                                            /* Capa superior */
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #2563eb, #3b82f6);
+        z-index: 1;
       }
 
-      /* Users Stat Card - Primary Blue Theme */
-      /* Tarjeta de usuarios con tema azul primario */
+
+
       &.users-stat {
-        /* Línea superior azul oscuro */
+
         &::before {
-          background: linear-gradient(90deg, #2563eb, #1d4ed8); /* Gradiente azul */
+          background: linear-gradient(90deg, #2563eb, #1d4ed8);
         }
 
-        /* Icono con fondo azul */
+
         .stat-icon {
-          background: linear-gradient(135deg, #2563eb, #1d4ed8); /* Gradiente diagonal azul */
-          border: 1px solid rgba(37, 99, 235, 0.3);            /* Borde azul semi-transparente */
-          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);       /* Sombra azul */
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+          border: 1px solid rgba(37, 99, 235, 0.3);
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 
           mat-icon {
-            color: #ffffff;                                    /* Icono blanco */
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Sombra del icono */
+            color: #ffffff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
           }
         }
 
-        /* Número en azul */
+
         .stat-number {
-          color: #2563eb !important;                           /* Color azul para el número */
-          text-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);       /* Sombra azul sutil */
+          color: #2563eb !important;
+          text-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
         }
       }
 
-      /* Orders Stat Card - Success Green Theme */
-      /* Tarjeta de órdenes con tema verde éxito */
+
+
       &.orders-stat {
-        /* Línea superior verde */
+
         &::before {
-          background: linear-gradient(90deg, #059669, #047857); /* Gradiente verde */
+          background: linear-gradient(90deg, #059669, #047857);
         }
 
-        /* Icono con fondo verde */
+
         .stat-icon {
-          background: linear-gradient(135deg, #059669, #047857); /* Gradiente diagonal verde */
-          border: 1px solid rgba(5, 150, 105, 0.3);            /* Borde verde semi-transparente */
-          box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);       /* Sombra verde */
+          background: linear-gradient(135deg, #059669, #047857);
+          border: 1px solid rgba(5, 150, 105, 0.3);
+          box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
 
           mat-icon {
-            color: #ffffff;                                    /* Icono blanco */
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Sombra del icono */
+            color: #ffffff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
           }
         }
 
-        /* Número en verde */
+
         .stat-number {
-          color: #059669 !important;                           /* Color verde para el número */
-          text-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);       /* Sombra verde sutil */
+          color: #059669 !important;
+          text-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
         }
       }
 
-      /* Designs Stat Card - Cyan Theme */
-      /* Tarjeta de diseños con tema cyan/turquesa */
+
+
       &.designs-stat {
-        /* Línea superior cyan */
+
         &::before {
-          background: linear-gradient(90deg, #0891b2, #0e7490); /* Gradiente cyan */
+          background: linear-gradient(90deg, #0891b2, #0e7490);
         }
 
-        /* Icono con fondo cyan */
+
         .stat-icon {
-          background: linear-gradient(135deg, #0891b2, #0e7490); /* Gradiente diagonal cyan */
-          border: 1px solid rgba(8, 145, 178, 0.3);            /* Borde cyan semi-transparente */
-          box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);       /* Sombra cyan */
+          background: linear-gradient(135deg, #0891b2, #0e7490);
+          border: 1px solid rgba(8, 145, 178, 0.3);
+          box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
 
           mat-icon {
-            color: #ffffff;                                    /* Icono blanco */
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Sombra del icono */
+            color: #ffffff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
           }
         }
 
-        /* Número en cyan */
+
         .stat-number {
-          color: #0891b2 !important;                           /* Color cyan para el número */
-          text-shadow: 0 2px 4px rgba(8, 145, 178, 0.2);       /* Sombra cyan sutil */
+          color: #0891b2 !important;
+          text-shadow: 0 2px 4px rgba(8, 145, 178, 0.2);
         }
       }
 
-      /* Times Stat Card - Orange Theme */
-      /* Tarjeta de tiempos con tema naranja/ámbar */
+
+
       &.times-stat {
-        /* Línea superior naranja */
+
         &::before {
-          background: linear-gradient(90deg, #f59e0b, #d97706); /* Gradiente naranja */
+          background: linear-gradient(90deg, #f59e0b, #d97706);
         }
 
-        /* Icono con fondo naranja */
+
         .stat-icon {
-          background: linear-gradient(135deg, #f59e0b, #d97706); /* Gradiente diagonal naranja */
-          border: 1px solid rgba(245, 158, 11, 0.3);           /* Borde naranja semi-transparente */
-          box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);      /* Sombra naranja */
+          background: linear-gradient(135deg, #f59e0b, #d97706);
+          border: 1px solid rgba(245, 158, 11, 0.3);
+          box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
 
           mat-icon {
-            color: #ffffff;                                    /* Icono blanco */
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Sombra del icono */
+            color: #ffffff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
           }
         }
 
-        /* Número en naranja */
+
         .stat-number {
-          color: #f59e0b !important;                           /* Color naranja para el número */
-          text-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);      /* Sombra naranja sutil */
+          color: #f59e0b !important;
+          text-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
         }
       }
 
-      /* Card Content Layout */
-      /* Layout del contenido de la tarjeta */
-      mat-card-content {
-        padding: 24px !important;                              /* Padding interno de 24px */
-        display: flex;                                         /* Layout flexbox */
-        align-items: center;                                   /* Alinear elementos verticalmente al centro */
-        gap: 20px;                                             /* Espacio de 20px entre elementos */
-        position: relative;                                    /* Posición relativa */
-        z-index: 2;                                            /* Capa superior al pseudo-elemento */
 
-        /* Stat Icon Container */
-        /* Contenedor del icono de estadística */
+
+      mat-card-content {
+        padding: 24px !important;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        position: relative;
+        z-index: 2;
+
+
+
         .stat-icon {
-          width: 64px;                                         /* Ancho de 64px */
-          height: 64px;                                        /* Alto de 64px */
-          border-radius: 16px;                                 /* Bordes redondeados de 16px */
-          background: #f3f4f6;                                 /* Fondo gris claro por defecto */
-          display: flex;                                       /* Layout flexbox */
-          align-items: center;                                 /* Centrar verticalmente */
-          justify-content: center;                             /* Centrar horizontalmente */
-          border: none;                                        /* Sin borde */
-          transition: all 0.3s ease;                           /* Transición suave */
+          width: 64px;
+          height: 64px;
+          border-radius: 16px;
+          background: #f3f4f6;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: none;
+          transition: all 0.3s ease;
 
           mat-icon {
-            font-size: 32px;                                   /* Tamaño del icono 32px */
-            width: 32px;                                       /* Ancho del icono 32px */
-            height: 32px;                                      /* Alto del icono 32px */
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
           }
         }
 
-        /* Stat Information */
-        /* Información de la estadística */
+
+
         .stat-info {
-          flex: 1;                                             /* Ocupar espacio disponible */
+          flex: 1;
 
-          /* Main Number Display */
-          /* Número principal */
+
+
           .stat-number {
-            font-size: 2.5rem;                                 /* Tamaño de fuente grande (40px) */
-            font-weight: 800;                                  /* Peso extra bold */
-            margin: 0 0 6px 0;                                 /* Margen inferior de 6px */
-            line-height: 1;                                    /* Altura de línea compacta */
-            color: #1e293b;                                    /* Color gris oscuro */
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);         /* Sombra de texto sutil */
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 6px 0;
+            line-height: 1;
+            color: #1e293b;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           }
 
-          /* Stat Label */
-          /* Etiqueta de la estadística */
+
+
           .stat-label {
-            font-size: 0.9rem;                                 /* Tamaño de fuente pequeño */
-            color: #64748b;                                    /* Color gris medio */
-            margin: 0 0 12px 0;                                /* Margen inferior de 12px */
-            font-weight: 600;                                  /* Peso semi-bold */
-            text-transform: uppercase;                         /* Texto en mayúsculas */
-            letter-spacing: 0.5px;                             /* Espaciado entre letras */
+            font-size: 0.9rem;
+            color: #64748b;
+            margin: 0 0 12px 0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           }
 
-          /* Change Indicator Badge */
-          /* Indicador de cambio */
+
+
           .stat-change {
-            font-size: 0.8rem;                                 /* Tamaño de fuente pequeño */
-            padding: 6px 12px;                                 /* Padding interno */
-            border-radius: 20px;                               /* Bordes muy redondeados */
-            font-weight: 700;                                  /* Peso bold */
-            backdrop-filter: blur(10px);                       /* Efecto de desenfoque */
-            border: 1px solid rgba(255, 255, 255, 0.3);        /* Borde blanco semi-transparente */
-            display: inline-block;                             /* Mostrar como bloque inline */
-            transition: all 0.3s ease;                         /* Transición suave */
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: inline-block;
+            transition: all 0.3s ease;
 
-            /* Indicador positivo (verde) */
+
             &.positive {
-              color: #ffffff;                                  /* Texto blanco */
-              background: linear-gradient(135deg, #10b981, #059669); /* Gradiente verde */
-              border-color: rgba(16, 185, 129, 0.4);          /* Borde verde */
-              box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); /* Sombra verde */
+              color: #ffffff;
+              background: linear-gradient(135deg, #10b981, #059669);
+              border-color: rgba(16, 185, 129, 0.4);
+              box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
             }
 
-            /* Indicador negativo (rojo) */
+
             &.negative {
-              color: #ffffff;                                  /* Texto blanco */
-              background: linear-gradient(135deg, #ef4444, #dc2626); /* Gradiente rojo */
-              border-color: rgba(239, 68, 68, 0.4);           /* Borde rojo */
-              box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);  /* Sombra roja */
+              color: #ffffff;
+              background: linear-gradient(135deg, #ef4444, #dc2626);
+              border-color: rgba(239, 68, 68, 0.4);
+              box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
             }
 
-            /* Indicador neutral (gris) */
+
             &.neutral {
-              color: #ffffff;                                  /* Texto blanco */
-              background: linear-gradient(135deg, #94a3b8, #64748b); /* Gradiente gris */
-              border-color: rgba(148, 163, 184, 0.4);         /* Borde gris */
-              box-shadow: 0 4px 12px rgba(148, 163, 184, 0.3); /* Sombra gris */
+              color: #ffffff;
+              background: linear-gradient(135deg, #94a3b8, #64748b);
+              border-color: rgba(148, 163, 184, 0.4);
+              box-shadow: 0 4px 12px rgba(148, 163, 184, 0.3);
             }
           }
         }
@@ -309,501 +303,491 @@
   }
 }
 
-/* ===========================================
-   RESPONSIVE DESIGN - MOBILE OPTIMIZATION
-   =========================================== */
 
-/* Tablet and Small Desktop */
-/* Ajustes para pantallas de tablet (768px o menos) */
+
+
+
 @media (max-width: 768px) {
-  /* Contenedor del dashboard */
+
   .dashboard-container {
-    padding-top: 0;                                            /* Sin espacio superior en tablets */
+    padding-top: 0;
   }
 
-  /* Contenido del dashboard */
+
   .dashboard-content {
-    padding: 20px 16px 32px 16px;                              /* Padding reducido: 20px arriba, 16px laterales, 32px abajo */
-    min-height: 100vh;                                         /* Altura mínima completa */
+    padding: 20px 16px 32px 16px;
+    min-height: 100vh;
   }
 
-  /* Statistics Section - Tablet Layout */
-  /* Sección de estadísticas en tablets */
-  .statistics-section {
-    /* Título más pequeño */
-    .section-title {
-      font-size: 1.875rem;                                     /* Tamaño de fuente reducido (30px) */
 
-      /* Icono más pequeño */
+
+  .statistics-section {
+
+    .section-title {
+      font-size: 1.875rem;
+
+
       mat-icon {
-        font-size: 30px;                                       /* Tamaño del icono reducido */
+        font-size: 30px;
       }
     }
 
-    /* Grid: 2 columnas en tablets */
+
     .stats-grid {
-      grid-template-columns: repeat(2, 1fr);                   /* 2 columnas de igual tamaño */
-      gap: 20px;                                               /* Espacio de 20px entre tarjetas */
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
     }
   }
 }
 
-/* Small Tablet */
-/* Ajustes para tablets pequeñas (640px o menos) */
+
+
 @media (max-width: 640px) {
-  /* Sección de estadzísticas */
+
   .statistics-section {
-    /* Grid: 1 columna en tablets pequeñas */
+
     .stats-grid {
-      grid-template-columns: 1fr;                              /* 1 columna - tarjetas apiladas verticalmente */
-      gap: 16px;                                               /* Espacio reducido de 16px */
-      max-width: none;                                         /* Sin límite de ancho máximo */
+      grid-template-columns: 1fr;
+      gap: 16px;
+      max-width: none;
     }
   }
 }
 
-/* Mobile Phones */
-/* Ajustes para móviles pequeños (480px o menos) */
+
+
 @media (max-width: 480px) {
-  /* Contenido del dashboard */
+
   .dashboard-content {
-    padding: 16px 12px 24px 12px;                              /* Padding mínimo: 16px arriba, 12px laterales, 24px abajo */
-    min-height: 100vh;                                         /* Altura mínima completa */
+    padding: 16px 12px 24px 12px;
+    min-height: 100vh;
   }
 
-  /* Statistics Section - Mobile */
-  /* Sección de estadísticas en móviles */
-  .statistics-section {
-    /* Título aún más pequeño */
-    .section-title {
-      font-size: 1.625rem;                                     /* Tamaño de fuente más pequeño (26px) */
 
-      /* Icono más pequeño */
+
+  .statistics-section {
+
+    .section-title {
+      font-size: 1.625rem;
+
+
       mat-icon {
-        font-size: 26px;                                       /* Tamaño del icono más pequeño */
+        font-size: 26px;
       }
     }
 
-    /* Grid: 1 columna en móviles */
+
     .stats-grid {
-      grid-template-columns: 1fr;                              /* 1 columna - tarjetas apiladas verticalmente */
-      gap: 16px;                                               /* Espacio de 16px entre tarjetas */
-      max-width: none;                                         /* Sin límite de ancho máximo */
+      grid-template-columns: 1fr;
+      gap: 16px;
+      max-width: none;
     }
   }
 }
 
-/* ===========================================
-   QUICK ACTIONS SECTION - INTERACTIVE CARDS
-   =========================================== */
-/* Sección de acciones rápidas con tarjetas interactivas */
+
+
 .quick-actions {
-  margin-bottom: 48px;                                         /* Margen inferior de 48px */
+  margin-bottom: 48px;
 
-  /* Section Title with Icon */
-  /* Título de la sección con icono */
+
+
   .section-title {
-    display: flex;                                             /* Layout flexbox */
-    align-items: center;                                       /* Alinear elementos verticalmente al centro */
-    gap: 16px;                                                 /* Espacio de 16px entre elementos */
-    font-size: 2.25rem;                                        /* Tamaño de fuente grande (36px) */
-    font-weight: 800;                                          /* Peso extra bold */
-    color: #1e293b;                                            /* Color gris oscuro */
-    margin: 0 0 32px 0;                                        /* Margen solo inferior de 32px */
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);                /* Sombra de texto sutil */
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 32px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
-    /* Icono del título */
+
     mat-icon {
-      color: #2563eb;                                          /* Color azul para el icono */
-      font-size: 36px;                                         /* Tamaño del icono 36px */
-      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));  /* Sombra azul para el icono */
+      color: #2563eb;
+      font-size: 36px;
+      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));
     }
   }
 
-  /* Actions Grid - Responsive Layout */
-  /* Grid de acciones con layout responsive - 4 columnas por fila */
+
+
   .actions-grid {
-    display: grid;                                             /* Usar CSS Grid para layout de cuadrícula */
-    grid-template-columns: repeat(4, 1fr);                     /* 4 columnas de igual tamaño (1fr = 1 fracción del espacio disponible) */
-    gap: 20px;                                                 /* Espacio uniforme de 20px entre todas las tarjetas */
-    width: 100%;                                               /* Ocupar todo el ancho disponible del contenedor */
-    margin: 0;                                                 /* Sin margen externo */
-    padding: 0;                                                /* Sin padding externo */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 }
 
-/* ===========================================
-   ACTION CARDS - INTERACTIVE NAVIGATION
-   =========================================== */
-/* Tarjetas de acción interactivas para navegación */
+
+
 .action-card {
-  /* Propiedades de interacción */
-  cursor: pointer;                                             /* Cursor de puntero para indicar que es clickeable */
-  
-  /* Diseño visual de la tarjeta */
-  border-radius: 20px;                                         /* Bordes redondeados de 20px para apariencia moderna */
-  border: 1px solid rgba(37, 99, 235, 0.1);                    /* Borde azul muy sutil y semi-transparente */
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); /* Fondo con gradiente suave de blanco a gris claro */
-  backdrop-filter: blur(20px);                                 /* Efecto de desenfoque del fondo (efecto glassmorphism) */
-  
-  /* Sombras para profundidad */
-  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08),              /* Sombra principal azul suave */
-              0 2px 8px rgba(0, 0, 0, 0.06);                   /* Sombra secundaria negra muy sutil */
-  
-  /* Control de contenido */
-  overflow: hidden;                                            /* Ocultar cualquier contenido que se desborde de los bordes */
-  
-  /* Animaciones y transiciones */
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);           /* Transición suave de 0.4s con curva de aceleración personalizada */
-  
-  /* Posicionamiento */
-  position: relative;                                          /* Posición relativa para permitir efectos y pseudo-elementos */
-  
-  /* Asegurar que la tarjeta ocupe todo el espacio de la celda del grid */
-  width: 100%;                                                 /* Ancho completo de la celda del grid */
-  height: 100%;                                                /* Alto completo de la celda del grid */
-  min-height: 140px;                                           /* Altura mínima para mantener consistencia */
 
-  /* Efecto hover - elevar y escalar la tarjeta cuando el mouse pasa sobre ella */
+  cursor: pointer;
+
+
+  border-radius: 20px;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  backdrop-filter: blur(20px);
+
+
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08),
+              0 2px 8px rgba(0, 0, 0, 0.06);
+
+
+  overflow: hidden;
+
+
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+
+  position: relative;
+
+
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+
+
   &:hover {
-    transform: translateY(-6px) scale(1.02);                   /* Elevar 6px hacia arriba y escalar 2% más grande */
-    box-shadow: 0 16px 48px rgba(37, 99, 235, 0.15),          /* Sombra principal más pronunciada */
-                0 8px 24px rgba(0, 0, 0, 0.1);                /* Sombra secundaria más visible */
-    border-color: rgba(37, 99, 235, 0.2);                      /* Borde más visible en hover */
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 16px 48px rgba(37, 99, 235, 0.15),
+                0 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: rgba(37, 99, 235, 0.2);
   }
 
-  /* Efecto active - presionar la tarjeta cuando se hace click */
+
   &:active {
-    transform: translateY(-2px) scale(1.01);                   /* Elevar menos (2px) y escalar menos (1%) para efecto de presión */
+    transform: translateY(-2px) scale(1.01);
   }
 
-  /* Card Content Layout */
-  /* Layout del contenido de la tarjeta - Estructura interna */
+
+
   mat-card-content {
-    /* Sistema de layout flexbox para organizar elementos horizontalmente */
-    display: flex;                                             /* Activar flexbox para layout flexible */
-    align-items: center;                                       /* Alinear todos los elementos verticalmente al centro */
-    gap: 20px;                                                 /* Espacio uniforme de 20px entre icono, texto y flecha */
-    
-    /* Espaciado interno */
-    padding: 24px !important;                                  /* Padding interno de 24px en todos los lados (!important para sobrescribir estilos de Material) */
-    
-    /* Posicionamiento */
-    position: relative;                                        /* Posición relativa para permitir posicionamiento absoluto de elementos hijos */
-    
-    /* Asegurar que el contenido ocupe todo el espacio */
-    width: 100%;                                               /* Ancho completo del contenedor */
-    height: 100%;                                              /* Alto completo del contenedor */
-    box-sizing: border-box;                                    /* Incluir padding en el cálculo de ancho/alto */
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+
+    padding: 24px !important;
+
+
+    position: relative;
+
+
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
   }
 
-  /* Card Icon Container */
-  /* Contenedor del icono de la tarjeta - Círculo con gradiente de color */
+
+
   .card-icon {
-    /* Dimensiones fijas del contenedor de icono */
-    width: 60px;                                               /* Ancho fijo de 60px para mantener consistencia */
-    height: 60px;                                              /* Alto fijo de 60px (cuadrado perfecto) */
-    min-width: 60px;                                           /* Ancho mínimo para evitar compresión */
-    min-height: 60px;                                          /* Alto mínimo para evitar compresión */
-    
-    /* Diseño visual */
-    border-radius: 16px;                                       /* Bordes redondeados de 16px para apariencia suave */
-    
-    /* Sistema de layout para centrar el icono */
-    display: flex;                                             /* Activar flexbox */
-    align-items: center;                                       /* Centrar icono verticalmente */
-    justify-content: center;                                   /* Centrar icono horizontalmente */
-    
-    /* Comportamiento en layout flexbox */
-    flex-shrink: 0;                                            /* No permitir que se reduzca el tamaño del contenedor */
-    
-    /* Animación */
-    transition: all 0.3s ease;                                 /* Transición suave de 0.3s para todos los cambios */
 
-    /* Icono Material dentro del contenedor */
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+
+
+    border-radius: 16px;
+
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+
+    flex-shrink: 0;
+
+
+    transition: all 0.3s ease;
+
+
     mat-icon {
-      /* Tamaño del icono */
-      font-size: 32px;                                         /* Tamaño de fuente del icono 32px */
-      width: 32px;                                             /* Ancho explícito del icono 32px */
-      height: 32px;                                            /* Alto explícito del icono 32px */
-      
-      /* Color y efectos */
-      color: white;                                            /* Color blanco para contraste con el fondo de color */
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));      /* Sombra sutil para dar profundidad al icono */
+
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+
+
+      color: white;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     }
   }
 
-  /* Card Text Content */
-  /* Contenido de texto de la tarjeta - Título y descripción */
+
+
   .card-content {
-    /* Comportamiento en flexbox */
-    flex: 1;                                                   /* Ocupar todo el espacio disponible entre el icono y la flecha */
-    
-    /* Asegurar que el texto no se desborde */
-    min-width: 0;                                              /* Permitir que el contenedor se reduzca si es necesario */
-    overflow: hidden;                                          /* Ocultar texto que se desborde */
 
-    /* Título de la tarjeta (h3) */
+    flex: 1;
+
+
+    min-width: 0;
+    overflow: hidden;
+
+
     h3 {
-      /* Tipografía */
-      font-size: 1.25rem;                                      /* Tamaño de fuente 20px (1.25rem) */
-      font-weight: 700;                                        /* Peso bold (negrita) para destacar */
-      
-      /* Color */
-      color: #1e293b;                                          /* Color gris oscuro para buen contraste */
-      
-      /* Espaciado */
-      margin: 0 0 6px 0;                                       /* Sin margen superior/lateral, 6px margen inferior */
-      
-      /* Efectos visuales */
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);              /* Sombra de texto muy sutil para profundidad */
-      
-      /* Control de texto largo */
-      white-space: nowrap;                                     /* No permitir saltos de línea */
-      overflow: hidden;                                        /* Ocultar texto que se desborde */
-      text-overflow: ellipsis;                                 /* Mostrar "..." si el texto es muy largo */
+
+      font-size: 1.25rem;
+      font-weight: 700;
+
+
+      color: #1e293b;
+
+
+      margin: 0 0 6px 0;
+
+
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* Descripción de la tarjeta (p) */
+
     p {
-      /* Tipografía */
-      font-size: 0.875rem;                                     /* Tamaño de fuente pequeño 14px (0.875rem) */
-      font-weight: 500;                                        /* Peso medio */
-      
-      /* Color */
-      color: #64748b;                                          /* Color gris medio para texto secundario */
-      
-      /* Espaciado */
-      margin: 0;                                               /* Sin margen */
-      line-height: 1.5;                                        /* Altura de línea 1.5 para buena legibilidad */
-      
-      /* Control de texto largo - permitir 2 líneas máximo */
-      display: -webkit-box;                                    /* Usar box layout de webkit */
-      -webkit-line-clamp: 2;                                   /* Limitar a 2 líneas */
-      -webkit-box-orient: vertical;                            /* Orientación vertical */
-      overflow: hidden;                                        /* Ocultar texto que exceda 2 líneas */
-      text-overflow: ellipsis;                                 /* Mostrar "..." si el texto es muy largo */
+
+      font-size: 0.875rem;
+      font-weight: 500;
+
+
+      color: #64748b;
+
+
+      margin: 0;
+      line-height: 1.5;
+
+
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
-  /* Card Arrow Indicator */
-  /* Indicador de flecha de la tarjeta - Muestra que es clickeable */
+
+
   .card-arrow {
-    /* Animación del contenedor */
-    transition: all 0.3s ease;                                 /* Transición suave de 0.3s para todos los cambios */
-    
-    /* Comportamiento en flexbox */
-    flex-shrink: 0;                                            /* No permitir que se reduzca el tamaño */
-    
-    /* Asegurar alineación */
-    display: flex;                                             /* Activar flexbox */
-    align-items: center;                                       /* Centrar verticalmente */
-    justify-content: center;                                   /* Centrar horizontalmente */
 
-    /* Icono de flecha Material */
+    transition: all 0.3s ease;
+
+
+    flex-shrink: 0;
+
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+
     mat-icon {
-      /* Color por defecto */
-      color: #94a3b8;                                          /* Color gris claro cuando no hay hover */
-      
-      /* Tamaño */
-      font-size: 24px;                                         /* Tamaño del icono 24px */
-      width: 24px;                                             /* Ancho explícito 24px */
-      height: 24px;                                            /* Alto explícito 24px */
-      
-      /* Animación */
-      transition: all 0.3s ease;                               /* Transición suave para color y posición */
+
+      color: #94a3b8;
+
+
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+
+
+      transition: all 0.3s ease;
     }
   }
 
-  /* Efecto hover en la flecha - animación de movimiento */
+
   &:hover .card-arrow mat-icon {
-    color: #2563eb;                                            /* Cambiar a azul brillante en hover */
-    transform: translateX(4px);                                /* Mover 4px a la derecha para indicar acción */
+    color: #2563eb;
+    transform: translateX(4px);
   }
 
-  /* ===========================================
-     SPECIFIC CARD THEMES - ENHANCED COLORS
-     =========================================== */
-  
-  /* Settings Card - Primary Blue */
-  /* Tarjeta de configuraciones con tema azul primario */
+
+
+
+
   &.settings-card .card-icon {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);     /* Gradiente azul */
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);             /* Sombra azul */
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
   }
 
-  /* Reports Card - Success Green */
-  /* Tarjeta de reportes con tema verde éxito */
+
+
   &.reports-card .card-icon {
-    background: linear-gradient(135deg, #059669, #047857);     /* Gradiente verde */
-    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);             /* Sombra verde */
+    background: linear-gradient(135deg, #059669, #047857);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
   }
 
-  /* Machines Card - Danger Red */
-  /* Tarjeta de máquinas con tema rojo peligro */
+
+
   &.machines-card .card-icon {
-    background: linear-gradient(135deg, #dc2626, #b91c1c);     /* Gradiente rojo */
-    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);             /* Sombra roja */
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
   }
 
-  /* Design Card - Info Cyan */
-  /* Tarjeta de diseño con tema cyan información */
+
+
   &.design-card .card-icon {
-    background: linear-gradient(135deg, #0891b2, #0e7490);     /* Gradiente cyan */
-    box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);             /* Sombra cyan */
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+    box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
   }
 
-  /* Document Card - Warning Orange */
-  /* Tarjeta de documentos con tema naranja advertencia */
+
+
   &.documento-card .card-icon {
-    background: linear-gradient(135deg, #ea580c, #c2410c);     /* Gradiente naranja */
-    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);             /* Sombra naranja */
+    background: linear-gradient(135deg, #ea580c, #c2410c);
+    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
   }
 
-  /* Information Card - Purple */
-  /* Tarjeta de información con tema morado */
+
+
   &.informacion-card .card-icon {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9);     /* Gradiente morado */
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);            /* Sombra morada */
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
   }
 
-  /* Condición Única Card - Amber/Yellow */
-  /* Tarjeta de condición única con tema ámbar/amarillo */
+
+
   &.condicion-unica-card .card-icon {
-    background: linear-gradient(135deg, #f59e0b, #d97706);     /* Gradiente ámbar */
-    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);            /* Sombra ámbar */
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
   }
 
-  /* Consulta de Pedidos Card - Teal/Cyan */
-  /* Tarjeta de consulta de pedidos con tema teal/cyan */
+
+
   &.consulta-pedidos-card .card-icon {
-    background: linear-gradient(135deg, #14b8a6, #0891b2);     /* Gradiente teal/cyan */
-    box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);            /* Sombra teal */
+    background: linear-gradient(135deg, #14b8a6, #0891b2);
+    box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
   }
 }
 
-/* ===========================================
-   RESPONSIVE - QUICK ACTIONS
-   =========================================== */
 
-/* Large Tablet - Quick Actions */
-/* Ajustes de acciones rápidas para tablets grandes (1024px o menos) */
+
+
+
 @media (max-width: 1024px) {
   .quick-actions {
-    /* Grid: 3 columnas en tablets grandes */
+
     .actions-grid {
-      grid-template-columns: repeat(3, 1fr);                   /* 3 columnas de igual tamaño */
-      gap: 20px;                                               /* Espacio de 20px entre tarjetas */
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
     }
   }
 }
 
-/* Tablet - Quick Actions */
-/* Ajustes de acciones rápidas para tablets (768px o menos) */
+
+
 @media (max-width: 768px) {
   .quick-actions {
-    /* Título más pequeño */
-    .section-title {
-      font-size: 1.875rem;                                     /* Tamaño de fuente reducido (30px) */
 
-      /* Icono más pequeño */
+    .section-title {
+      font-size: 1.875rem;
+
+
       mat-icon {
-        font-size: 30px;                                       /* Tamaño del icono reducido */
+        font-size: 30px;
       }
     }
 
-    /* Grid: 2 columnas en tablets */
+
     .actions-grid {
-      grid-template-columns: repeat(2, 1fr);                   /* 2 columnas de igual tamaño */
-      gap: 20px;                                               /* Espacio de 20px entre tarjetas */
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
     }
   }
 
-  /* Tarjetas de acción en tablets */
-  .action-card mat-card-content {
-    padding: 24px !important;                                  /* Padding reducido de 24px */
-    gap: 20px;                                                 /* Espacio de 20px entre elementos */
 
-    /* Icono más pequeño */
+  .action-card mat-card-content {
+    padding: 24px !important;
+    gap: 20px;
+
+
     .card-icon {
-      width: 56px;                                             /* Ancho de 56px */
-      height: 56px;                                            /* Alto de 56px */
+      width: 56px;
+      height: 56px;
 
       mat-icon {
-        font-size: 28px;                                       /* Tamaño del icono 28px */
-        width: 28px;                                           /* Ancho del icono 28px */
-        height: 28px;                                          /* Alto del icono 28px */
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
       }
     }
 
-    /* Contenido de texto más pequeño */
+
     .card-content {
       h3 {
-        font-size: 1.25rem;                                    /* Tamaño de fuente reducido (20px) */
+        font-size: 1.25rem;
       }
 
       p {
-        font-size: 0.875rem;                                   /* Tamaño de fuente reducido (14px) */
+        font-size: 0.875rem;
       }
     }
   }
 }
 
-/* Small Tablet - Quick Actions */
-/* Ajustes de acciones rápidas para tablets pequeñas (640px o menos) */
+
+
 @media (max-width: 640px) {
   .quick-actions {
-    /* Grid: 1 columna en tablets pequeñas */
+
     .actions-grid {
-      grid-template-columns: 1fr;                              /* 1 columna - tarjetas apiladas */
-      gap: 16px;                                               /* Espacio de 16px entre tarjetas */
+      grid-template-columns: 1fr;
+      gap: 16px;
     }
   }
 }
 
-/* Mobile - Quick Actions */
-/* Ajustes de acciones rápidas para móviles (480px o menos) */
+
+
 @media (max-width: 480px) {
   .quick-actions {
-    /* Título aún más pequeño */
-    .section-title {
-      font-size: 1.625rem;                                     /* Tamaño de fuente más pequeño (26px) */
 
-      /* Icono más pequeño */
+    .section-title {
+      font-size: 1.625rem;
+
+
       mat-icon {
-        font-size: 26px;                                       /* Tamaño del icono más pequeño */
+        font-size: 26px;
       }
     }
 
-    /* Grid: espacio reducido */
+
     .actions-grid {
-      gap: 16px;                                               /* Espacio de 16px entre tarjetas */
+      gap: 16px;
     }
 
-    /* Tarjetas de acción en móviles */
-    .action-card mat-card-content {
-      padding: 20px !important;                                /* Padding mínimo de 20px */
 
-      /* Icono más pequeño */
+    .action-card mat-card-content {
+      padding: 20px !important;
+
+
       .card-icon {
-        width: 52px;                                           /* Ancho de 52px */
-        height: 52px;                                          /* Alto de 52px */
+        width: 52px;
+        height: 52px;
 
         mat-icon {
-          font-size: 26px;                                     /* Tamaño del icono 26px */
-          width: 26px;                                         /* Ancho del icono 26px */
-          height: 26px;                                        /* Alto del icono 26px */
+          font-size: 26px;
+          width: 26px;
+          height: 26px;
         }
       }
 
-      /* Contenido de texto más pequeño */
+
       .card-content {
         h3 {
-          font-size: 1.125rem;                                 /* Tamaño de fuente reducido (18px) */
+          font-size: 1.125rem;
         }
 
         p {
-          font-size: 0.85rem;                                  /* Tamaño de fuente reducido (13.6px) */
+          font-size: 0.85rem;
         }
       }
     }
@@ -811,65 +795,63 @@
 }
 
 
-/* ===========================================
-   USER TIMES LIST - TIEMPO PROMEDIO POR USUARIO
-   =========================================== */
-/* Lista de tiempos promedio por usuario dentro de la tarjeta de estadísticas */
+
+
 .user-times-list {
-  margin-top: 16px;                                            /* Espacio superior de 16px */
-  padding-top: 12px;                                           /* Padding superior de 12px */
-  border-top: 1px solid rgba(148, 163, 184, 0.2);             /* Línea divisoria superior gris */
-  
-  /* Item individual de usuario */
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+
+
   .user-time-item {
-    display: flex;                                             /* Layout flexbox */
-    align-items: center;                                       /* Alinear verticalmente al centro */
-    justify-content: space-between;                            /* Distribuir espacio entre elementos */
-    padding: 6px 0;                                            /* Padding vertical de 6px */
-    font-size: 0.75rem;                                        /* Tamaño de fuente pequeño (12px) */
-    
-    /* Nombre del usuario */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.75rem;
+
+
     .user-name {
-      color: #475569;                                          /* Color gris oscuro */
-      font-weight: 600;                                        /* Peso semi-bold */
-      flex: 1;                                                 /* Ocupar espacio disponible */
-      overflow: hidden;                                        /* Ocultar texto que se desborde */
-      text-overflow: ellipsis;                                 /* Mostrar "..." si es muy largo */
-      white-space: nowrap;                                     /* No permitir saltos de línea */
+      color: #475569;
+      font-weight: 600;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    
-    /* Tiempo promedio */
+
+
     .user-avg-time {
-      color: #f59e0b;                                          /* Color naranja (tema de la tarjeta) */
-      font-weight: 700;                                        /* Peso bold */
-      margin: 0 8px;                                           /* Margen horizontal de 8px */
+      color: #f59e0b;
+      font-weight: 700;
+      margin: 0 8px;
     }
-    
-    /* Número de cambios */
+
+
     .user-changes {
-      color: #94a3b8;                                          /* Color gris claro */
-      font-size: 0.7rem;                                       /* Tamaño de fuente más pequeño */
+      color: #94a3b8;
+      font-size: 0.7rem;
     }
   }
-  
-  /* Enlace "ver todos" */
+
+
   .view-all {
-    text-align: center;                                        /* Centrar texto */
-    margin-top: 8px;                                           /* Margen superior de 8px */
-    padding-top: 8px;                                          /* Padding superior de 8px */
-    border-top: 1px solid rgba(148, 163, 184, 0.1);           /* Línea divisoria superior muy sutil */
-    
+    text-align: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+
     small {
-      color: #94a3b8;                                          /* Color gris claro */
-      font-weight: 600;                                        /* Peso semi-bold */
-      font-size: 0.7rem;                                       /* Tamaño de fuente pequeño */
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.7rem;
     }
   }
 }
 
-/* Responsive: Ocultar lista en móviles para ahorrar espacio */
+
 @media (max-width: 640px) {
   .user-times-list {
-    display: none;                                             /* Ocultar en pantallas pequeñas */
+    display: none;
   }
 }

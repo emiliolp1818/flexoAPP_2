@@ -6,11 +6,11 @@ namespace FlexoAPP.API.Models.DTOs
     {
         [Required]
         public string UserCode { get; set; } = string.Empty;
-        
+
         public DateTime? StartDate { get; set; }
-        
+
         public DateTime? EndDate { get; set; }
-        
+
         public string? Module { get; set; }
     }
 }

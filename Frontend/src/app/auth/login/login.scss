@@ -1,811 +1,811 @@
-// ===== PALETA DE COLORES CORPORATIVA =====
-// Definición de variables de color para mantener consistencia en todo el diseño
-$primary-blue: #2563eb;           // Color azul principal de la marca FlexoSpring
-$primary-blue-light: #3b82f6;     // Variante más clara del azul para efectos hover
-$primary-blue-dark: #1d4ed8;      // Variante más oscura del azul para estados activos
-$gray-50: #f8fafc;                // Gris muy claro para fondos sutiles
-$gray-100: #f1f5f9;               // Gris claro para elementos de interfaz
-$gray-800: #1e293b;               // Gris oscuro para texto principal
-$gray-900: #0f172a;               // Gris muy oscuro para elementos de alto contraste
 
-// ===== CONTENEDOR PRINCIPAL DEL LOGIN =====
-// Contenedor que ocupa toda la pantalla con diseño de dos columnas
+
+$primary-blue: #2563eb;
+$primary-blue-light: #3b82f6;
+$primary-blue-dark: #1d4ed8;
+$gray-50: #f8fafc;
+$gray-100: #f1f5f9;
+$gray-800: #1e293b;
+$gray-900: #0f172a;
+
+
+
 .login-container {
-  position: fixed;                 // Posición fija para ocupar toda la ventana del navegador
-  top: 0;                         // Alineado al borde superior de la ventana
-  left: 0;                        // Alineado al borde izquierdo de la ventana
-  width: 100vw;                   // Ancho completo del viewport (100% del ancho visible)
-  height: 100vh;                  // Altura completa del viewport (100% de la altura visible)
-  display: flex;                  // Usar flexbox para layout de dos columnas
-  overflow: hidden;               // Ocultar cualquier contenido que se desborde
-  background: linear-gradient(45deg, #0f172a 0%, #1e3a8a 25%, #2563eb 50%, #3b82f6 75%, #60a5fa 100%); // Gradiente azul corporativo
-  background-size: 300% 300%;     // Tamaño ampliado del gradiente para permitir animación
-  animation: corporateGradientFlow 8s ease infinite; // Animación continua del fondo
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background: linear-gradient(45deg, #0f172a 0%, #1e3a8a 25%, #2563eb 50%, #3b82f6 75%, #60a5fa 100%);
+  background-size: 300% 300%;
+  animation: corporateGradientFlow 8s ease infinite;
 }
 
-// ===== ANIMACIÓN DEL FONDO CORPORATIVO =====
-// Animación que hace que el gradiente se mueva suavemente
+
+
 @keyframes corporateGradientFlow {
-  0% { background-position: 0% 0%; }      // Posición inicial del gradiente
-  25% { background-position: 100% 0%; }   // Mover hacia la derecha
-  50% { background-position: 100% 100%; } // Mover hacia abajo-derecha
-  75% { background-position: 0% 100%; }   // Mover hacia abajo-izquierda
-  100% { background-position: 0% 0%; }    // Regresar a la posición inicial
+  0% { background-position: 0% 0%; }
+  25% { background-position: 100% 0%; }
+  50% { background-position: 100% 100%; }
+  75% { background-position: 0% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
-// ===== SECCIÓN IZQUIERDA - INFORMACIÓN CORPORATIVA =====
-// Columna izquierda que contiene información de la empresa
+
+
 .company-info-section {
-  flex: 1;                        // Tomar todo el espacio disponible en el contenedor flex
-  display: flex;                  // Usar flexbox para organizar elementos verticalmente
-  flex-direction: column;         // Organizar elementos en columna (vertical)
-  justify-content: center;        // Centrar contenido verticalmente
-  align-items: flex-start;        // Alinear contenido al lado izquierdo
-  padding: 60px 80px;             // Espaciado interno: 60px arriba/abajo, 80px izquierda/derecha
-  color: white;                   // Color de texto blanco para contraste con fondo azul
-  position: relative;             // Posicionamiento relativo para elementos hijos absolutos
-  z-index: 2;                     // Índice Z alto para aparecer sobre elementos de fondo
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 80px;
+  color: white;
+  position: relative;
+  z-index: 2;
 
-  // Logo principal de la empresa en la sección izquierda
+
   .company-logo-main {
-    width: 90%;                 // Ancho fijo del logo principal
-    height: 90%;                 // Altura automática para mantener proporción
-    margin-bottom: 30px;          // Espacio inferior antes del siguiente elemento
-    border-radius: px;          // Bordes redondeados suaves
-    box-shadow: 0 px 0px rgba(0, 0, 0, 0.1); // Sombra sutil para dar profundidad
-    transition: transform 0.3s ease; // Transición suave para efectos hover
+    width: 90%;
+    height: 90%;
+    margin-bottom: 30px;
+    border-radius: px;
+    box-shadow: 0 px 0px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
 
-    &:hover {                     // Efecto cuando el usuario pasa el mouse sobre el logo
-      transform: scale(1.05);     // Aumentar ligeramente el tamaño (5% más grande)
+    &:hover {
+      transform: scale(1.05);
     }
   }
 
-  // Sección del encabezado con el nombre de la empresa
+
   .company-header {
-    margin-bottom: 40px;          // Espacio inferior antes del siguiente elemento
-    text-align: left;             // Alinear texto a la izquierda
+    margin-bottom: 40px;
+    text-align: left;
 
-    // Nombre principal de la empresa
+
     .company-name {
-      font-size: 4.5rem;          // Tamaño de fuente muy grande para impacto visual
-      font-weight: 900;           // Peso de fuente extra bold para máximo énfasis
-      margin: 0 0 8px 0;          // Márgenes: sin margen superior/lateral, 8px inferior
-      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%); // Gradiente blanco elegante
-      -webkit-background-clip: text; // Aplicar gradiente solo al texto (compatibilidad WebKit)
-      -webkit-text-fill-color: transparent; // Hacer el texto transparente para mostrar gradiente
-      background-clip: text;       // Aplicar gradiente solo al texto (estándar)
-      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); // Sombra de texto para profundidad
-      letter-spacing: -1px;       // Espaciado negativo entre letras para mejor legibilidad
-      line-height: 1.1;           // Altura de línea compacta
-      word-spacing: 0.2em;        // Espaciado entre palabras
+      font-size: 4.5rem;
+      font-weight: 900;
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      letter-spacing: -1px;
+      line-height: 1.1;
+      word-spacing: 0.2em;
     }
   }
 
-  // Sección del reloj en tiempo real
+
   .clock-section {
-    margin-bottom: 40px;          // Espacio inferior antes del siguiente elemento
-    padding: 24px;                // Espaciado interno uniforme
-    background: rgba(255, 255, 255, 0.1); // Fondo blanco semi-transparente
-    backdrop-filter: blur(20px);  // Efecto de desenfoque para glassmorphism
-    border-radius: 20px;          // Bordes muy redondeados para look moderno
-    border: 1px solid rgba(255, 255, 255, 0.2); // Borde sutil semi-transparente
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); // Sombra pronunciada para elevación
-    text-align: center;           // Centrar contenido del reloj
-    min-width: 300px;             // Ancho mínimo para mantener consistencia
+    margin-bottom: 40px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    min-width: 300px;
 
-    // Hora actual mostrada en formato HH:MM:SS
+
     .current-time {
-      font-size: 3rem;            // Tamaño grande para fácil lectura
-      font-weight: 700;           // Peso bold para énfasis
-      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace; // Fuente monospace para números
-      color: #ffffff;             // Blanco puro para máximo contraste
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); // Sombra para mejorar legibilidad
-      margin-bottom: 24px;        // Espacio inferior aumentado antes de la fecha
-      letter-spacing: 2px;        // Espaciado entre letras para mejor legibilidad
+      font-size: 3rem;
+      font-weight: 700;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      margin-bottom: 24px;
+      letter-spacing: 2px;
     }
 
-    // Fecha actual mostrada en formato largo
+
     .current-date {
-      font-size: 1.1rem;          // Tamaño mediano para jerarquía visual
-      font-weight: 500;           // Peso medio para contraste con la hora
-      color: rgba(255, 255, 255, 0.9); // Blanco casi opaco para jerarquía
-      text-transform: capitalize; // Capitalizar primera letra de cada palabra
-      margin-top: 12px;           // Espacio superior adicional para separación
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+      text-transform: capitalize;
+      margin-top: 12px;
     }
   }
 
-  // Secciones de misión y visión de la empresa
+
   .mission-section,
   .vision-section {
-    margin-bottom: 32px;          // Espacio inferior entre secciones
+    margin-bottom: 32px;
 
-    // Título de cada sección con icono
+
     .section-title {
-      display: flex;               // Usar flexbox para alinear icono y texto
-      align-items: center;         // Centrar verticalmente icono y texto
-      gap: 12px;                   // Espacio entre icono y texto
-      font-size: 1.5rem;           // Tamaño de fuente para jerarquía
-      font-weight: 700;            // Peso bold para énfasis
-      margin: 0 0 12px 0;          // Margen inferior para separar del texto
-      color: #ffffff;              // Blanco puro para máximo contraste
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      color: #ffffff;
 
-      // Iconos de Material Design
+
       mat-icon {
-        font-size: 28px;           // Tamaño del icono
-        width: 28px;               // Ancho fijo del icono
-        height: 28px;              // Altura fija del icono
-        color: #60a5fa;            // Azul claro para contraste visual
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+        color: #60a5fa;
       }
     }
 
-    // Texto descriptivo de misión/visión
+
     .section-text {
-      font-size: 1.1rem;          // Tamaño legible para contenido
-      line-height: 1.6;           // Altura de línea para buena legibilidad
-      color: rgba(255, 255, 255, 0.9); // Blanco semi-transparente para jerarquía
-      margin: 0;                  // Sin márgenes para control preciso
-      padding-left: 40px;         // Indentación para alinear con texto del título
-      font-weight: 400;           // Peso normal para texto de contenido
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0;
+      padding-left: 40px;
+      font-weight: 400;
     }
   }
 }
 
-// ===== RESPONSIVE DESIGN =====
-// Adaptaciones para diferentes tamaños de pantalla
 
-// TABLETS (1024px y menos)
+
+
+
 @media (max-width: 1024px) {
   .login-container {
-    flex-direction: column;       // Cambiar de fila a columna (vertical)
-    height: 100vh;                // Mantener altura completa del viewport
-    overflow-y: auto;             // Permitir scroll vertical si es necesario
-    -webkit-overflow-scrolling: touch; // Scroll suave en iOS
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .company-info-section {
-    flex: 0 0 auto;               // No crecer ni encogerse, tamaño automático
-    padding: 30px 40px 20px 40px; // Reducir padding
-    text-align: center;           // Centrar todo el contenido
-    align-items: center;          // Centrar elementos horizontalmente
+    flex: 0 0 auto;
+    padding: 30px 40px 20px 40px;
+    text-align: center;
+    align-items: center;
 
     .company-logo-main {
-      width: 120px;               // Reducir tamaño del logo principal
-      margin: 0 auto 20px;        // Centrar y reducir margen inferior
+      width: 120px;
+      margin: 0 auto 20px;
     }
 
     .company-header {
-      text-align: center;         // Centrar texto
-      
+      text-align: center;
+
       .company-name {
-        font-size: 2.8rem;        // Reducir tamaño de fuente del nombre
-        margin-bottom: 20px;      // Reducir margen inferior
+        font-size: 2.8rem;
+        margin-bottom: 20px;
       }
     }
 
     .clock-section {
-      margin: 0 auto 20px;        // Centrar y reducir margen inferior
-      padding: 20px;              // Reducir padding interno
-      min-width: auto;            // Ancho mínimo automático
-      max-width: 90%;             // Ancho máximo para no ocupar todo el espacio
-      
+      margin: 0 auto 20px;
+      padding: 20px;
+      min-width: auto;
+      max-width: 90%;
+
       .current-time {
-        font-size: 2rem;          // Reducir tamaño de fuente de la hora
+        font-size: 2rem;
       }
-      
+
       .current-date {
-        font-size: 1rem;          // Ajustar tamaño de fecha
+        font-size: 1rem;
       }
     }
 
     .mission-section,
     .vision-section {
-      margin-bottom: 20px;        // Reducir margen inferior
-      text-align: center;         // Centrar texto
-      
+      margin-bottom: 20px;
+      text-align: center;
+
       .section-title {
-        justify-content: center;  // Centrar título
+        justify-content: center;
       }
-      
+
       .section-text {
-        padding-left: 0;          // Eliminar padding izquierdo
-        font-size: 1rem;          // Ajustar tamaño de fuente
+        padding-left: 0;
+        font-size: 1rem;
       }
     }
   }
 
   .login-card {
-    flex: 1;                      // Tomar el espacio restante
-    padding: 20px;                // Reducir padding
-    min-height: auto;             // Altura mínima automática
+    flex: 1;
+    padding: 20px;
+    min-height: auto;
   }
 
   .login-form {
-    padding: 30px;                // Reducir padding del formulario
-    max-width: 100%;              // Ancho máximo completo
+    padding: 30px;
+    max-width: 100%;
   }
 }
 
-// MÓVILES (768px y menos)
+
 @media (max-width: 768px) {
   .company-info-section {
-    padding: 20px 25px 15px 25px; // Ajustar padding
+    padding: 20px 25px 15px 25px;
 
     .company-logo-main {
-      width: 100px;               // Reducir más el tamaño del logo
-      margin-bottom: 15px;        // Reducir margen inferior
+      width: 100px;
+      margin-bottom: 15px;
     }
 
     .company-header .company-name {
-      font-size: 2.2rem;          // Reducir más el tamaño de fuente
-      line-height: 1.2;           // Ajustar altura de línea
+      font-size: 2.2rem;
+      line-height: 1.2;
     }
 
     .clock-section {
-      padding: 16px;              // Reducir padding
-      margin-bottom: 15px;        // Reducir margen inferior
-      
+      padding: 16px;
+      margin-bottom: 15px;
+
       .current-time {
-        font-size: 1.8rem;        // Reducir tamaño de fuente de la hora
-        letter-spacing: 1px;      // Reducir espaciado entre letras
+        font-size: 1.8rem;
+        letter-spacing: 1px;
       }
-      
+
       .current-date {
-        font-size: 0.95rem;       // Reducir tamaño de fecha
+        font-size: 0.95rem;
       }
     }
 
     .mission-section,
     .vision-section {
-      margin-bottom: 15px;        // Reducir margen inferior
-      
+      margin-bottom: 15px;
+
       .section-title {
-        font-size: 1.3rem;        // Reducir tamaño de título
-        gap: 8px;                 // Reducir espacio entre icono y texto
-        
+        font-size: 1.3rem;
+        gap: 8px;
+
         mat-icon {
-          font-size: 24px;        // Reducir tamaño de icono
-          width: 24px;            // Ajustar ancho
-          height: 24px;           // Ajustar altura
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
         }
       }
-      
+
       .section-text {
-        font-size: 0.95rem;       // Reducir tamaño de texto
-        line-height: 1.5;         // Ajustar altura de línea
+        font-size: 0.95rem;
+        line-height: 1.5;
       }
     }
   }
 
   .login-card {
-    padding: 15px;                // Reducir padding del contenedor
+    padding: 15px;
   }
 
   .login-form {
-    padding: 25px 20px;           // Reducir padding del formulario
-    border-radius: 20px;          // Reducir bordes redondeados
-    
+    padding: 25px 20px;
+    border-radius: 20px;
+
     .logo-container {
-      width: 80px;                // Reducir tamaño del logo
-      height: 80px;               // Reducir altura del logo
-      margin-bottom: 10px;        // Reducir margen inferior
+      width: 80px;
+      height: 80px;
+      margin-bottom: 10px;
     }
-    
+
     .form-header {
-      margin-bottom: 24px;        // Reducir margen inferior
-      
+      margin-bottom: 24px;
+
       h2 {
-        font-size: 1.6rem;        // Reducir tamaño de título
+        font-size: 1.6rem;
       }
-      
+
       p {
-        font-size: 0.9rem;        // Reducir tamaño de subtítulo
+        font-size: 0.9rem;
       }
     }
-    
+
     form {
-      gap: 16px;                  // Reducir espacio entre campos
+      gap: 16px;
     }
   }
 
   .form-field mat-form-field {
     .mdc-text-field__input {
-      height: 48px;               // Reducir altura de inputs
-      padding: 12px 16px;         // Reducir padding
-      font-size: 14px;            // Reducir tamaño de fuente
+      height: 48px;
+      padding: 12px 16px;
+      font-size: 14px;
     }
   }
 
   .login-button {
-    height: 48px;                 // Reducir altura del botón
-    font-size: 15px;              // Reducir tamaño de fuente
-    border-radius: 14px;          // Reducir bordes redondeados
+    height: 48px;
+    font-size: 15px;
+    border-radius: 14px;
   }
 
   .error-message {
-    padding: 14px 16px;           // Reducir padding
-    font-size: 13px;              // Reducir tamaño de fuente
+    padding: 14px 16px;
+    font-size: 13px;
   }
 }
 
-// MÓVILES PEQUEÑOS (480px y menos)
+
 @media (max-width: 480px) {
   .company-info-section {
-    padding: 15px 15px 10px 15px; // Reducir padding
+    padding: 15px 15px 10px 15px;
 
     .company-logo-main {
-      width:90%;                // Reducir más el tamaño del logo
-      margin-bottom: 22px;        // Reducir margen inferior
+      width:90%;
+      margin-bottom: 22px;
     }
 
     .company-header .company-name {
-      font-size: 1.8rem;          // Reducir significativamente el tamaño
-      line-height: 1.1;           // Ajustar altura de línea
-      letter-spacing: -0.5px;     // Reducir espaciado entre letras
+      font-size: 1.8rem;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
     }
 
     .clock-section {
-      padding: 12px;              // Reducir padding
-      margin-bottom: 12px;        // Reducir margen inferior
-      border-radius: 16px;        // Reducir bordes redondeados
-      
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 16px;
+
       .current-time {
-        font-size: 1.5rem;        // Reducir más el tamaño de la hora
-        letter-spacing: 1px;      // Reducir espaciado
-        margin-bottom: 6px;       // Reducir margen inferior
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
       }
-      
+
       .current-date {
-        font-size: 0.85rem;       // Reducir tamaño de fecha
+        font-size: 0.85rem;
       }
     }
 
     .mission-section,
     .vision-section {
-      margin-bottom: 12px;        // Reducir margen inferior
-      
+      margin-bottom: 12px;
+
       .section-title {
-        font-size: 1.1rem;        // Reducir tamaño de título
-        gap: 6px;                 // Reducir espacio
-        
+        font-size: 1.1rem;
+        gap: 6px;
+
         mat-icon {
-          font-size: 20px;        // Reducir tamaño de icono
-          width: 20px;            // Ajustar ancho
-          height: 20px;           // Ajustar altura
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
         }
       }
-      
+
       .section-text {
-        font-size: 0.85rem;       // Reducir tamaño de texto
-        line-height: 1.4;         // Ajustar altura de línea
+        font-size: 0.85rem;
+        line-height: 1.4;
       }
     }
   }
 
   .login-card {
-    padding: 10px;                // Reducir padding del contenedor
+    padding: 10px;
   }
 
   .login-form {
-    padding: 20px 15px;           // Reducir padding del formulario
-    border-radius: 16px;          // Reducir bordes redondeados
-    
+    padding: 20px 15px;
+    border-radius: 16px;
+
     .logo-container {
-      width: 70px;                // Reducir tamaño del logo
-      height: 70px;               // Reducir altura del logo
-      margin-bottom: 8px;         // Reducir margen inferior
+      width: 70px;
+      height: 70px;
+      margin-bottom: 8px;
     }
-    
+
     .form-header {
-      margin-bottom: 20px;        // Reducir margen inferior
-      
+      margin-bottom: 20px;
+
       h2 {
-        font-size: 1.4rem;        // Reducir tamaño de título
-        margin-bottom: 8px;       // Reducir margen inferior
+        font-size: 1.4rem;
+        margin-bottom: 8px;
       }
-      
+
       p {
-        font-size: 0.85rem;       // Reducir tamaño de subtítulo
+        font-size: 0.85rem;
       }
     }
-    
+
     form {
-      gap: 14px;                  // Reducir espacio entre campos
+      gap: 14px;
     }
   }
 
   .form-field mat-form-field {
     .mdc-text-field__input {
-      height: 44px;               // Reducir altura de inputs
-      padding: 10px 14px;         // Reducir padding
-      font-size: 13px;            // Reducir tamaño de fuente
+      height: 44px;
+      padding: 10px 14px;
+      font-size: 13px;
     }
-    
+
     .mat-mdc-text-field-wrapper {
-      border-radius: 12px;        // Reducir bordes redondeados
+      border-radius: 12px;
     }
   }
 
   .login-button {
-    height: 44px;                 // Reducir altura del botón
-    font-size: 14px;              // Reducir tamaño de fuente
-    border-radius: 12px;          // Reducir bordes redondeados
-    letter-spacing: 0.5px;        // Reducir espaciado entre letras
+    height: 44px;
+    font-size: 14px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
   }
 
   .error-message {
-    padding: 12px 14px;           // Reducir padding
-    font-size: 12px;              // Reducir tamaño de fuente
-    border-radius: 10px;          // Reducir bordes redondeados
-    
+    padding: 12px 14px;
+    font-size: 12px;
+    border-radius: 10px;
+
     mat-icon {
-      font-size: 18px;            // Reducir tamaño de icono
-      width: 18px;                // Ajustar ancho
-      height: 18px;               // Ajustar altura
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
     }
   }
 
-  // Ajustar elementos flotantes para móviles pequeños
+
   .animated-background .floating-orb {
     &:nth-child(1) {
-      width: 120px;               // Reducir tamaño
-      height: 120px;              // Reducir altura
+      width: 120px;
+      height: 120px;
     }
 
     &:nth-child(2) {
-      width: 90px;                // Reducir tamaño
-      height: 90px;               // Reducir altura
+      width: 90px;
+      height: 90px;
     }
 
     &:nth-child(3) {
-      width: 60px;                // Reducir tamaño
-      height: 60px;               // Reducir altura
+      width: 60px;
+      height: 60px;
     }
   }
 }
 
-// MÓVILES MUY PEQUEÑOS (360px y menos)
+
 @media (max-width: 360px) {
   .company-info-section {
-    padding: 12px 12px 8px 12px; // Reducir padding al mínimo
+    padding: 12px 12px 8px 12px;
 
     .company-logo-main {
-      width: 70px;                // Reducir más el tamaño del logo
-      margin-bottom: 10px;        // Reducir margen inferior
+      width: 70px;
+      margin-bottom: 10px;
     }
 
     .company-header .company-name {
-      font-size: 1.5rem;          // Reducir al mínimo legible
-      word-spacing: 0.1em;        // Reducir espaciado entre palabras
+      font-size: 1.5rem;
+      word-spacing: 0.1em;
     }
 
     .clock-section {
-      padding: 10px;              // Reducir padding al mínimo
-      
+      padding: 10px;
+
       .current-time {
-        font-size: 1.3rem;        // Reducir tamaño de hora
+        font-size: 1.3rem;
       }
-      
+
       .current-date {
-        font-size: 0.75rem;       // Reducir tamaño de fecha
+        font-size: 0.75rem;
       }
     }
 
     .mission-section,
     .vision-section {
       .section-title {
-        font-size: 1rem;          // Reducir tamaño de título
+        font-size: 1rem;
       }
-      
+
       .section-text {
-        font-size: 0.8rem;        // Reducir tamaño de texto
+        font-size: 0.8rem;
       }
     }
   }
 
   .login-form {
-    padding: 16px 12px;           // Reducir padding al mínimo
-    
+    padding: 16px 12px;
+
     .logo-container {
-      width: 60px;                // Reducir tamaño del logo
-      height: 60px;               // Reducir altura del logo
+      width: 60px;
+      height: 60px;
     }
-    
+
     .form-header {
       h2 {
-        font-size: 1.2rem;        // Reducir tamaño de título
+        font-size: 1.2rem;
       }
-      
+
       p {
-        font-size: 0.8rem;        // Reducir tamaño de subtítulo
+        font-size: 0.8rem;
       }
     }
   }
 
   .form-field mat-form-field .mdc-text-field__input {
-    height: 42px;                 // Reducir altura de inputs
-    padding: 8px 12px;            // Reducir padding
-    font-size: 12px;              // Reducir tamaño de fuente
+    height: 42px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .login-button {
-    height: 42px;                 // Reducir altura del botón
-    font-size: 13px;              // Reducir tamaño de fuente
+    height: 42px;
+    font-size: 13px;
   }
 }
 
-// ===== ESTILOS BÁSICOS PARA ELEMENTOS RESTANTES =====
-// Estilos mínimos para que el componente funcione
+
+
 
 .login-card {
-  flex: 0 0 420px;               // Ancho fijo reducido de 420px (antes 500px)
-  display: flex;                 // Usar flexbox para centrar contenido
-  flex-direction: column;        // Organizar elementos en columna vertical
-  justify-content: center;       // Centrar verticalmente el contenido
-  align-items: center;           // Centrar horizontalmente el contenido
-  padding: 40px 30px;            // Espaciado interno reducido para diseño más compacto
-  position: relative;            // Posicionamiento relativo para elementos hijos absolutos
-  z-index: 2;                    // Índice Z alto para aparecer sobre el fondo
+  flex: 0 0 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 30px;
+  position: relative;
+  z-index: 2;
 
   .login-form {
-    width: 100%;                 // Ancho completo del contenedor padre
-    max-width: 360px;            // Ancho máximo reducido de 360px (antes 400px)
-    background: rgba(255, 255, 255, 0.98); // Fondo blanco casi opaco con transparencia mínima
-    border-radius: 24px;         // Bordes muy redondeados para look moderno
-    padding: 35px 30px;          // Espaciado interno reducido: 35px vertical, 30px horizontal
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15); // Sombra pronunciada para efecto de elevación
+    width: 100%;
+    max-width: 360px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 24px;
+    padding: 35px 30px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
 
     .logo-container {
-      width: 70px;               // Ancho reducido del contenedor del logo (antes 85px)
-      height: 70px;              // Altura reducida del contenedor del logo (antes 85px)
-      margin: 0 auto 8px;        // Centrado horizontal con margen inferior reducidos 10px)
-      display: flex;             // Usar flexbox para centrar el logo
-      align-items: center;       // Centrar verticalmente el logodor
-      justify-content: center;   // Centrar horizontalmente el logor
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       .company-logo {
-        width: 100%;             // Ancho completo del contenedor
-        height: 100%;            // Altura completa del contenedor
-        object-fit: contain;     // Mantener proporción de aspecto del logo
-        border-radius: 50%;      // Forma circular perfecta
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 50%;
       }
     }
 
     .form-header {
-      text-align: center;        // Centrar todo el texto del encabezado
-      margin-bottom: 20px;       // Margen inferior reducido (antes 28px)
+      text-align: center;
+      margin-bottom: 20px;
 
       h2 {
-        font-size: 1.75rem;      // Tamaño reducido del título (antes 1.85r
-        font-weight: 800;        // Peso extra bold para énfasissual
-        color: $gray-800;        // Color gris oscuro corporativo
-        margin: 0 0 8px 0;       // Margen inferior reducido (antes 10px)
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: $gray-800;
+        margin: 0 0 8px 0;
       }
 
       p {
-        color: rgba(0, 0, 0, 0.7); // Color gris semi-transparente para jerarquía visual
-        margin: 0;               // Sin márgenes para control preciso
-        font-size: 0.9rem;       // Tamaño reducido (antes 0.95rem)
+        color: rgba(0, 0, 0, 0.7);
+        margin: 0;
+        font-size: 0.9rem;
       }
     }
 
     form {
-      display: flex;             // Usar flexbox para organizar camposo
-      flex-direction: column;    // Organizar elementos en columna vertical
-      gap: 14px;                 // Espacio reducido entre elementos (antes 18px)
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
   }
 }
 
-// Campos del formulario
+
 .form-field {
-  position: relative;             // Posicionamiento relativo para elementos hijos absolutos
+  position: relative;
 
   mat-form-field {
-    width: 100%;                  // Ancho completo del campo de formulario
+    width: 100%;
 
     .mdc-text-field__input {
-      height: 46px;               // Altura redu
-      padding: 12px 16px;         // Espaciado interno4px 18px)
-      font-size: 14px;            // Tamaño de fuente
+      height: 46px;
+      padding: 12px 16px;
+      font-size: 14px;
     }
   }
 }
 
-// Mensaje de error
+
 .error-message {
-  display: flex;                  // Usar flexbox para alinear icono y texto
-  align-items: center;            // Centrar verticalmente icono y texto
-  gap: 8px;                       // Espacio entre icono y texto
-  padding: 12px 16px;             // Espaciado interno reducido (antes 18px 20px)
-  background: rgba(254, 226, 226, 0.8); // Fondo rojo semi-transparente para mensajes de error
-  border-radius: 8px;             // Bordes redondeados suaves
-  color: #dc2626;                 // Color rojode error
-  font-size: 13px;                // Tamaño de fuentepx)
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(254, 226, 226, 0.8);
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 13px;
 }
 
-// Botón de login
+
 .login-button {
-  width: 100%;                    // Ancho completo
-  height: 46px;                   // Altura redu
-  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%) !important; // Gradiente azul
-  color: white !important;        // Texto blancoste
-  border: none;                   // Sin borde
-  border-radius: 14px;            // Bordes redondeadosx)
-  font-size: 15px;                // Tamaño de fuentex)
-  font-weight: 700;               // Peso bold
-  transition: all 0.3s ease;      // Transición suaveover
+  width: 100%;
+  height: 46px;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%) !important;
+  color: white !important;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
-    transform: translateY(-2px);  // Elevar ligeramenter
+    transform: translateY(-2px);
   }
 
   &:disabled {
-    opacity: 0.6;                 // Opacidad reducidatado
-    cursor: not-allowed;          // Cursor de no permitidoo
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   .spinning {
-    animation: spin 1s linear infinite; // Animación de rotaciónrga
-    margin-right: 10px;           // Margen derechoto
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
   }
 }
 
-// Animación de rotación
+
 @keyframes spin {
-  0% { transform: rotate(0deg); }     // Rotación inicial
-  100% { transform: rotate(360deg); } // Rotación completa
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-// Elementos flotantes
+
 .animated-background {
-  position: absolute;             // Posicionamiento absoluto
-  top: 0;                        // Alineado arriba
-  left: 0;                       // Alineado a la izquierda
-  width: 100%;                   // Ancho completo
-  height: 100%;                  // Altura completa
-  pointer-events: none;          // No interferir con interacciones
-  z-index: 1;                    // Índice Z bajo
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
 
   .floating-orb {
-    position: absolute;           // Posicionamiento absoluto
-    border-radius: 50%;           // Forma circular
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%); // Gradiente radial
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
 
     &:nth-child(1) {
-      width: 200px;               // Tamaño grande
-      height: 200px;              // Altura igual al ancho
-      top: 10%;                   // Posición vertical
-      left: 15%;                  // Posición horizontal
+      width: 200px;
+      height: 200px;
+      top: 10%;
+      left: 15%;
     }
 
     &:nth-child(2) {
-      width: 150px;               // Tamaño mediano
-      height: 150px;              // Altura igual al ancho
-      top: 60%;                   // Posición vertical
-      right: 20%;                 // Posición horizontal
+      width: 150px;
+      height: 150px;
+      top: 60%;
+      right: 20%;
     }
 
     &:nth-child(3) {
-      width: 100px;               // Tamaño pequeño
-      height: 100px;              // Altura igual al ancho
-      bottom: 20%;                // Posición vertical
-      left: 70%;                  // Posición horizontal
+      width: 100px;
+      height: 100px;
+      bottom: 20%;
+      left: 70%;
     }
   }
 }
 
-// ===== ESTILOS COMPLETOS DEL FORMULARIO =====
-// Estilos necesarios para que el login se muestre correctamente
+
+
 
 .login-form {
-  width: 100%;                   // Ancho completo del contenedor padre
-  max-width: 360px;              // Ancho máximo reducido de 360px (antes 400px)
-  background: rgba(255, 255, 255, 0.98); // Fondo blanco casi opaco con transparencia mínima
-  backdrop-filter: blur(25px);   // Efecto de desenfoque glassmorphism para fondo
-  border-radius: 24px;           // Bordes muy redondeados para diseño moderno
-  padding: 35px 30px;            // Espaciado interno reducido: 35px vertical, 30px horizontal
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15); // Sombra pronunciada para efecto de elevación
-  animation: cardAppear 0.8s ease forwards; // Animación suave de aparición al cargar
+  width: 100%;
+  max-width: 360px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(25px);
+  border-radius: 24px;
+  padding: 35px 30px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  animation: cardAppear 0.8s ease forwards;
 
   .logo-container {
-    width: 85px;                 // Ancho reducido del contenedor del logo (antes 100px)
-    height: 85px;                // Altura reducida del contenedor del logo (antes 100px)
-    margin: 0 auto 10px;         // Centrado horizontal con margen inferior reducido
-    display: flex;               // Usar flexbox para centrar el logo
-    align-items: center;         // Centrar verticalmente el logo dentro del contenedor
-    justify-content: center;     // Centrar horizontalmente el logo dentro del contenedor
-    animation: logoFloat 6s ease-in-out infinite; // Animación continua de flotación del logo
+    width: 85px;
+    height: 85px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: logoFloat 6s ease-in-out infinite;
 
     .company-logo {
-      width: 100%;               // Ancho completo del contenedor
-      height: 100%;              // Altura completa del contenedor
-      object-fit: contain;       // Mantener proporción de aspecto del logo
-      border-radius: 50%;        // Forma circular perfecta
-      background: rgba(255, 255, 255, 0.1); // Fondo semi-transparente sutil
-      transition: all 0.3s ease; // Transición suave para efectos hover
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
 
       &:hover {
-        transform: scale(1.05);  // Aumentar tamaño 5% al pasar el mouse
+        transform: scale(1.05);
       }
     }
   }
 
   .form-header {
-    text-align: center;          // Centrar todo el texto del encabezado
-    margin-bottom: 28px;         // Margen inferior reducido (antes 32px)
+    text-align: center;
+    margin-bottom: 28px;
 
     h2 {
-      font-size: 1.85rem;        // Tamaño reducido del título (antes 2rem)
-      font-weight: 800;          // Peso extra bold para mayor énfasis
-      color: $gray-800;          // Color gris oscuro como fallback si el gradiente falla
-      margin: 0 0 10px 0;        // Margen inferior reducido para separar del subtítulo
-      padding: 8px 0;            // Padding vertical para evitar que el texto se corte arriba y abajo
-      line-height: 1.4;          // Altura de línea aumentada para que el texto no se corte
-      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-light 100%); // Gradiente azul corporativo
-      -webkit-background-clip: text; // Aplicar gradiente solo al texto (compatibilidad WebKit)
-      -webkit-text-fill-color: transparent; // Hacer el texto transparente para mostrar el gradiente
-      background-clip: text;     // Aplicar gradiente solo al texto (estándar)
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: $gray-800;
+      margin: 0 0 10px 0;
+      padding: 8px 0;
+      line-height: 1.4;
+      background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-light 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     p {
-      color: rgba(0, 0, 0, 0.7); // Color gris semi-transparente para jerarquía visual
-      margin: 0;                 // Sin márgenes para control preciso del espaciado
-      font-size: 0.95rem;        // Tamaño ligeramente reducido (antes 1rem)
-      font-weight: 500;          // Peso medio para contraste con el título
+      color: rgba(0, 0, 0, 0.7);
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 500;
     }
   }
 
   form {
-    display: flex;               // Usar flexbox para organizar campos del formulario
-    flex-direction: column;      // Organizar elementos en columna vertical
-    gap: 18px;                   // Espacio reducido entre elementos (antes 20px)
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
   }
 }
 
-// Animación de aparición del formulario
+
 @keyframes cardAppear {
   0% {
-    opacity: 0;                  // Invisible
-    transform: translateY(30px) scale(0.9); // Posición inferior y escala reducida
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
   }
   100% {
-    opacity: 1;                  // Completamente visible
-    transform: translateY(0) scale(1); // Posición normal y escala completa
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-// Animación de flotación del logo
+
 @keyframes logoFloat {
-  0%, 100% { transform: translateY(0px); }  // Posición inicial y final
-  50% { transform: translateY(-5px); }      // Posición elevada en el medio
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
 }
 
-// ===== CAMPOS DEL FORMULARIO =====
+
 .form-field {
-  position: relative;            // Posicionamiento relativo
+  position: relative;
 
   mat-form-field {
-    width: 100%;                 // Ancho completo
+    width: 100%;
 
     .mat-mdc-text-field-wrapper {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%); // Gradiente de fondo
-      border-radius: 16px;       // Bordes redondeados
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); // Sombra sutil
-      transition: all 0.3s ease; // Transición suave
-      border: 1px solid rgba(59, 130, 246, 0.1); // Borde azul sutil
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(59, 130, 246, 0.1);
     }
 
     .mdc-text-field__input {
-      height: 52px;              // Altura fija
-      padding: 14px 18px;        // Espaciado interno
-      font-size: 15px;           // Tamaño de fuente
-      color: #1e293b;            // Color de texto
-      font-weight: 500;          // Peso medio
+      height: 52px;
+      padding: 14px 18px;
+      font-size: 15px;
+      color: #1e293b;
+      font-weight: 500;
     }
 
     &.mat-focused {
       .mdc-floating-label {
-        color: #1e40af;           // Color azul cuando está enfocado
+        color: #1e40af;
       }
     }
 
@@ -813,136 +813,136 @@ $gray-900: #0f172a;               // Gris muy oscuro para elementos de alto cont
       .mdc-notched-outline__leading,
       .mdc-notched-outline__notch,
       .mdc-notched-outline__trailing {
-        border-color: transparent; // Borde transparente
-        border-width: 0;          // Sin ancho de borde
+        border-color: transparent;
+        border-width: 0;
       }
     }
 
     .mat-mdc-form-field-icon-suffix {
-      color: #64748b;            // Color gris para iconos
-      transition: all 0.3s ease; // Transición suave
+      color: #64748b;
+      transition: all 0.3s ease;
 
       button {
-        color: #64748b;          // Color gris para botones
-        border-radius: 8px;      // Bordes redondeados
-        transition: all 0.3s ease; // Transición suave
+        color: #64748b;
+        border-radius: 8px;
+        transition: all 0.3s ease;
 
         &:hover {
-          color: #2563eb;        // Color azul en hover
-          background: rgba(37, 99, 235, 0.1); // Fondo azul semi-transparente
-          transform: scale(1.05); // Aumentar tamaño
+          color: #2563eb;
+          background: rgba(37, 99, 235, 0.1);
+          transform: scale(1.05);
         }
       }
     }
 
     &:hover:not(.mat-focused) {
       .mat-mdc-text-field-wrapper {
-        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08); // Sombra más pronunciada
-        border-color: rgba(59, 130, 246, 0.2); // Borde azul más visible
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        border-color: rgba(59, 130, 246, 0.2);
       }
     }
   }
 
   mat-error {
-    color: #ef4444;              // Color rojo para errores
-    font-size: 12px;             // Tamaño pequeño
-    margin-top: 6px;             // Margen superior
-    padding-left: 6px;           // Padding izquierdo
-    font-weight: 500;            // Peso medio
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 6px;
+    padding-left: 6px;
+    font-weight: 500;
   }
 }
 
-// ===== MENSAJE DE ERROR =====
+
 .error-message {
-  display: flex;                 // Usar flexbox
-  align-items: center;           // Centrar verticalmente
-  gap: 8px;                      // Espacio entre elementos
-  padding: 18px 20px;            // Espaciado interno
-  background: rgba(254, 226, 226, 0.8); // Fondo rojo semi-transparente
-  border: 1px solid rgba(248, 113, 113, 0.3); // Borde rojo sutil
-  border-radius: 8px;            // Bordes redondeados
-  color: #dc2626;                // Color rojo
-  font-size: 14px;               // Tamaño de fuente
-  animation: errorSlide 0.3s ease-out; // Animación de aparición
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 20px;
+  background: rgba(254, 226, 226, 0.8);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  animation: errorSlide 0.3s ease-out;
 
   mat-icon {
-    font-size: 20px;             // Tamaño del icono
-    width: 28px;                 // Ancho fijo
-    height: 28px;                // Altura fija
+    font-size: 20px;
+    width: 28px;
+    height: 28px;
   }
 }
 
-// Animación de deslizamiento para errores
+
 @keyframes errorSlide {
   0% {
-    opacity: 0;                  // Invisible
-    transform: translateY(-10px); // Posición superior
+    opacity: 0;
+    transform: translateY(-10px);
   }
   100% {
-    opacity: 1;                  // Completamente visible
-    transform: translateY(0);    // Posición normal
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-// ===== BOTÓN DE LOGIN =====
+
 .login-button {
-  width: 100%;                   // Ancho completo
-  height: 52px;                  // Altura fija
-  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%) !important; // Gradiente azul
-  color: white !important;       // Texto blanco
-  border: none;                  // Sin borde
-  border-radius: 16px;           // Bordes redondeados
-  font-size: 16px;               // Tamaño de fuente
-  font-weight: 700;              // Peso bold
-  letter-spacing: 0.8px;         // Espaciado entre letras
-  text-transform: uppercase;     // Texto en mayúsculas
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); // Transición suave
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3); // Sombra azul
-  position: relative;            // Posicionamiento relativo
-  overflow: hidden;              // Ocultar desbordamiento
+  width: 100%;
+  height: 52px;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%) !important;
+  color: white !important;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+  position: relative;
+  overflow: hidden;
 
   &::before {
-    content: '';                 // Contenido vacío
-    position: absolute;          // Posicionamiento absoluto
-    top: 0;                      // Alineado arriba
-    left: -100%;                 // Fuera del botón inicialmente
-    width: 100%;                 // Ancho completo
-    height: 100%;                // Altura completa
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); // Gradiente de brillo
-    transition: left 0.5s;       // Transición del movimiento
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
   }
 
   &:hover:not(:disabled) {
-    transform: translateY(-3px); // Elevar el botón
-    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4); // Sombra más pronunciada
-    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important; // Gradiente más oscuro
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%) !important;
 
     &::before {
-      left: 100%;                // Mover brillo a través del botón
+      left: 100%;
     }
   }
 
   &:active:not(:disabled) {
-    transform: translateY(-1px); // Elevación menor
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.5); // Sombra reducida
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.5);
   }
 
   &:disabled {
-    opacity: 0.6;                // Opacidad reducida
-    transform: none;             // Sin transformaciones
-    background: linear-gradient(135deg, #94a3b8, #cbd5e1) !important; // Gradiente gris
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); // Sombra sutil
-    cursor: not-allowed;         // Cursor de no permitido
+    opacity: 0.6;
+    transform: none;
+    background: linear-gradient(135deg, #94a3b8, #cbd5e1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: not-allowed;
   }
 
   .spinning {
-    animation: spin 1s linear infinite; // Animación de rotación
-    margin-right: 10px;          // Margen derecho
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
   }
 }
 
-// Animación de rotación para el icono de carga
+
 @keyframes spin {
-  0% { transform: rotate(0deg); }     // Rotación inicial
-  100% { transform: rotate(360deg); } // Rotación completa
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

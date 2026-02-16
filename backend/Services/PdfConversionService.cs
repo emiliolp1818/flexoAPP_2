@@ -1,6 +1,6 @@
-// ===== SERVICIO DE CONVERSIÓN A PDF SIN MARCA DE AGUA =====
-// Convierte documentos Office a PDF usando librerías gratuitas
-// Sin marca de agua, 100% offline, open source
+
+
+
 
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -25,14 +25,14 @@ namespace FlexoAPP.API.Services
         public PdfConversionService(ILogger<PdfConversionService> logger)
         {
             _logger = logger;
-            
-            // Configurar QuestPDF para uso comunitario (gratis)
+
+
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        /// <summary>
-        /// Convierte un archivo Excel a PDF sin marca de agua
-        /// </summary>
+
+
+
         public async Task<byte[]> ConvertExcelToPdfAsync(string filePath)
         {
             return await Task.Run(() =>
@@ -41,18 +41,18 @@ namespace FlexoAPP.API.Services
                 {
                     _logger.LogInformation($"Converting Excel to PDF: {filePath}");
 
-                    // Abrir el archivo Excel con ClosedXML
+
                     using var workbook = new XLWorkbook(filePath);
-                    var worksheet = workbook.Worksheet(1); // Primera hoja
-                    
-                    // Obtener el rango usado
+                    var worksheet = workbook.Worksheet(1);
+
+
                     var range = worksheet.RangeUsed();
                     if (range == null)
                     {
                         throw new Exception("El archivo Excel está vacío");
                     }
 
-                    // Crear PDF con QuestPDF
+
                     var pdfBytes = QuestPDF.Fluent.Document.Create(container =>
                     {
                         container.Page(page =>
@@ -70,7 +70,7 @@ namespace FlexoAPP.API.Services
                                 .PaddingVertical(0.5f, Unit.Centimetre)
                                 .Table(table =>
                                 {
-                                    // Definir columnas
+
                                     var columnCount = range.ColumnCount();
                                     table.ColumnsDefinition(columns =>
                                     {
@@ -80,7 +80,7 @@ namespace FlexoAPP.API.Services
                                         }
                                     });
 
-                                    // Header
+
                                     table.Header(header =>
                                     {
                                         for (int col = 1; col <= columnCount; col++)
@@ -100,14 +100,14 @@ namespace FlexoAPP.API.Services
                                         }
                                     });
 
-                                    // Filas de datos
+
                                     for (int row = 2; row <= range.RowCount(); row++)
                                     {
                                         for (int col = 1; col <= columnCount; col++)
                                         {
                                             var cell = range.Cell(row, col);
                                             var value = cell.GetString();
-                                            
+
                                             table.Cell().Element(CellStyle).Text(value);
                                         }
                                     }
@@ -144,9 +144,9 @@ namespace FlexoAPP.API.Services
             });
         }
 
-        /// <summary>
-        /// Convierte un archivo Word a PDF sin marca de agua
-        /// </summary>
+
+
+
         public async Task<byte[]> ConvertWordToPdfAsync(string filePath)
         {
             return await Task.Run(() =>
@@ -155,9 +155,9 @@ namespace FlexoAPP.API.Services
                 {
                     _logger.LogInformation($"Converting Word to PDF: {filePath}");
 
-                    // Leer el contenido del documento Word
+
                     var paragraphs = new List<string>();
-                    
+
                     using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
                     {
                         var body = wordDoc.MainDocumentPart?.Document?.Body;
@@ -174,7 +174,7 @@ namespace FlexoAPP.API.Services
                         }
                     }
 
-                    // Crear PDF con QuestPDF
+
                     var pdfBytes = QuestPDF.Fluent.Document.Create(container =>
                     {
                         container.Page(page =>

@@ -1,7 +1,7 @@
-// =====================================================
-// DIÁLOGO PARA SUBIR DOCUMENTOS - FLEXOAPP
-// Propósito: Permitir la carga de archivos al sistema
-// =====================================================
+
+
+
+
 
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -36,7 +36,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
     <mat-dialog-content>
       <!-- Área de arrastrar y soltar archivo -->
-      <div class="upload-area" 
+      <div class="upload-area"
            (click)="fileInput.click()"
            (dragover)="onDragOver($event)"
            (dragleave)="onDragLeave($event)"
@@ -89,8 +89,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
         <!-- Descripción -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Descripción</mat-label>
-          <textarea matInput [(ngModel)]="description" 
-                    rows="3" 
+          <textarea matInput [(ngModel)]="description"
+                    rows="3"
                     placeholder="Descripción del documento"></textarea>
           <mat-icon matPrefix>notes</mat-icon>
         </mat-form-field>
@@ -115,8 +115,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
       <button mat-button (click)="onCancel()" [disabled]="uploading()">
         Cancelar
       </button>
-      <button mat-raised-button color="primary" 
-              (click)="onUpload()" 
+      <button mat-raised-button color="primary"
+              (click)="onUpload()"
               [disabled]="!selectedFile() || !documentName || uploading()">
         <mat-icon>upload</mat-icon>
         Subir Documento
@@ -238,12 +238,12 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
   `]
 })
 export class UploadDocumentoDialogComponent {
-  // Signals para estado reactivo
+
   selectedFile = signal<File | null>(null);
   isDragOver = signal<boolean>(false);
   uploading = signal<boolean>(false);
 
-  // Datos del formulario
+
   documentName = '';
   category = 'reportes';
   status = 'active';
@@ -251,32 +251,32 @@ export class UploadDocumentoDialogComponent {
 
   constructor(private dialogRef: MatDialogRef<UploadDocumentoDialogComponent>) {}
 
-  // Manejar selección de archivo
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       this.selectedFile.set(file);
-      // Usar el nombre del archivo como nombre del documento por defecto
+
       this.documentName = file.name.replace(/\.[^/.]+$/, '');
     }
   }
 
-  // Manejar arrastrar sobre el área
+
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver.set(true);
   }
 
-  // Manejar salir del área de arrastre
+
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver.set(false);
   }
 
-  // Manejar soltar archivo
+
   onDrop(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -289,13 +289,13 @@ export class UploadDocumentoDialogComponent {
     }
   }
 
-  // Limpiar archivo seleccionado
+
   clearFile(): void {
     this.selectedFile.set(null);
     this.documentName = '';
   }
 
-  // Obtener icono según tipo de archivo
+
   getFileIcon(): string {
     const file = this.selectedFile();
     if (!file) return 'insert_drive_file';
@@ -314,7 +314,7 @@ export class UploadDocumentoDialogComponent {
     return icons[extension || ''] || 'insert_drive_file';
   }
 
-  // Formatear tamaño de archivo
+
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -323,28 +323,28 @@ export class UploadDocumentoDialogComponent {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   }
 
-  // Subir documento
+
   onUpload(): void {
     if (!this.selectedFile() || !this.documentName) return;
 
     this.uploading.set(true);
 
-    // Simular carga (aquí iría la llamada al backend)
+
     setTimeout(() => {
-      // Preparar resultado con todos los datos del formulario
+
       const result = {
-        file: this.selectedFile(), // Archivo seleccionado
-        name: this.documentName, // Nombre del documento
-        category: this.category, // Categoría seleccionada
-        status: this.status, // Estado seleccionado
-        description: this.description // Descripción del documento
+        file: this.selectedFile(),
+        name: this.documentName,
+        category: this.category,
+        status: this.status,
+        description: this.description
       };
-      // Cerrar diálogo y devolver resultado
+
       this.dialogRef.close(result);
     }, 1500);
   }
 
-  // Cancelar
+
   onCancel(): void {
     this.dialogRef.close();
   }

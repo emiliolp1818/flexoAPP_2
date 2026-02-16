@@ -41,7 +41,7 @@ export interface ConfirmDeleteData {
       <!-- Contenido compacto -->
       <div class="dialog-content-compact">
         <p class="message">{{ data.message }}</p>
-        
+
         <!-- Info adicional para diseños -->
         <div class="design-info-compact" *ngIf="data.articleF">
           <div class="info-item">

@@ -38,7 +38,7 @@ interface FlexographicDesign {
   anchoMm?: number;
   printType: 'CARA' | 'DORSO' | 'CARA_DORSO';
   colorCount: number;
-  // Estructura de colores individual para Excel (hasta 10 colores)
+
   color1?: string;
   color2?: string;
   color3?: string;
@@ -49,7 +49,7 @@ interface FlexographicDesign {
   color8?: string;
   color9?: string;
   color10?: string;
-  // Array de colores para uso interno (se construye desde color1-color10)
+
   colors: string[];
   status: 'ACTIVO' | 'INACTIVO';
   createdDate?: Date;
@@ -105,13 +105,13 @@ export class DesignComponent implements OnInit, OnDestroy {
   private aniloxService = inject(AniloxService);
   private excelService = inject(ExcelService);
 
-  // Make Math available in template
+
   Math = Math;
 
-  // Suscripción para actualización automática
+
   private updateSubscription: Subscription = new Subscription();
 
-  // Señales reactivas
+
   currentUser = signal<User | null>(null);
   loading = signal<boolean>(false);
   uploading = signal<boolean>(false);
@@ -124,34 +124,34 @@ export class DesignComponent implements OnInit, OnDestroy {
   showEditForm = signal<boolean>(false);
   editingDesign = signal<FlexographicDesign | null>(null);
 
-  // Señales para optimización de carga
+
   currentPage = signal<number>(1);
-  pageSize = signal<number>(50); // ⚡ OPTIMIZADO: 50 por página para evitar congelamiento de DOM
+  pageSize = signal<number>(50);
   totalRecords = signal<number>(0);
   hasMoreData = signal<boolean>(true);
   loadingMore = signal<boolean>(false);
   virtualScrollEnabled = signal<boolean>(true);
   cacheEnabled = signal<boolean>(true);
 
-  // Formulario para crear diseño
+
   createDesignForm: FormGroup;
 
-  // Formulario para editar diseño
+
   editDesignForm: FormGroup;
 
-  // Señales para gestión de colores
-  availablePantoneColors = signal<PantoneColor[]>([]); // Colores Pantone disponibles para autocompletado
-  databaseColors = signal<string[]>([]); // Colores únicos extraídos de la base de datos
-  selectedColors = signal<PantoneColor[]>([]); // Colores seleccionados para el diseño (máximo 10)
-  colorSearchTerm = signal<string>(''); // Término de búsqueda de colores
 
-  // Configuración de tabla
+  availablePantoneColors = signal<PantoneColor[]>([]);
+  databaseColors = signal<string[]>([]);
+  selectedColors = signal<PantoneColor[]>([]);
+  colorSearchTerm = signal<string>('');
+
+
   displayedColumns: string[] = [
     'articleF', 'client', 'description', 'substrate', 'type', 'anchoMm',
     'printType', 'colors', 'status', 'actions'
   ];
 
-  // Permisos del usuario
+
   userPermissions = signal<UserPermissions>({
     canCreateDesign: true,
     canBulkUpload: true,
@@ -163,7 +163,7 @@ export class DesignComponent implements OnInit, OnDestroy {
     admin_clear_db: false
   });
 
-  // ===== PROPIEDADES ANILOX =====
+
   aniloxData: any[] = [];
   filteredAniloxData: any[] = [];
   selectedMachine: string = 'all';
@@ -173,7 +173,7 @@ export class DesignComponent implements OnInit, OnDestroy {
   machinesCargaMuestra: { [key: number]: number | null } = {};
 
   constructor() {
-    // Inicializar formulario de creación de diseño
+
     this.createDesignForm = this.fb.group({
       articleF: ['', [Validators.required, Validators.maxLength(50)]],
       client: ['', [Validators.required, Validators.maxLength(100)]],
@@ -186,7 +186,7 @@ export class DesignComponent implements OnInit, OnDestroy {
       status: ['ACTIVO', Validators.required]
     });
 
-    // Inicializar formulario de edición de diseño (misma estructura)
+
     this.editDesignForm = this.fb.group({
       articleF: ['', [Validators.required, Validators.maxLength(50)]],
       client: ['', [Validators.required, Validators.maxLength(100)]],
@@ -205,8 +205,8 @@ export class DesignComponent implements OnInit, OnDestroy {
     this.loadPantoneColors();
     this.loadDatabaseColors();
     this.initializeOptimizations();
-    this.initializeAniloxData(); // Inicializar datos de anilox
-    this.loadMachineConfigs(); // Cargar configuraciones de máquinas
+    this.initializeAniloxData();
+    this.loadMachineConfigs();
     this.loadDesigns();
   }
 
@@ -214,9 +214,7 @@ export class DesignComponent implements OnInit, OnDestroy {
     this.stopAutoUpdate();
   }
 
-  /**
-   * Inicializar optimizaciones de rendimiento
-   */
+
   private initializeOptimizations() {
     const memory = this.getMemoryUsage();
     if (memory) {
@@ -225,7 +223,7 @@ export class DesignComponent implements OnInit, OnDestroy {
       else this.pageSize.set(100);
     }
 
-    // Monitorear memoria cada 30 segundos
+
     setInterval(() => {
       if (this.needsOptimization()) {
         this.optimizePerformance();
@@ -233,9 +231,7 @@ export class DesignComponent implements OnInit, OnDestroy {
     }, 30000);
   }
 
-  /**
-   * Cargar colores únicos utilizados en la base de datos
-   */
+
   async loadDatabaseColors() {
     try {
       const colors = await this.http.get<string[]>(`${environment.apiUrl}/designs/unique-colors`).toPromise();
@@ -248,17 +244,13 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Cargar colores Pantone disponibles
-   */
+
   loadPantoneColors() {
     const colors = this.pantoneService.getAllColors();
     this.availablePantoneColors.set(colors);
   }
 
-  /**
-   * Cargar usuario actual y configurar permisos
-   */
+
   loadCurrentUser() {
     const user = this.authService.getCurrentUser();
     this.currentUser.set(user);
@@ -267,10 +259,10 @@ export class DesignComponent implements OnInit, OnDestroy {
       console.log('👤 Usuario actual:', user);
       console.log('🔑 Rol del usuario:', user.role);
 
-      // Configurar permisos basados en los roles (soporta tanto mayúsculas como minúsculas)
-      const userRole = user.role.toLowerCase(); // Normalizar a minúsculas
+
+      const userRole = user.role.toLowerCase();
       const permissions: UserPermissions = {
-        // Admin tiene todos los permisos, supervisor y pre-alistador pueden crear/editar
+
         canCreateDesign: ['admin', 'supervisor', 'pre-alistador', 'matizador'].includes(userRole),
         canBulkUpload: ['admin', 'supervisor'].includes(userRole),
         canClearDatabase: ['admin'].includes(userRole),
@@ -288,18 +280,14 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Verificar si el usuario tiene un permiso específico
-   */
+
   hasPermission(permission: keyof UserPermissions): boolean {
     const hasPermission = this.userPermissions()[permission];
     console.log(`🔍 Verificando permiso '${permission}':`, hasPermission);
     return hasPermission;
   }
 
-  /**
-   * Verificar si el usuario es administrador (soporta mayúsculas y minúsculas)
-   */
+
   isAdmin(): boolean {
     const user = this.currentUser();
     const userRole = user?.role?.toLowerCase() || '';
@@ -308,22 +296,18 @@ export class DesignComponent implements OnInit, OnDestroy {
     return isAdmin;
   }
 
-  /**
-   * Iniciar actualización automática cada segundo
-   */
-  startAutoUpdate() {
-    this.stopAutoUpdate(); // Asegurar que no haya suscripciones duplicadas
 
-    // Actualizar cada 1000ms (1 segundo)
+  startAutoUpdate() {
+    this.stopAutoUpdate();
+
+
     this.updateSubscription = interval(1000).subscribe(() => {
       this.refreshDesignsSilent();
     });
     console.log('⏱️ Actualización automática iniciada (1s)');
   }
 
-  /**
-   * Detener actualización automática
-   */
+
   stopAutoUpdate() {
     if (this.updateSubscription) {
       this.updateSubscription.unsubscribe();
@@ -331,13 +315,10 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Refrescar diseños silenciosamente (sin spinner de carga)
-   * Esto actualiza la tabla para mostrar cambios de estado/acciones recientes
-   */
+
   async refreshDesignsSilent() {
-    // No actualizar si hay una carga activa, búsqueda o si no estamos en la primera página
-    // Esto evita conflictos con la interacción del usuario
+
+
     if (this.loading() || this.loadingMore() || this.searchTerm() || this.currentPage() !== 1) {
       return;
     }
@@ -352,34 +333,30 @@ export class DesignComponent implements OnInit, OnDestroy {
 
       if (response) {
         const items = response.items || response;
-        // Actualizar señales solo si hay datos
+
         if (items && items.length > 0) {
           this.allDesigns.set(items);
           this.filteredDesigns.set(items);
         }
       }
     } catch (error) {
-      // Silenciar errores en actualizaciones automáticas para no molestar al usuario
+
       console.error('Error en actualización silenciosa:', error);
     }
   }
 
-  /**
-   * Cargar diseños desde la base de datos (ULTRA OPTIMIZADO CON PAGINACIÓN)
-   */
+
   async loadDesigns() {
     await this.loadDesignsPaginated(this.currentPage(), this.pageSize(), this.searchTerm());
   }
 
-  /**
-   * Cargar diseños después de importación masiva (CON PAGINACIÓN)
-   */
+
   async loadAllDesignsAfterImport() {
     this.loading.set(true);
     try {
       console.log('🚀 Recargando diseños después de importación...');
 
-      // ⚡ USAR PAGINACIÓN - Resetear a página 1
+
       this.currentPage.set(1);
 
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
@@ -392,7 +369,7 @@ export class DesignComponent implements OnInit, OnDestroy {
       if (response && response.items) {
         console.log(`✅ Cargados ${response.items.length} diseños de ${response.totalCount} totales`);
 
-        // Procesar colores para cada diseño
+
         const items = response.items as any[];
         const processedDesigns: FlexographicDesign[] = items.map((design: FlexographicDesign) => ({
           ...design,
@@ -427,14 +404,12 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Cargar diseños con Virtual Scrolling (usando endpoint existente)
-   */
+
   async loadDesignsWithVirtualScroll() {
     try {
       console.log('📊 Iniciando carga optimizada...');
 
-      // Usar endpoint paginado existente con parámetros optimizados
+
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
           page: '1',
@@ -443,7 +418,7 @@ export class DesignComponent implements OnInit, OnDestroy {
       }).toPromise();
 
       if (response) {
-        // Adaptar respuesta al formato esperado
+
         const adaptedResponse = {
           items: response.items || response,
           total: response.total || response.length,
@@ -470,9 +445,7 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Cargar más datos para virtual scrolling
-   */
+
   async loadMoreDesigns() {
     if (!this.hasMoreData() || this.loadingMore()) return;
 
@@ -501,7 +474,7 @@ export class DesignComponent implements OnInit, OnDestroy {
         };
 
         if (adaptedResponse.items.length > 0) {
-          // Agregar nuevos elementos a la lista existente
+
           const currentDesigns = this.allDesigns();
           const newDesigns = [...currentDesigns, ...adaptedResponse.items];
 
@@ -518,25 +491,23 @@ export class DesignComponent implements OnInit, OnDestroy {
       }
     } catch (error: any) {
       console.error('❌ Error cargando más diseños:', error);
-      // Si falla la paginación, marcar como sin más datos
+
       this.hasMoreData.set(false);
     } finally {
       this.loadingMore.set(false);
     }
   }
 
-  /**
-   * Cargar diseños paginados optimizado (FALLBACK)
-   */
+
   async loadDesignsPaginatedOptimized() {
     try {
       console.log('📊 Carga paginada como fallback...');
 
-      // Usar endpoint paginado existente con parámetros optimizados
+
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
           page: '1',
-          pageSize: '50' // Página más pequeña para carga rápida inicial
+          pageSize: '50'
         }
       }).toPromise();
 
@@ -560,14 +531,12 @@ export class DesignComponent implements OnInit, OnDestroy {
       }
     } catch (error: any) {
       console.error('❌ Error en carga paginada:', error);
-      // Último fallback a carga normal
+
       await this.loadDesignsNormal();
     }
   }
 
-  /**
-   * Cargar diseños con paginación (OPTIMIZADO)
-   */
+
   async loadDesignsPaginated(page: number = 1, pageSize: number = 50, search?: string) {
     this.loading.set(true);
     try {
@@ -589,7 +558,7 @@ export class DesignComponent implements OnInit, OnDestroy {
       if (response && response.items) {
         console.log(`✅ ${response.items.length} diseños cargados`);
 
-        // Procesar colores
+
         const items = response.items as any[];
         const processedDesigns: FlexographicDesign[] = items.map((design: FlexographicDesign) => ({
           ...design,
@@ -614,35 +583,27 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Navegar a la siguiente página
-   */
+
   async nextPage() {
     if (this.hasMoreData() && !this.loading()) {
       await this.loadDesignsPaginated(this.currentPage() + 1, this.pageSize(), this.searchTerm());
     }
   }
 
-  /**
-   * Navegar a la página anterior
-   */
+
   async previousPage() {
     if (this.currentPage() > 1 && !this.loading()) {
       await this.loadDesignsPaginated(this.currentPage() - 1, this.pageSize(), this.searchTerm());
     }
   }
 
-  /**
-   * Cambiar tamaño de página
-   */
+
   async onPageSizeChange(newSize: number) {
     this.pageSize.set(newSize);
     await this.loadDesignsPaginated(1, newSize, this.searchTerm());
   }
 
-  /**
-   * Cargar diseños con lazy loading (OPTIMIZADO)
-   */
+
   async loadDesignsLazy() {
     this.loading.set(true);
     try {
@@ -668,14 +629,12 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Cargar diseños normal (fallback) - AHORA CON PAGINACIÓN
-   */
+
   async loadDesignsNormal() {
     try {
       console.log('🎨 Cargando diseños con paginación...');
 
-      // ⚡ USAR PAGINACIÓN EN LUGAR DE CARGAR TODO
+
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
           page: '1',
@@ -711,9 +670,7 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Manejar errores de carga
-   */
+
   private handleLoadError(error: any) {
     let errorMessage = 'Error al cargar los diseños desde la base de datos';
     if (error.status === 401) {
@@ -734,17 +691,15 @@ export class DesignComponent implements OnInit, OnDestroy {
 
 
 
-  /**
-   * Activar carga de archivo
-   */
+
   triggerFileUpload() {
-    // Mostrar información sobre la estructura esperada
+
     const structureInfo = `📋 ESTRUCTURA REQUERIDA DEL EXCEL:
 
 Las columnas deben estar en este orden exacto:
 1. ID (autoincremental - se genera automáticamente)
 2. Artículo F
-3. Cliente  
+3. Cliente
 4. Descripción
 5. Sustrato
 6. Tipo
@@ -776,9 +731,7 @@ NOTA: El ID se genera automáticamente (1, 2, 3, etc.)
     fileInput.click();
   }
 
-  /**
-   * Limpiar todos los diseños de la base de datos
-   */
+
   async clearAllDesigns() {
     const confirmMessage = `⚠️ ADVERTENCIA: Eliminar todos los diseños
 
@@ -790,7 +743,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return;
     }
 
-    // Doble confirmación para operación crítica
+
     const doubleConfirm = confirm('🚨 CONFIRMACIÓN FINAL\n\nEsta operación es IRREVERSIBLE.\n\n¿Continuar con la eliminación?');
     if (!doubleConfirm) return;
 
@@ -803,7 +756,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (response) {
         console.log(`✅ ${response.deletedCount} diseños eliminados de MySQL`);
 
-        // Limpiar datos localmente
+
         this.allDesigns.set([]);
         this.filteredDesigns.set([]);
 
@@ -831,9 +784,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Crear nuevo diseño
-   */
+
   async createNewDesign() {
     const user = this.currentUser();
     console.log('🎨 Intentando crear nuevo diseño...');
@@ -841,7 +792,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     console.log('🔑 Rol:', user?.role);
     console.log('🔐 Permisos actuales:', this.userPermissions());
 
-    // Administrador siempre tiene acceso completo
+
     if (this.isAdmin()) {
       console.log('👑 Usuario administrador - Acceso completo garantizado');
       this.showCreateForm.set(true);
@@ -849,7 +800,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return;
     }
 
-    // Verificar permisos para otros roles
+
     if (!this.hasPermission('canCreateDesign')) {
       console.log('❌ Sin permisos para crear diseño');
       this.snackBar.open(`Sin permisos para crear diseños. Rol actual: ${user?.role}`, 'Cerrar', {
@@ -861,14 +812,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
     console.log('✅ Permisos verificados - Mostrando formulario de creación');
 
-    // Mostrar formulario de creación
+
     this.showCreateForm.set(true);
     this.resetCreateForm();
   }
 
-  /**
-   * Resetear formulario de creación
-   */
+
   resetCreateForm() {
     this.createDesignForm.reset({
       articleF: '',
@@ -882,24 +831,20 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       status: 'ACTIVO'
     });
 
-    // Inicializar con color negro por defecto
+
     const defaultColor = this.pantoneService.getColorByCode('Black');
     if (defaultColor) {
       this.selectedColors.set([defaultColor]);
     }
   }
 
-  /**
-   * Cancelar creación de diseño
-   */
+
   cancelCreateDesign() {
     this.showCreateForm.set(false);
     this.resetCreateForm();
   }
 
-  /**
-   * Guardar nuevo diseño
-   */
+
   async saveNewDesign() {
     if (!this.createDesignForm.valid) {
       this.snackBar.open('Por favor completa todos los campos requeridos', 'Cerrar', {
@@ -919,7 +864,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (response) {
         console.log('✅ Diseño creado exitosamente:', response);
 
-        // Recargar diseños para actualizar lista y paginación
+
         await this.loadDesigns();
 
         this.snackBar.open(`Diseño "${formData.articleF}" creado exitosamente`, 'Cerrar', {
@@ -927,7 +872,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           panelClass: ['success-snackbar']
         });
 
-        // Ocultar formulario y resetear
+
         this.showCreateForm.set(false);
         this.resetCreateForm();
       }
@@ -952,12 +897,8 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Actualizar dinámicamente la lista de colores (incluso manuales)
-   */
-  /**
-   * Actualizar dinámicamente la lista de colores (incluso manuales)
-   */
+
+
   updateColors() {
     const isEditing = this.showEditForm();
     const form = isEditing ? this.editDesignForm : this.createDesignForm;
@@ -978,9 +919,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     form.get('colors')?.setValue(colorCodes, { emitEvent: false });
   }
 
-  /**
-   * Manejar la entrada manual de un color
-   */
+
   updateColorManual(index: number, value: string) {
     const currentColors = [...this.selectedColors()];
     const pantoneColor = this.pantoneService.getOrCreateColor(value);
@@ -993,9 +932,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     form.get('colors')?.setValue(colorCodes, { emitEvent: false });
   }
 
-  /**
-   * Seleccionar color Pantone para una posición específica desde el autocompletado
-   */
+
   selectPantoneColor(colorIndex: number, color: PantoneColor) {
     const currentColors = [...this.selectedColors()];
     currentColors[colorIndex] = color;
@@ -1007,24 +944,22 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
 
-  /**
-   * Buscar colores Pantone (Integra librería y base de datos)
-   */
+
   searchPantoneColors(searchTerm: string) {
     this.colorSearchTerm.set(searchTerm);
     const term = searchTerm.trim().toUpperCase();
 
-    // 1. Obtener colores de la librería estándar
+
     let results = searchTerm.trim()
       ? this.pantoneService.searchByCode(searchTerm)
       : this.pantoneService.getAllColors();
 
-    // 2. Integrar colores encontrados en la base de datos que coincidan
+
     if (term) {
       const dbMatches = this.databaseColors().filter(c => c.toUpperCase().includes(term));
 
       dbMatches.forEach(dbColor => {
-        // Si el color de la BDD no está ya en los resultados de la librería, agregarlo
+
         const alreadyInResults = results.some(r => r.displayName.toUpperCase() === dbColor.toUpperCase());
         if (!alreadyInResults) {
           results.push(this.pantoneService.getOrCreateColor(dbColor));
@@ -1037,29 +972,23 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
 
 
-  /**
-   * Obtener colores más utilizados
-   */
+
   getMostUsedColors(): PantoneColor[] {
     return this.pantoneService.getMostUsedColors();
   }
 
-  /**
-   * TrackBy function para optimizar el ngFor de colores
-   */
+
   trackByIndex(index: number, item: any): number {
     return index;
   }
 
-  /**
-   * Método simple para cargar datos directamente
-   */
+
   async loadDataDirectly() {
     console.log('🔍 Cargando datos directamente...');
     this.loading.set(true);
 
     try {
-      // Primero verificar si hay datos en la BD
+
       console.log('1️⃣ Verificando conteo de datos...');
       const countResponse = await this.http.get<any>(`${environment.apiUrl}/designs/count`).toPromise();
       console.log('📊 Conteo de diseños:', countResponse);
@@ -1076,7 +1005,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         return;
       }
 
-      // Si hay datos, intentar cargarlos
+
       console.log(`2️⃣ Hay ${countResponse.count} diseños, cargando...`);
       const response = await this.http.get<any>(`${environment.apiUrl}/designs`).toPromise();
       console.log('✅ Respuesta recibida:', response);
@@ -1084,7 +1013,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (response && Array.isArray(response)) {
         console.log(`📊 ${response.length} diseños cargados exitosamente`);
 
-        // Process colors for each design
+
         const processedDesigns = response.map((design: FlexographicDesign) => ({
           ...design,
           colors: this.extractColorsFromDesign(design)
@@ -1123,32 +1052,27 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Refrescar/Actualizar la lista de diseños
-   * Recarga los datos desde la base de datos
-   */
+
   async refreshDesigns() {
     console.log('🔄 Refrescando lista de diseños...');
 
-    // Mostrar mensaje de inicio
+
     this.snackBar.open('Actualizando lista de diseños...', '', {
       duration: 1500,
       panelClass: ['info-snackbar']
     });
 
-    // Recargar los datos
+
     await this.loadDataDirectly();
 
     console.log('✅ Lista de diseños actualizada');
   }
 
-  /**
-   * Método de prueba para verificar endpoint /all
-   */
+
   async testAllEndpoint() {
     console.log('🧪 Probando endpoint /all...');
 
-    // Probar controlador de prueba independiente
+
     try {
       console.log('🔍 Probando controlador de prueba independiente...');
       const testResponse = await this.http.get<any>(`${environment.apiUrl}/test/ping`).toPromise();
@@ -1170,7 +1094,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     }
 
-    // Probar endpoint sin dependencias
+
     try {
       console.log('🔍 Probando endpoint sin dependencias /status...');
       const statusResponse = await this.http.get<any>(`${environment.apiUrl}/designs/status`).toPromise();
@@ -1192,7 +1116,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     }
 
-    // Probar inyección de dependencias
+
     try {
       console.log('🔍 Probando inyección de dependencias...');
       const depResponse = await this.http.get<any>(`${environment.apiUrl}/designs/check-dependencies`).toPromise();
@@ -1209,7 +1133,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('❌ Error verificando dependencias:', error);
     }
 
-    // Probar endpoint ultra simple del controlador designs
+
     try {
       console.log('🔍 Probando endpoint ultra simple /ping...');
       const pingResponse = await this.http.get<any>(`${environment.apiUrl}/designs/ping`).toPromise();
@@ -1219,7 +1143,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('⚠️ El controlador DesignsController tiene problemas con endpoints que usan servicios');
     }
 
-    // Probar endpoint de prueba de BD
+
     try {
       console.log('🔍 Probando endpoint de prueba de BD...');
       const dbTestResponse = await this.http.get<any>(`${environment.apiUrl}/designs/db-test`).toPromise();
@@ -1236,7 +1160,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('❌ Error en endpoint db-test:', error);
     }
 
-    // Probar endpoint de prueba simple
+
     try {
       console.log('🔍 Probando endpoint de prueba simple...');
       const testResponse = await this.http.get<any>(`${environment.apiUrl}/designs/all-test`).toPromise();
@@ -1250,7 +1174,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return;
     }
 
-    // Probar endpoint raw primero
+
     try {
       console.log('🔍 Probando endpoint /all-raw...');
       const rawResponse = await this.http.get<any>(`${environment.apiUrl}/designs/all-raw`).toPromise();
@@ -1259,7 +1183,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('❌ Error en endpoint raw:', error);
     }
 
-    // Probar endpoint de conteo
+
     try {
       console.log('🔍 Probando endpoint /count...');
       const countResponse = await this.http.get<any>(`${environment.apiUrl}/designs/count`).toPromise();
@@ -1276,7 +1200,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('❌ Error en endpoint count:', error);
     }
 
-    // Probar endpoint safe
+
     try {
       console.log('🔍 Probando endpoint /all-safe...');
       const safeResponse = await this.http.get<any>(`${environment.apiUrl}/designs/all-safe`).toPromise();
@@ -1293,7 +1217,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.error('❌ Error en endpoint safe:', error);
     }
 
-    // Ahora probar el endpoint /all real
+
     try {
       console.log('🔍 Probando endpoint /all real...');
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/all`).toPromise();
@@ -1332,9 +1256,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
 
 
-  /**
-   * Exportar diseños a Excel
-   */
+
   async exportToExcel() {
     this.loading.set(true);
     try {
@@ -1345,7 +1267,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }).toPromise();
 
       if (response) {
-        // Crear enlace de descarga
+
         const blob = new Blob([response], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
@@ -1372,14 +1294,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Manejar selección de archivo Excel para importar diseños (OPTIMIZADO PARA 300MB)
-   */
+
   async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validar tipo de archivo
+
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
       this.snackBar.open('Solo se permiten archivos Excel (.xlsx, .xls)', 'Cerrar', {
         duration: 3000,
@@ -1388,8 +1308,8 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return;
     }
 
-    // Validar tamaño del archivo (máximo 300MB)
-    const maxSize = 300 * 1024 * 1024; // 300MB
+
+    const maxSize = 300 * 1024 * 1024;
     if (file.size > maxSize) {
       this.snackBar.open('El archivo es demasiado grande. Máximo 300MB permitido.', 'Cerrar', {
         duration: 3000,
@@ -1398,7 +1318,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return;
     }
 
-    // Mostrar advertencia para archivos grandes
+
     const fileSizeMB = file.size / 1024 / 1024;
     if (fileSizeMB > 100) {
       const confirmLargeFile = confirm(
@@ -1420,37 +1340,37 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       console.log(`📁 Procesando archivo GRANDE: ${file.name} (${fileSizeMB.toFixed(2)} MB)`);
 
-      // Crear FormData para enviar el archivo
+
       const formData = new FormData();
       formData.append('file', file);
 
-      // Configurar opciones para procesamiento masivo
-      formData.append('processAll', 'true');        // Procesar TODOS los registros
-      formData.append('noLimit', 'true');           // Sin límite de registros
-      formData.append('batchSize', '5000');         // Procesar en lotes de 5,000 filas
-      formData.append('enableStreaming', 'true');   // Habilitar streaming
-      formData.append('optimizeMemory', 'true');    // Optimizar memoria
-      formData.append('validateStructure', 'true'); // Validar estructura de Excel
 
-      // Especificar estructura CORRECTA esperada del Excel (20 columnas A-T)
+      formData.append('processAll', 'true');
+      formData.append('noLimit', 'true');
+      formData.append('batchSize', '5000');
+      formData.append('enableStreaming', 'true');
+      formData.append('optimizeMemory', 'true');
+      formData.append('validateStructure', 'true');
+
+
       formData.append('expectedColumns', JSON.stringify([
         'id', 'articulo_f', 'cliente', 'descripcion', 'sustrato', 'numero_de_colores',
         'tipo_de_impresion', 'tipo', 'ancho_mm', 'color1', 'color2', 'color3', 'color4', 'color5',
         'color6', 'color7', 'color8', 'color9', 'color10', 'estado'
       ]));
 
-      // Progreso más realista para archivos grandes
+
       let progressValue = 0;
       const progressInterval = setInterval(() => {
         if (progressValue < 85) {
-          // Progreso más lento para archivos grandes
+
           const increment = fileSizeMB > 200 ? 2 : fileSizeMB > 100 ? 5 : 10;
           progressValue += increment;
           this.uploadProgress.set(progressValue);
         }
       }, fileSizeMB > 200 ? 2000 : fileSizeMB > 100 ? 1000 : 500);
 
-      // Mostrar mensaje de procesamiento para archivos grandes
+
       if (fileSizeMB > 50) {
         this.snackBar.open(
           `Procesando archivo de ${fileSizeMB.toFixed(2)} MB... Esto puede tomar varios minutos.`,
@@ -1462,12 +1382,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         );
       }
 
-      // Enviar archivo al backend (usar endpoint existente con configuraciones para archivos grandes)
+
       const response = await this.http.post<any>(
         `${environment.apiUrl}/designs/import/excel`,
         formData,
         {
-          // Headers para archivos grandes
+
           headers: {
             'X-Large-File': 'true',
             'X-File-Size': file.size.toString(),
@@ -1497,7 +1417,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           panelClass: ['success-snackbar']
         });
 
-        // Mostrar estadísticas detalladas para archivos grandes
+
         if (response.stats) {
           console.log('📊 Estadísticas de importación:', response.stats);
           setTimeout(() => {
@@ -1512,7 +1432,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           }, 2000);
         }
 
-        // Recargar diseños paginados después de importación masiva
+
         console.log('🔄 Iniciando recarga paginada después de importación...');
         await this.loadDesignsWithVirtualScroll();
       }
@@ -1542,16 +1462,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       this.uploading.set(false);
       this.uploadProgress.set(0);
 
-      // Limpiar el input file de forma segura
+
       if (event && event.target) {
         event.target.value = '';
       }
     }
   }
 
-  /**
-   * Buscar diseños (OPTIMIZADO para bases de datos grandes)
-   */
+
   private searchTimeout: any;
   onSearch() {
     if (this.searchTimeout) {
@@ -1568,12 +1486,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
 
       this.searchOnServer(term);
-    }, 500); // 500ms debounce
+    }, 500);
   }
 
-  /**
-   * Búsqueda local optimizada
-   */
+
   private searchLocally(term: string) {
     const startTime = performance.now();
 
@@ -1590,15 +1506,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     console.log(`🔍 Búsqueda local completada en ${(endTime - startTime).toFixed(2)}ms - ${filtered.length} resultados`);
   }
 
-  /**
-   * Búsqueda en servidor para bases de datos grandes (usando endpoint existente)
-   */
+
   private async searchOnServer(term: string) {
     this.loading.set(true);
     try {
       console.log(`🔍 Búsqueda optimizada para: "${term}"`);
 
-      // Usar endpoint PAGINADO correcto
+
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, {
         params: {
           search: term,
@@ -1608,19 +1522,19 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }).toPromise();
 
       if (response) {
-        // Adaptar respuesta paginada
+
         const items = response.items || [];
         const total = response.total || items.length;
 
         console.log(`✅ Búsqueda completada: ${items.length} resultados (Total: ${total})`);
 
-        // Process colors for search results
+
         const processedItems = items.map((design: FlexographicDesign) => ({
           ...design,
           colors: this.extractColorsFromDesign(design)
         }));
 
-        this.allDesigns.set(processedItems); // Actualizar lista principal también para que el scroll funcione sobre estos resultados
+        this.allDesigns.set(processedItems);
         this.filteredDesigns.set(processedItems);
         this.totalRecords.set(total);
         this.hasMoreData.set(response.hasMore || false);
@@ -1636,7 +1550,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     } catch (error: any) {
       console.error('❌ Error en búsqueda del servidor:', error);
-      // No fallback local porque no tenemos todos los datos
+
       this.snackBar.open('Error al buscar en el servidor', 'Cerrar', {
         duration: 3000,
         panelClass: ['error-snackbar']
@@ -1646,24 +1560,18 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Limpiar búsqueda
-   */
+
   clearSearch() {
     this.searchTerm.set('');
     this.filteredDesigns.set(this.allDesigns());
   }
 
-  /**
-   * Verificar si los colores están expandidos
-   */
+
   isColorsExpanded(id: string): boolean {
     return this.expandedColors().has(id);
   }
 
-  /**
-   * Toggle expansión de colores
-   */
+
   toggleColors(id: string, event?: any) {
     if (event) {
       event.stopPropagation();
@@ -1678,18 +1586,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     this.expandedColors.set(expanded);
   }
 
-  /**
-   * Cerrar expansión de colores
-   */
+
   closeColors(id: string) {
     const expanded = new Set(this.expandedColors());
     expanded.delete(id);
     this.expandedColors.set(expanded);
   }
 
-  /**
-   * Cargar colores bajo demanda (OPTIMIZADO)
-   */
+
   async loadColorsOnDemand(designId: number): Promise<string[]> {
     try {
       console.log(`🎨 Cargando colores bajo demanda para diseño ${designId}`);
@@ -1708,9 +1612,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Cargar detalles completos bajo demanda (OPTIMIZADO)
-   */
+
   async loadDetailsOnDemand(designId: number): Promise<any> {
     try {
       console.log(`📋 Cargando detalles completos para diseño ${designId}`);
@@ -1729,9 +1631,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Obtener información de caché
-   */
+
   async getCacheInfo() {
     try {
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/cache/info`).toPromise();
@@ -1748,9 +1648,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Limpiar caché y optimizar memoria
-   */
+
   async clearCache() {
     try {
       console.log('🧹 Limpiando caché y optimizando memoria...');
@@ -1763,7 +1661,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (response) {
         console.log('✅ Caché limpiado y memoria optimizada');
 
-        // Limpiar también caché local
+
         this.clearLocalCache();
 
         this.snackBar.open(
@@ -1788,12 +1686,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Limpiar caché local del navegador
-   */
+
   private clearLocalCache() {
     try {
-      // Limpiar localStorage relacionado con diseños
+
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -1804,7 +1700,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       keysToRemove.forEach(key => localStorage.removeItem(key));
 
-      // Forzar garbage collection si está disponible
+
       if ('gc' in window) {
         (window as any).gc();
       }
@@ -1815,29 +1711,27 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Optimizar rendimiento de la aplicación
-   */
+
   async optimizePerformance() {
     try {
       console.log('⚡ Optimizando rendimiento...');
 
-      // Limpiar caché local
+
       this.clearLocalCache();
 
-      // Reducir tamaño de página si hay muchos datos
+
       if (this.totalRecords() > 5000) {
         this.pageSize.set(50);
         console.log('📄 Tamaño de página reducido a 50 para mejor rendimiento');
       }
 
-      // Habilitar virtual scrolling para datasets grandes
+
       if (this.totalRecords() > 1000) {
         this.virtualScrollEnabled.set(true);
         console.log('📜 Virtual scrolling habilitado');
       }
 
-      // Optimización local (sin depender de endpoint específico)
+
       console.log('✅ Optimización local completada');
 
       const optimizations = [];
@@ -1859,9 +1753,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Monitorear uso de memoria
-   */
+
   getMemoryUsage(): any {
     if ('memory' in performance) {
       const memory = (performance as any).memory;
@@ -1874,9 +1766,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     return null;
   }
 
-  /**
-   * Verificar si necesita optimización
-   */
+
   needsOptimization(): boolean {
     const memory = this.getMemoryUsage();
     if (memory) {
@@ -1886,33 +1776,29 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     return this.totalRecords() > 10000;
   }
 
-  /**
-   * Formatear nombre de color (Abreviado con P)
-   */
+
   formatColorName(color: string): string {
     if (!color) return '';
     const term = color.toUpperCase().trim();
 
-    // Si ya empieza con "P " o "P_" o "PANTONE", no agregar otra P
+
     if (term.startsWith('P ') || term.startsWith('P_')) {
-      return term.replace('P_', 'P '); // Reemplazar P_ con P (espacio)
+      return term.replace('P_', 'P ');
     }
 
-    // Si empieza con PANTONE, reemplazar con P
+
     if (term.startsWith('PANTONE ')) {
       return `P ${term.substring(8)}`;
     }
 
-    // Si no tiene P, agregarla
+
     return `P ${term}`;
   }
 
-  /**
-   * Obtener objeto de color Pantone completo para visualización
-   */
+
   getPantoneColor(colorName: string): PantoneColor {
     if (!colorName) {
-      // Return a default color if no color name is provided
+
       return {
         code: 'BLACK',
         name: 'Black',
@@ -1930,12 +1816,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return color;
     } catch (error) {
       console.warn('⚠️ Error getting Pantone color for:', colorName, error);
-      // Return a fallback color
+
       return {
         code: colorName.toUpperCase(),
         name: colorName,
         displayName: `P ${colorName.toUpperCase()}`,
-        hex: '#808080', // Gray fallback
+        hex: '#808080',
         rgb: { r: 128, g: 128, b: 128 },
         cmyk: { c: 0, m: 0, y: 0, k: 50 },
         category: 'Custom'
@@ -1943,9 +1829,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Obtener clase CSS para el estado
-   */
+
   getStatusClass(design: FlexographicDesign): string {
     if (!design || !design.status) {
       return 'status-text-display status-unknown';
@@ -1954,25 +1838,21 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     return `status-text-display status-${status}`;
   }
 
-  /**
-   * Obtener texto del estado
-   */
+
   getDesignStatus(design: FlexographicDesign): string {
     if (!design || !design.status) return 'Desconocido';
     const status = design.status.toUpperCase();
     return (status === 'ACTIVO' || status === 'ACTIVE') ? 'Activo' : 'Inactivo';
   }
 
-  /**
-   * Editar diseño - Abrir modal de edición
-   */
+
   editDesign(design: FlexographicDesign) {
     console.log('✏️ Editando diseño:', design.articleF);
 
-    // Guardar el diseño que se está editando
+
     this.editingDesign.set(design);
 
-    // Cargar los datos del diseño en el formulario de edición
+
     this.editDesignForm.patchValue({
       articleF: design.articleF,
       client: design.client,
@@ -1985,30 +1865,26 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       status: design.status
     });
 
-    // Cargar los colores Pantone seleccionados (asegurando objetos válidos)
+
     const pantoneColors: PantoneColor[] = design.colors.map(colorName =>
       this.pantoneService.getOrCreateColor(colorName)
     );
     this.selectedColors.set(pantoneColors);
 
-    // Mostrar el formulario de edición
+
     this.showEditForm.set(true);
   }
 
-  /**
-   * Cancelar edición de diseño
-   */
+
   cancelEditDesign() {
     this.showEditForm.set(false);
     this.editingDesign.set(null);
     this.editDesignForm.reset();
   }
 
-  /**
-   * Guardar cambios del diseño editado
-   */
+
   async saveEditedDesign() {
-    // Validar formulario
+
     if (!this.editDesignForm.valid) {
       console.log('❌ Formulario inválido:', this.editDesignForm.errors);
       this.snackBar.open('Por favor completa todos los campos requeridos', 'Cerrar', {
@@ -2033,7 +1909,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('   Datos del formulario:', formData);
       console.log('   URL:', `${environment.apiUrl}/designs/${editingDesign.id}`);
 
-      // Preparar datos para enviar al backend
+
       const updateData = {
         articleF: formData.articleF,
         client: formData.client,
@@ -2048,7 +1924,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       console.log('   Datos a enviar:', updateData);
 
-      // Usar el ID numérico para la actualización (NO el ArticleF)
+
       const response = await this.http.put<FlexographicDesign>(
         `${environment.apiUrl}/designs/${editingDesign.id}`,
         updateData
@@ -2062,12 +1938,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           panelClass: ['success-snackbar']
         });
 
-        // Ocultar formulario y resetear
+
         this.showEditForm.set(false);
         this.editingDesign.set(null);
         this.editDesignForm.reset();
 
-        // Recargar diseños para mostrar los cambios
+
         await this.loadDesigns();
       }
     } catch (error: any) {
@@ -2111,17 +1987,15 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Actualizar colores en el formulario de edición
-   */
+
   updateEditColors() {
     const colorCount = this.editDesignForm.get('colorCount')?.value || 1;
     const currentSelectedColors = this.selectedColors();
 
-    // Ajustar la lista de colores seleccionados
+
     const newSelectedColors = [...currentSelectedColors];
 
-    // Si necesitamos más colores, agregar colores por defecto
+
     while (newSelectedColors.length < colorCount) {
       const defaultColor = this.pantoneService.getColorByCode('Black');
       if (defaultColor) {
@@ -2129,24 +2003,21 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     }
 
-    // Si hay demasiados colores, remover los últimos
+
     while (newSelectedColors.length > colorCount) {
       newSelectedColors.pop();
     }
 
     this.selectedColors.set(newSelectedColors);
 
-    // Actualizar el formulario con los códigos de los colores
+
     const colorCodes = newSelectedColors.map(color => color.displayName);
     this.editDesignForm.patchValue({ colors: colorCodes });
   }
 
-  /**
-   * Duplicar diseño en la base de datos
-   * Crea una copia del diseño con un nuevo ArticleF
-   */
+
   async duplicateDesign(design: FlexographicDesign) {
-    // Validar que el diseño tenga ArticleF
+
     if (!design.articleF) {
       this.snackBar.open('Error: El diseño no tiene un código válido', 'Cerrar', {
         duration: 3000,
@@ -2155,7 +2026,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return;
     }
 
-    // Abrir diálogo personalizado para solicitar el nuevo ArticleF
+
     const dialogRef = this.dialog.open(DuplicateDesignDialogComponent, {
       width: '360px',
       maxWidth: '95vw',
@@ -2167,16 +2038,16 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       autoFocus: true
     });
 
-    // Esperar la respuesta del diálogo
+
     const newArticleF = await dialogRef.afterClosed().toPromise();
 
-    // Si el usuario cancela o no ingresa nada
+
     if (!newArticleF || newArticleF.trim() === '') {
       console.log('❌ Duplicación cancelada por el usuario');
       return;
     }
 
-    // Validar que el nuevo ArticleF sea diferente (doble verificación)
+
     if (newArticleF.trim() === design.articleF) {
       this.snackBar.open('El nuevo código debe ser diferente al original', 'Cerrar', {
         duration: 3000,
@@ -2189,7 +2060,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       console.log(`🔄 Duplicando diseño: ${design.articleF} → ${newArticleF}`);
 
-      // Crear objeto con los datos del diseño duplicado
+
       const duplicatedDesign = {
         articleF: newArticleF.trim(),
         client: design.client,
@@ -2199,10 +2070,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         printType: design.printType,
         colorCount: design.colorCount,
         colors: design.colors,
-        status: 'ACTIVO' // Nuevo diseño siempre empieza como ACTIVO
+        status: 'ACTIVO'
       };
 
-      // Crear el nuevo diseño mediante POST
+
       const response = await this.http.post<FlexographicDesign>(
         `${environment.apiUrl}/designs`,
         duplicatedDesign
@@ -2220,7 +2091,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           }
         );
 
-        // Recargar diseños para mostrar el nuevo
+
         await this.loadDesigns();
       }
     } catch (error: any) {
@@ -2252,12 +2123,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Eliminar diseño de la base de datos
-   * Muestra un diálogo de confirmación personalizado antes de eliminar
-   */
+
   async deleteDesign(design: FlexographicDesign) {
-    // Validar que el diseño tenga ArticleF
+
     if (!design.articleF) {
       this.snackBar.open('Error: El diseño no tiene un código válido', 'Cerrar', {
         duration: 3000,
@@ -2266,7 +2134,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return;
     }
 
-    // Abrir diálogo de confirmación personalizado
+
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       width: '600px',
       data: {
@@ -2274,23 +2142,23 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         client: design.client,
         description: design.description
       },
-      disableClose: true, // No cerrar al hacer clic fuera
+      disableClose: true,
       panelClass: 'confirm-delete-dialog-container'
     });
 
-    // Esperar la respuesta del usuario
+
     const confirmed = await dialogRef.afterClosed().toPromise();
 
-    // Si el usuario cancela, no hacer nada
+
     if (!confirmed) {
       console.log('❌ Eliminación cancelada por el usuario');
       return;
     }
 
-    // Proceder con la eliminación
+
     this.loading.set(true);
     try {
-      // Usar el ID numérico del diseño (no el ArticleF)
+
       const deleteUrl = `${environment.apiUrl}/designs/${design.id}`;
 
       console.log(`🗑️ Eliminando diseño:`);
@@ -2298,7 +2166,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log(`   ArticleF: ${design.articleF}`);
       console.log(`   URL: ${deleteUrl}`);
 
-      // Usar ID numérico como identificador en la URL
+
       await this.http.delete(deleteUrl).toPromise();
 
       console.log(`✅ Diseño eliminado exitosamente: ${design.articleF}`);
@@ -2308,7 +2176,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         panelClass: ['success-snackbar']
       });
 
-      // Recargar diseños para actualizar la lista
+
       await this.loadDesigns();
     } catch (error: any) {
       console.error('❌ Error eliminando diseño:', error);
@@ -2319,7 +2187,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       let errorMessage = 'Error al eliminar el diseño';
 
       if (error.status === 400) {
-        // Error 400 - El backend no acepta la petición
+
         console.error('⚠️ Error 400: El backend no acepta la petición DELETE');
         console.error('   Posibles causas:');
         console.error('   1. El endpoint DELETE no está implementado');
@@ -2359,13 +2227,11 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Extraer colores de un diseño desde las propiedades color1-color10
-   */
+
   private extractColorsFromDesign(design: FlexographicDesign): string[] {
     const colors: string[] = [];
 
-    // Extract colors from color1 to color10 properties
+
     if (design.color1) colors.push(design.color1);
     if (design.color2) colors.push(design.color2);
     if (design.color3) colors.push(design.color3);
@@ -2377,18 +2243,16 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     if (design.color9) colors.push(design.color9);
     if (design.color10) colors.push(design.color10);
 
-    // If no colors found in individual properties, check if colors array exists
+
     if (colors.length === 0 && design.colors && Array.isArray(design.colors)) {
       return design.colors.filter(color => color && color.trim() !== '');
     }
 
-    // Filter out empty or null colors
+
     return colors.filter(color => color && color.trim() !== '');
   }
 
-  /**
-   * Obtiene el tooltip para mostrar los colores de un diseño
-   */
+
   getColorsTooltip(design: FlexographicDesign): string {
     if (!design.colors || design.colors.length === 0) {
       return 'Sin colores';
@@ -2396,11 +2260,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     return `${design.colors.length} colores: ${design.colors.join(', ')}`;
   }
 
-  // ===== MÉTODOS ANILOX =====
 
-  /**
-   * Cargar datos de anilox desde el backend
-   */
+
+
   async initializeAniloxData() {
     const previousSelectedMachine = this.selectedMachine;
     const previousSearchTerm = this.aniloxSearchTerm;
@@ -2411,11 +2273,11 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (aniloxList && aniloxList.length > 0) {
         this.aniloxData = aniloxList;
 
-        // Extraer máquinas únicas y ordenarlas
+
         const machinesSet = new Set(aniloxList.map(a => a.maquina));
         const machinesFromData = Array.from(machinesSet).sort((a, b) => a - b);
 
-        // Combinar con las máquinas por defecto para asegurar que todas estén disponibles
+
         const allMachines = new Set([...this.availableMachines, ...machinesFromData]);
         this.availableMachines = Array.from(allMachines).sort((a, b) => a - b);
 
@@ -2433,7 +2295,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         panelClass: ['error-snackbar']
       });
 
-      // Mantener las máquinas por defecto en caso de error
+
       this.aniloxData = [];
       this.filteredAniloxData = [];
     } finally {
@@ -2443,9 +2305,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Crear nuevo anilox
-   */
+
   async createAnilox() {
     const dialogRef = this.dialog.open(CreateAniloxDialogComponent, {
       width: '600px',
@@ -2465,7 +2325,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
               panelClass: ['success-snackbar']
             });
 
-            // Recargar datos
+
             await this.initializeAniloxData();
           }
         } catch (error: any) {
@@ -2487,9 +2347,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     });
   }
 
-  /**
-   * Editar anilox
-   */
+
   async editAnilox(anilox: any) {
     const dialogRef = this.dialog.open(EditAniloxDialogComponent, {
       width: '600px',
@@ -2505,7 +2363,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           const updatedAnilox = await this.aniloxService.update(anilox.id, result).toPromise();
 
           if (updatedAnilox) {
-            // Mensaje personalizado con icono de check
+
             this.snackBar.open(`✓ ${updatedAnilox.codigo} guardado`, '', {
               duration: 2500,
               panelClass: ['success-snackbar-compact'],
@@ -2513,7 +2371,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
               verticalPosition: 'top'
             });
 
-            // Recargar datos
+
             await this.initializeAniloxData();
           }
         } catch (error: any) {
@@ -2537,11 +2395,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     });
   }
 
-  /**
-   * Eliminar anilox
-   */
+
   async deleteAnilox(anilox: any) {
-    // Diálogo de confirmación compacto y mejorado
+
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       width: '380px',
       panelClass: 'compact-delete-dialog',
@@ -2560,7 +2416,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         try {
           await this.aniloxService.delete(anilox.id).toPromise();
 
-          // Mensaje personalizado con icono de eliminación en rojo
+
           this.snackBar.open(`🗑️ ${anilox.codigo} eliminado`, '', {
             duration: 2500,
             panelClass: ['delete-snackbar-compact'],
@@ -2568,7 +2424,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
             verticalPosition: 'top'
           });
 
-          // Recargar datos
+
           await this.initializeAniloxData();
         } catch (error: any) {
           console.error('❌ Error eliminando anilox:', error);
@@ -2589,9 +2445,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     });
   }
 
-  /**
-   * Cargar configuraciones de máquinas (carga muestra)
-   */
+
   async loadMachineConfigs() {
     try {
       console.log('🔄 Cargando configuraciones de máquinas...');
@@ -2600,7 +2454,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('📦 Respuesta del servidor:', configs);
 
       if (configs && configs.length > 0) {
-        // Mapear las configuraciones al objeto machinesCargaMuestra
+
         configs.forEach(config => {
           this.machinesCargaMuestra[config.numero_maquina] = config.carga_muestra || null;
         });
@@ -2617,9 +2471,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
-  /**
-   * Actualizar carga muestra de una máquina
-   */
+
   async updateMachineCargaMuestra(machine: number, event: any) {
     console.log('🔵 ===== INICIO updateMachineCargaMuestra =====');
     console.log('📝 Máquina:', machine);
@@ -2632,7 +2484,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     console.log('📝 Nuevo valor parseado:', cargaMuestra);
     console.log('📝 Valor actual en memoria:', currentValue);
 
-    // Si el valor no cambió, no hacer nada
+
     if (cargaMuestra === currentValue) {
       console.log('⚠️ El valor no cambió, no se hace nada');
       return;
@@ -2646,11 +2498,11 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('✅ Respuesta del servidor:', response);
 
       if (response) {
-        // Actualizar el valor local SOLO después de guardar exitosamente
+
         this.machinesCargaMuestra[machine] = cargaMuestra;
         console.log('✅ Valor actualizado en memoria:', this.machinesCargaMuestra[machine]);
 
-        // Mensaje compacto de éxito
+
         this.snackBar.open(`✓ Carga muestra MQ ${machine} actualizada`, '', {
           duration: 2000,
           panelClass: ['success-snackbar-compact'],
@@ -2673,16 +2525,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         panelClass: ['error-snackbar']
       });
 
-      // Revertir el valor en el input al valor original
+
       event.target.value = currentValue !== null && currentValue !== undefined ? currentValue : '';
     }
 
     console.log('🔵 ===== FIN updateMachineCargaMuestra =====');
   }
 
-  /**
-   * Activar carga de archivo Excel para anilox
-   */
+
   triggerExcelUpload() {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -2691,9 +2541,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     fileInput.click();
   }
 
-  /**
-   * Procesar archivo Excel de anilox usando ExcelJS (sin vulnerabilidades)
-   */
+
   async onAniloxExcelSelected(event: any) {
     const file = event.target.files[0];
     if (!file) return;
@@ -2704,28 +2552,28 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       console.log('📂 Leyendo archivo Excel de anilox:', file.name);
 
-      // Usar ExcelService para leer el archivo
+
       const jsonData = await this.excelService.readExcel(file);
 
       console.log('📊 Datos leídos del Excel:', jsonData.length, 'filas');
 
-      // Procesar datos (empezar desde fila 2, fila 1 es header)
+
       const aniloxList: any[] = [];
 
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
 
-        // Columnas: C=Codigo(2), D=Maquina(3), E=Lineatura(4), F=AporteTeorico(5), G=Proveedor(6), H=Aporte(7), I=FactorEficiencia(8), J=Densidad(9)
+
         const codigo = row[2]?.toString().trim();
         const maquina = parseInt(row[3]);
         const lineatura = parseInt(row[4]);
         const aporteTeorico = parseInt(row[5]);
         const proveedor = row[6]?.toString().trim() || 'APEX';
         const aporte = parseFloat(row[7]);
-        const factorEficiencia = row[8] ? parseFloat(row[8]) : 35.00; // Columna I - Valor por defecto 35%
-        const densidad = row[9] ? parseFloat(row[9]) : 0.885; // Columna J - Valor por defecto 0.885
+        const factorEficiencia = row[8] ? parseFloat(row[8]) : 35.00;
+        const densidad = row[9] ? parseFloat(row[9]) : 0.885;
 
-        // Validar datos requeridos
+
         if (!codigo || !maquina || !lineatura || !aporteTeorico || !aporte) {
           console.warn(`⚠️ Fila ${i + 1} ignorada: datos incompletos`);
           continue;
@@ -2742,7 +2590,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           densidad
         });
 
-        // Actualizar progreso
+
         this.uploadProgress.set(Math.round((i / jsonData.length) * 50));
       }
 
@@ -2757,7 +2605,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         return;
       }
 
-      // Enviar al backend
+
       this.uploadProgress.set(60);
       const response = await this.aniloxService.importFromExcel(aniloxList).toPromise();
 
@@ -2772,7 +2620,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           { duration: 5000, panelClass: ['success-snackbar'] }
         );
 
-        // Recargar datos
+
         await this.initializeAniloxData();
       }
     } catch (error: any) {
@@ -2801,12 +2649,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     } else {
       this.filteredAniloxData = this.aniloxData.filter((a: any) => a.maquina === parseInt(this.selectedMachine));
     }
-    this.filterAnilox(); // Aplicar también el filtro de búsqueda
+    this.filterAnilox();
   }
 
-  /**
-   * Seleccionar máquina desde el sidebar
-   */
+
   selectMachine(machine: number | string) {
     this.selectedMachine = machine.toString();
     this.filterAniloxByMachine();
@@ -2816,7 +2662,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     const searchLower = this.aniloxSearchTerm.toLowerCase().trim();
 
     if (!searchLower) {
-      // Si no hay término de búsqueda, solo aplicar filtro de máquina
+
       if (this.selectedMachine === 'all') {
         this.filteredAniloxData = [...this.aniloxData];
       } else {
@@ -2825,7 +2671,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       return;
     }
 
-    // Aplicar ambos filtros
+
     let filtered = this.aniloxData;
 
     if (this.selectedMachine !== 'all') {

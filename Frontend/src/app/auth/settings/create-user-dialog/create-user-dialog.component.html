@@ -6,47 +6,47 @@
 
   <mat-dialog-content>
     <form [formGroup]="userForm" class="user-form">
-      
-      <!-- Foto de Perfil -->
+
+
       <div class="profile-section">
         <div class="profile-image-container">
           <div class="current-image">
-            <img 
-              *ngIf="profileImagePreview()" 
-              [src]="profileImagePreview()" 
+            <img
+              *ngIf="profileImagePreview()"
+              [src]="profileImagePreview()"
               alt="Vista previa"
               class="profile-preview">
-            <div 
-              *ngIf="!profileImagePreview()" 
+            <div
+              *ngIf="!profileImagePreview()"
               class="default-avatar-preview"
               [style.background-color]="getPreviewAvatarColor()">
               {{ getPreviewInitials() }}
             </div>
           </div>
-          
+
           <div class="image-actions">
-            <input 
-              #fileInput 
-              type="file" 
-              accept="image/*" 
+            <input
+              #fileInput
+              type="file"
+              accept="image/*"
               (change)="onFileSelected($event)"
               style="display: none;">
-            
-            <button 
+
+            <button
               type="button"
-              mat-raised-button 
-              color="primary" 
+              mat-raised-button
+              color="primary"
               (click)="fileInput.click()"
               class="upload-btn">
               <mat-icon>upload</mat-icon>
               Subir Foto
             </button>
-            
-            <button 
+
+            <button
               *ngIf="profileImagePreview()"
               type="button"
-              mat-stroked-button 
-              color="warn" 
+              mat-stroked-button
+              color="warn"
               (click)="removeImage()"
               class="remove-btn">
               <mat-icon>delete</mat-icon>
@@ -56,15 +56,15 @@
         </div>
       </div>
 
-      <!-- Información Básica -->
+
       <div class="form-section">
         <h3>Información Básica</h3>
-        
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Código de Usuario *</mat-label>
-            <input 
-              matInput 
+            <input
+              matInput
               formControlName="userCode"
               placeholder="Ej: USR001"
               maxlength="50">
@@ -81,8 +81,8 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Nombre *</mat-label>
-            <input 
-              matInput 
+            <input
+              matInput
               formControlName="firstName"
               placeholder="Nombre"
               maxlength="50">
@@ -94,8 +94,8 @@
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Apellido *</mat-label>
-            <input 
-              matInput 
+            <input
+              matInput
               formControlName="lastName"
               placeholder="Apellido"
               maxlength="50">
@@ -123,15 +123,15 @@
         </div>
       </div>
 
-      <!-- Información de Contacto (Opcional) -->
+
       <div class="form-section">
         <h3>Información de Contacto <span class="optional">(Opcional)</span></h3>
-        
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Correo Electrónico</mat-label>
-            <input 
-              matInput 
+            <input
+              matInput
               formControlName="email"
               type="email"
               placeholder="usuario@empresa.com"
@@ -146,8 +146,8 @@
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Número de Teléfono</mat-label>
-            <input 
-              matInput 
+            <input
+              matInput
               formControlName="phone"
               type="tel"
               placeholder="Ej: +57 300 123 4567"
@@ -160,22 +160,22 @@
         </div>
       </div>
 
-      <!-- Configuración de Acceso -->
+
       <div class="form-section">
         <h3>Configuración de Acceso</h3>
-        
+
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Contraseña Temporal *</mat-label>
-            <input 
-              matInput 
+            <input
+              matInput
               formControlName="password"
               [type]="hidePassword() ? 'password' : 'text'"
               placeholder="Contraseña temporal para el usuario"
               maxlength="50">
-            <button 
-              mat-icon-button 
-              matSuffix 
+            <button
+              mat-icon-button
+              matSuffix
               type="button"
               (click)="togglePasswordVisibility()"
               [attr.aria-label]="'Hide password'"
@@ -192,7 +192,7 @@
         </div>
 
         <div class="form-row">
-          <mat-slide-toggle 
+          <mat-slide-toggle
             formControlName="isActive"
             class="status-toggle">
             Usuario Activo
@@ -207,16 +207,16 @@
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
-    <button 
-      mat-button 
+    <button
+      mat-button
       type="button"
       (click)="onCancel()"
       [disabled]="loading()">
       Cancelar
     </button>
-    
-    <button 
-      mat-raised-button 
+
+    <button
+      mat-raised-button
       color="primary"
       type="button"
       (click)="onSave()"

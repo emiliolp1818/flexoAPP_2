@@ -3,7 +3,7 @@
 <!-- ============================================================================ -->
 
 <div class="reports-container">
-  <!-- ===== HEADER FIJO ===== -->
+
   <div class="reports-header">
     <div class="header-content">
       <div class="header-info">
@@ -23,9 +23,9 @@
     </div>
   </div>
 
-  <!-- ===== ÁREA DE CONTENIDO SCROLLABLE ===== -->
+
   <div class="scrollable-content-area">
-    <!-- Filtros Compactos -->
+
     <mat-card class="filters-card-compact">
       <mat-card-content>
         <div class="filter-info-message">
@@ -34,9 +34,9 @@
             opcionales.</span>
         </div>
         <form [formGroup]="filterForm" class="filters-form-compact">
-          <!-- Fila única de filtros -->
+
           <div class="filter-row-compact">
-            <!-- Usuario - Campo de texto simple -->
+
             <mat-form-field appearance="outline" class="filter-field-compact">
               <mat-label>Código Usuario</mat-label>
               <input type="text" matInput [(ngModel)]="userSearchText" [ngModelOptions]="{standalone: true}"
@@ -47,7 +47,7 @@
               </button>
             </mat-form-field>
 
-            <!-- Fecha Inicio -->
+
             <mat-form-field appearance="outline" class="filter-field-compact filter-date">
               <mat-label>Desde</mat-label>
               <input matInput [matDatepicker]="pickerStart" formControlName="startDate">
@@ -55,7 +55,7 @@
               <mat-datepicker #pickerStart></mat-datepicker>
             </mat-form-field>
 
-            <!-- Fecha Fin -->
+
             <mat-form-field appearance="outline" class="filter-field-compact filter-date">
               <mat-label>Hasta</mat-label>
               <input matInput [matDatepicker]="pickerEnd" formControlName="endDate">
@@ -63,7 +63,7 @@
               <mat-datepicker #pickerEnd></mat-datepicker>
             </mat-form-field>
 
-            <!-- Botones compactos -->
+
             <button mat-mini-fab color="primary" (click)="loadActivities()" [disabled]="loading()" matTooltip="Buscar">
               <mat-icon>search</mat-icon>
             </button>
@@ -75,15 +75,15 @@
       </mat-card-content>
     </mat-card>
 
-    <!-- Spinner de carga -->
+
     <div *ngIf="loading()" class="loading-container">
       <mat-icon class="loading-icon">refresh</mat-icon>
       <p>Cargando actividades...</p>
     </div>
 
-    <!-- Vista por Módulos (Ítems Separados) -->
+
     <div *ngIf="!loading() && filteredActivities().length > 0" class="modules-container">
-      <!-- Iterar sobre cada módulo -->
+
       <mat-card *ngFor="let module of modules" class="module-card">
         <mat-card-header (click)="selectModule(selectedModule() === module.value ? null : module.value)"
           class="module-header">
@@ -94,12 +94,12 @@
               <span class="module-count">({{ getModuleCount(module.value) }} actividades)</span>
             </div>
             <div class="module-actions">
-              <button mat-icon-button (click)="exportModuleToPDF(module.value, $event)" 
+              <button mat-icon-button (click)="exportModuleToPDF(module.value, $event)"
                 [disabled]="getModuleCount(module.value) === 0"
                 matTooltip="Exportar a PDF">
                 <mat-icon>picture_as_pdf</mat-icon>
               </button>
-              <button mat-icon-button (click)="exportModuleToExcel(module.value, $event)" 
+              <button mat-icon-button (click)="exportModuleToExcel(module.value, $event)"
                 [disabled]="getModuleCount(module.value) === 0"
                 matTooltip="Exportar a Excel">
                 <mat-icon>table_chart</mat-icon>
@@ -111,14 +111,14 @@
           </div>
         </mat-card-header>
 
-        <!-- Contenido expandible del módulo -->
+
         <mat-card-content *ngIf="selectedModule() === module.value && getModuleCount(module.value) > 0"
           class="module-content">
 
-          <!-- Estadísticas especiales para MÁQUINAS -->
+
           <div *ngIf="module.value === 'MACHINES'" class="machine-stats">
             <ng-container *ngIf="getMachineStats(getActivitiesByModule(module.value)) as stats">
-              <!-- DEBUG: Mostrar valores raw de stats -->
+
               <div class="stats-summary">
                 <div class="stat-item">
                   <mat-icon>assignment_turned_in</mat-icon>
@@ -150,7 +150,7 @@
                 </div>
               </div>
 
-              <!-- Lista de Pedidos Completados -->
+
               <div class="orders-list" *ngIf="stats.orderDetails && stats.orderDetails.length > 0">
                 <h4 class="orders-title">
                   <mat-icon>list</mat-icon>
@@ -158,7 +158,7 @@
                 </h4>
                 <div class="order-item" *ngFor="let order of stats.orderDetails; let i = index">
                   <div class="order-number">Pedido #{{ i + 1 }}</div>
-                  <!-- Información del Usuario en la parte superior -->
+
                   <div class="order-user-info" *ngIf="order.historialEstados && order.historialEstados.length > 0">
                     <div class="user-info-header">
                       <mat-icon style="font-size: 18px; width: 18px; height: 18px; margin-right: 6px;">person</mat-icon>
@@ -196,7 +196,7 @@
                       <span class="field-value">{{ order.numeroColores || '-' }}</span>
                     </div>
 
-                    <!-- Historial de Estados -->
+
                     <div class="order-field"
                       style="margin-top: 12px; border-top: 1px solid #e0e0e0; padding-top: 12px;">
                       <span class="field-label" style="font-weight: bold; margin-bottom: 8px; display: block;">Historial
@@ -216,19 +216,19 @@
                                 estado.estado === 'TERMINADO' ? '#dc2626' : '#64748b'">
                               {{ estado.estado }}
                             </span>
-                            <!-- Mostrar duración solo para estado LISTO -->
+
                             <span *ngIf="estado.estado === 'LISTO' && estado.duration > 0"
                               style="color: #16a34a; font-size: 11px; margin-left: auto; font-weight: 600;">
                               {{ formatDuration(estado.duration) }}
                             </span>
                           </div>
-                          <!-- Mostrar información del usuario -->
+
                           <div *ngIf="estado.userCode && estado.userCode !== '-'"
                             style="padding-left: 138px; color: #555; font-size: 11px;">
                             <span style="font-weight: 500;">Usuario:</span> {{ estado.userCode }} - {{ estado.userName
                             }}
                           </div>
-                          <!-- Mostrar observaciones para TODOS los estados (con estilo especial para SUSPENDIDO) -->
+
                           <div *ngIf="estado.observaciones && estado.observaciones !== '-'"
                             style="padding-left: 138px; font-size: 12px; font-style: italic;"
                             [style.color]="estado.estado === 'SUSPENDIDO' ? '#dc2626' : '#666'">
@@ -243,11 +243,11 @@
             </ng-container>
           </div>
 
-          <!-- Tabla de actividades del módulo (SOLO para módulos que NO son MACHINES) -->
+
           <div *ngIf="module.value !== 'MACHINES'" class="module-activities-table">
             <table mat-table [dataSource]="getActivitiesByModule(module.value)" class="activities-table">
 
-              <!-- Columna: Fecha/Hora -->
+
               <ng-container matColumnDef="timestamp">
                 <th mat-header-cell *matHeaderCellDef>Fecha/Hora</th>
                 <td mat-cell *matCellDef="let activity">
@@ -258,7 +258,7 @@
                 </td>
               </ng-container>
 
-              <!-- Columna: Usuario -->
+
               <ng-container matColumnDef="user">
                 <th mat-header-cell *matHeaderCellDef>Usuario</th>
                 <td mat-cell *matCellDef="let activity">
@@ -269,19 +269,19 @@
                 </td>
               </ng-container>
 
-              <!-- Columna: Acción -->
+
               <ng-container matColumnDef="action">
                 <th mat-header-cell *matHeaderCellDef>Acción</th>
                 <td mat-cell *matCellDef="let activity">{{ activity.action }}</td>
               </ng-container>
 
-              <!-- Columna: Descripción -->
+
               <ng-container matColumnDef="description">
                 <th mat-header-cell *matHeaderCellDef>Descripción</th>
                 <td mat-cell *matCellDef="let activity">{{ activity.description }}</td>
               </ng-container>
 
-              <!-- Columna: Detalles -->
+
               <ng-container matColumnDef="details">
                 <th mat-header-cell *matHeaderCellDef>Detalles</th>
                 <td mat-cell *matCellDef="let activity">
@@ -291,7 +291,7 @@
                 </td>
               </ng-container>
 
-              <!-- Fila expandible con detalles -->
+
               <ng-container matColumnDef="expandedDetail">
                 <td mat-cell *matCellDef="let activity" [attr.colspan]="5">
                   <div class="detail-expansion" [@detailExpand]="activity.expanded ? 'expanded' : 'collapsed'">
@@ -334,7 +334,7 @@
       </mat-card>
     </div>
 
-    <!-- Mensaje cuando no hay datos -->
+
     <div *ngIf="!loading() && filteredActivities().length === 0" class="no-data">
       <mat-icon>inbox</mat-icon>
       <p>No se encontraron actividades con los filtros seleccionados</p>

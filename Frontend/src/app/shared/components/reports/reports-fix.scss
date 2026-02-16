@@ -1,14 +1,14 @@
-// ============================================================================
-// FIX CRÍTICO: Centrado de labels con iconos en Material Angular
-// Este archivo contiene estilos globales que se aplican con máxima prioridad
-// ============================================================================
 
-// Aplicar a TODOS los form fields del componente con máxima especificidad
+
+
+
+
+
 .reports-container .search-form-compact .search-row-compact .field-compact,
 .reports-container .search-form-compact .field-compact,
 .reports-container .field-compact {
-  
-  // Forzar flexbox en labels con máxima especificidad
+
+
   .mat-mdc-form-field-label,
   .mdc-floating-label,
   ::ng-deep .mat-mdc-form-field-label,
@@ -18,8 +18,8 @@
     gap: 4px !important;
     line-height: 1.2 !important;
     vertical-align: middle !important;
-    
-    // Iconos dentro del label
+
+
     mat-icon,
     .mat-icon,
     ::ng-deep mat-icon,
@@ -34,21 +34,21 @@
       vertical-align: middle !important;
     }
   }
-  
-  // Asegurar centrado en el contenedor del form field
+
+
   .mat-mdc-form-field-flex,
   .mat-mdc-text-field-wrapper,
   ::ng-deep .mat-mdc-form-field-flex,
   ::ng-deep .mat-mdc-text-field-wrapper {
     align-items: center !important;
   }
-  
+
   .mat-mdc-form-field-infix,
   ::ng-deep .mat-mdc-form-field-infix {
     display: flex !important;
     align-items: center !important;
   }
-  
+
   .mat-mdc-form-field-label-wrapper,
   ::ng-deep .mat-mdc-form-field-label-wrapper {
     display: flex !important;

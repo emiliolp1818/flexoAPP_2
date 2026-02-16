@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FlexoAPP.API.Models.DTOs
 {
-    /// <summary>
-    /// DTO para solicitar la creación de un backup de máquinas
-    /// </summary>
+
+
+
     public class MachineBackupRequestDto
     {
         public string? Description { get; set; }
@@ -18,9 +18,9 @@ namespace FlexoAPP.API.Models.DTOs
         public int RetentionDays { get; set; } = 30;
     }
 
-    /// <summary>
-    /// DTO para el resultado de la operación de backup
-    /// </summary>
+
+
+
     public class MachineBackupResultDto
     {
         public bool Success { get; set; }
@@ -31,9 +31,9 @@ namespace FlexoAPP.API.Models.DTOs
         public DateTime CreatedAt { get; set; }
     }
 
-    /// <summary>
-    /// DTO para información básica de un backup
-    /// </summary>
+
+
+
     public class MachineBackupInfoDto
     {
         public string BackupId { get; set; } = string.Empty;
@@ -47,9 +47,9 @@ namespace FlexoAPP.API.Models.DTOs
         public bool IsValid { get; set; } = true;
     }
 
-    /// <summary>
-    /// DTO para los datos completos de un backup
-    /// </summary>
+
+
+
     public class MachineBackupDataDto
     {
         public string BackupId { get; set; } = string.Empty;
@@ -60,9 +60,9 @@ namespace FlexoAPP.API.Models.DTOs
         public long BackupSize { get; set; }
     }
 
-    /// <summary>
-    /// DTO para metadatos del backup
-    /// </summary>
+
+
+
     public class MachineBackupMetadataDto
     {
         public string BackupId { get; set; } = string.Empty;
@@ -77,9 +77,9 @@ namespace FlexoAPP.API.Models.DTOs
         public string ApplicationVersion { get; set; } = "FlexoAPP 1.0";
     }
 
-    /// <summary>
-    /// DTO para programa de máquina en backup
-    /// </summary>
+
+
+
     public class MachineProgramBackupDto
     {
         public int Id { get; set; }
@@ -108,18 +108,18 @@ namespace FlexoAPP.API.Models.DTOs
         public DateTime UpdatedAt { get; set; }
     }
 
-    /// <summary>
-    /// DTO para rango de fechas del backup
-    /// </summary>
+
+
+
     public class BackupDateRangeDto
     {
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
     }
 
-    /// <summary>
-    /// DTO para estadísticas del backup
-    /// </summary>
+
+
+
     public class MachineBackupStatsDto
     {
         public string BackupId { get; set; } = string.Empty;
@@ -131,9 +131,9 @@ namespace FlexoAPP.API.Models.DTOs
         public BackupDateRangeDto? DateRange { get; set; }
     }
 
-    /// <summary>
-    /// DTO para restaurar backup
-    /// </summary>
+
+
+
     public class RestoreBackupRequestDto
     {
         [Required]
@@ -142,9 +142,9 @@ namespace FlexoAPP.API.Models.DTOs
         public bool CreateBackupBeforeRestore { get; set; } = true;
     }
 
-    /// <summary>
-    /// DTO para resultado de restauración
-    /// </summary>
+
+
+
     public class RestoreBackupResultDto
     {
         public bool Success { get; set; }

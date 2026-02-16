@@ -1,38 +1,38 @@
-// ===== PALETA DE COLORES COPIADA DEL MÓDULO DE DISEÑO =====
-$primary-blue: #2563eb; // Azul principal
-$primary-blue-light: #3b82f6; // Azul claro
-$primary-blue-dark: #1d4ed8; // Azul oscuro
-$primary-blue-50: #eff6ff; // Azul muy claro para fondos
-$primary-blue-100: #dbeafe; // Azul claro para elementos suaves
-$primary-blue-200: #bfdbfe; // Azul medio-claro
-$primary-blue-300: #93c5fd; // Azul medio
-$primary-blue-400: #60a5fa; // Azul medio-intenso
-$primary-blue-500: #3b82f6; // Azul intenso
-$primary-blue-600: #2563eb; // Azul vibrante
-$primary-blue-700: #1d4ed8; // Azul profundo
-$primary-blue-800: #1e40af; // Azul muy profundo
-$primary-blue-900: #1e3a8a; // Azul empresarial
 
-// Colores complementarios
-$accent-gray: #6b7280; // Gris para contraste
-$accent-slate: #4b5563; // Pizarra para elementos secundarios
-$success-emerald: #10b981; // Verde esmeralda
-$warning-amber: #f59e0b; // Ámbar
-$error-red: #ef4444; // Rojo
+$primary-blue: #2563eb;
+$primary-blue-light: #3b82f6;
+$primary-blue-dark: #1d4ed8;
+$primary-blue-50: #eff6ff;
+$primary-blue-100: #dbeafe;
+$primary-blue-200: #bfdbfe;
+$primary-blue-300: #93c5fd;
+$primary-blue-400: #60a5fa;
+$primary-blue-500: #3b82f6;
+$primary-blue-600: #2563eb;
+$primary-blue-700: #1d4ed8;
+$primary-blue-800: #1e40af;
+$primary-blue-900: #1e3a8a;
 
-// Escala de grises
-$gray-50: #f8fafc; // Gris muy claro
-$gray-100: #f1f5f9; // Gris claro
-$gray-200: #e2e8f0; // Gris medio-claro
-$gray-300: #cbd5e1; // Gris medio
-$gray-400: #94a3b8; // Gris medio-oscuro
-$gray-500: #64748b; // Gris balanceado
-$gray-600: #475569; // Gris oscuro
-$gray-700: #334155; // Gris muy oscuro
-$gray-800: #1e293b; // Gris profundo
-$gray-900: #0f172a; // Gris máximo
 
-// ===== HOST PRINCIPAL =====
+$accent-gray: #6b7280;
+$accent-slate: #4b5563;
+$success-emerald: #10b981;
+$warning-amber: #f59e0b;
+$error-red: #ef4444;
+
+
+$gray-50: #f8fafc;
+$gray-100: #f1f5f9;
+$gray-200: #e2e8f0;
+$gray-300: #cbd5e1;
+$gray-400: #94a3b8;
+$gray-500: #64748b;
+$gray-600: #475569;
+$gray-700: #334155;
+$gray-800: #1e293b;
+$gray-900: #0f172a;
+
+
 :host {
   display: block;
   width: 100vw;
@@ -43,7 +43,7 @@ $gray-900: #0f172a; // Gris máximo
   overflow: auto;
 }
 
-// ===== CONTENEDOR PRINCIPAL =====
+
 .settings-container {
   display: flex;
   flex-direction: column;
@@ -56,25 +56,25 @@ $gray-900: #0f172a; // Gris máximo
   position: relative;
 }
 
-// ===== HEADER FIJO - CORREGIDO PARA EVITAR SUPERPOSICIÓN =====
-// El header ahora usa position: sticky para mantenerse visible sin tapar el contenido
+
+
 .settings-header {
-  position: sticky; // Sticky en lugar de fixed para mejor comportamiento
-  top: 0; // Se mantiene en la parte superior al hacer scroll
+  position: sticky;
+  top: 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 16px;
-  margin: 12px 12px 0px 12px; // Margen inferior eliminado para mejor espaciado
+  margin: 12px 12px 0px 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
   overflow: visible;
-  z-index: 100; // Z-index alto para mantenerse sobre otros elementos
+  z-index: 100;
   display: block;
   margin-top: 68px;
 
-  // Borde superior azul
+
   &::before {
     content: '';
     position: absolute;
@@ -172,11 +172,11 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== CONTENIDO PRINCIPAL - AJUSTADO PARA EVITAR SUPERPOSICIÓN =====
-// Padding superior agregado para dar espacio después del header sticky
+
+
 .settings-content {
   flex: 1;
-  padding: 12px 12px 0px 12px; // Padding superior para separar del header
+  padding: 12px 12px 0px 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -197,7 +197,7 @@ $gray-900: #0f172a; // Gris máximo
     position: relative;
     min-height: 0;
 
-    // Borde superior azul
+
     &::before {
       content: '';
       position: absolute;
@@ -221,7 +221,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== PESTAÑAS CON ESTILO DEL MÓDULO DE DISEÑO =====
+
 ::ng-deep {
   .mat-mdc-tab-group {
     height: 100%;
@@ -279,40 +279,40 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== CONTENIDO DE PESTAÑAS - ESPACIADO ALINEADO CON HEADER =====
+
 .tab-content {
-  padding: 24px 12px 20px 12px; // Padding lateral igual al header (12px) para alineación perfecta
+  padding: 24px 12px 20px 12px;
   height: 100%;
   overflow: auto;
 }
 
-// ===== ENCABEZADO DE SECCIÓN - ALINEADO CON HEADER =====
+
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
-  margin-top: 8px; // Margen superior para separar del borde de la pestaña
-  margin-left: 0px; // Sin margen lateral - alineado con header mediante padding del tab-content
-  margin-right: 0px; // Sin margen lateral - consistente con módulo de diseño
+  margin-top: 8px;
+  margin-left: 0px;
+  margin-right: 0px;
   padding-bottom: 16px;
   border-bottom: 2px solid $gray-200;
 
   .header-actions {
     display: flex;
-    gap: 16px; // Mayor espaciado entre botones
+    gap: 16px;
     align-items: center;
-    justify-content: flex-end; // Alinear botones a la derecha
-    margin-right: 8px; // Margen derecho para separar del borde
-    flex-wrap: wrap; // Permitir wrap en pantallas pequeñas
+    justify-content: flex-end;
+    margin-right: 8px;
+    flex-wrap: wrap;
 
     .debug-btn {
-      width: 40px !important; // Botones más grandes
+      width: 40px !important;
       height: 40px !important;
       background: linear-gradient(135deg, $error-red 0%, #dc2626 100%) !important;
       box-shadow: 0 2px 6px rgba($error-red, 0.3) !important;
       transition: all 0.3s ease;
-      margin-right: 4px; // Separación adicional
+      margin-right: 4px;
 
       mat-icon {
         font-size: 18px;
@@ -329,12 +329,12 @@ $gray-900: #0f172a; // Gris máximo
     }
 
     .compact-refresh-btn {
-      width: 44px !important; // Botones más grandes
+      width: 44px !important;
       height: 44px !important;
       background: linear-gradient(135deg, $warning-amber 0%, #d97706 100%) !important;
       box-shadow: 0 2px 8px rgba($warning-amber, 0.3) !important;
       transition: all 0.3s ease;
-      margin-right: 4px; // Separación adicional
+      margin-right: 4px;
 
       mat-icon {
         font-size: 20px;
@@ -370,12 +370,12 @@ $gray-900: #0f172a; // Gris máximo
     }
 
     .compact-add-btn {
-      width: 56px !important; // Botón principal más grande
+      width: 56px !important;
       height: 56px !important;
       background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%) !important;
       box-shadow: 0 3px 12px rgba($primary-blue, 0.4) !important;
       transition: all 0.3s ease;
-      margin-right: 0px; // Sin margen derecho para el último botón
+      margin-right: 0px;
 
       mat-icon {
         font-size: 28px;
@@ -401,7 +401,7 @@ $gray-900: #0f172a; // Gris máximo
       }
     }
 
-    // Responsive para móviles
+
     @media (max-width: 768px) {
       gap: 12px;
       margin-right: 4px;
@@ -479,22 +479,22 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== TABLA DE USUARIOS - ALINEADA CON HEADER Y COMPONENTE BUSCAR =====
+
 .users-table-container {
   background: white;
   border-radius: 12px;
-  overflow-x: auto; // Scroll horizontal si la tabla es muy ancha
-  overflow-y: auto; // Scroll vertical para ver todos los usuarios
+  overflow-x: auto;
+  overflow-y: auto;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 2px solid $gray-200;
   border-top: 3px solid $primary-blue;
-  max-height: calc(100vh - 280px); // Altura máxima para activar scroll
-  display: block; // Cambiar a block para permitir scroll
+  max-height: calc(100vh - 280px);
+  display: block;
   margin-top: 8px;
   margin-left: 0px;
   margin-right: 0px;
 
-  // Estilo del scrollbar
+
   &::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -523,7 +523,7 @@ $gray-900: #0f172a; // Gris máximo
   border-spacing: 0;
   flex: 1;
 
-  // Headers fijos estilo Excel - Más compactos
+
   .excel-header {
     background: linear-gradient(135deg, $gray-100 0%, $gray-200 100%);
     color: $gray-700;
@@ -569,7 +569,7 @@ $gray-900: #0f172a; // Gris máximo
     }
   }
 
-  // Celdas de datos - Más compactas
+
   .excel-cell {
     padding: 8px 6px;
     border-bottom: 1px solid $gray-200;
@@ -584,7 +584,7 @@ $gray-900: #0f172a; // Gris máximo
     min-height: 40px;
   }
 
-  // Filas con efectos hover
+
   tr {
     transition: all 0.2s ease;
 
@@ -604,7 +604,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== CELDA DE USUARIO CON FOTO DE PERFIL - MEJORADA PARA MOSTRAR IMÁGENES =====
+
 .user-cell {
   min-width: 220px;
   max-width: 280px;
@@ -616,7 +616,7 @@ $gray-900: #0f172a; // Gris máximo
 
     .user-avatar {
       flex-shrink: 0;
-      width: 48px; // Avatar más grande
+      width: 48px;
       height: 48px;
       border-radius: 50%;
       overflow: hidden;
@@ -624,7 +624,7 @@ $gray-900: #0f172a; // Gris máximo
       box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
       transition: all 0.3s ease;
       position: relative;
-      background: $gray-100; // Fondo por defecto mientras carga
+      background: $gray-100;
 
       &:hover {
         transform: scale(1.15);
@@ -641,14 +641,14 @@ $gray-900: #0f172a; // Gris máximo
         transition: all 0.3s ease;
         background: $gray-100;
 
-        // Mejorar la carga de imágenes
+
         &[src=""],
         &[src="null"],
         &[src="undefined"] {
           display: none !important;
         }
 
-        // Asegurar que la imagen se muestre correctamente
+
         &:not([src=""]):not([src="null"]):not([src="undefined"]) {
           display: block !important;
         }
@@ -657,7 +657,7 @@ $gray-900: #0f172a; // Gris máximo
           transform: scale(1.08);
         }
 
-        // Indicador de carga
+
         &:not([complete]) {
           background: linear-gradient(90deg, $gray-200 25%, $gray-100 50%, $gray-200 75%);
           background-size: 200% 100%;
@@ -673,7 +673,7 @@ $gray-900: #0f172a; // Gris máximo
         justify-content: center;
         color: white;
         font-weight: 700;
-        font-size: 16px; // Texto más grande
+        font-size: 16px;
         text-transform: uppercase;
         background: linear-gradient(135deg, var(--avatar-color, #{$primary-blue}) 0%, var(--avatar-color-dark, #{$primary-blue-dark}) 100%);
         position: relative;
@@ -690,7 +690,7 @@ $gray-900: #0f172a; // Gris máximo
         }
       }
 
-      // Indicador de estado online mejorado
+
       &::after {
         content: '';
         position: absolute;
@@ -706,12 +706,12 @@ $gray-900: #0f172a; // Gris máximo
         transition: opacity 0.3s ease;
       }
 
-      // Mostrar indicador online en hover
+
       &:hover::after {
         opacity: 1;
       }
 
-      // Estado de error de imagen
+
       &.image-error {
         border-color: $warning-amber;
 
@@ -768,7 +768,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== CELDA DE CONTACTO =====
+
 .contact-cell {
   min-width: 180px;
   max-width: 220px;
@@ -828,13 +828,13 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== CELDA DE ROL =====
+
 .role-cell {
   min-width: 120px;
   text-align: center;
 }
 
-// ===== CELDA DE ESTADO =====
+
 .status-cell {
   min-width: 100px;
   text-align: center;
@@ -870,7 +870,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== CELDA DE FECHA =====
+
 .date-cell {
   min-width: 140px;
   text-align: center;
@@ -911,28 +911,28 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== CELDA DE ACCIONES - BOTONES MEJORADOS Y SEPARADOS =====
+
 .actions-cell {
-  min-width: 160px; // Más ancho para acomodar botones más grandes
+  min-width: 160px;
   text-align: center;
-  padding-right: 12px; // Separación del borde derecho
+  padding-right: 12px;
 
   .action-buttons {
     display: flex;
-    gap: 10px; // Mayor separación entre botones
+    gap: 10px;
     justify-content: center;
     align-items: center;
-    margin-right: 8px; // Margen derecho adicional
+    margin-right: 8px;
 
     .action-btn {
-      width: 42px; // Botones más grandes
+      width: 42px;
       height: 42px;
-      border-radius: 10px; // Bordes más redondeados
+      border-radius: 10px;
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
 
-      // Iconos más grandes
+
       mat-icon {
         font-size: 22px;
         width: 22px;
@@ -940,7 +940,7 @@ $gray-900: #0f172a; // Gris máximo
         transition: all 0.2s ease;
       }
 
-      // Iconos extra grandes para acciones principales
+
       &.large-icon {
         .large-action-icon {
           font-size: 24px;
@@ -958,7 +958,7 @@ $gray-900: #0f172a; // Gris máximo
         }
       }
 
-      // Efectos específicos por tipo de botón - Mejorados
+
       &.edit-btn {
         background: rgba($primary-blue, 0.12);
         border: 2px solid rgba($primary-blue, 0.25);
@@ -1013,7 +1013,7 @@ $gray-900: #0f172a; // Gris máximo
         }
       }
 
-      // Efecto de ondas al hacer clic
+
       &:active {
         transform: translateY(-1px) scale(1.1);
       }
@@ -1046,7 +1046,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== CHIPS DE ROLES - ESTILO CONSISTENTE =====
+
 .role-chip {
   font-family: Arial, sans-serif !important;
   font-size: 12px !important;
@@ -1136,9 +1136,9 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Removed spinning animation - static loading icon instead
 
-// Configuraciones del Sistema - Mejoradas
+
+
 .config-sections {
   .mat-expansion-panel {
     margin-bottom: 16px;
@@ -1269,7 +1269,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Permisos y Roles
+
 .roles-permissions {
   .mat-expansion-panel {
     margin-bottom: 16px;
@@ -1309,7 +1309,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Información del Sistema
+
 .system-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1370,7 +1370,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Responsive
+
 @media (max-width: 768px) {
   .settings-container {
     padding: 10px;
@@ -1411,10 +1411,10 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== ESTILOS DE NOTIFICACIONES (SNACKBAR) =====
+
 ::ng-deep {
 
-  // Estilos básicos para notificaciones generales
+
   .success-snackbar {
     background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
     color: white;
@@ -1439,14 +1439,14 @@ $gray-900: #0f172a; // Gris máximo
     font-weight: 500;
   }
 
-  // ===== NOTIFICACIONES DE USUARIO ACTIVO/INACTIVO =====
-  // Contenedor principal - Posicionamiento a la altura del header (h3) + 3cm más abajo
+
+
   .mat-mdc-snack-bar-container {
 
     &.user-active-snackbar,
     &.user-inactive-snackbar {
-      // Posicionar en la parte superior (altura del h3 del header + 3cm)
-      top: 260px !important; // 140px original + 120px (aprox 3cm)
+
+      top: 260px !important;
       left: 50% !important;
       transform: translateX(-50%) !important;
       margin: 0 !important;
@@ -1454,34 +1454,34 @@ $gray-900: #0f172a; // Gris máximo
     }
   }
 
-  // Estilos para notificación de usuario ACTIVO (verde)
+
   .user-active-snackbar {
-    // Fondo blanco translúcido con efecto glassmorphism
+
     background: rgba(255, 255, 255, 0.98) !important;
     backdrop-filter: blur(20px) !important;
 
-    // Texto verde
+
     color: #059669 !important;
     font-weight: 600 !important;
     font-size: 13px !important;
 
-    // Espaciado compacto
+
     padding: 10px 16px !important;
     border-radius: 12px !important;
 
-    // Sombra suave verde
+
     box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12),
       0 0 0 1px rgba(16, 185, 129, 0.08) !important;
 
-    // Línea indicadora verde más gruesa (5px)
+
     border-left: 5px solid #10b981 !important;
 
-    // Ancho ajustado al contenido
+
     min-width: auto !important;
     max-width: fit-content !important;
     width: auto !important;
 
-    // Superficie interna transparente
+
     .mdc-snackbar__surface {
       background: transparent !important;
       box-shadow: none !important;
@@ -1489,7 +1489,7 @@ $gray-900: #0f172a; // Gris máximo
       max-width: fit-content !important;
     }
 
-    // Etiqueta de texto centrada
+
     .mat-mdc-snack-bar-label {
       color: #059669 !important;
       font-weight: 600 !important;
@@ -1505,34 +1505,34 @@ $gray-900: #0f172a; // Gris máximo
     }
   }
 
-  // Estilos para notificación de usuario INACTIVO (naranja)
+
   .user-inactive-snackbar {
-    // Fondo blanco translúcido con efecto glassmorphism
+
     background: rgba(255, 255, 255, 0.98) !important;
     backdrop-filter: blur(20px) !important;
 
-    // Texto naranja
+
     color: #d97706 !important;
     font-weight: 600 !important;
     font-size: 13px !important;
 
-    // Espaciado compacto
+
     padding: 10px 16px !important;
     border-radius: 12px !important;
 
-    // Sombra suave naranja
+
     box-shadow: 0 4px 16px rgba(245, 158, 11, 0.12),
       0 0 0 1px rgba(245, 158, 11, 0.08) !important;
 
-    // Línea indicadora naranja más gruesa (5px)
+
     border-left: 5px solid #f59e0b !important;
 
-    // Ancho ajustado al contenido
+
     min-width: auto !important;
     max-width: fit-content !important;
     width: auto !important;
 
-    // Superficie interna transparente
+
     .mdc-snackbar__surface {
       background: transparent !important;
       box-shadow: none !important;
@@ -1540,7 +1540,7 @@ $gray-900: #0f172a; // Gris máximo
       max-width: fit-content !important;
     }
 
-    // Etiqueta de texto centrada
+
     .mat-mdc-snack-bar-label {
       color: #d97706 !important;
       font-weight: 600 !important;
@@ -1557,7 +1557,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== ANIMACIONES PARA CARGA DE IMÁGENES =====
+
 @keyframes loading-shimmer {
   0% {
     background-position: -200% 0;
@@ -1568,10 +1568,10 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== MEJORAS ADICIONALES PARA FOTOS DE PERFIL =====
+
 .user-avatar {
 
-  // Indicador de carga de imagen
+
   &.loading {
     .profile-image {
       opacity: 0.7;
@@ -1581,7 +1581,7 @@ $gray-900: #0f172a; // Gris máximo
     }
   }
 
-  // Estado cuando la imagen se carga exitosamente
+
   &.loaded {
     .profile-image {
       opacity: 1;
@@ -1589,7 +1589,7 @@ $gray-900: #0f172a; // Gris máximo
     }
   }
 
-  // Estado de error mejorado
+
   &.error {
     border-color: $warning-amber !important;
 
@@ -1609,7 +1609,7 @@ $gray-900: #0f172a; // Gris máximo
     }
   }
 
-  // Estilos para botones FAB compactos
+
   .settings-container {
     .mat-mdc-fab.compact-refresh-btn {
       .mat-mdc-button-persistent-ripple {
@@ -1631,7 +1631,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// ===== SISTEMA DE PERMISOS COMPACTO =====
+
 .permissions-tab {
   padding: 16px 12px !important;
 }
@@ -1641,7 +1641,7 @@ $gray-900: #0f172a; // Gris máximo
   margin: 0;
 }
 
-// Header compacto con selector inline
+
 .permissions-header-compact {
   display: flex;
   justify-content: space-between;
@@ -1655,7 +1655,7 @@ $gray-900: #0f172a; // Gris máximo
 
   .header-left {
     flex: 1;
-    
+
     h3 {
       display: flex;
       align-items: center;
@@ -1704,7 +1704,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Grid de categorías de permisos
+
 .permissions-grid-compact {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
@@ -1712,7 +1712,7 @@ $gray-900: #0f172a; // Gris máximo
   margin-top: 16px;
 }
 
-// Tarjeta de categoría compacta
+
 .permission-category-compact {
   background: white;
   border: 2px solid $gray-200;
@@ -1728,7 +1728,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Header de categoría
+
 .category-header-compact {
   display: flex;
   align-items: center;
@@ -1764,7 +1764,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Grid de items de permisos
+
 .permissions-grid-items {
   display: grid;
   grid-template-columns: 1fr;
@@ -1772,7 +1772,7 @@ $gray-900: #0f172a; // Gris máximo
   padding: 12px;
 }
 
-// Tarjeta de permiso individual compacta
+
 .permission-card-compact {
   display: flex;
   align-items: center;
@@ -1824,7 +1824,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Botón toggle mejorado con colores verde/rojo
+
 .permission-toggle-btn {
   display: flex;
   align-items: center;
@@ -1849,7 +1849,7 @@ $gray-900: #0f172a; // Gris máximo
     transition: all 0.3s ease;
   }
 
-  // Estado INACTIVO (rojo)
+
   &:not(.active) {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
@@ -1873,7 +1873,7 @@ $gray-900: #0f172a; // Gris máximo
     }
   }
 
-  // Estado ACTIVO (verde)
+
   &.active {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
@@ -1897,7 +1897,7 @@ $gray-900: #0f172a; // Gris máximo
     }
   }
 
-  // Estado DESHABILITADO
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -1915,7 +1915,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Mensaje cuando no hay usuario seleccionado
+
 .no-user-selected-compact {
   display: flex;
   flex-direction: column;
@@ -1944,7 +1944,7 @@ $gray-900: #0f172a; // Gris máximo
   }
 }
 
-// Responsive para móviles
+
 @media (max-width: 768px) {
   .permissions-header-compact {
     flex-direction: column;

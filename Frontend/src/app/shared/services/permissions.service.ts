@@ -5,10 +5,7 @@ import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Permission, PermissionCategory, UserPermissionsResponse, PERMISSIONS } from '../models/permission.model';
 
-/**
- * Servicio de Permisos
- * Gestiona los permisos de usuarios y verifica accesos
- */
+
 @Injectable({
     providedIn: 'root'
 })
@@ -16,46 +13,36 @@ export class PermissionsService {
     private http = inject(HttpClient);
     private apiUrl = `${environment.apiUrl}/permissions`;
 
-    // Estado reactivo de permisos del usuario actual usando Signals
+
     public permissions = signal<string[]>([]);
 
-    /**
-     * Observable de permisos del usuario actual (para compatibilidad)
-     */
+
     get userPermissions$(): Observable<string[]> {
         return new BehaviorSubject<string[]>(this.permissions()).asObservable();
     }
 
-    /**
-     * Obtener todos los permisos del sistema
-     */
+
     getAllPermissions(): Observable<Permission[]> {
         return this.http.get<Permission[]>(this.apiUrl);
     }
 
-    /**
-     * Obtener permisos por categoría
-     */
+
     getPermissionsByCategory(category: string): Observable<Permission[]> {
         return this.http.get<Permission[]>(`${this.apiUrl}/category/${category}`);
     }
 
-    /**
-     * Obtener permisos de un usuario específico
-     */
+
     getUserPermissions(userId: number): Observable<UserPermissionsResponse> {
         return this.http.get<UserPermissionsResponse>(`${this.apiUrl}/user/${userId}`);
     }
 
-    /**
-     * Cargar permisos del usuario actual
-     */
+
     loadCurrentUserPermissions(userId: number): Observable<UserPermissionsResponse> {
         console.log(`🔐 Iniciando carga de permisos para usuario ID: ${userId}...`);
         return this.getUserPermissions(userId).pipe(
             tap(response => {
-                // Si el usuario es el administrador (ID 1) o tiene rol 'Admin', le otorgamos todos los permisos posibles
-                // Esto garantiza que la interfaz refleje acceso total para el admin
+
+
                 if (userId === 1 || response.role === 'Admin') {
                     const allPossibleCodes = response.allPermissions && response.allPermissions.length > 0
                         ? response.allPermissions.map(p => p.code)
@@ -66,7 +53,7 @@ export class PermissionsService {
                         console.log(`🔐 Administrador/Admin detectado (ID: ${userId}): otorgando acceso total (${allPossibleCodes.length} permisos)`);
                     } else {
                         console.warn(`⚠️ No se encontraron permisos definidos en el sistema para el administrador.`);
-                        // Mantenemos permisos vacíos o cargamos lo que vino por defecto
+
                         this.permissions.set(response.permissions || []);
                     }
                 } else {
@@ -78,9 +65,7 @@ export class PermissionsService {
         );
     }
 
-    /**
-     * Actualizar permiso de un usuario
-     */
+
     updateUserPermission(userId: number, permissionCode: string, isGranted: boolean, grantedBy?: number): Observable<any> {
         return this.http.put(`${this.apiUrl}/user/${userId}`, {
             permissionCode,
@@ -89,23 +74,17 @@ export class PermissionsService {
         });
     }
 
-    /**
-     * Verificar si un usuario tiene un permiso específico
-     */
+
     checkUserPermission(userId: number, permissionCode: string): Observable<{ hasPermission: boolean }> {
         return this.http.get<{ hasPermission: boolean }>(`${this.apiUrl}/user/${userId}/check/${permissionCode}`);
     }
 
-    /**
-     * Conceder todos los permisos a un usuario
-     */
+
     grantAllPermissions(userId: number, grantedBy?: number): Observable<any> {
         return this.http.post(`${this.apiUrl}/user/${userId}/grant-all`, { grantedBy });
     }
 
-    /**
-     * Revocar todos los permisos de un usuario
-     */
+
     revokeAllPermissions(userId: number): Observable<any> {
         return this.http.post(`${this.apiUrl}/user/${userId}/revoke-all`, {});
     }
@@ -125,9 +104,7 @@ export class PermissionsService {
         return permissionCodes.every(code => perms.includes(code));
     }
 
-    /**
-     * Inicializar categorías de permisos con estructura predefinida
-     */
+
     initializePermissionCategories(): PermissionCategory[] {
         return [
             {

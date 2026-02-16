@@ -1,45 +1,45 @@
-// ===== IMPORTS DE ANGULAR CORE =====
-// Importar decoradores y funcionalidades básicas de Angular
-import { Component, Inject } from '@angular/core'; // Component: decorador para definir componentes | Inject: inyección de dependencias
-import { CommonModule } from '@angular/common'; // Directivas comunes de Angular (ngIf, ngFor, etc.)
 
-// ===== IMPORTS DE ANGULAR MATERIAL =====
-// Módulos de Material Design para UI components
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog'; // Sistema de diálogos modales
-import { MatButtonModule } from '@angular/material/button'; // Botones estilizados de Material
-import { MatIconModule } from '@angular/material/icon'; // Iconos de Material Design
-import { MatFormFieldModule } from '@angular/material/form-field'; // Campos de formulario con estilos Material
-import { MatInputModule } from '@angular/material/input'; // Inputs de texto estilizados
-import { FormsModule } from '@angular/forms'; // Formularios template-driven (ngModel)
 
-// ===== INTERFAZ DE DATOS DEL DIÁLOGO =====
-// Define la estructura de datos que recibe el diálogo desde el componente padre
+import { Component, Inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+
+
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+
+
+
 export interface DuplicateDesignDialogData {
-  originalArticleF: string; // Código del diseño original que se va a duplicar (ej: "F204567")
-  suggestedArticleF: string; // Código sugerido para la copia (ej: "F204567-COPIA")
+  originalArticleF: string;
+  suggestedArticleF: string;
 }
 
-// ===== DECORADOR DEL COMPONENTE =====
-// Define los metadatos del componente Angular
+
+
 @Component({
-  selector: 'app-duplicate-design-dialog', // Selector CSS para usar el componente (no se usa en diálogos)
-  standalone: true, // Componente standalone (no requiere módulo padre)
+  selector: 'app-duplicate-design-dialog',
+  standalone: true,
   imports: [
-    // Lista de módulos que este componente necesita para funcionar
-    CommonModule, // Directivas básicas de Angular (ngIf, ngFor, pipes, etc.)
-    MatDialogModule, // Funcionalidad de diálogos (mat-dialog-close, mat-dialog-actions, etc.)
-    MatButtonModule, // Botones de Material Design (mat-button, mat-raised-button, etc.)
-    MatIconModule, // Iconos de Material Design (mat-icon)
-    MatFormFieldModule, // Campos de formulario con estilos Material (mat-form-field, mat-label)
-    MatInputModule, // Inputs de texto estilizados (matInput)
-    FormsModule // Formularios template-driven para usar [(ngModel)]
+
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule
   ],
-  // ===== TEMPLATE HTML DEL DIÁLOGO =====
-  // Define la estructura visual del diálogo modal de duplicación
+
+
   template: `
     <!-- Contenedor principal del diálogo con clase para estilos -->
     <div class="duplicate-dialog">
-      
+
       <!-- ===== HEADER DEL DIÁLOGO ===== -->
       <!-- Barra superior con gradiente morado, título y botón de cerrar -->
       <div class="dialog-header">
@@ -61,7 +61,7 @@ export interface DuplicateDesignDialogData {
       <!-- ===== CONTENIDO PRINCIPAL DEL DIÁLOGO ===== -->
       <!-- Área central con el flujo visual de duplicación -->
       <div class="dialog-content">
-        
+
         <!-- ===== BADGE DEL DISEÑO ORIGINAL ===== -->
         <div class="original-badge">
           <mat-icon>article</mat-icon>
@@ -77,10 +77,10 @@ export interface DuplicateDesignDialogData {
         <!-- Input donde el usuario ingresa el código del nuevo diseño -->
         <mat-form-field appearance="outline" class="compact-field">
           <mat-label>Nuevo código</mat-label>
-          <input 
-            matInput 
-            [(ngModel)]="newArticleF" 
-            (keyup.enter)="onConfirm()" 
+          <input
+            matInput
+            [(ngModel)]="newArticleF"
+            (keyup.enter)="onConfirm()"
             autofocus>
           <mat-icon matSuffix color="primary">edit</mat-icon>
         </mat-form-field>
@@ -101,10 +101,10 @@ export interface DuplicateDesignDialogData {
           Cancelar
         </button>
         <!-- Botón Duplicar -->
-        <button 
-          mat-raised-button 
-          color="primary" 
-          (click)="onConfirm()" 
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="onConfirm()"
           [disabled]="!newArticleF || newArticleF.trim() === '' || newArticleF.trim() === data.originalArticleF"
           class="btn-confirm">
           <mat-icon>check</mat-icon>
@@ -113,8 +113,8 @@ export interface DuplicateDesignDialogData {
       </div>
     </div>
   `,
-  // ===== ESTILOS CSS DEL DIÁLOGO =====
-  // Estilos encapsulados del componente (solo afectan a este diálogo)
+
+
   styles: [`
     /* ===== CONTENEDOR PRINCIPAL DEL DIÁLOGO ===== */
     /* Define el tamaño y comportamiento del diálogo modal */
@@ -362,35 +362,35 @@ export interface DuplicateDesignDialogData {
     }
   `]
 })
-// ===== CLASE DEL COMPONENTE =====
-// Lógica TypeScript del componente de diálogo
+
+
 export class DuplicateDesignDialogComponent {
-  // ===== PROPIEDAD: NUEVO CÓDIGO DE ARTÍCULO F =====
-  // Almacena el código que el usuario está ingresando para el nuevo diseño
+
+
   newArticleF: string;
 
-  // ===== CONSTRUCTOR =====
-  // Se ejecuta al crear una instancia del componente
+
+
   constructor(
-    // Referencia al diálogo para poder cerrarlo programáticamente
+
     public dialogRef: MatDialogRef<DuplicateDesignDialogComponent>,
-    // Datos inyectados desde el componente padre (originalArticleF y suggestedArticleF)
+
     @Inject(MAT_DIALOG_DATA) public data: DuplicateDesignDialogData
   ) {
-    // Inicializar el campo de texto con el código sugerido (ej: "F204567-COPIA")
+
     this.newArticleF = data.suggestedArticleF;
   }
 
-  // ===== MÉTODO: CONFIRMAR DUPLICACIÓN =====
-  // Se ejecuta al hacer clic en el botón "Duplicar" o presionar Enter
+
+
   onConfirm(): void {
-    // Validar que el nuevo código sea válido antes de cerrar el diálogo
-    if (this.newArticleF && // Verificar que no sea null o undefined
-      this.newArticleF.trim() !== '' && // Verificar que no esté vacío (sin espacios)
-      this.newArticleF.trim() !== this.data.originalArticleF) { // Verificar que sea diferente al original
-      // Cerrar el diálogo y devolver el nuevo código (sin espacios al inicio/final)
+
+    if (this.newArticleF &&
+      this.newArticleF.trim() !== '' &&
+      this.newArticleF.trim() !== this.data.originalArticleF) {
+
       this.dialogRef.close(this.newArticleF.trim());
     }
-    // Si la validación falla, no hacer nada (el botón ya está deshabilitado visualmente)
+
   }
 }

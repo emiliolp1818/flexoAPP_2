@@ -7,7 +7,7 @@ namespace FlexoAPP.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous] // Temporal para pruebas - cambiar a [Authorize] en producción
+    [AllowAnonymous]
     public class UsersController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -28,8 +28,8 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var users = await _authService.GetAllUsersAsync();
-                
-                // ✅ Registrar actividad de consulta de usuarios
+
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -43,7 +43,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     Console.WriteLine($"Error registrando actividad: {logEx.Message}");
                 }
-                
+
                 return Ok(users);
             }
             catch (Exception ex)
@@ -63,7 +63,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     return Ok(user);
                 }
-                
+
                 return NotFound(new { message = "Usuario no encontrado" });
             }
             catch (Exception ex)
@@ -154,42 +154,42 @@ namespace FlexoAPP.API.Controllers
 
                 if (!int.TryParse(user.Id, out var id))
                     return StatusCode(500, new { message = "ID de usuario inválido en el servidor" });
-                // Validar tipo de archivo
+
                 var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
                 if (!allowedTypes.Contains(profileImage.ContentType.ToLower()))
                 {
                     return BadRequest(new { message = "Solo se permiten archivos de imagen (JPEG, PNG, GIF)" });
                 }
 
-                // Validar tamaño (máximo 5MB)
+
                 if (profileImage.Length > 5 * 1024 * 1024)
                 {
                     return BadRequest(new { message = "La imagen no debe superar los 5MB" });
                 }
 
-                // Crear directorio si no existe
+
                 var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
                 if (!Directory.Exists(uploadsPath))
                 {
                     Directory.CreateDirectory(uploadsPath);
                 }
 
-                // Generar nombre único para el archivo
+
                 var fileExtension = Path.GetExtension(profileImage.FileName);
                 var fileName = $"user_{id}_{Guid.NewGuid()}{fileExtension}";
                 var filePath = Path.Combine(uploadsPath, fileName);
 
-                // Guardar archivo
+
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await profileImage.CopyToAsync(stream);
                 }
 
-                // Actualizar usuario con la URL de la imagen en ProfileImage
+
                 var imageUrl = $"/uploads/profiles/{fileName}";
                 var updateDto = new UpdateUserDto
                 {
-                    ProfileImage = imageUrl  // Guardar URL en ProfileImage
+                    ProfileImage = imageUrl
                 };
 
                 var updatedUser = await _authService.UpdateUserProfileAsync(id, updateDto);
@@ -197,7 +197,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     return Ok(new {
                         message = "Imagen de perfil actualizada exitosamente",
-                        profileImage = imageUrl,  // Retornar como profileImage
+                        profileImage = imageUrl,
                         user = updatedUser
                     });
                 }
@@ -223,7 +223,7 @@ namespace FlexoAPP.API.Controllers
 
                 var allUsers = await _authService.GetAllUsersAsync();
                 var searchTerm = q.ToLower().Trim();
-                
+
                 var filteredUsers = allUsers.Where(user =>
                     user.UserCode.ToLower().Contains(searchTerm) ||
                     user.FullName.ToLower().Contains(searchTerm) ||
@@ -249,7 +249,7 @@ namespace FlexoAPP.API.Controllers
                 var newUser = await _authService.CreateUserAsync(createUserDto);
                 if (newUser != null)
                 {
-                    // ✅ Registrar actividad de creación de usuario
+
                     try
                     {
                         await _activityLogger.LogActivityAsync(
@@ -263,10 +263,10 @@ namespace FlexoAPP.API.Controllers
                     {
                         Console.WriteLine($"Error registrando actividad: {logEx.Message}");
                     }
-                    
+
                     return CreatedAtAction(nameof(GetUserById), new { id = newUser.Id }, newUser);
                 }
-                
+
                 return BadRequest(new { message = "No se pudo crear el usuario. El código de usuario ya existe." });
             }
             catch (Exception ex)
@@ -284,7 +284,7 @@ namespace FlexoAPP.API.Controllers
                 var updatedUser = await _authService.UpdateUserProfileAsync(id, updateUserDto);
                 if (updatedUser != null)
                 {
-                    // ✅ Registrar actividad de actualización de usuario
+
                     try
                     {
                         await _activityLogger.LogActivityAsync(
@@ -298,10 +298,10 @@ namespace FlexoAPP.API.Controllers
                     {
                         Console.WriteLine($"Error registrando actividad: {logEx.Message}");
                     }
-                    
+
                     return Ok(updatedUser);
                 }
-                
+
                 return NotFound(new { message = "Usuario no encontrado" });
             }
             catch (Exception ex)
@@ -316,14 +316,14 @@ namespace FlexoAPP.API.Controllers
         {
             try
             {
-                // Obtener información del usuario antes de eliminarlo
+
                 var user = await _authService.GetCurrentUserAsync(id);
                 var userCode = user?.UserCode ?? "unknown";
-                
+
                 var result = await _authService.DeleteUserAsync(id);
                 if (result)
                 {
-                    // ✅ Registrar actividad de eliminación de usuario
+
                     try
                     {
                         await _activityLogger.LogActivityAsync(
@@ -337,10 +337,10 @@ namespace FlexoAPP.API.Controllers
                     {
                         Console.WriteLine($"Error registrando actividad: {logEx.Message}");
                     }
-                    
+
                     return NoContent();
                 }
-                
+
                 return NotFound(new { message = "Usuario no encontrado" });
             }
             catch (Exception ex)
@@ -371,7 +371,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     return Ok(updatedUser);
                 }
-                
+
                 return BadRequest(new { message = "No se pudo actualizar el estado del usuario" });
             }
             catch (Exception ex)
@@ -389,7 +389,7 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var users = await _authService.GetAllUsersAsync();
-                
+
                 var stats = new
                 {
                     totalUsers = users.Count,
@@ -421,57 +421,57 @@ namespace FlexoAPP.API.Controllers
                     return BadRequest(new { message = "No se ha seleccionado ninguna imagen" });
                 }
 
-                // Validar tipo de archivo
+
                 var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
                 if (!allowedTypes.Contains(profileImage.ContentType.ToLower()))
                 {
                     return BadRequest(new { message = "Solo se permiten archivos de imagen (JPEG, PNG, GIF)" });
                 }
 
-                // Validar tamaño (máximo 5MB)
+
                 if (profileImage.Length > 5 * 1024 * 1024)
                 {
                     return BadRequest(new { message = "La imagen no debe superar los 5MB" });
                 }
 
-                // Verificar que el usuario existe
+
                 var user = await _authService.GetCurrentUserAsync(id);
                 if (user == null)
                 {
                     return NotFound(new { message = "Usuario no encontrado" });
                 }
 
-                // Crear directorio si no existe
+
                 var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profiles");
                 if (!Directory.Exists(uploadsPath))
                 {
                     Directory.CreateDirectory(uploadsPath);
                 }
 
-                // Generar nombre único para el archivo
+
                 var fileExtension = Path.GetExtension(profileImage.FileName);
                 var fileName = $"user_{id}_{Guid.NewGuid()}{fileExtension}";
                 var filePath = Path.Combine(uploadsPath, fileName);
 
-                // Guardar archivo
+
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await profileImage.CopyToAsync(stream);
                 }
 
-                // Actualizar usuario con la URL de la imagen en ProfileImage
+
                 var imageUrl = $"/uploads/profiles/{fileName}";
                 var updateDto = new UpdateUserDto
                 {
-                    ProfileImage = imageUrl  // Guardar URL en ProfileImage (no ProfileImageUrl)
+                    ProfileImage = imageUrl
                 };
 
                 var updatedUser = await _authService.UpdateUserProfileAsync(id, updateDto);
                 if (updatedUser != null)
                 {
-                    return Ok(new { 
+                    return Ok(new {
                         message = "Imagen de perfil actualizada exitosamente",
-                        profileImage = imageUrl,  // Retornar como profileImage
+                        profileImage = imageUrl,
                         user = updatedUser
                     });
                 }
@@ -496,7 +496,7 @@ namespace FlexoAPP.API.Controllers
                     return NotFound(new { message = "Usuario no encontrado" });
                 }
 
-                // Eliminar archivo físico si existe
+
                 if (!string.IsNullOrEmpty(user.ProfileImage) && user.ProfileImage.StartsWith("/uploads/"))
                 {
                     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.ProfileImage.TrimStart('/'));
@@ -506,16 +506,16 @@ namespace FlexoAPP.API.Controllers
                     }
                 }
 
-                // Actualizar usuario removiendo la imagen
+
                 var updateDto = new UpdateUserDto
                 {
-                    ProfileImage = null  // Limpiar ProfileImage
+                    ProfileImage = null
                 };
 
                 var updatedUser = await _authService.UpdateUserProfileAsync(id, updateDto);
                 if (updatedUser != null)
                 {
-                    return Ok(new { 
+                    return Ok(new {
                         message = "Imagen de perfil eliminada exitosamente",
                         user = updatedUser
                     });
@@ -541,10 +541,10 @@ namespace FlexoAPP.API.Controllers
                     return NotFound(new { message = "Usuario no encontrado" });
                 }
 
-                // Generar contraseña temporal
+
                 var temporaryPassword = GenerateTemporaryPassword();
 
-                // Actualizar contraseña del usuario
+
                 var updateDto = new UpdateUserDto
                 {
                     Password = temporaryPassword
@@ -553,12 +553,12 @@ namespace FlexoAPP.API.Controllers
                 var updatedUser = await _authService.UpdateUserProfileAsync(id, updateDto);
                 if (updatedUser != null)
                 {
-                    // En un entorno real, aquí se enviaría un email con la nueva contraseña
+
                     Console.WriteLine($"Nueva contraseña temporal para {user.UserCode}: {temporaryPassword}");
 
-                    return Ok(new { 
+                    return Ok(new {
                         message = "Contraseña restablecida exitosamente",
-                        temporaryPassword = temporaryPassword, // Solo para desarrollo
+                        temporaryPassword = temporaryPassword,
                         user = updatedUser
                     });
                 }
@@ -580,63 +580,63 @@ namespace FlexoAPP.API.Controllers
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        /// <summary>
-        /// Cambiar contraseña del usuario
-        /// Valida la contraseña actual y actualiza a la nueva contraseña
-        /// </summary>
+
+
+
+
         [HttpPut("{id}/change-password")]
         public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordDto changePasswordDto)
         {
             try
             {
-                // Validar que se proporcionaron las contraseñas
-                if (string.IsNullOrWhiteSpace(changePasswordDto.CurrentPassword) || 
+
+                if (string.IsNullOrWhiteSpace(changePasswordDto.CurrentPassword) ||
                     string.IsNullOrWhiteSpace(changePasswordDto.NewPassword))
                 {
-                    return BadRequest(new { 
+                    return BadRequest(new {
                         success = false,
-                        message = "La contraseña actual y la nueva contraseña son requeridas" 
+                        message = "La contraseña actual y la nueva contraseña son requeridas"
                     });
                 }
 
-                // Validar longitud mínima de la nueva contraseña
+
                 if (changePasswordDto.NewPassword.Length < 6)
                 {
-                    return BadRequest(new { 
+                    return BadRequest(new {
                         success = false,
-                        message = "La nueva contraseña debe tener al menos 6 caracteres" 
+                        message = "La nueva contraseña debe tener al menos 6 caracteres"
                     });
                 }
 
-                // Obtener el usuario
+
                 var user = await _authService.GetCurrentUserAsync(id);
                 if (user == null)
                 {
-                    return NotFound(new { 
+                    return NotFound(new {
                         success = false,
-                        message = "Usuario no encontrado" 
+                        message = "Usuario no encontrado"
                     });
                 }
 
-                // Validar la contraseña actual usando el servicio de autenticación
-                var loginRequest = new LoginDto 
-                { 
-                    UserCode = user.UserCode, 
-                    Password = changePasswordDto.CurrentPassword 
+
+                var loginRequest = new LoginDto
+                {
+                    UserCode = user.UserCode,
+                    Password = changePasswordDto.CurrentPassword
                 };
 
                 var loginResult = await _authService.LoginAsync(loginRequest);
-                
-                // Si el login falla, la contraseña actual es incorrecta
+
+
                 if (loginResult == null || string.IsNullOrEmpty(loginResult.Token))
                 {
-                    return Unauthorized(new { 
+                    return Unauthorized(new {
                         success = false,
-                        message = "La contraseña actual es incorrecta" 
+                        message = "La contraseña actual es incorrecta"
                     });
                 }
 
-                // Actualizar a la nueva contraseña
+
                 var updateDto = new UpdateUserDto
                 {
                     Password = changePasswordDto.NewPassword
@@ -646,8 +646,8 @@ namespace FlexoAPP.API.Controllers
                 if (updatedUser != null)
                 {
                     Console.WriteLine($"✅ Contraseña actualizada exitosamente para el usuario: {user.UserCode}");
-                    
-                    // ✅ Registrar actividad de cambio de contraseña
+
+
                     try
                     {
                         await _activityLogger.LogActivityAsync(
@@ -661,26 +661,26 @@ namespace FlexoAPP.API.Controllers
                     {
                         Console.WriteLine($"Error registrando actividad: {logEx.Message}");
                     }
-                    
-                    return Ok(new { 
+
+                    return Ok(new {
                         success = true,
-                        message = "Contraseña actualizada exitosamente" 
+                        message = "Contraseña actualizada exitosamente"
                     });
                 }
 
-                return BadRequest(new { 
+                return BadRequest(new {
                     success = false,
-                    message = "No se pudo actualizar la contraseña" 
+                    message = "No se pudo actualizar la contraseña"
                 });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ ChangePassword error: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return StatusCode(500, new { 
+                return StatusCode(500, new {
                     success = false,
-                    message = "Error interno del servidor al cambiar la contraseña", 
-                    error = ex.Message 
+                    message = "Error interno del servidor al cambiar la contraseña",
+                    error = ex.Message
                 });
             }
         }

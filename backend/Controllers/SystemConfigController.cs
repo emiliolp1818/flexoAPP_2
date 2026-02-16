@@ -15,7 +15,7 @@ namespace flexoAPP.Controllers
         private readonly FlexoAPP.API.Services.IActivityLoggerService _activityLogger;
 
         public SystemConfigController(
-            FlexoAPPDbContext context, 
+            FlexoAPPDbContext context,
             ILogger<SystemConfigController> logger,
             FlexoAPP.API.Services.IActivityLoggerService activityLogger)
         {
@@ -24,9 +24,9 @@ namespace flexoAPP.Controllers
             _activityLogger = activityLogger;
         }
 
-        /// <summary>
-        /// Obtener todas las configuraciones del sistema
-        /// </summary>
+
+
+
         [HttpGet("configs")]
         public async Task<ActionResult<IEnumerable<object>>> GetConfigs()
         {
@@ -34,14 +34,14 @@ namespace flexoAPP.Controllers
             {
                 var configs = await _context.SystemConfigs.ToListAsync();
 
-                // Si no hay configuraciones, crear las predeterminadas
+
                 if (!configs.Any())
                 {
                     await InitializeDefaultConfigs();
                     configs = await _context.SystemConfigs.ToListAsync();
                 }
 
-                // Convertir a formato esperado por el frontend
+
                 var result = configs.Select(c => new
                 {
                     id = c.Id,
@@ -62,9 +62,9 @@ namespace flexoAPP.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener una configuración específica
-        /// </summary>
+
+
+
         [HttpGet("configs/{id}")]
         public async Task<ActionResult<object>> GetConfig(string id)
         {
@@ -97,9 +97,9 @@ namespace flexoAPP.Controllers
             }
         }
 
-        /// <summary>
-        /// Actualizar una configuración
-        /// </summary>
+
+
+
         [HttpPut("configs/{id}")]
         public async Task<ActionResult> UpdateConfig(string id, [FromBody] UpdateConfigRequest request)
         {
@@ -112,10 +112,10 @@ namespace flexoAPP.Controllers
                     return NotFound(new { message = $"Configuración '{id}' no encontrada" });
                 }
 
-                // Guardar valor anterior para auditoría
+
                 var oldValue = config.Value;
 
-                // Convertir el valor al formato string para almacenar
+
                 config.Value = request.Value?.ToString() ?? string.Empty;
                 config.UpdatedAt = DateTime.UtcNow;
 
@@ -123,7 +123,7 @@ namespace flexoAPP.Controllers
 
                 _logger.LogInformation($"Configuración '{id}' actualizada a: {config.Value}");
 
-                // ✅ Registrar actividad de cambio de configuración
+
                 try
                 {
                     await _activityLogger.LogDetailedActivityAsync(
@@ -152,14 +152,14 @@ namespace flexoAPP.Controllers
             }
         }
 
-        /// <summary>
-        /// Inicializar configuraciones predeterminadas
-        /// </summary>
+
+
+
         private async Task InitializeDefaultConfigs()
         {
             var defaultConfigs = new List<SystemConfig>
             {
-                // Apariencia
+
                 new SystemConfig
                 {
                     Id = "theme",
@@ -171,7 +171,7 @@ namespace flexoAPP.Controllers
                     Options = JsonSerializer.Serialize(new[] { "light", "dark", "auto" })
                 },
 
-                // Regional
+
                 new SystemConfig
                 {
                     Id = "language",
@@ -190,10 +190,10 @@ namespace flexoAPP.Controllers
                     Value = "America/Bogota",
                     Type = "select",
                     Category = "Regional",
-                    Options = JsonSerializer.Serialize(new[] { 
-                        "America/Bogota", "America/Mexico_City", "America/Lima", 
+                    Options = JsonSerializer.Serialize(new[] {
+                        "America/Bogota", "America/Mexico_City", "America/Lima",
                         "America/Buenos_Aires", "America/Santiago", "America/Caracas",
-                        "America/New_York", "Europe/Madrid" 
+                        "America/New_York", "Europe/Madrid"
                     })
                 },
                 new SystemConfig
@@ -217,7 +217,7 @@ namespace flexoAPP.Controllers
                     Options = JsonSerializer.Serialize(new[] { "24h", "12h" })
                 },
 
-                // Notificaciones
+
                 new SystemConfig
                 {
                     Id = "enable_notifications",
@@ -246,7 +246,7 @@ namespace flexoAPP.Controllers
                     Category = "Notificaciones"
                 },
 
-                // Seguridad
+
                 new SystemConfig
                 {
                     Id = "session_timeout",
@@ -264,9 +264,9 @@ namespace flexoAPP.Controllers
             _logger.LogInformation("Configuraciones predeterminadas inicializadas");
         }
 
-        /// <summary>
-        /// Parsear valor según el tipo
-        /// </summary>
+
+
+
         private object ParseValue(string value, string type)
         {
             return type switch
@@ -278,9 +278,9 @@ namespace flexoAPP.Controllers
         }
     }
 
-    /// <summary>
-    /// Request para actualizar configuración
-    /// </summary>
+
+
+
     public class UpdateConfigRequest
     {
         public object? Value { get; set; }

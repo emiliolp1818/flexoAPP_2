@@ -3,10 +3,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
-/**
- * Servicio de Notificaciones
- * Gestiona las notificaciones del sistema con configuración persistente
- */
+
 @Injectable({
   providedIn: 'root'
 })
@@ -14,7 +11,7 @@ export class NotificationService {
   private http = inject(HttpClient);
   private snackBar = inject(MatSnackBar);
 
-  // Estado de las notificaciones
+
   private notificationsEnabled = signal<boolean>(true);
   private soundEnabled = signal<boolean>(true);
   private notificationDuration = signal<number>(5);
@@ -23,9 +20,7 @@ export class NotificationService {
     this.loadNotificationSettings();
   }
 
-  /**
-   * Cargar configuración de notificaciones desde el backend
-   */
+
   private async loadNotificationSettings() {
     try {
       const configs = await this.http.get<any[]>(`${environment.apiUrl}/system/configs`).toPromise() || [];
@@ -44,44 +39,32 @@ export class NotificationService {
     }
   }
 
-  /**
-   * Verificar si las notificaciones están habilitadas
-   */
+
   areNotificationsEnabled(): boolean {
     return this.notificationsEnabled();
   }
 
-  /**
-   * Habilitar o deshabilitar notificaciones
-   */
+
   setNotificationsEnabled(enabled: boolean) {
     this.notificationsEnabled.set(enabled);
   }
 
-  /**
-   * Sincronizar con configuración del sistema
-   */
+
   syncWithSystemConfig(enabled: boolean) {
     this.notificationsEnabled.set(enabled);
   }
 
-  /**
-   * Sincronizar sonido con configuración del sistema
-   */
+
   syncSoundWithSystemConfig(enabled: boolean) {
     this.soundEnabled.set(enabled);
   }
 
-  /**
-   * Sincronizar duración con configuración del sistema
-   */
+
   syncDurationWithSystemConfig(duration: number) {
     this.notificationDuration.set(duration);
   }
 
-  /**
-   * Mostrar notificación de éxito
-   */
+
   showSuccess(message: string, action: string = 'Cerrar') {
     if (!this.notificationsEnabled()) return;
 
@@ -97,9 +80,7 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Mostrar notificación de error
-   */
+
   showError(message: string, action: string = 'Cerrar') {
     if (!this.notificationsEnabled()) return;
 
@@ -115,9 +96,7 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Mostrar notificación de información
-   */
+
   showInfo(message: string, action: string = 'Cerrar') {
     if (!this.notificationsEnabled()) return;
 
@@ -133,9 +112,7 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Mostrar notificación de advertencia
-   */
+
   showWarning(message: string, action: string = 'Cerrar') {
     if (!this.notificationsEnabled()) return;
 
@@ -151,29 +128,27 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Reproducir sonido de notificación
-   */
+
   private playNotificationSound(type: 'success' | 'error' | 'info' | 'warning') {
     try {
       const audio = new Audio();
 
-      // Usar diferentes tonos según el tipo de notificación
+
       switch (type) {
         case 'success':
-          // Tono agradable para éxito (Do mayor)
+
           this.playTone(523.25, 0.1, 0.3);
           break;
         case 'error':
-          // Tono grave para error (Do grave)
+
           this.playTone(261.63, 0.2, 0.5);
           break;
         case 'info':
-          // Tono neutral para información (Sol)
+
           this.playTone(392.00, 0.1, 0.3);
           break;
         case 'warning':
-          // Tono de advertencia (Fa)
+
           this.playTone(349.23, 0.15, 0.4);
           break;
       }
@@ -182,9 +157,7 @@ export class NotificationService {
     }
   }
 
-  /**
-   * Reproducir un tono usando Web Audio API
-   */
+
   private playTone(frequency: number, duration: number, volume: number = 0.3) {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();

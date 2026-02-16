@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace flexoAPP.Models
 {
-    /// <summary>
-    /// Modelo para configuraciones del sistema
-    /// Almacena configuraciones globales como tema, idioma, notificaciones, etc.
-    /// </summary>
+
+
+
+
     [Table("system_configs")]
     public class SystemConfig
     {
@@ -29,7 +29,7 @@ namespace flexoAPP.Models
 
         [Column("type")]
         [MaxLength(50)]
-        public string Type { get; set; } = "string"; // string, number, boolean, select
+        public string Type { get; set; } = "string";
 
         [Column("category")]
         [MaxLength(100)]
@@ -37,7 +37,7 @@ namespace flexoAPP.Models
 
         [Column("options")]
         [MaxLength(1000)]
-        public string? Options { get; set; } // JSON array para tipo 'select'
+        public string? Options { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -14,14 +14,14 @@ namespace FlexoAPP.API.Services
         Task<List<string>> GetArticulosListAsync();
         Task<byte[]> ExportToExcelAsync(string reportType, ReportFilterDto filter);
         Task<byte[]> ExportToPDFAsync(string reportType, ReportFilterDto filter);
-        
-        // Nuevos métodos para actividades de usuario
+
+
         Task<List<UserActivityDto>> GetUserActivitiesAsync(UserActivityFilterDto filter);
         Task<MachineActivityReportDto> GetMachineActivitiesByUserAsync(MachineActivityFilterDto filter);
         Task<MachineActivityReportDto> GetMachineActivitiesFromBackupAsync(string backupId);
         Task<List<UserDto>> GetUsersListAsync();
-        
-        // Métodos de prueba
+
+
         Task<List<object>> GetRecentActivitiesTestAsync();
         Task<object> GetActivitiesStatsTestAsync();
     }

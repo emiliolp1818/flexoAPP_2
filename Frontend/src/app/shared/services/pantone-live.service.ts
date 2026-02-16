@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 
-/**
- * Interface para definir un color Pantone Live
- */
+
 export interface PantoneColor {
-  code: string;        // Código Pantone (ej: "209")
-  name: string;        // Nombre completo (ej: "Pantone 209")
-  displayName: string; // Nombre para mostrar (ej: "P 209")
-  hex: string;         // Valor hexadecimal del color
+  code: string;
+  name: string;
+  displayName: string;
+  hex: string;
   rgb: {
     r: number;
     g: number;
@@ -19,25 +17,18 @@ export interface PantoneColor {
     y: number;
     k: number;
   };
-  category: string;    // Categoría del color (ej: "Red", "Blue", etc.)
+  category: string;
 }
 
-/**
- * Servicio para gestionar la librería de colores Pantone Live
- * ACTUALIZADO: Pantone Live 2024 con colores corregidos
- */
+
 @Injectable({
   providedIn: 'root'
 })
 export class PantoneLiveService {
 
-  /**
-   * Librería de colores Pantone Live para flexografía
-   * Incluye colores básicos y extensión de la guía Solid Coated 2024
-   * CORREGIDO: P193 ahora muestra el rojo correcto (#BF0D3E)
-   */
+
   private pantoneColors: PantoneColor[] = [
-    // ===== COLORES BÁSICOS ESENCIALES (HEXACROMÍA) =====
+
     { code: 'Black', name: 'Pantone Black', displayName: 'Negro', hex: '#000000', rgb: { r: 0, g: 0, b: 0 }, cmyk: { c: 0, m: 0, y: 0, k: 100 }, category: 'Black' },
     { code: 'White', name: 'Pantone White', displayName: 'Blanco', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 }, cmyk: { c: 0, m: 0, y: 0, k: 0 }, category: 'White' },
     { code: 'Cyan', name: 'Pantone Cyan', displayName: 'P Cyan', hex: '#00AEEF', rgb: { r: 0, g: 174, b: 239 }, cmyk: { c: 100, m: 0, y: 0, k: 0 }, category: 'Cyan' },
@@ -47,7 +38,7 @@ export class PantoneLiveService {
     { code: 'Orange', name: 'Pantone Orange', displayName: 'Naranja', hex: '#FF6900', rgb: { r: 255, g: 105, b: 0 }, cmyk: { c: 0, m: 59, y: 100, k: 0 }, category: 'Orange' },
     { code: 'Violet', name: 'Pantone Violet', displayName: 'Violeta', hex: '#8B3F8F', rgb: { r: 139, g: 63, b: 143 }, cmyk: { c: 3, m: 56, y: 0, k: 44 }, category: 'Purple' },
 
-    // ===== ROJOS (CORREGIDOS) =====
+
     { code: '185', name: 'Pantone 185 C', displayName: 'P 185', hex: '#E4002B', rgb: { r: 228, g: 0, b: 43 }, cmyk: { c: 0, m: 100, y: 81, k: 11 }, category: 'Red' },
     { code: '186', name: 'Pantone 186 C', displayName: 'P 186', hex: '#CE1126', rgb: { r: 206, g: 17, b: 38 }, cmyk: { c: 0, m: 92, y: 82, k: 19 }, category: 'Red' },
     { code: '187', name: 'Pantone 187 C', displayName: 'P 187', hex: '#A6192E', rgb: { r: 166, g: 25, b: 46 }, cmyk: { c: 0, m: 85, y: 72, k: 35 }, category: 'Red' },
@@ -67,14 +58,14 @@ export class PantoneLiveService {
     { code: '1797', name: 'Pantone 1797 C', displayName: 'P 1797', hex: '#C8102E', rgb: { r: 200, g: 16, b: 46 }, cmyk: { c: 0, m: 92, y: 77, k: 22 }, category: 'Red' },
     { code: '1805', name: 'Pantone 1805 C', displayName: 'P 1805', hex: '#AF272F', rgb: { r: 175, g: 39, b: 47 }, cmyk: { c: 0, m: 78, y: 73, k: 31 }, category: 'Red' },
 
-    // ===== ROSAS =====
+
     { code: '210', name: 'Pantone 210 C', displayName: 'P 210', hex: '#F9A7B0', rgb: { r: 249, g: 167, b: 176 }, cmyk: { c: 0, m: 42, y: 17, k: 0 }, category: 'Pink' },
     { code: '211', name: 'Pantone 211 C', displayName: 'P 211', hex: '#F69AB0', rgb: { r: 246, g: 154, b: 176 }, cmyk: { c: 0, m: 48, y: 20, k: 0 }, category: 'Pink' },
     { code: '212', name: 'Pantone 212 C', displayName: 'P 212', hex: '#F25278', rgb: { r: 242, g: 82, b: 120 }, cmyk: { c: 0, m: 73, y: 35, k: 0 }, category: 'Pink' },
     { code: '213', name: 'Pantone 213 C', displayName: 'P 213', hex: '#E31C79', rgb: { r: 227, g: 28, b: 121 }, cmyk: { c: 0, m: 88, y: 47, k: 11 }, category: 'Pink' },
     { code: '214', name: 'Pantone 214 C', displayName: 'P 214', hex: '#C6007E', rgb: { r: 198, g: 0, b: 126 }, cmyk: { c: 0, m: 100, y: 36, k: 22 }, category: 'Pink' },
 
-    // ===== NARANJAS =====
+
     { code: '1345', name: 'Pantone 1345 C', displayName: 'P 1345', hex: '#FDD086', rgb: { r: 253, g: 208, b: 134 }, cmyk: { c: 0, m: 18, y: 47, k: 1 }, category: 'Orange' },
     { code: '1355', name: 'Pantone 1355 C', displayName: 'P 1355', hex: '#FFC56E', rgb: { r: 255, g: 197, b: 110 }, cmyk: { c: 0, m: 23, y: 57, k: 0 }, category: 'Orange' },
     { code: '1365', name: 'Pantone 1365 C', displayName: 'P 1365', hex: '#FFB549', rgb: { r: 255, g: 181, b: 73 }, cmyk: { c: 0, m: 29, y: 71, k: 0 }, category: 'Orange' },
@@ -87,7 +78,7 @@ export class PantoneLiveService {
     { code: '1595', name: 'Pantone 1595 C', displayName: 'P 1595', hex: '#FF7F32', rgb: { r: 255, g: 127, b: 50 }, cmyk: { c: 0, m: 50, y: 80, k: 0 }, category: 'Orange' },
     { code: '165', name: 'Pantone 165 C', displayName: 'P 165', hex: '#FF6A39', rgb: { r: 255, g: 106, b: 57 }, cmyk: { c: 0, m: 58, y: 78, k: 0 }, category: 'Orange' },
 
-    // ===== AMARILLOS =====
+
     { code: '100', name: 'Pantone 100 C', displayName: 'P 100', hex: '#F6EB61', rgb: { r: 246, g: 235, b: 97 }, cmyk: { c: 0, m: 0, y: 57, k: 0 }, category: 'Yellow' },
     { code: '101', name: 'Pantone 101 C', displayName: 'P 101', hex: '#F7EA48', rgb: { r: 247, g: 234, b: 72 }, cmyk: { c: 0, m: 0, y: 68, k: 0 }, category: 'Yellow' },
     { code: '102', name: 'Pantone 102 C', displayName: 'P 102', hex: '#FCE300', rgb: { r: 252, g: 227, b: 0 }, cmyk: { c: 0, m: 0, y: 95, k: 0 }, category: 'Yellow' },
@@ -124,7 +115,7 @@ export class PantoneLiveService {
     { code: '133', name: 'Pantone 133 C', displayName: 'P 133', hex: '#876D2E', rgb: { r: 135, g: 109, b: 46 }, cmyk: { c: 0, m: 19, y: 66, k: 47 }, category: 'Yellow' },
     { code: '134', name: 'Pantone 134 C', displayName: 'P 134', hex: '#FDD26E', rgb: { r: 253, g: 210, b: 110 }, cmyk: { c: 0, m: 17, y: 57, k: 1 }, category: 'Yellow' },
 
-    // ===== VERDES =====
+
     { code: '347', name: 'Pantone 347 C', displayName: 'P 347', hex: '#009639', rgb: { r: 0, g: 150, b: 57 }, cmyk: { c: 100, m: 0, y: 62, k: 41 }, category: 'Green' },
     { code: '348', name: 'Pantone 348 C', displayName: 'P 348', hex: '#00843D', rgb: { r: 0, g: 132, b: 61 }, cmyk: { c: 100, m: 0, y: 54, k: 48 }, category: 'Green' },
     { code: '349', name: 'Pantone 349 C', displayName: 'P 349', hex: '#046A38', rgb: { r: 4, g: 106, b: 56 }, cmyk: { c: 96, m: 0, y: 47, k: 58 }, category: 'Green' },
@@ -135,7 +126,7 @@ export class PantoneLiveService {
     { code: '377', name: 'Pantone 377 C', displayName: 'P 377', hex: '#7A9A01', rgb: { r: 122, g: 154, b: 1 }, cmyk: { c: 21, m: 0, y: 99, k: 40 }, category: 'Green' },
     { code: '3405', name: 'Pantone 3405 C', displayName: 'P 3405', hex: '#00B140', rgb: { r: 0, g: 177, b: 64 }, cmyk: { c: 100, m: 0, y: 64, k: 31 }, category: 'Green' },
 
-    // ===== AZULES =====
+
     { code: '285', name: 'Pantone 285 C', displayName: 'P 285', hex: '#0072CE', rgb: { r: 0, g: 114, b: 206 }, cmyk: { c: 74, m: 43, y: 0, k: 0 }, category: 'Blue' },
     { code: '286', name: 'Pantone 286 C', displayName: 'P 286', hex: '#0033A0', rgb: { r: 0, g: 51, b: 160 }, cmyk: { c: 100, m: 68, y: 0, k: 37 }, category: 'Blue' },
     { code: '287', name: 'Pantone 287 C', displayName: 'P 287', hex: '#002F6C', rgb: { r: 0, g: 47, b: 108 }, cmyk: { c: 100, m: 56, y: 0, k: 58 }, category: 'Blue' },
@@ -176,7 +167,7 @@ export class PantoneLiveService {
     { code: '534', name: 'Pantone 534 C', displayName: 'P 534', hex: '#1B2A3E', rgb: { r: 27, g: 42, b: 62 }, cmyk: { c: 56, m: 32, y: 0, k: 76 }, category: 'Blue' },
     { code: '535', name: 'Pantone 535 C', displayName: 'P 535', hex: '#1A2332', rgb: { r: 26, g: 35, b: 50 }, cmyk: { c: 48, m: 30, y: 0, k: 80 }, category: 'Blue' },
 
-    // ===== VERDES (SERIE 3500 Y 7700) =====
+
     { code: '3520', name: 'Pantone 3520 C', displayName: 'P 3520', hex: '#7FD13B', rgb: { r: 127, g: 209, b: 59 }, cmyk: { c: 39, m: 0, y: 72, k: 18 }, category: 'Green' },
     { code: '3522', name: 'Pantone 3522 C', displayName: 'P 3522', hex: '#6CC24A', rgb: { r: 108, g: 194, b: 74 }, cmyk: { c: 44, m: 0, y: 62, k: 24 }, category: 'Green' },
     { code: '3525', name: 'Pantone 3525 C', displayName: 'P 3525', hex: '#57AB27', rgb: { r: 87, g: 171, b: 39 }, cmyk: { c: 49, m: 0, y: 77, k: 33 }, category: 'Green' },
@@ -189,14 +180,14 @@ export class PantoneLiveService {
     { code: '7738', name: 'Pantone 7738 C', displayName: 'P 7738', hex: '#275D38', rgb: { r: 39, g: 93, b: 56 }, cmyk: { c: 58, m: 0, y: 40, k: 64 }, category: 'Green' },
     { code: '7739', name: 'Pantone 7739 C', displayName: 'P 7739', hex: '#319B42', rgb: { r: 49, g: 155, b: 66 }, cmyk: { c: 68, m: 0, y: 57, k: 39 }, category: 'Green' },
 
-    // ===== CYAN/TURQUESA (SERIE 4100) =====
+
     { code: '4170', name: 'Pantone 4170 C', displayName: 'P 4170', hex: '#6ECEB2', rgb: { r: 110, g: 206, b: 178 }, cmyk: { c: 47, m: 0, y: 14, k: 19 }, category: 'Green' },
     { code: '4172', name: 'Pantone 4172 C', displayName: 'P 4172', hex: '#82B1AA', rgb: { r: 130, g: 177, b: 170 }, cmyk: { c: 27, m: 0, y: 4, k: 31 }, category: 'Green' },
     { code: '4174', name: 'Pantone 4174 C', displayName: 'P 4174', hex: '#84C1C1', rgb: { r: 132, g: 193, b: 193 }, cmyk: { c: 32, m: 0, y: 0, k: 24 }, category: 'Green' },
     { code: '4175', name: 'Pantone 4175 C', displayName: 'P 4175', hex: '#A8D5BA', rgb: { r: 168, g: 213, b: 186 }, cmyk: { c: 21, m: 0, y: 13, k: 16 }, category: 'Green' },
     { code: '4176', name: 'Pantone 4176 C', displayName: 'P 4176', hex: '#C6CDC1', rgb: { r: 198, g: 205, b: 193 }, cmyk: { c: 3, m: 0, y: 6, k: 20 }, category: 'Gray' },
 
-    // ===== PÚRPURAS Y VIOLETAS =====
+
     { code: '233', name: 'Pantone 233 C', displayName: 'P 233', hex: '#B3006B', rgb: { r: 179, g: 0, b: 107 }, cmyk: { c: 0, m: 100, y: 40, k: 30 }, category: 'Purple' },
     { code: '256', name: 'Pantone 256 C', displayName: 'P 256', hex: '#D8A0DB', rgb: { r: 216, g: 160, b: 219 }, cmyk: { c: 1, m: 27, y: 0, k: 14 }, category: 'Purple' },
     { code: '257', name: 'Pantone 257 C', displayName: 'P 257', hex: '#CD92D2', rgb: { r: 205, g: 146, b: 210 }, cmyk: { c: 2, m: 30, y: 0, k: 18 }, category: 'Purple' },
@@ -223,7 +214,7 @@ export class PantoneLiveService {
     { code: '278', name: 'Pantone 278 C', displayName: 'P 278', hex: '#8BB8E8', rgb: { r: 139, g: 184, b: 232 }, cmyk: { c: 40, m: 21, y: 0, k: 9 }, category: 'Blue' },
     { code: '279', name: 'Pantone 279 C', displayName: 'P 279', hex: '#418FDE', rgb: { r: 65, g: 143, b: 222 }, cmyk: { c: 71, m: 36, y: 0, k: 13 }, category: 'Blue' },
 
-    // ===== GRISES =====
+
     { code: 'Cool Gray 1', name: 'Pantone Cool Gray 1 C', displayName: 'P CG 1', hex: '#D9D9D6', rgb: { r: 217, g: 217, b: 214 }, cmyk: { c: 0, m: 0, y: 0, k: 15 }, category: 'Gray' },
     { code: 'Cool Gray 2', name: 'Pantone Cool Gray 2 C', displayName: 'P CG 2', hex: '#D0D0CE', rgb: { r: 208, g: 208, b: 206 }, cmyk: { c: 0, m: 0, y: 0, k: 18 }, category: 'Gray' },
     { code: 'Cool Gray 3', name: 'Pantone Cool Gray 3 C', displayName: 'P CG 3', hex: '#C8C9C7', rgb: { r: 200, g: 201, b: 199 }, cmyk: { c: 0, m: 0, y: 0, k: 21 }, category: 'Gray' },
@@ -236,7 +227,7 @@ export class PantoneLiveService {
     { code: 'Cool Gray 10', name: 'Pantone Cool Gray 10 C', displayName: 'P CG 10', hex: '#63666A', rgb: { r: 99, g: 102, b: 106 }, cmyk: { c: 0, m: 0, y: 0, k: 58 }, category: 'Gray' },
     { code: 'Cool Gray 11', name: 'Pantone Cool Gray 11 C', displayName: 'P CG 11', hex: '#53565A', rgb: { r: 83, g: 86, b: 90 }, cmyk: { c: 0, m: 0, y: 0, k: 65 }, category: 'Gray' },
 
-    // ===== METÁLICOS =====
+
     { code: '877', name: 'Pantone 877 C', displayName: 'P 877', hex: '#8A8D8F', rgb: { r: 138, g: 141, b: 143 }, cmyk: { c: 3, m: 1, y: 0, k: 44 }, category: 'Metallic' },
     { code: '871', name: 'Pantone 871 C', displayName: 'P 871', hex: '#84754E', rgb: { r: 132, g: 117, b: 78 }, cmyk: { c: 0, m: 11, y: 41, k: 48 }, category: 'Metallic' },
     { code: '872', name: 'Pantone 872 C', displayName: 'P 872', hex: '#85714D', rgb: { r: 133, g: 113, b: 77 }, cmyk: { c: 0, m: 15, y: 42, k: 48 }, category: 'Metallic' },
@@ -245,21 +236,21 @@ export class PantoneLiveService {
     { code: '875', name: 'Pantone 875 C', displayName: 'P 875', hex: '#87674F', rgb: { r: 135, g: 103, b: 79 }, cmyk: { c: 0, m: 24, y: 41, k: 47 }, category: 'Metallic' },
     { code: '876', name: 'Pantone 876 C', displayName: 'P 876', hex: '#7C878E', rgb: { r: 124, g: 135, b: 142 }, cmyk: { c: 13, m: 5, y: 0, k: 44 }, category: 'Metallic' },
 
-    // ===== COLORES ADICIONALES COMUNES =====
+
     { code: '7684', name: 'Pantone 7684 C', displayName: 'P 7684', hex: '#6ECEB2', rgb: { r: 110, g: 206, b: 178 }, cmyk: { c: 47, m: 0, y: 14, k: 19 }, category: 'Green' },
     { code: '7685', name: 'Pantone 7685 C', displayName: 'P 7685', hex: '#00B2A9', rgb: { r: 0, g: 178, b: 169 }, cmyk: { c: 100, m: 0, y: 5, k: 30 }, category: 'Green' },
     { code: '7686', name: 'Pantone 7686 C', displayName: 'P 7686', hex: '#008675', rgb: { r: 0, g: 134, b: 117 }, cmyk: { c: 100, m: 0, y: 13, k: 47 }, category: 'Green' },
     { code: '7687', name: 'Pantone 7687 C', displayName: 'P 7687', hex: '#00594F', rgb: { r: 0, g: 89, b: 79 }, cmyk: { c: 100, m: 0, y: 11, k: 65 }, category: 'Green' },
     { code: '7409', name: 'Pantone 7409 C', displayName: 'P 7409', hex: '#00A499', rgb: { r: 0, g: 164, b: 153 }, cmyk: { c: 100, m: 0, y: 7, k: 36 }, category: 'Green' },
-    
-    // ===== SERIE 1900 (AZULES Y MORADOS) =====
+
+
     { code: '1915', name: 'Pantone 1915 C', displayName: 'P 1915', hex: '#8B3F8F', rgb: { r: 139, g: 63, b: 143 }, cmyk: { c: 3, m: 56, y: 0, k: 44 }, category: 'Purple' },
     { code: '1925', name: 'Pantone 1925 C', displayName: 'P 1925', hex: '#2E3192', rgb: { r: 46, g: 49, b: 146 }, cmyk: { c: 68, m: 66, y: 0, k: 43 }, category: 'Blue' },
     { code: '1935', name: 'Pantone 1935 C', displayName: 'P 1935', hex: '#0047BB', rgb: { r: 0, g: 71, b: 187 }, cmyk: { c: 100, m: 62, y: 0, k: 27 }, category: 'Blue' },
     { code: '1945', name: 'Pantone 1945 C', displayName: 'P 1945', hex: '#0067A0', rgb: { r: 0, g: 103, b: 160 }, cmyk: { c: 100, m: 36, y: 0, k: 37 }, category: 'Blue' },
     { code: '1955', name: 'Pantone 1955 C', displayName: 'P 1955', hex: '#006BA6', rgb: { r: 0, g: 107, b: 166 }, cmyk: { c: 100, m: 36, y: 0, k: 35 }, category: 'Blue' },
-    
-    // ===== SERIE 3200 (VERDES) =====
+
+
     { code: '3242', name: 'Pantone 3242 C', displayName: 'P 3242', hex: '#00C389', rgb: { r: 0, g: 195, b: 137 }, cmyk: { c: 100, m: 0, y: 30, k: 24 }, category: 'Green' },
     { code: '3252', name: 'Pantone 3252 C', displayName: 'P 3252', hex: '#00B388', rgb: { r: 0, g: 179, b: 136 }, cmyk: { c: 100, m: 0, y: 24, k: 30 }, category: 'Green' },
     { code: '3262', name: 'Pantone 3262 C', displayName: 'P 3262', hex: '#00A982', rgb: { r: 0, g: 169, b: 130 }, cmyk: { c: 100, m: 0, y: 23, k: 34 }, category: 'Green' },
@@ -268,18 +259,15 @@ export class PantoneLiveService {
     { code: '3282', name: 'Pantone 3282 C', displayName: 'P 3282', hex: '#006F62', rgb: { r: 0, g: 111, b: 98 }, cmyk: { c: 100, m: 0, y: 12, k: 56 }, category: 'Green' },
     { code: '3292', name: 'Pantone 3292 C', displayName: 'P 3292', hex: '#00594C', rgb: { r: 0, g: 89, b: 76 }, cmyk: { c: 100, m: 0, y: 15, k: 65 }, category: 'Green' },
     { code: '3298', name: 'Pantone 3298 C', displayName: 'P 3298', hex: '#004F3E', rgb: { r: 0, g: 79, b: 62 }, cmyk: { c: 100, m: 0, y: 22, k: 69 }, category: 'Green' },
-    
-    // ===== COLORES NEGRO Y BLANCO (NOMBRES COMUNES) =====
+
+
     { code: 'NEGRO', name: 'Negro', displayName: 'P NEGRO', hex: '#000000', rgb: { r: 0, g: 0, b: 0 }, cmyk: { c: 0, m: 0, y: 0, k: 100 }, category: 'Black' },
     { code: 'BLANCO', name: 'Blanco', displayName: 'P BLANCO', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 }, cmyk: { c: 0, m: 0, y: 0, k: 0 }, category: 'White' },
   ];
 
   constructor() { }
 
-  /**
-   * Obtiene un color o crea uno temporal.
-   * Asegura que el formato sea "P [CÓDIGO]"
-   */
+
   getOrCreateColor(code: string): PantoneColor {
     const term = code.toLowerCase().trim();
     if (!term) return this.pantoneColors[0];
@@ -287,16 +275,16 @@ export class PantoneLiveService {
     const found = this.getColorByCode(code);
     if (found) return found;
 
-    // Formatear el código para que siempre tenga el prefijo P
-    // Eliminar cualquier prefijo "p ", "p_", "P ", "P_"
+
+
     let cleanCode = term;
     if (cleanCode.startsWith('p ') || cleanCode.startsWith('p_')) {
       cleanCode = cleanCode.substring(2).trim();
     }
-    
+
     const formattedDisplay = `P ${cleanCode.toUpperCase()}`;
 
-    // Generar un color basado en el nombre para mejor visualización
+
     const hex = this.generateColorFromName(cleanCode);
 
     return {
@@ -310,31 +298,26 @@ export class PantoneLiveService {
     };
   }
 
-  /**
-   * Genera un color hexadecimal basado en el nombre del color
-   * Solo se usa como fallback cuando el color no existe en la librería
-   */
+
   private generateColorFromName(name: string): string {
     const lowerName = name.toLowerCase();
-    
-    // Las lacas no tienen color - mostrar en gris
+
+
     if (lowerName.includes('laca') || lowerName.includes('lacquer') || lowerName.includes('varnish')) {
-      return '#B0B0B0'; // Gris claro para lacas
+      return '#B0B0B0';
     }
-    
-    // Si no coincide con ningún nombre, generar un color basado en hash
+
+
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
+
     const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
     return '#' + '00000'.substring(0, 6 - c.length) + c;
   }
 
-  /**
-   * Convierte hexadecimal a RGB
-   */
+
   private hexToRgb(hex: string): { r: number; g: number; b: number } {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -348,34 +331,31 @@ export class PantoneLiveService {
     return [...this.pantoneColors];
   }
 
-  /**
-   * Busca un color por código, nombre o nombre de visualización.
-   * Soporta formatos: "209", "P 209", "P_209", "Pantone 209", "NEGRO", "BLANCO"
-   */
+
   getColorByCode(code: string): PantoneColor | undefined {
     const term = code.toLowerCase().trim();
 
-    // Extraer el número si viene con prefijos
+
     let cleanCode = term;
     if (term.startsWith('p ')) cleanCode = term.substring(2).trim();
     else if (term.startsWith('p_')) cleanCode = term.substring(2).trim();
     else if (term.startsWith('pantone ')) cleanCode = term.substring(8).trim();
 
-    // Buscar por código exacto (case-insensitive)
+
     const exactMatch = this.pantoneColors.find(color =>
       color.code.toLowerCase() === cleanCode ||
       color.code.toLowerCase() === term
     );
     if (exactMatch) return exactMatch;
 
-    // Buscar por displayName
+
     const displayMatch = this.pantoneColors.find(color =>
       color.displayName.toLowerCase() === term ||
       color.displayName.toLowerCase() === `p ${cleanCode}`
     );
     if (displayMatch) return displayMatch;
 
-    // Buscar por nombre completo
+
     const nameMatch = this.pantoneColors.find(color =>
       color.name.toLowerCase() === term
     );

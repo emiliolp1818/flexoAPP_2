@@ -1,11 +1,11 @@
 <div class="modern-header" *ngIf="currentUser() as user">
-    <!-- Header Background -->
+
     <div class="header-background"></div>
     <div class="header-pattern"></div>
 
-    <!-- Header Content -->
+
     <div class="header-content">
-        <!-- Logo Section -->
+
         <div class="logo-section">
             <div class="logo-container" (click)="navigateToHome()">
                 <div class="logo-text-container">
@@ -15,10 +15,10 @@
             </div>
         </div>
 
-        <!-- Welcome Section -->
+
         <div class="welcome-section">
             <div class="time-indicator">
-                <!-- Use explicit fontSet to prefer classic Material Icons for ligatures -->
+
                 <mat-icon class="time-icon" fontSet="material-icons">{{ getTimeIcon() }}</mat-icon>
                 <span class="time-text">{{ getCurrentTime() }}</span>
             </div>
@@ -28,9 +28,9 @@
             </div>
         </div>
 
-        <!-- User Section -->
+
         <div class="user-section">
-            <!-- Status and Role Section -->
+
             <div class="status-section">
                 <div class="status-indicator" [class.loading]="isLoading()">
                     <div class="led-indicator" [class.loading]="isLoading()"></div>
@@ -41,17 +41,17 @@
                 </div>
             </div>
 
-            <!-- User Avatar - MISMO CÓDIGO QUE GESTOR DE USUARIOS (SETTINGS) -->
+
             <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-button">
-                <!-- Contenedor del avatar con la misma clase que settings -->
+
                 <div class="user-avatar">
-                    <!-- Imagen de perfil - SOLO profileImage (base64 o URL) -->
+
                     <img *ngIf="hasProfileImage(user)" [src]="getProfileImageUrl(user.profileImage || '')"
                         [attr.data-original-src]="user.profileImage" [attr.data-user-code]="user.userCode"
                         [alt]="user.firstName + ' ' + user.lastName" class="profile-image" (load)="onImageLoad($event)"
                         (loadstart)="onImageLoadStart($event)" (error)="onImageError($event)" loading="lazy"
                         decoding="async">
-                    <!-- Avatar por defecto con iniciales - EXACTAMENTE IGUAL QUE SETTINGS -->
+
                     <div *ngIf="!hasProfileImage(user)" class="default-avatar"
                         [style.--avatar-color]="getAvatarColor(user.firstName)"
                         [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
@@ -61,20 +61,20 @@
                 </div>
             </button>
 
-            <!-- User Menu - UPDATED: Only Profile and Logout -->
+
             <mat-menu #userMenu="matMenu" class="user-menu">
-                <!-- User Info in Menu - MISMO CÓDIGO QUE GESTOR DE USUARIOS (SETTINGS) -->
+
                 <div class="menu-header">
                     <div class="menu-user-info">
-                        <!-- Avatar en el menú - EXACTAMENTE IGUAL QUE SETTINGS -->
+
                         <div class="user-avatar">
-                            <!-- Imagen de perfil en menú - SOLO profileImage (base64 o URL) -->
+
                             <img *ngIf="hasProfileImage(user)" [src]="getProfileImageUrl(user.profileImage || '')"
                                 [attr.data-original-src]="user.profileImage" [attr.data-user-code]="user.userCode"
                                 [alt]="user.firstName + ' ' + user.lastName" class="profile-image"
                                 (load)="onImageLoad($event)" (loadstart)="onImageLoadStart($event)"
                                 (error)="onImageError($event)" loading="lazy" decoding="async">
-                            <!-- Avatar por defecto con iniciales en menú -->
+
                             <div *ngIf="!hasProfileImage(user)" class="default-avatar"
                                 [style.--avatar-color]="getAvatarColor(user.firstName)"
                                 [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
@@ -82,7 +82,7 @@
                                 {{ getInitials(user.firstName, user.lastName) }}
                             </div>
                         </div>
-                        <!-- Detalles del usuario -->
+
                         <div class="menu-user-details">
                             <span class="menu-user-name">{{ userDisplayName() }}</span>
                             <span class="menu-user-role">{{ getRoleDisplayName(user.role) }}</span>
@@ -92,7 +92,7 @@
 
                 <mat-divider></mat-divider>
 
-                <!-- UPDATED MENU - VERSION 2.0 -->
+
                 <button mat-menu-item (click)="onProfile()">
                     <mat-icon>person</mat-icon>
                     <span>{{ languageService.translate('nav.profile') || 'MI PERFIL' }}</span>
@@ -100,7 +100,7 @@
 
                 <mat-divider></mat-divider>
 
-                <!-- ONLY Logout Option -->
+
                 <button mat-menu-item (click)="onLogout()">
                     <mat-icon>logout</mat-icon>
                     <span>{{ languageService.translate('nav.logout') || 'Cerrar Sesión' }}</span>

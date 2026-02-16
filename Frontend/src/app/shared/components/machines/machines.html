@@ -3,82 +3,82 @@
 <!-- Contenedor raíz que ocupa toda la ventana (100vw x 100vh) con flexbox vertical -->
 <div class="machines-container">
 
-  <!-- ===== HEADER FIJO ===== -->
-  <!-- Header principal que permanece fijo en la parte superior con estilo del perfil -->
-  <!-- Contenedor del header con fondo blanco translúcido y blur effect -->
+
+
+
   <div class="machines-header">
-    <!-- Contenedor interno del header con flexbox para distribuir contenido -->
+
     <div class="header-content">
-      <!-- Sección izquierda: Información del header (título y subtítulo) -->
+
       <div class="header-info">
-        <!-- Título principal con icono de máquinas y tipografía bold -->
+
         <h1 class="page-title">
-          <!-- Icono Material Design para manufactura de precisión -->
+
           <mat-icon>precision_manufacturing</mat-icon>
-          <!-- Texto del título principal -->
+
           Gestión de Máquinas Flexográficas
         </h1>
-        <!-- Subtítulo descriptivo con información sobre la funcionalidad -->
+
         <p class="page-subtitle">
           Control completo de programación y estados de máquinas flexográficas en tiempo real
         </p>
       </div>
 
-      <!-- Sección derecha: Acciones del header - Solo botones funcionales -->
+
       <div class="header-actions">
-        <!-- Input oculto para selección de archivos Excel - No visible pero funcional -->
+
         <input #fileInput type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" style="display: none;">
 
-        <!-- ✅ Botón Agregar Programación - Cargar archivo Excel con programación -->
+
         <button *ngIf="userPermissions().canLoadExcel" mat-raised-button color="primary" (click)="fileInput.click()"
           class="load-programming-btn" [disabled]="loading()" matTooltip="Agregar programación desde archivo Excel">
-          <!-- Spinner mostrado durante el procesamiento del archivo -->
+
           <mat-spinner *ngIf="loading()" diameter="16"></mat-spinner>
-          <!-- Icono de agregar cuando no está cargando -->
+
           <mat-icon *ngIf="!loading()">add_circle</mat-icon>
-          <!-- Texto del botón cuando no está cargando -->
+
           <span *ngIf="!loading()">Agregar Programación</span>
-          <!-- Texto del botón durante la carga -->
+
           <span *ngIf="loading()">Procesando...</span>
         </button>
 
-        <!-- ✅ Botón Exportar - Descargar programación a Excel -->
+
         <button *ngIf="userPermissions().canDownloadTemplate" mat-raised-button color="accent" (click)="exportToExcel()"
           class="export-btn" [disabled]="loading()" matTooltip="Exportar programación a archivo Excel">
-          <!-- Icono de descarga -->
+
           <mat-icon>download</mat-icon>
-          <!-- Texto del botón -->
+
           Exportar
         </button>
 
 
-        <!-- Botón Actualizar - Para refrescar datos -->
+
         <button mat-icon-button color="primary" (click)="refreshData()" class="refresh-btn" [disabled]="loading()"
           matTooltip="Actualizar datos de máquinas">
           <mat-icon [class.spinning]="loading()">refresh</mat-icon>
         </button>
       </div>
     </div>
-    <!-- Fin del contenedor interno del header -->
+
 
   </div>
-  <!-- Fin del header fijo -->
 
-  <!-- ===== ÁREA DE CONTENIDO PRINCIPAL ===== -->
-  <!-- Contenedor principal que ocupa el resto del espacio disponible -->
-  <!-- Utiliza flexbox para ocupar todo el espacio restante después del header -->
+
+
+
+
   <div class="scrollable-content-area">
 
-    <!-- ===== LAYOUT PRINCIPAL DE DOS COLUMNAS ===== -->
-    <!-- Distribución del contenido principal con máquinas a la izquierda y programación a la derecha -->
+
+
     <div class="machines-layout">
 
-      <!-- COLUMNA IZQUIERDA: Máquinas - Lista y selección de máquinas disponibles -->
+
       <div class="machines-section">
-        <!-- ===== TARJETA DE MÁQUINAS ===== -->
-        <!-- Contenedor Material Card para la sección de máquinas con bordes redondeados y sombra -->
+
+
         <mat-card class="machines-card">
-          <!-- Sección de depuración de permisos (Temporal) -->
+
           <div *ngIf="!userPermissions().canViewFF459 && !userPermissions().canSendMessages"
             style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
             <mat-icon>warning</mat-icon>
@@ -86,130 +86,130 @@
               volver a entrar.</span>
           </div>
 
-          <!-- Header del componente: Título, información de carga y botones de acción principal -->
+
           <mat-card-header>
-            <!-- Título del header con icono y contador de máquinas -->
+
             <mat-card-title>
-              <!-- Icono Material Design para máquinas -->
+
               <mat-icon>precision_manufacturing</mat-icon>
-              <!-- Título descriptivo de la sección -->
+
               Máquinas Disponibles
-              <!-- Contador dinámico de máquinas - Solo visible cuando no está cargando -->
+
               <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
               </span>
             </mat-card-title>
           </mat-card-header>
-          <!-- Fin del header de la tarjeta -->
 
-          <!-- Contenido principal de la tarjeta -->
+
+
           <mat-card-content>
-            <!-- Contenedor de la lista de máquinas con scroll independiente -->
-            <!-- Permite scroll vertical mientras mantiene el header fijo -->
+
+
             <div class="machines-container-inner">
 
-              <!-- ===== GRID DE MÁQUINAS COMPACTO ===== -->
-              <!-- Lista vertical de todas las máquinas disponibles con diseño minimalista -->
-              <!-- Solo muestra icono y número de máquina para maximizar espacio de la tabla -->
+
+
+
               <div class="machines-grid">
-                <!-- Iteración sobre cada número de máquina disponible -->
+
                 <button *ngFor="let machineNum of machineNumbers; trackBy: trackByMachineNumber" mat-raised-button
                   class="machine-card excel-machine-card" [class.selected]="selectedMachineNumber() === machineNum"
                   [ngClass]="getMachineStatusClass(machineNum)" (click)="selectMachine(machineNum)"
                   [attr.title]="getMachineStatusTooltip(machineNum)">
 
-                  <!-- Contenido compacto de cada tarjeta de máquina -->
+
                   <div class="machine-card-content">
-                    <!-- Contenedor del icono de la máquina -->
+
                     <div class="machine-icon-wrapper">
-                      <mat-icon class="machine-icon">precision_manufacturing</mat-icon> <!-- Icono de máquina -->
+                      <mat-icon class="machine-icon">precision_manufacturing</mat-icon>
                     </div>
-                    <!-- Número de la máquina (sin texto adicional) -->
+
                     <span class="machine-number-compact">{{ machineNum }}</span>
-                    <!-- Indicador LED del estado de la máquina -->
+
                     <div class="machine-status-indicator"></div>
                   </div>
                 </button>
               </div>
 
 
-              <!-- ===== MENSAJE SIN DATOS ===== -->
-              <!-- Mostrado cuando no hay máquinas disponibles -->
-              <!-- Condicional: solo visible cuando no hay máquinas Y no está cargando -->
+
+
+
               <div *ngIf="machineNumbers.length === 0 && !loading()" class="no-machines">
-                <!-- Icono grande para estado vacío -->
+
                 <mat-icon>precision_manufacturing</mat-icon>
-                <!-- Mensaje cuando no hay máquinas en el sistema -->
+
                 <p>No hay máquinas disponibles</p>
-                <!-- Botón de acción para cargar programación -->
+
                 <button mat-raised-button (click)="fileInput.click()">
-                  <!-- Icono de agregar -->
+
                   <mat-icon>add</mat-icon>
                   Cargar Programación
                 </button>
               </div>
 
-              <!-- ===== MENSAJE DE CARGA ===== -->
-              <!-- Mostrado mientras se cargan los datos de máquinas -->
-              <!-- Solo visible cuando la señal loading() es true -->
+
+
+
               <div *ngIf="loading()" class="loading-container">
-                <!-- Icono animado de carga con rotación CSS -->
+
                 <mat-icon class="loading-icon">refresh</mat-icon>
-                <!-- Mensaje informativo durante la carga -->
+
                 <p>Cargando máquinas...</p>
               </div>
 
             </div>
-            <!-- Fin del contenedor de la lista de máquinas -->
-          </mat-card-content>
-          <!-- Fin del contenido de la tarjeta -->
-        </mat-card>
-        <!-- Fin de la tarjeta de máquinas -->
 
-        <!-- ===== INFORMACIÓN DE LA MÁQUINA SELECCIONADA ===== -->
-        <!-- Solo visible cuando hay una máquina seleccionada -->
+          </mat-card-content>
+
+        </mat-card>
+
+
+
+
         <div *ngIf="selectedMachineNumber()" class="selected-machine-info">
-          <!-- Tarjeta con detalles de la máquina seleccionada -->
+
 
         </div>
       </div>
 
-      <!-- COLUMNA DERECHA: Programación - Tabla con los programas de la máquina seleccionada -->
+
       <div class="programming-section">
-        <!-- ===== TARJETA DE PROGRAMACIÓN ESTILO EXCEL ===== -->
-        <!-- Tabla principal con diseño profesional estilo Excel y Material Design -->
-        <!-- Contenedor Material Card para la tabla con bordes redondeados y sombra -->
+
+
+
         <mat-card class="programming-card">
 
-          <!-- Header de la tabla con información y estadísticas -->
+
           <mat-card-header>
-            <!-- Título del header con icono y contador de programas -->
+
             <mat-card-title>
-              <!-- Icono Material Design para vista de tabla -->
+
               <mat-icon>table_view</mat-icon>
-              <!-- Título descriptivo de la tabla -->
+
               Programación {{ selectedMachineNumber() ? 'Máquina ' + selectedMachineNumber() : '' }}
-              <!-- Contador dinámico de programas - Solo visible cuando hay máquina seleccionada -->
+
               <span *ngIf="selectedMachineNumber() && !loading()"
                 style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
                 ({{ selectedMachinePrograms().length }} programas)
               </span>
             </mat-card-title>
           </mat-card-header>
-          <!-- Fin del header de la tabla -->
 
-          <!-- Contenido principal de la tabla -->
+
+
           <mat-card-content>
-            <!-- Contenedor de la tabla con scroll independiente -->
-            <!-- Permite scroll horizontal y vertical mientras mantiene el header fijo -->
+
+
             <div class="programming-table-container">
 
-              <!-- ===== TABLA COMPLETA RECONSTRUIDA - VERSIÓN FUNCIONAL ===== -->
+
               <div *ngIf="selectedMachinePrograms().length > 0" class="programs-table">
 
                 <table mat-table [dataSource]="selectedMachinePrograms()" class="excel-table programs-table-modern"
                   multiTemplateDataRows>
 
-                  <!-- COLUMNA: Artículo - CAMPO REDUCIDO -->
+
                   <ng-container matColumnDef="articulo">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -222,7 +222,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: OT SAP - CAMPO REDUCIDO -->
+
                   <ng-container matColumnDef="otSap">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -235,7 +235,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: Cliente -->
+
                   <ng-container matColumnDef="cliente">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -249,7 +249,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: Referencia - CAMPO AMPLIADO -->
+
                   <ng-container matColumnDef="referencia">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -263,7 +263,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: TD -->
+
                   <ng-container matColumnDef="td">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -276,7 +276,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: Número de Colores -->
+
                   <ng-container matColumnDef="numeroColores">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -297,7 +297,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA EXPANDIBLE: Detalles de Colores -->
+
                   <ng-container matColumnDef="expandedDetail">
                     <td mat-cell *matCellDef="let element" [attr.colspan]="simpleColumns.length"
                       class="expanded-detail-cell">
@@ -306,22 +306,22 @@
                         *ngIf="element.colores && element.colores.length > 0">
                         <div class="colors-row-horizontal">
                           <div *ngFor="let color of element.colores; let i = index" class="color-item-inline">
-                            <!-- Número del color -->
+
                             <div class="color-number-badge">{{ i + 1 }}</div>
 
-                            <!-- Cuadro de color -->
+
                             <div class="color-box-large" [style.background-color]="getPantoneInfo(color).hex"
                               [matTooltip]="color" matTooltipPosition="above"></div>
 
-                            <!-- Nombre del color -->
+
                             <div class="color-name-label">{{ color }}</div>
 
-                            <!-- Separador vertical -->
+
                             <div class="separator-vertical"></div>
 
-                            <!-- Información de anilox -->
+
                             <div class="anilox-info-group">
-                              <!-- Selector de Lineatura (LPI) -->
+
                               <div class="info-row selector-row">
                                 <mat-icon class="info-icon">grid_4x4</mat-icon>
                                 <span class="info-label">Lineatura:</span>
@@ -338,7 +338,7 @@
                                 </mat-form-field>
                               </div>
 
-                              <!-- Selector de Volumen (Anilox) -->
+
                               <div class="info-row selector-row">
                                 <mat-icon class="info-icon">grid_on</mat-icon>
                                 <span class="info-label">Volumen:</span>
@@ -356,7 +356,7 @@
                                 </mat-form-field>
                               </div>
 
-                              <!-- Detalles técnicos del cálculo (solo si hay anilox seleccionado) -->
+
                               <div class="calculation-details" *ngIf="getSelectedAnilox(element, i) as anilox">
                                 <div class="detail-badge">
                                   <mat-icon>auto_awesome</mat-icon>
@@ -377,7 +377,7 @@
                                 </div>
                               </div>
 
-                              <!-- Input de Kilos -->
+
                               <div class="info-row selector-row">
                                 <mat-icon class="info-icon">scale</mat-icon>
                                 <span class="info-label">Kilos:</span>
@@ -394,7 +394,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: Kilos y Metros - FORMATO COMBINADO -->
+
                   <ng-container matColumnDef="kilos">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -416,7 +416,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: Fecha Tinta en Máquina -->
+
                   <ng-container matColumnDef="fechaTintaEnMaquina">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -432,7 +432,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: Sustrato -->
+
                   <ng-container matColumnDef="sustrato">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -445,7 +445,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: Estado -->
+
                   <ng-container matColumnDef="estado">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -463,7 +463,7 @@
                         </div>
                         <div class="operario-info">
                           <small>{{ element.lastActionBy || 'Sistema' }}</small>
-                          <!-- Mostrar fecha de última acción si existe -->
+
                           <small *ngIf="element.lastActionAt" style="display: block; color: #999; font-size: 9px;">
                             {{ element.lastActionAt | date:'dd/MM/yyyy HH:mm' }}
                           </small>
@@ -475,7 +475,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- COLUMNA: Acciones -->
+
                   <ng-container matColumnDef="acciones">
                     <th mat-header-cell *matHeaderCellDef class="excel-header">
                       <div class="header-content">
@@ -486,7 +486,7 @@
                     <td mat-cell *matCellDef="let element" class="excel-cell actions-cell">
                       <div class="action-buttons">
 
-                        <!-- Botón unificado de PLAY con menú desplegable para PREPARANDO/LISTO -->
+
                         <button mat-icon-button class="action-btn play-btn" [matMenuTriggerFor]="playMenu"
                           (click)="$event.stopPropagation(); setCurrentProgramForMenu(element)"
                           [disabled]="element.estado === 'CORRIENDO' || element.estado === 'TERMINADO'">
@@ -507,7 +507,7 @@
                           </button>
                         </mat-menu>
 
-                        <!-- Botón de STOP con menú desplegable para CORRIENDO/TERMINADO -->
+
                         <button mat-icon-button class="action-btn stop-btn" [matMenuTriggerFor]="stopMenu"
                           (click)="$event.stopPropagation(); setCurrentProgramForMenu(element)">
                           <mat-icon>stop</mat-icon>
@@ -526,7 +526,7 @@
                           </button>
                         </mat-menu>
 
-                        <!-- Botón de SUSPENDER -->
+
                         <button mat-icon-button class="action-btn suspendido-btn"
                           (click)="$event.stopPropagation(); suspendProgram(element)"
                           [disabled]="element.estado === 'SUSPENDIDO' || !userPermissions().canStatusSuspendido"
@@ -534,7 +534,7 @@
                           <mat-icon>pause</mat-icon>
                         </button>
 
-                        <!-- Botón de MENSAJES - VISIBLE SIEMPRE: Admin/Supervisor pueden enviar, Operarios solo ven -->
+
                         <button mat-icon-button class="action-btn message-btn"
                           [class.has-message]="hasMessages(element)" [class.visible-always]="hasMessages(element)"
                           (click)="$event.stopPropagation(); (userPermissions().canSendMessages) ? openMessageDialog(element) : showMessage(element)"
@@ -543,7 +543,7 @@
                           <mat-icon [class.blinking]="hasMessages(element)">campaign</mat-icon>
                         </button>
 
-                        <!-- Botón de IMPRIMIR -->
+
                         <button *ngIf="userPermissions().canViewFF459" mat-icon-button class="action-btn imprimir-btn"
                           (click)="$event.stopPropagation(); printFF459(element)" [disabled]="!canPrint()">
                           <mat-icon>print</mat-icon>
@@ -553,7 +553,7 @@
                     </td>
                   </ng-container>
 
-                  <!-- DEFINICIÓN DE FILAS -->
+
                   <tr mat-header-row *matHeaderRowDef="simpleColumns; sticky: true"></tr>
                   <tr mat-row *matRowDef="let row; columns: simpleColumns;" class="excel-row"
                     [ngClass]="'status-row-' + (row.estado || 'SIN_ASIGNAR').toLowerCase()"
@@ -564,133 +564,133 @@
 
               </div>
 
-              <!-- ===== MENSAJE SIN DATOS ===== -->
-              <!-- Mostrado cuando no hay máquina seleccionada o no hay programas -->
-              <!-- Condicional: solo visible cuando no hay datos Y no está cargando -->
+
+
+
               <div *ngIf="!showProgramTable() || selectedMachinePrograms().length === 0" class="no-data">
-                <!-- Icono grande para estado vacío -->
+
                 <mat-icon>precision_manufacturing</mat-icon>
-                <!-- Mensaje condicional cuando no hay máquina seleccionada -->
+
                 <h3 *ngIf="!showProgramTable()">Selecciona una máquina</h3>
                 <p *ngIf="!showProgramTable()">Elige una máquina para ver su programación</p>
 
-                <!-- Mensaje condicional cuando hay máquina seleccionada pero sin programas -->
+
                 <h3 *ngIf="showProgramTable() && selectedMachinePrograms().length === 0 && !loading()">Sin programas
                   asignados</h3>
                 <p *ngIf="showProgramTable() && selectedMachinePrograms().length === 0 && !loading()">
                   La máquina {{ selectedMachineNumber() }} no tiene programas asignados
                 </p>
 
-                <!-- Indicador de carga - Mostrado durante la carga de datos -->
+
                 <div *ngIf="loading()" class="loading-indicator">
-                  <mat-icon class="spinning">refresh</mat-icon> <!-- Icono giratorio -->
-                  <p>Cargando programas...</p> <!-- Mensaje de carga -->
+                  <mat-icon class="spinning">refresh</mat-icon>
+                  <p>Cargando programas...</p>
                 </div>
               </div>
 
             </div>
-            <!-- Fin del contenedor de la tabla -->
+
           </mat-card-content>
-          <!-- Fin del contenido de la tarjeta -->
+
         </mat-card>
-        <!-- Fin de la tarjeta de la tabla -->
+
       </div>
     </div>
-    <!-- Fin del layout principal de dos columnas -->
+
   </div>
-  <!-- Fin del área de contenido scrollable -->
+
 
 </div>
 <!-- Fin del contenedor principal de máquinas -->
 
 <!-- Diálogo modal de suspensión - Solo visible cuando showSuspendDialog es true -->
 <div *ngIf="showSuspendDialog" class="suspend-dialog-overlay">
-  <!-- Contenedor principal del diálogo con fondo semi-transparente -->
+
   <div class="suspend-dialog">
 
-    <!-- Encabezado del diálogo con título y botón de cerrar -->
+
     <div class="suspend-dialog-header">
-      <!-- Título del diálogo con icono -->
+
       <h3 class="dialog-title">
-        <mat-icon>pause_circle</mat-icon> <!-- Icono de pausa -->
-        Suspender Programa <!-- Texto del título -->
+        <mat-icon>pause_circle</mat-icon>
+        Suspender Programa
       </h3>
-      <!-- Botón para cerrar el diálogo -->
+
       <button mat-icon-button (click)="closeSuspendDialog()" class="close-btn">
-        <mat-icon>close</mat-icon> <!-- Icono de cerrar (X) -->
+        <mat-icon>close</mat-icon>
       </button>
     </div>
 
-    <!-- Contenido principal del diálogo -->
+
     <div class="suspend-dialog-content">
 
-      <!-- Sección de información del programa a suspender -->
+
       <div class="program-info">
-        <!-- Elemento de información: Programa -->
+
         <div class="info-item">
-          <span class="info-label">Programa:</span> <!-- Etiqueta -->
-          <!-- Valor dinámico del artículo del programa seleccionado -->
+          <span class="info-label">Programa:</span>
+
           <span class="info-value">{{ currentProgramToSuspend?.articulo }}</span>
         </div>
-        <!-- Elemento de información: Cliente -->
+
         <div class="info-item">
-          <span class="info-label">Cliente:</span> <!-- Etiqueta -->
-          <!-- Valor dinámico del cliente del programa seleccionado -->
+          <span class="info-label">Cliente:</span>
+
           <span class="info-value">{{ currentProgramToSuspend?.cliente }}</span>
         </div>
       </div>
 
-      <!-- Sección para seleccionar motivos de suspensión -->
+
       <div class="reason-section">
-        <!-- Etiqueta principal de la sección -->
+
         <label class="reason-label">Motivo de suspensión:</label>
 
-        <!-- Contenedor de motivos predefinidos como chips seleccionables -->
+
         <div class="predefined-reasons">
-          <!-- Chip para "Falta de material" -->
+
           <button type="button" class="reason-chip" [class.selected]="suspendReason.includes('Falta de material')"
             (click)="selectPredefinedReason('Falta de material')">
-            Falta de material <!-- Texto del motivo -->
+            Falta de material
           </button>
-          <!-- Chip para "Mantenimiento" -->
+
           <button type="button" class="reason-chip" [class.selected]="suspendReason.includes('Mantenimiento')"
             (click)="selectPredefinedReason('Mantenimiento')">
-            Mantenimiento <!-- Texto del motivo -->
+            Mantenimiento
           </button>
-          <!-- Chip para "Cambio de programación" -->
+
           <button type="button" class="reason-chip" [class.selected]="suspendReason.includes('Cambio de programación')"
             (click)="selectPredefinedReason('Cambio de programación')">
-            Cambio de programación <!-- Texto del motivo -->
+            Cambio de programación
           </button>
-          <!-- Chip para "Problema técnico" -->
+
           <button type="button" class="reason-chip" [class.selected]="suspendReason.includes('Problema técnico')"
             (click)="selectPredefinedReason('Problema técnico')">
-            Problema técnico <!-- Texto del motivo -->
+            Problema técnico
           </button>
         </div>
 
-        <!-- Campo de texto para motivo personalizado o detallado -->
+
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Motivo detallado</mat-label> <!-- Etiqueta del campo -->
-          <!-- Textarea vinculado bidireccional con la variable suspendReason -->
+          <mat-label>Motivo detallado</mat-label>
+
           <textarea matInput [(ngModel)]="suspendReason" placeholder="Describe el motivo de la suspensión..." rows="3"
-            required></textarea> <!-- Campo requerido -->
+            required></textarea>
         </mat-form-field>
       </div>
     </div>
 
-    <!-- Sección de botones de acción del diálogo -->
+
     <div class="suspend-dialog-actions">
-      <!-- Botón para cancelar la suspensión -->
+
       <button mat-stroked-button (click)="closeSuspendDialog()" class="cancel-btn">
-        <mat-icon>close</mat-icon> <!-- Icono de cerrar -->
-        Cancelar <!-- Texto del botón -->
+        <mat-icon>close</mat-icon>
+        Cancelar
       </button>
-      <!-- Botón para confirmar la suspensión -->
+
       <button mat-raised-button (click)="confirmSuspend()" [disabled]="!suspendReason.trim()"
         class="confirm-suspend-btn">
-        <mat-icon>pause_circle</mat-icon> <!-- Icono de pausa -->
-        Suspender <!-- Texto del botón -->
+        <mat-icon>pause_circle</mat-icon>
+        Suspender
       </button>
     </div>
   </div>
@@ -698,80 +698,80 @@
 
 <!-- Diálogo modal de mensajes - Solo visible cuando showMessageDialog es true -->
 <div *ngIf="showMessageDialog" class="message-dialog-overlay">
-  <!-- Contenedor principal del diálogo con fondo semi-transparente -->
+
   <div class="message-dialog">
 
-    <!-- Encabezado del diálogo con título y botón de cerrar -->
+
     <div class="message-dialog-header">
-      <!-- Título del diálogo con icono -->
+
       <h3 class="dialog-title">
-        <mat-icon>campaign</mat-icon> <!-- Icono de mensaje -->
+        <mat-icon>campaign</mat-icon>
         {{ userPermissions().canSendMessages ? (isEditingMessage ? 'Editar Mensaje' : 'Enviar Mensaje') : 'Mensaje del
         Administrador' }}
-        <!-- Texto del título -->
+
       </h3>
-      <!-- Botón para cerrar el diálogo -->
+
       <button mat-icon-button (click)="closeMessageDialog()" class="close-btn">
-        <mat-icon>close</mat-icon> <!-- Icono de cerrar (X) -->
+        <mat-icon>close</mat-icon>
       </button>
     </div>
 
-    <!-- Contenido principal del diálogo -->
+
     <div class="message-dialog-content">
 
-      <!-- Sección de información del programa -->
+
       <div class="program-info">
-        <!-- Elemento de información: Programa -->
+
         <div class="info-item">
-          <span class="info-label">Programa:</span> <!-- Etiqueta -->
-          <!-- Valor dinámico del artículo del programa seleccionado -->
+          <span class="info-label">Programa:</span>
+
           <span class="info-value">{{ messageProgram?.articulo }}</span>
         </div>
-        <!-- Elemento de información: Cliente -->
+
         <div class="info-item">
-          <span class="info-label">Cliente:</span> <!-- Etiqueta -->
-          <!-- Valor dinámico del cliente del programa seleccionado -->
+          <span class="info-label">Cliente:</span>
+
           <span class="info-value">{{ messageProgram?.cliente }}</span>
         </div>
       </div>
 
-      <!-- Sección del mensaje -->
+
       <div class="message-section">
-        <!-- Campo de texto para el mensaje -->
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>{{ userPermissions().canSendMessages ? 'Mensaje para el operario' : 'Mensaje' }}</mat-label>
-          <!-- Etiqueta del campo -->
-          <!-- Textarea vinculado bidireccional con la variable currentMessage -->
+
+
           <textarea matInput [(ngModel)]="currentMessage"
             [placeholder]="userPermissions().canSendMessages ? 'Escribe el mensaje para el operario...' : ''"
             [readonly]="!userPermissions().canSendMessages" rows="4"
             [required]="userPermissions().canSendMessages"></textarea>
-          <!-- Campo requerido solo para envío -->
+
         </mat-form-field>
       </div>
     </div>
 
-    <!-- Sección de acciones del diálogo -->
+
     <div class="message-dialog-actions">
-      <!-- Botón para cerrar -->
+
       <button mat-stroked-button (click)="closeMessageDialog()" class="cancel-btn">
-        <mat-icon>close</mat-icon> <!-- Icono de cerrar -->
-        Cerrar <!-- Texto del botón -->
+        <mat-icon>close</mat-icon>
+        Cerrar
       </button>
 
-      <!-- Botón para eliminar mensaje (solo para admin/supervisor y programas TERMINADOS) -->
+
       <button
         *ngIf="userPermissions().canSendMessages && hasMessages(messageProgram!) && messageProgram?.estado === 'TERMINADO'"
         mat-stroked-button (click)="deleteMessage(messageProgram!)" class="delete-message-btn">
-        <mat-icon>delete</mat-icon> <!-- Icono de eliminar -->
-        Eliminar Mensaje <!-- Texto del botón -->
+        <mat-icon>delete</mat-icon>
+        Eliminar Mensaje
       </button>
 
-      <!-- Botón para enviar/actualizar mensaje (solo para admin/supervisor) -->
+
       <button *ngIf="userPermissions().canSendMessages" mat-raised-button (click)="sendMessage()"
         [disabled]="!currentMessage.trim()" class="send-message-btn">
-        <mat-icon>{{ isEditingMessage ? 'edit' : 'send' }}</mat-icon> <!-- Icono de enviar o editar -->
-        {{ isEditingMessage ? 'Actualizar Mensaje' : 'Enviar Mensaje' }} <!-- Texto del botón -->
+        <mat-icon>{{ isEditingMessage ? 'edit' : 'send' }}</mat-icon>
+        {{ isEditingMessage ? 'Actualizar Mensaje' : 'Enviar Mensaje' }}
       </button>
     </div>
   </div>

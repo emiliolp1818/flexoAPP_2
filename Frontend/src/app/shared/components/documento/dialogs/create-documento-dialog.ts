@@ -1,7 +1,7 @@
-// =====================================================
-// DIÁLOGO PARA CREAR DOCUMENTOS - FLEXOAPP
-// Propósito: Crear documentos nuevos desde cero
-// =====================================================
+
+
+
+
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -37,7 +37,7 @@ import { MatSelectModule } from '@angular/material/select';
         <!-- Nombre del documento -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Nombre del documento</mat-label>
-          <input matInput [(ngModel)]="documentName" name="name" 
+          <input matInput [(ngModel)]="documentName" name="name"
                  placeholder="Ej: Manual de Usuario" required>
           <mat-icon matPrefix>description</mat-icon>
         </mat-form-field>
@@ -101,7 +101,7 @@ import { MatSelectModule } from '@angular/material/select';
         <!-- URL del documento (opcional) -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>URL del documento (opcional)</mat-label>
-          <input matInput [(ngModel)]="documentUrl" name="url" 
+          <input matInput [(ngModel)]="documentUrl" name="url"
                  placeholder="https://ejemplo.com/documento.pdf">
           <mat-icon matPrefix>link</mat-icon>
         </mat-form-field>
@@ -109,7 +109,7 @@ import { MatSelectModule } from '@angular/material/select';
         <!-- Descripción (opcional) -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Descripción (opcional)</mat-label>
-          <textarea matInput [(ngModel)]="description" name="description" 
+          <textarea matInput [(ngModel)]="description" name="description"
                     rows="3" placeholder="Descripción del documento"></textarea>
           <mat-icon matPrefix>notes</mat-icon>
         </mat-form-field>
@@ -120,8 +120,8 @@ import { MatSelectModule } from '@angular/material/select';
       <button mat-button (click)="onCancel()">
         Cancelar
       </button>
-      <button mat-raised-button color="primary" 
-              (click)="onCreate()" 
+      <button mat-raised-button color="primary"
+              (click)="onCreate()"
               [disabled]="!isFormValid()">
         <mat-icon>save</mat-icon>
         {{ isEditMode ? 'Guardar Cambios' : 'Crear Documento' }}
@@ -175,28 +175,28 @@ import { MatSelectModule } from '@angular/material/select';
   `]
 })
 export class CreateDocumentoDialogComponent implements OnInit {
-  // Datos del formulario
-  documentName = ''; // Nombre del documento
-  documentType = 'PDF'; // Tipo de documento por defecto
-  category = 'reportes'; // Categoría por defecto
-  status = 'draft'; // Estado por defecto (borrador)
-  documentUrl = ''; // URL del documento (opcional)
-  description = ''; // Descripción del documento
-  
-  // Modo de edición (true si se están editando datos existentes)
+
+  documentName = '';
+  documentType = 'PDF';
+  category = 'reportes';
+  status = 'draft';
+  documentUrl = '';
+  description = '';
+
+
   isEditMode = false;
 
   constructor(
     private dialogRef: MatDialogRef<CreateDocumentoDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any // Datos del documento a editar (opcional)
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
-  
-  // Inicializar componente
+
+
   ngOnInit(): void {
-    // Si se recibieron datos, estamos en modo edición
+
     if (this.data) {
       this.isEditMode = true;
-      // Cargar datos del documento a editar
+
       this.documentName = this.data.name || '';
       this.documentType = this.data.type || 'PDF';
       this.category = this.data.category || 'reportes';
@@ -206,15 +206,15 @@ export class CreateDocumentoDialogComponent implements OnInit {
     }
   }
 
-  // Validar formulario
+
   isFormValid(): boolean {
-    return this.documentName.trim() !== '' && 
-           this.documentType !== '' && 
-           this.category !== '' && 
+    return this.documentName.trim() !== '' &&
+           this.documentType !== '' &&
+           this.category !== '' &&
            this.status !== '';
   }
 
-  // Crear documento
+
   onCreate(): void {
     if (!this.isFormValid()) return;
 
@@ -225,14 +225,14 @@ export class CreateDocumentoDialogComponent implements OnInit {
       status: this.status,
       url: this.documentUrl || undefined,
       description: this.description || undefined,
-      size: '0 KB', // Tamaño por defecto para documentos nuevos
+      size: '0 KB',
       createdDate: new Date()
     };
 
     this.dialogRef.close(result);
   }
 
-  // Cancelar
+
   onCancel(): void {
     this.dialogRef.close();
   }

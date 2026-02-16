@@ -1,4 +1,4 @@
-// Configuración de entorno para desarrollo LOCAL - FlexoApp Frontend
+
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:10000/api',

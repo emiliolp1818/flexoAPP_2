@@ -30,7 +30,7 @@ interface PedidoAgrupado {
   otsSap: string[];
   maquinas: number[];
   cantidadOTs: number;
-  // Campos adicionales para histórico
+
   backupDate?: Date;
   backupReason?: string;
   backupUserName?: string;
@@ -66,21 +66,21 @@ interface PedidoAgrupado {
   styleUrls: ['./consulta-pedidos.scss']
 })
 export class ConsultaPedidosComponent implements OnInit {
-  // Señales reactivas
+
   loading = signal(false);
   searchTermOT = signal('');
   searchTermArticulo = signal('');
   pedidosAgrupados = signal<PedidoAgrupado[]>([]);
   allPedidos = signal<any[]>([]);
 
-  // Paginación
+
   pageSize = signal(25);
   pageIndex = signal(0);
 
-  // Columnas de la tabla (siempre incluye info de backup)
+
   displayedColumns: string[] = ['articulo', 'colores', 'kilosTotales', 'cantidadOTs', 'otsSap', 'maquinas', 'estado', 'backupInfo'];
 
-  // Computed para filtrar pedidos
+
   filteredPedidos = computed(() => {
     const pedidos = this.pedidosAgrupados();
     const otTerm = this.searchTermOT().toLowerCase().trim();
@@ -97,7 +97,7 @@ export class ConsultaPedidosComponent implements OnInit {
     });
   });
 
-  // Computed para pedidos paginados
+
   paginatedPedidos = computed(() => {
     const filtered = this.filteredPedidos();
     const startIndex = this.pageIndex() * this.pageSize();
@@ -117,18 +117,18 @@ export class ConsultaPedidosComponent implements OnInit {
     this.cargarPedidos();
   }
 
-  // Cargar todos los pedidos y agruparlos (busca en ambas tablas)
+
   async cargarPedidos() {
     this.loading.set(true);
 
     try {
-      // Cargar pedidos actuales y del histórico en paralelo
+
       const [pedidosActuales, pedidosHistorico] = await Promise.all([
         this.cargarPedidosActuales(),
         this.cargarPedidosHistorico()
       ]);
 
-      // Combinar ambos resultados
+
       const todosPedidos = [...pedidosActuales, ...pedidosHistorico];
       this.allPedidos.set(todosPedidos);
       this.agruparPedidosCombinados(todosPedidos);
@@ -142,7 +142,7 @@ export class ConsultaPedidosComponent implements OnInit {
     }
   }
 
-  // Cargar pedidos actuales
+
   async cargarPedidosActuales(): Promise<any[]> {
     try {
       const response: any = await this.http.get(`${environment.apiUrl}/maquinas`).toPromise() || { success: false };
@@ -156,12 +156,12 @@ export class ConsultaPedidosComponent implements OnInit {
     }
   }
 
-  // Cargar pedidos del histórico (backup)
+
   async cargarPedidosHistorico(): Promise<any[]> {
     try {
       const filters: any = {
         page: 1,
-        pageSize: 10000 // Cargar todos los registros del histórico
+        pageSize: 10000
       };
 
       if (this.searchTermArticulo()) filters.articulo = this.searchTermArticulo();
@@ -178,7 +178,7 @@ export class ConsultaPedidosComponent implements OnInit {
     }
   }
 
-  // Agrupar pedidos combinados (actuales + histórico)
+
   agruparPedidosCombinados(pedidos: any[]) {
     const grupos = new Map<string, PedidoAgrupado>();
 
@@ -223,7 +223,7 @@ export class ConsultaPedidosComponent implements OnInit {
     this.pedidosAgrupados.set(agrupados);
   }
 
-  // Parsear colores desde JSON string
+
   parseColores(coloresData: any): string[] {
     if (!coloresData) return [];
 
@@ -240,18 +240,18 @@ export class ConsultaPedidosComponent implements OnInit {
     return [];
   }
 
-  // Limpiar búsqueda
+
   limpiarBusqueda() {
     this.searchTermOT.set('');
     this.searchTermArticulo.set('');
   }
 
-  // Refrescar datos
+
   refreshPedidos() {
     this.cargarPedidos();
   }
 
-  // Navegación de páginas
+
   previousPage() {
     if (this.pageIndex() > 0) {
       this.pageIndex.set(this.pageIndex() - 1);
@@ -269,25 +269,25 @@ export class ConsultaPedidosComponent implements OnInit {
     return this.pageIndex() < totalPages - 1;
   }
 
-  // Cambiar tamaño de página
+
   onPageSizeChange(newSize: number) {
     this.pageSize.set(newSize);
-    this.pageIndex.set(0); // Resetear a la primera página
+    this.pageIndex.set(0);
   }
 
-  // Exponer Math para el template
+
   Math = Math;
 
-  // Exportar a Excel
+
   exportToExcel() {
-    // TODO: Implementar exportación a Excel
+
     this.snackBar.open('Función de exportación en desarrollo', 'Cerrar', { duration: 2000 });
   }
 
-  // Obtiene el código Pantone y el color hexadecimal para un color dado
-  // Maneja formato P_209 (extrae el número 209 para buscar en la pantonera)
+
+
   getPantoneInfo(colorName: string): { code: string; hex: string; displayName: string } {
-    // Validar que colorName no sea null o undefined
+
     if (!colorName) {
       return {
         code: 'N/A',
@@ -296,13 +296,13 @@ export class ConsultaPedidosComponent implements OnInit {
       };
     }
 
-    // Si el color tiene formato P_XXX, extraer el número
+
     let searchTerm = colorName;
     if (colorName.toUpperCase().startsWith('P_')) {
-      searchTerm = colorName.substring(2); // Quitar "P_" para obtener el número
+      searchTerm = colorName.substring(2);
     }
 
-    // Buscar el color en el servicio de Pantone
+
     const pantoneColors = this.pantoneService.searchColors(searchTerm);
 
     if (pantoneColors && pantoneColors.length > 0) {
@@ -314,7 +314,7 @@ export class ConsultaPedidosComponent implements OnInit {
       };
     }
 
-    // Si no se encuentra en Pantone, usar colores por defecto
+
     const defaultHex = this.getDefaultColorHex(colorName);
     return {
       code: colorName,
@@ -323,7 +323,7 @@ export class ConsultaPedidosComponent implements OnInit {
     };
   }
 
-  // Retorna colores hexadecimales para colores CMYK básicos
+
   private getDefaultColorHex(colorName: string): string {
     const colorMap: { [key: string]: string } = {
       'CYAN': '#00FFFF',
@@ -337,23 +337,23 @@ export class ConsultaPedidosComponent implements OnInit {
     };
 
     const upperColorName = colorName.toUpperCase();
-    return colorMap[upperColorName] || '#CCCCCC'; // Gris por defecto
+    return colorMap[upperColorName] || '#CCCCCC';
   }
 
-  // Calcula el color de texto (blanco o negro) basado en el brillo del fondo
+
   getTextColor(hexColor: string): string {
-    // Remover el # si existe
+
     const hex = hexColor.replace('#', '');
 
-    // Convertir a RGB
+
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    // Calcular brillo usando la fórmula de luminancia relativa
+
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
 
-    // Si el brillo es mayor a 128, usar texto negro, sino blanco
+
     return brightness > 128 ? '#000000' : '#FFFFFF';
   }
 }

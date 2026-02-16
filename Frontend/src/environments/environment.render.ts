@@ -1,4 +1,4 @@
-// Configuración de entorno RENDER - FlexoApp Frontend para Render
+
 export const environment = {
   production: true,
   apiUrl: 'https://flexoapp-backend.onrender.com/api',

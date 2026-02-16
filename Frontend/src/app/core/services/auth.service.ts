@@ -15,7 +15,7 @@ export interface User {
   email: string;
   role: string;
   isActive: boolean;
-  profileImage?: string;  // Puede contener base64 o URL de archivo (/uploads/profiles/...)
+  profileImage?: string;
   phone?: string;
   permissions?: string[];
   createdAt?: string;
@@ -33,7 +33,7 @@ export interface LoginResponse {
   refreshToken: string;
   user: User;
   expiresAt: string;
-  success?: boolean; // Opcional para compatibilidad
+  success?: boolean;
   message?: string;
 }
 
@@ -57,16 +57,12 @@ export class AuthService {
   }
 
 
-  /**
-   * Iniciar sesión
-   */
+
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.tryLoginWithFallback(credentials, 0);
   }
 
-  /**
-   * Intentar login con URLs de respaldo
-   */
+
   private tryLoginWithFallback(credentials: LoginRequest, urlIndex: number): Observable<LoginResponse> {
     const fallbackUrls = environment.fallbackUrls || [];
     const urls = [environment.apiUrl, ...fallbackUrls];
@@ -88,20 +84,18 @@ export class AuthService {
       catchError(error => {
         console.warn(`⚠️ Error con ${currentUrl}:`, error.message || error);
 
-        // Si es un error de red, intentar con la siguiente URL
+
         if (error.status === 0 || error.status >= 500 || error.name === 'TimeoutError') {
           return this.tryLoginWithFallback(credentials, urlIndex + 1);
         }
 
-        // Si es un error de autenticación (400, 401), no intentar otras URLs
+
         return throwError(() => error);
       })
     );
   }
 
-  /**
-   * Cerrar sesión
-   */
+
   logout(): void {
     try {
       this.http.post(`${environment.apiUrl}/auth/logout`, {}).subscribe({
@@ -113,38 +107,30 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  /**
-   * Verificar si el usuario está logueado
-   */
+
   isLoggedIn(): boolean {
     const token = this.getToken();
     return !!token && !this.isTokenExpired(token);
   }
 
-  /**
-   * Obtener token actual
-   */
+
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  /**
-   * Obtener usuario actual
-   */
+
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
-  /**
-   * Validar sesión actual
-   */
+
   validateSession(): Observable<boolean> {
     if (!this.isLoggedIn()) {
       this.logout();
       return throwError(() => new Error('Sesión expirada'));
     }
 
-    // Use local token validation instead of calling non-existent endpoint
+
     const token = this.getToken();
     if (token && !this.isTokenExpired(token)) {
       return of(true);
@@ -154,9 +140,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Refrescar token
-   */
+
   refreshToken(): Observable<LoginResponse> {
     const token = this.getToken();
     if (!token) {
@@ -177,15 +161,13 @@ export class AuthService {
       );
   }
 
-  /**
-   * Establecer sesión
-   */
+
   private setSession(token: string, user: User): void {
     localStorage.setItem(this.TOKEN_KEY, token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUserSubject.next(user);
 
-    // Cargar permisos del usuario al iniciar sesión
+
     if (user && user.id) {
       this.permissionsService.loadCurrentUserPermissions(Number(user.id)).subscribe({
         next: () => console.log('🔐 Permisos cargados tras inicio de sesión'),
@@ -194,18 +176,14 @@ export class AuthService {
     }
   }
 
-  /**
-   * Limpiar sesión
-   */
+
   private clearSession(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.currentUserSubject.next(null);
   }
 
-  /**
-   * Cargar usuario almacenado
-   */
+
   private loadStoredUser(): void {
     const token = this.getToken();
     const userStr = localStorage.getItem(this.USER_KEY);
@@ -215,7 +193,7 @@ export class AuthService {
         const user = JSON.parse(userStr);
         this.currentUserSubject.next(user);
 
-        // Cargar permisos del usuario recuperado
+
         if (user && user.id) {
           this.permissionsService.loadCurrentUserPermissions(Number(user.id)).subscribe({
             next: () => console.log('🔐 Permisos recuperados de sesión almacenada'),
@@ -231,9 +209,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Verificar si el token está expirado
-   */
+
   private isTokenExpired(token: string): boolean {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
@@ -244,14 +220,11 @@ export class AuthService {
     }
   }
 
-  /**
-   * Actualizar perfil del usuario
-   * Envía los datos actualizados al backend y actualiza el usuario en localStorage
-   */
+
   updateUserProfile(userId: string, userData: Partial<User>): Observable<User> {
     return this.http.put<User>(`${environment.apiUrl}/users/${userId}`, userData).pipe(
       tap(updatedUser => {
-        // Actualizar el usuario en localStorage y en el BehaviorSubject
+
         const currentUser = this.getCurrentUser();
         if (currentUser && currentUser.id === userId) {
           const mergedUser = { ...currentUser, ...updatedUser };
@@ -266,17 +239,14 @@ export class AuthService {
     );
   }
 
-  /**
-   * Actualizar foto de perfil del usuario
-   * Envía la imagen al backend y actualiza la URL en el usuario
-   */
+
   updateUserProfileImage(userId: string, imageFile: File): Observable<User> {
     const formData = new FormData();
     formData.append('profileImage', imageFile);
 
     return this.http.post<User>(`${environment.apiUrl}/users/${userId}/profile-image`, formData).pipe(
       tap(updatedUser => {
-        // Actualizar el usuario en localStorage y en el BehaviorSubject
+
         const currentUser = this.getCurrentUser();
         if (currentUser && currentUser.id === userId) {
           const mergedUser = { ...currentUser, ...updatedUser };
@@ -291,13 +261,11 @@ export class AuthService {
     );
   }
 
-  /**
-   * Eliminar foto de perfil del usuario
-   */
+
   deleteUserProfileImage(userId: string): Observable<User> {
     return this.http.delete<User>(`${environment.apiUrl}/users/${userId}/profile-image`).pipe(
       tap(updatedUser => {
-        // Actualizar el usuario en localStorage y en el BehaviorSubject
+
         const currentUser = this.getCurrentUser();
         if (currentUser && currentUser.id === userId) {
           const mergedUser = { ...currentUser, profileImage: undefined, profileImageUrl: undefined };
@@ -312,10 +280,7 @@ export class AuthService {
     );
   }
 
-  /**
-   * Cambiar contraseña del usuario
-   * Envía la contraseña actual y la nueva al backend para validación y actualización
-   */
+
   changePassword(userId: string, currentPassword: string, newPassword: string): Observable<{ success: boolean; message: string }> {
     const passwordData = {
       currentPassword,
@@ -336,10 +301,7 @@ export class AuthService {
     );
   }
 
-  /**
-   * Obtener actividades del usuario actual
-   * Consulta el historial de actividades desde el backend
-   */
+
   getUserActivities(limit: number = 50): Observable<any[]> {
     return this.http.get<any[]>(`${environment.apiUrl}/activities/me?limit=${limit}`).pipe(
       tap(activities => {

@@ -21,18 +21,18 @@ namespace FlexoAPP.API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Crear un nuevo backup de máquinas
-        /// </summary>
+
+
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateBackup([FromBody] MachineBackupRequestDto request)
         {
             try
             {
                 _logger.LogInformation("🔄 Iniciando creación de backup de máquinas");
-                
+
                 var result = await _backupService.CreateBackupAsync(request);
-                
+
                 if (result.Success)
                 {
                     return Ok(new
@@ -64,16 +64,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener lista de backups disponibles
-        /// </summary>
+
+
+
         [HttpGet("list")]
         public async Task<IActionResult> GetBackupsList()
         {
             try
             {
                 var backups = await _backupService.GetBackupsListAsync();
-                
+
                 return Ok(new
                 {
                     success = true,
@@ -93,17 +93,17 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Restaurar un backup específico
-        /// </summary>
+
+
+
         [HttpPost("restore/{backupId}")]
         public async Task<IActionResult> RestoreBackup(string backupId, [FromBody] RestoreBackupRequestDto? request = null)
         {
             try
             {
                 _logger.LogInformation($"🔄 Iniciando restauración de backup: {backupId}");
-                
-                // Crear backup de seguridad antes de restaurar si se solicita
+
+
                 if (request?.CreateBackupBeforeRestore == true)
                 {
                     var preRestoreBackup = await _backupService.CreateBackupAsync(new MachineBackupRequestDto
@@ -111,7 +111,7 @@ namespace FlexoAPP.API.Controllers
                         Description = $"Backup automático antes de restaurar {backupId}",
                         IncludeAllMachines = true
                     });
-                    
+
                     if (!preRestoreBackup.Success)
                     {
                         return BadRequest(new
@@ -122,9 +122,9 @@ namespace FlexoAPP.API.Controllers
                         });
                     }
                 }
-                
+
                 var success = await _backupService.RestoreBackupAsync(backupId);
-                
+
                 if (success)
                 {
                     return Ok(new
@@ -155,16 +155,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Eliminar un backup específico
-        /// </summary>
+
+
+
         [HttpDelete("{backupId}")]
         public async Task<IActionResult> DeleteBackup(string backupId)
         {
             try
             {
                 var success = await _backupService.DeleteBackupAsync(backupId);
-                
+
                 if (success)
                 {
                     return Ok(new
@@ -195,16 +195,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener datos de backup para reportes
-        /// </summary>
+
+
+
         [HttpGet("{backupId}/data")]
         public async Task<IActionResult> GetBackupDataForReports(string backupId)
         {
             try
             {
                 var data = await _backupService.GetBackupDataForReportsAsync(backupId);
-                
+
                 return Ok(new
                 {
                     success = true,
@@ -224,16 +224,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Crear backup automático diario
-        /// </summary>
+
+
+
         [HttpPost("daily")]
         public async Task<IActionResult> CreateDailyBackup()
         {
             try
             {
                 var result = await _backupService.CreateDailyBackupAsync();
-                
+
                 if (result.Success)
                 {
                     return Ok(new
@@ -265,16 +265,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Verificar integridad de un backup
-        /// </summary>
+
+
+
         [HttpGet("{backupId}/verify")]
         public async Task<IActionResult> VerifyBackupIntegrity(string backupId)
         {
             try
             {
                 var isValid = await _backupService.VerifyBackupIntegrityAsync(backupId);
-                
+
                 return Ok(new
                 {
                     success = true,
@@ -294,16 +294,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Exportar backup a archivo
-        /// </summary>
+
+
+
         [HttpGet("{backupId}/export")]
         public async Task<IActionResult> ExportBackup(string backupId, [FromQuery] string format = "zip")
         {
             try
             {
                 var fileData = await _backupService.ExportBackupToFileAsync(backupId, format);
-                
+
                 var fileName = format.ToLower() switch
                 {
                     "zip" => $"backup_{backupId}.zip",
@@ -350,9 +350,9 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Importar backup desde archivo
-        /// </summary>
+
+
+
         [HttpPost("import")]
         public async Task<IActionResult> ImportBackup(IFormFile file)
         {
@@ -373,7 +373,7 @@ namespace FlexoAPP.API.Controllers
                 var fileData = memoryStream.ToArray();
 
                 var result = await _backupService.ImportBackupFromFileAsync(fileData, file.FileName);
-                
+
                 if (result.Success)
                 {
                     return Ok(new
@@ -405,16 +405,16 @@ namespace FlexoAPP.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtener estadísticas de un backup
-        /// </summary>
+
+
+
         [HttpGet("{backupId}/stats")]
         public async Task<IActionResult> GetBackupStats(string backupId)
         {
             try
             {
                 var stats = await _backupService.GetBackupStatsAsync(backupId);
-                
+
                 return Ok(new
                 {
                     success = true,

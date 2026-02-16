@@ -1,24 +1,24 @@
 <div class="login-container">
-  <!-- Animated Background -->
+
   <div class="animated-background">
     <div class="floating-orb"></div>
     <div class="floating-orb"></div>
     <div class="floating-orb"></div>
   </div>
 
-  <!-- Left Side - Company Information -->
+
   <div class="company-info-section">
     <img src="../logo2.3.png" alt="FlexoSpring Logo" class="company-logo-main">
-    
-   
 
-    <!-- Real-time Clock -->
+
+
+
     <div class="clock-section">
       <div class="current-time">{{ currentTime() }}</div>
       <div class="current-date">{{ currentDate() }}</div>
     </div>
 
-    <!-- Mission Section -->
+
     <div class="mission-section">
       <h2 class="section-title">
         <mat-icon>flag</mat-icon>
@@ -29,49 +29,49 @@
       </p>
     </div>
 
-    <!-- Vision Section -->
+
     <div class="vision-section">
       <h2 class="section-title">
         <mat-icon>visibility</mat-icon>
         Visión
       </h2>
       <p class="section-text">
-        Consolidarnos en el 2030 como la compañía líder en soluciones sostenibles de empaques flexibles en Colombia, 
+        Consolidarnos en el 2030 como la compañía líder en soluciones sostenibles de empaques flexibles en Colombia,
         fortaleciendo nuestra presencia en la región y aportando a la construcción de un planeta mejor.
       </p>
     </div>
   </div>
 
-  <!-- Right Side - Login Form -->
+
   <div class="login-card">
-    <!-- Login Form -->
+
     <div class="login-form">
-      <!-- Logo Section -->
+
       <div class="logo-container">
         <img src="../usuario.2.0.png" alt="Usuario" class="company-logo">
       </div>
 
-      <!-- Form Header -->
+
       <div class="form-header">
         <h2>Iniciar Sesión</h2>
         <p>Accede a tu cuenta FlexoSpring</p>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-        <!-- Error Message -->
+
         <div class="error-message" *ngIf="errorMessage()">
           <mat-icon>error_outline</mat-icon>
           <span>{{ errorMessage() }}</span>
         </div>
 
-        <!-- User Code Field -->
+
         <div class="form-field">
           <mat-form-field appearance="outline">
             <mat-label>Usuario</mat-label>
-            <input 
-              matInput 
-              formControlName="userCode" 
-              autocomplete="username" 
+            <input
+              matInput
+              formControlName="userCode"
+              autocomplete="username"
               placeholder="Ingrese su usuario"
               type="text"
               inputmode="text" />
@@ -82,20 +82,20 @@
           </mat-form-field>
         </div>
 
-        <!-- Password Field -->
+
         <div class="form-field">
           <mat-form-field appearance="outline">
             <mat-label>Contraseña</mat-label>
-            <input 
-              matInput 
-              [type]="hidePassword() ? 'password' : 'text'" 
+            <input
+              matInput
+              [type]="hidePassword() ? 'password' : 'text'"
               formControlName="password"
-              autocomplete="current-password" 
+              autocomplete="current-password"
               placeholder="Ingrese su contraseña" />
-            <button 
-              mat-icon-button 
-              matSuffix 
-              type="button" 
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
               (click)="togglePasswordVisibility()"
               [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'">
               <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
@@ -108,11 +108,11 @@
 
 
 
-        <!-- Login Button -->
-        <button 
-          mat-raised-button 
-          type="submit" 
-          class="login-button" 
+
+        <button
+          mat-raised-button
+          type="submit"
+          class="login-button"
           [disabled]="loginForm.invalid || isLoading()">
           <mat-icon *ngIf="isLoading()" class="spinning">refresh</mat-icon>
           <span>{{ isLoading() ? 'Iniciando...' : 'Iniciar Sesión' }}</span>
