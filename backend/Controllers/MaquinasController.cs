@@ -11,14 +11,14 @@ using FlexoAPP.API.Services;
 
 namespace backend.Controllers
 {
-    /// <summary>
-    /// Controlador específico para el módulo de máquinas
-    /// Maneja los datos de la tabla maquinas
-    /// Implementa todas las funcionalidades solicitadas para el módulo de máquinas
-    /// </summary>
+
+
+
+
+
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Requiere autenticación para registrar actividades
+    [Authorize]
     public class MaquinasController : ControllerBase
     {
         private readonly FlexoAPPDbContext _context;
@@ -27,7 +27,7 @@ namespace backend.Controllers
         private readonly IActivityLoggerService _activityLogger;
 
         public MaquinasController(
-            FlexoAPPDbContext context, 
+            FlexoAPPDbContext context,
             ILogger<MaquinasController> logger,
             IMaquinaService maquinaService,
             IActivityLoggerService activityLogger)
@@ -38,30 +38,30 @@ namespace backend.Controllers
             _activityLogger = activityLogger;
         }
 
-        /// <summary>
-        /// GET: api/maquinas
-        /// Obtiene todos los registros de máquinas ordenados por fecha de tinta más reciente (descendente)
-        /// Muestra los campos solicitados: numeroMaquina, articulo, otSap, cliente, referencia, td, 
-        /// numeroColores, colores, kilos, fechaTintaEnMaquina, sustrato
-        /// </summary>
+
+
+
+
+
+
         [HttpGet]
         public async Task<ActionResult<object>> GetMaquinas([FromQuery] string? orderBy = "fechaTintaEnMaquina", [FromQuery] string? order = "desc")
         {
             try
             {
-                // ===== LOG DE INICIO DE CONSULTA =====
+
                 _logger.LogInformation("🔄 Obteniendo datos de máquinas usando RAW SQL");
 
-                // ===== USAR RAW SQL TEMPORALMENTE PARA EVITAR PROBLEMAS CON EF =====
+
                 var connectionString = _context.Database.GetConnectionString();
                 using var connection = new MySqlConnector.MySqlConnection(connectionString);
                 await connection.OpenAsync();
-                
-                // Construir ORDER BY dinámico
+
+
                 var orderByClause = "fecha_tinta_en_maquina DESC, numero_maquina";
                 if (orderBy?.ToLower() == "numeromaquina" || orderBy?.ToLower() == "machinenumber")
                 {
-                    orderByClause = order?.ToLower() == "desc" 
+                    orderByClause = order?.ToLower() == "desc"
                         ? "numero_maquina DESC, fecha_tinta_en_maquina DESC"
                         : "numero_maquina ASC, fecha_tinta_en_maquina DESC";
                 }
@@ -71,17 +71,17 @@ namespace backend.Controllers
                         ? "fecha_tinta_en_maquina ASC, numero_maquina"
                         : "fecha_tinta_en_maquina DESC, numero_maquina";
                 }
-                
+
                 using var command = connection.CreateCommand();
                 command.CommandText = $@"
-                    SELECT 
+                    SELECT
                         articulo, numero_maquina, ot_sap, cliente, referencia, td, tipo_impresion,
                         numero_colores, colores, kilos, metros, fecha_tinta_en_maquina, sustrato,
                         estado, observaciones, last_action_by, last_action_at, preparando_started_at,
                         created_by, updated_by, created_at, updated_at
                     FROM maquinas
                     ORDER BY {orderByClause}";
-                
+
                 var maquinas = new List<object>();
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
@@ -114,10 +114,10 @@ namespace backend.Controllers
                     });
                 }
 
-                // ===== LOG DE RESULTADOS OBTENIDOS =====
+
                 _logger.LogInformation($"✅ {maquinas.Count} registros de máquinas encontrados");
 
-                // ✅ Registrar actividad de consulta de máquinas
+
                 try
                 {
                     await _activityLogger.LogActivityAsync(
@@ -157,37 +157,37 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// PATCH: api/maquinas/{otSap}/status
-        /// Actualiza el estado de un programa de máquina y cambia el color de toda la línea en el frontend
-        /// Guarda la acción en la base de datos con información del usuario que realizó el cambio
-        /// Estados válidos: PREPARANDO, LISTO (verde), CORRIENDO (amarillo), SUSPENDIDO (rojo), TERMINADO (gris)
-        /// </summary>
-        /// <param name="otSap">OT SAP (identificador único) de la máquina a actualizar</param>
-        /// <param name="request">Objeto con el nuevo estado y observaciones opcionales</param>
-        /// <returns>Respuesta JSON con el resultado de la operación</returns>
-        [HttpPatch("{otSap}/status")] // Ruta: PATCH /api/maquinas/12345/status
+
+
+
+
+
+
+
+
+
+        [HttpPatch("{otSap}/status")]
         public async Task<ActionResult<object>> UpdateMachineStatus(string otSap, [FromBody] UpdateStatusRequest request)
         {
             try
             {
-                // ===== LOG DE ENTRADA =====
+
                 _logger.LogInformation($"🎯 PATCH /api/maquinas/{otSap}/status - Estado: {request?.Estado}, Observaciones: {request?.Observaciones}");
                 _logger.LogInformation($"🔐 Usuario autenticado: {User?.Identity?.IsAuthenticated ?? false}");
-                
-                // ===== VALIDAR REQUEST =====
+
+
                 if (request == null)
                 {
                     return BadRequest(new { success = false, message = "Request body es requerido" });
                 }
-                
+
                 if (string.IsNullOrWhiteSpace(request.Estado))
                 {
                     return BadRequest(new { success = false, message = "El campo 'estado' es requerido" });
                 }
-                
-                // ===== OBTENER INFORMACIÓN DEL USUARIO AUTENTICADO =====
-                int userId = 1; 
+
+
+                int userId = 1;
                 string userName = "Sistema";
                 try
                 {
@@ -197,7 +197,7 @@ namespace backend.Controllers
                 }
                 catch (Exception) { userId = 1; userName = "Sistema"; }
 
-                // ===== VERIFICAR PERMISOS DE ESTADO =====
+
                 string? permissionNeeded = request.Estado.ToUpper() switch
                 {
                     "PREPARANDO" => FlexoAPP.API.Models.PermissionCodes.MACHINES_STATUS_PREALISTANDO,
@@ -211,12 +211,12 @@ namespace backend.Controllers
                 if (permissionNeeded != null && !await HasPermissionAsync(userId, permissionNeeded))
                 {
                     _logger.LogWarning($"🚫 Usuario {userId} ({userName}) intentó cambiar estado a {request.Estado} sin permiso {permissionNeeded}");
-                    return Forbid(); // O StatusCode(403)
+                    return Forbid();
                 }
-                
+
                 var result = await _maquinaService.UpdateMachineStatusAsync(otSap, request.Estado, request.Observaciones, userId, userName);
 
-                // ===== RETORNAR RESPUESTA EXITOSA =====
+
                 return Ok(new
                 {
                     success = true,
@@ -245,19 +245,19 @@ namespace backend.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"❌ Error actualizando estado de máquina {otSap}");
-                return StatusCode(500, new 
-                { 
-                    success = false, 
-                    message = "Error interno del servidor al actualizar estado", 
-                    error = ex.Message 
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error interno del servidor al actualizar estado",
+                    error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// GET: api/maquinas/test-raw
-        /// ENDPOINT DE PRUEBA - Consulta directa a MySQL sin Entity Framework
-        /// </summary>
+
+
+
+
         [HttpGet("test-raw")]
         public async Task<ActionResult<object>> GetMaquinasRaw()
         {
@@ -266,10 +266,10 @@ namespace backend.Controllers
                 var connectionString = _context.Database.GetConnectionString();
                 using var connection = new MySqlConnector.MySqlConnection(connectionString);
                 await connection.OpenAsync();
-                
+
                 using var command = connection.CreateCommand();
                 command.CommandText = "SELECT articulo, numero_maquina, cliente, estado FROM maquinas LIMIT 5";
-                
+
                 var results = new List<object>();
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
@@ -282,7 +282,7 @@ namespace backend.Controllers
                         estado = reader.GetString(3)
                     });
                 }
-                
+
                 return Ok(new
                 {
                     success = true,
@@ -301,10 +301,10 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// POST: api/maquinas/maintenance/fix-schema
-        /// Repara el esquema de la base de datos (elimina duplicados, establece PK correcta)
-        /// </summary>
+
+
+
+
         [HttpPost("maintenance/fix-schema")]
         public async Task<ActionResult<object>> FixDatabaseSchema()
         {
@@ -321,11 +321,11 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// POST: api/maquinas/maintenance/update-kilos-precision
-        /// Actualiza la precisión decimal de la columna kilos de DECIMAL(10,2) a DECIMAL(10,3)
-        /// para permitir guardar valores con 3 decimales (ej: 2.234 kilos)
-        /// </summary>
+
+
+
+
+
         [HttpPost("maintenance/update-kilos-precision")]
         public async Task<ActionResult<object>> UpdateKilosDecimalPrecision()
         {
@@ -342,10 +342,10 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// POST: api/maquinas/seed-data
-        /// ENDPOINT TEMPORAL - Crear múltiples registros de prueba
-        /// </summary>
+
+
+
+
         [HttpPost("seed-data")]
         public async Task<ActionResult<object>> SeedTestData()
         {
@@ -462,14 +462,14 @@ namespace backend.Controllers
                     }
                 };
 
-                // Configurar colores para cada programa
+
                 testPrograms[0].SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO", "NEGRO" });
                 testPrograms[1].SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO" });
                 testPrograms[2].SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO", "NEGRO", "PANTONE 186C" });
                 testPrograms[3].SetColoresArray(new[] { "CYAN", "NEGRO" });
                 testPrograms[4].SetColoresArray(new[] { "CYAN", "MAGENTA", "AMARILLO", "NEGRO", "PANTONE 186C", "PANTONE 287C" });
 
-                // Agregar todos los programas
+
                 _context.Maquinas.AddRange(testPrograms);
                 await _context.SaveChangesAsync();
 
@@ -505,170 +505,170 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// GET: api/maquinas/machine/{numeroMaquina}
-        /// Obtiene todos los programas de una máquina específica ordenados por fecha más reciente
-        /// Útil para ver el historial de trabajos de una máquina particular (ej: máquina 15)
-        /// </summary>
-        /// <param name="numeroMaquina">Número de la máquina (11-21)</param>
-        /// <returns>Lista de programas de la máquina especificada</returns>
-        [HttpGet("machine/{numeroMaquina}")] // Ruta: GET /api/maquinas/machine/15
+
+
+
+
+
+
+
+        [HttpGet("machine/{numeroMaquina}")]
         public async Task<ActionResult<object>> GetProgramasPorMaquina(int numeroMaquina)
         {
             try
             {
-                // ===== LOG DE INICIO DE CONSULTA =====
-                // Registrar en el log que se está consultando una máquina específica
+
+
                 _logger.LogInformation($"🔄 Obteniendo programas para máquina {numeroMaquina}");
 
-                // ===== CONSULTA A LA BASE DE DATOS =====
-                // Construir y ejecutar consulta LINQ para obtener todos los programas de la máquina especificada
-                var programs = await _context.Maquinas // Acceder al DbSet de Maquinas
-                    // NOTA: Include comentado - no hay propiedades de navegación
-                    // .Include(p => p.CreatedByUser) // LEFT JOIN con tabla users para obtener datos del usuario creador
-                    // .Include(p => p.UpdatedByUser) // LEFT JOIN con tabla users para obtener datos del usuario actualizador
-                    .Where(p => p.NumeroMaquina == numeroMaquina) // Filtrar por número de máquina específico (WHERE numero_maquina = 15)
-                    .OrderByDescending(p => p.FechaTintaEnMaquina) // Ordenar por fecha de tinta descendente (más reciente primero)
-                    .ToListAsync(); // Ejecutar consulta asíncrona y convertir a lista
 
-                // ===== LOG DE RESULTADOS =====
-                // Registrar en el log la cantidad de programas encontrados
+
+                var programs = await _context.Maquinas
+
+
+
+                    .Where(p => p.NumeroMaquina == numeroMaquina)
+                    .OrderByDescending(p => p.FechaTintaEnMaquina)
+                    .ToListAsync();
+
+
+
                 _logger.LogInformation($"✅ {programs.Count} programas encontrados para máquina {numeroMaquina}");
 
-                // ===== TRANSFORMACIÓN DE DATOS =====
-                // Convertir cada programa a un objeto anónimo para serialización JSON
-                var result = programs.Select(p => new // p = cada programa de la máquina
-                {
-                    id = p.Articulo, // ID para compatibilidad con frontend (usa articulo como ID)
-                    articulo = p.Articulo, // Código del artículo (clave primaria)
-                    numeroMaquina = p.NumeroMaquina, // Número de máquina (11-21)
-                    otSap = p.OtSap, // Orden de trabajo SAP
-                    cliente = p.Cliente, // Nombre del cliente
-                    referencia = p.Referencia, // Referencia del producto
-                    td = p.Td, // Código TD (Tipo de Diseño)
-                    numeroColores = p.NumeroColores, // Cantidad de colores
-                    colores = ParseColores(p.Colores), // Array de colores parseado desde JSON
-                    kilos = p.Kilos, // Cantidad en kilogramos
-                    fechaTintaEnMaquina = p.FechaTintaEnMaquina, // Fecha de aplicación de tinta
-                    sustrato = p.Sustrato, // Tipo de material base
-                    estado = p.Estado, // Estado actual del programa
-                    observaciones = p.Observaciones, // Observaciones adicionales
-                    lastActionBy = p.LastActionBy, // Usuario que realizó la última acción
-                    lastActionAt = p.LastActionAt, // Timestamp de la última acción
-                    updatedAt = p.UpdatedAt // Timestamp de última actualización
-                }).ToList(); // Convertir proyección a lista en memoria
 
-                // ===== RETORNAR RESPUESTA EXITOSA =====
-                // Retornar HTTP 200 OK con los programas encontrados
+
+                var result = programs.Select(p => new
+                {
+                    id = p.Articulo,
+                    articulo = p.Articulo,
+                    numeroMaquina = p.NumeroMaquina,
+                    otSap = p.OtSap,
+                    cliente = p.Cliente,
+                    referencia = p.Referencia,
+                    td = p.Td,
+                    numeroColores = p.NumeroColores,
+                    colores = ParseColores(p.Colores),
+                    kilos = p.Kilos,
+                    fechaTintaEnMaquina = p.FechaTintaEnMaquina,
+                    sustrato = p.Sustrato,
+                    estado = p.Estado,
+                    observaciones = p.Observaciones,
+                    lastActionBy = p.LastActionBy,
+                    lastActionAt = p.LastActionAt,
+                    updatedAt = p.UpdatedAt
+                }).ToList();
+
+
+
                 return Ok(new
                 {
-                    success = true, // Indicador de operación exitosa
-                    message = $"{programs.Count} programas obtenidos para máquina {numeroMaquina}", // Mensaje descriptivo
-                    data = result, // Array con los programas de la máquina
-                    numeroMaquina = numeroMaquina, // Número de máquina consultado (para referencia)
-                    timestamp = DateTime.UtcNow // Timestamp UTC de la respuesta
+                    success = true,
+                    message = $"{programs.Count} programas obtenidos para máquina {numeroMaquina}",
+                    data = result,
+                    numeroMaquina = numeroMaquina,
+                    timestamp = DateTime.UtcNow
                 });
             }
-            catch (Exception ex) // Capturar cualquier excepción no controlada
+            catch (Exception ex)
             {
-                // ===== LOG DE ERROR =====
-                // Registrar el error en el log con stack trace completo
+
+
                 _logger.LogError(ex, $"❌ Error obteniendo programas para máquina {numeroMaquina}");
-                
-                // ===== RETORNAR RESPUESTA DE ERROR =====
-                // Retornar HTTP 500 Internal Server Error con detalles del error
+
+
+
                 return StatusCode(500, new
                 {
-                    success = false, // Indicador de operación fallida
-                    message = $"Error interno del servidor al obtener programas para máquina {numeroMaquina}", // Mensaje descriptivo
-                    error = ex.Message, // Mensaje específico de la excepción
-                    timestamp = DateTime.UtcNow // Timestamp UTC de la respuesta
+                    success = false,
+                    message = $"Error interno del servidor al obtener programas para máquina {numeroMaquina}",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
                 });
             }
         }
 
-        /// <summary>
-        /// Método auxiliar para parsear colores desde JSON string a array
-        /// Maneja errores de parsing y retorna array vacío en caso de error
-        /// </summary>
-        /// <param name="coloresJson">String JSON con los colores almacenados en MySQL</param>
-        /// <returns>Array de strings con los nombres de los colores</returns>
+
+
+
+
+
+
         private string[] ParseColores(string coloresJson)
         {
             try
             {
-                // ===== VALIDACIÓN DE ENTRADA =====
-                // Verificar si el string JSON está vacío o es null
-                if (string.IsNullOrWhiteSpace(coloresJson)) // Si coloresJson es null, vacío o solo espacios en blanco
-                    return new string[0]; // Retornar array vacío (sin colores)
 
-                // ===== PARSEO DE FORMATO JSON ARRAY =====
-                // Verificar si el string comienza con "[" indicando que es un array JSON válido
-                if (coloresJson.StartsWith("[")) // Ejemplo: ["CYAN","MAGENTA","AMARILLO"]
+
+                if (string.IsNullOrWhiteSpace(coloresJson))
+                    return new string[0];
+
+
+
+                if (coloresJson.StartsWith("["))
                 {
-                    // Deserializar el JSON a un array de strings usando Newtonsoft.Json
-                    return JsonConvert.DeserializeObject<string[]>(coloresJson) ?? new string[0]; // Si la deserialización falla, retornar array vacío
+
+                    return JsonConvert.DeserializeObject<string[]>(coloresJson) ?? new string[0];
                 }
 
-                // ===== MANEJO DE STRING SIMPLE (NO JSON) =====
-                // Si no es un array JSON, tratarlo como un string simple y convertirlo a array de un elemento
-                return new string[] { coloresJson }; // Ejemplo: "CYAN" se convierte en ["CYAN"]
+
+
+                return new string[] { coloresJson };
             }
-            catch (Exception ex) // Capturar cualquier excepción durante el parseo
+            catch (Exception ex)
             {
-                // ===== LOGGING DE ERROR =====
-                // Registrar advertencia en el log con el contenido que causó el error
+
+
                 _logger.LogWarning($"⚠️ Error parseando colores: {coloresJson}, Error: {ex.Message}");
-                
-                // Retornar array vacío para evitar que la aplicación falle
-                return new string[0]; // Array vacío como fallback seguro
+
+
+                return new string[0];
             }
         }
 
-        /// <summary>
-        /// Obtiene el ID del usuario actual desde los claims del JWT
-        /// Extrae el identificador único del usuario autenticado del token JWT
-        /// </summary>
-        /// <returns>ID del usuario o 0 si no se encuentra o no es válido</returns>
+
+
+
+
+
         private int GetCurrentUserId()
         {
-            // ===== EXTRACCIÓN DEL CLAIM DE USUARIO =====
-            // Buscar el claim NameIdentifier en el token JWT del usuario autenticado
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Obtener el valor del claim o null si no existe
-            
-            // ===== CONVERSIÓN Y VALIDACIÓN =====
-            // Intentar convertir el string del claim a entero
-            return int.TryParse(userIdClaim, out var userId) ? userId : 0; // Si la conversión es exitosa retornar userId, sino retornar 0
+
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+
+
+            return int.TryParse(userIdClaim, out var userId) ? userId : 0;
         }
 
-        /// <summary>
-        /// Verifica si el usuario actual tiene un permiso específico
-        /// </summary>
-        /// <param name="userId">ID del usuario</param>
-        /// <param name="permissionCode">Código del permiso a verificar</param>
-        /// <returns>True si tiene el permiso, False en caso contrario</returns>
+
+
+
+
+
+
         private async Task<bool> HasPermissionAsync(int userId, string permissionCode)
         {
             if (userId == 0) return false;
 
-            // El administrador (ID 1) tiene todos los permisos por defecto
+
             if (userId == 1) return true;
 
-            // Verificar si el usuario tiene el permiso concedido en la base de datos
-            return await _context.UserPermissions.AnyAsync(up => 
-                up.UserId == userId && 
-                up.PermissionCode == permissionCode && 
+
+            return await _context.UserPermissions.AnyAsync(up =>
+                up.UserId == userId &&
+                up.PermissionCode == permissionCode &&
                 up.IsGranted);
         }
 
 
 
 
-        /// <summary>
-        /// GET: api/maquinas/design-info/{articulo}
-        /// Obtiene información completa del diseño desde la tabla designs usando el artículo F
-        /// Retorna: cliente, referencia, colores y sustrato
-        /// </summary>
+
+
+
+
+
         [HttpGet("design-info/{articulo}")]
         public async Task<ActionResult<object>> GetDesignInfo(string articulo)
         {
@@ -676,11 +676,11 @@ namespace backend.Controllers
             {
                 _logger.LogInformation("📋 Obteniendo información de diseño para artículo: {Articulo}", articulo);
 
-                // Buscar el diseño por artículo F usando Raw SQL para evitar errores de mapeo
+
                 Design? design = null;
                 var colors = new List<string>();
                 int? colorCountFromDb = null;
-                
+
                 using (var conn = new MySqlConnector.MySqlConnection(_context.Database.GetConnectionString()))
                 {
                     await conn.OpenAsync();
@@ -690,11 +690,11 @@ namespace backend.Controllers
                                `color 1`, `color 2`, `color 3`, `color 4`, `color 5`,
                                `color 6`, `color 7`, `color 8`, `color 9`, `color 10`,
                                ColorCount
-                        FROM designs 
-                        WHERE ArticleF = @art 
+                        FROM designs
+                        WHERE ArticleF = @art
                         LIMIT 1";
                     cmd.Parameters.AddWithValue("@art", articulo);
-                    
+
                     using var reader = await cmd.ExecuteReaderAsync();
                     if (await reader.ReadAsync())
                     {
@@ -710,7 +710,7 @@ namespace backend.Controllers
                             Status = reader.IsDBNull(6) ? null : reader.GetString(6)
                         };
 
-                        // Cargar colores de las columnas 1-10
+
                         for (int i = 7; i <= 16; i++)
                         {
                             if (!reader.IsDBNull(i))
@@ -723,7 +723,7 @@ namespace backend.Controllers
                             }
                         }
 
-                        // Obtener el conteo de colores directo de la columna ColorCount
+
                         if (!reader.IsDBNull(17))
                         {
                             colorCountFromDb = reader.GetInt32(17);
@@ -746,9 +746,9 @@ namespace backend.Controllers
 
                 _logger.LogInformation("✅ Información de diseño encontrada para artículo {Articulo}", articulo);
 
-                // Determinar el número final de colores:
-                // 1. Usar la cantidad de pantones encontrados si hay alguno.
-                // 2. Fallback al campo ColorCount de la BD si es mayor que 0.
+
+
+
                 int finalColorCount = colors.Count > 0 ? colors.Count : (colorCountFromDb ?? 0);
 
                 return Ok(new
@@ -782,107 +782,107 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// GET: api/maquinas/colors/{articulo}
-        /// Obtiene los colores de un diseño específico desde la tabla designs usando el artículo F
-        /// (Mantenido para compatibilidad)
-        /// </summary>
+
+
+
+
+
         [HttpGet("colors/{articulo}")]
         public async Task<ActionResult<object>> GetColorsByArticulo(string articulo)
         {
-            // Redirigir al nuevo endpoint
+
             return await GetDesignInfo(articulo);
         }
 
 
 
-        /// <summary>
-        /// Obtiene el nombre completo del usuario actual desde los claims del JWT
-        /// Combina el nombre y apellido del usuario autenticado
-        /// </summary>
-        /// <returns>Nombre completo del usuario (FirstName + LastName)</returns>
+
+
+
+
+
         private string GetCurrentUserName()
         {
             try
             {
-                // ===== INTENTAR OBTENER DisplayName PRIMERO =====
-                // Este claim contiene el nombre completo del usuario (FirstName + LastName)
+
+
                 var displayName = User.FindFirst("DisplayName")?.Value;
                 if (!string.IsNullOrWhiteSpace(displayName))
                 {
                     _logger.LogInformation($"✅ Nombre obtenido de DisplayName: {displayName}");
                     return displayName;
                 }
-                
-                // ===== INTENTAR OBTENER DE ClaimTypes.Name =====
+
+
                 var name = User.FindFirst(ClaimTypes.Name)?.Value;
                 if (!string.IsNullOrWhiteSpace(name))
                 {
                     _logger.LogInformation($"✅ Nombre obtenido de ClaimTypes.Name: {name}");
                     return name;
                 }
-                
-                // ===== INTENTAR OBTENER DE Identity.Name =====
+
+
                 if (!string.IsNullOrWhiteSpace(User.Identity?.Name))
                 {
                     _logger.LogInformation($"✅ Nombre obtenido de Identity.Name: {User.Identity.Name}");
                     return User.Identity.Name;
                 }
-                
-                // ===== LOG DE CLAIMS DISPONIBLES PARA DEBUGGING =====
+
+
                 _logger.LogWarning("⚠️ No se encontró nombre del usuario. Claims disponibles:");
                 foreach (var claim in User.Claims)
                 {
                     _logger.LogWarning($"   - {claim.Type}: {claim.Value}");
                 }
-                
-                // ===== FALLBACK A "Usuario" =====
+
+
                 _logger.LogWarning("⚠️ Usando nombre por defecto: Usuario");
                 return "Usuario";
             }
             catch (Exception ex)
             {
-                // Capturar cualquier excepción al obtener el nombre del usuario
+
                 _logger.LogError(ex, "❌ Error obteniendo nombre del usuario");
-                // Retornar "Usuario" como valor por defecto en caso de error
+
                 return "Usuario";
             }
         }
 
-        /// <summary>
-        /// GET: api/maquinas/test-design/{articulo}
-        /// ENDPOINT DE PRUEBA - Verificar si un artículo existe en la tabla designs
-        /// Este endpoint permite probar si la consulta a la tabla de diseño funciona correctamente
-        /// </summary>
-        /// <param name="articulo">Código del artículo a buscar (ej: F204567)</param>
-        /// <returns>Información del diseño si existe, o lista de ejemplos si no existe</returns>
+
+
+
+
+
+
+
         [HttpGet("test-design/{articulo}")]
         public async Task<ActionResult<object>> TestDesignLookup(string articulo)
         {
             try
             {
-                // Log de inicio de la prueba con el artículo que se está buscando
+
                 _logger.LogInformation("🧪 TEST: Buscando artículo '{Articulo}' en tabla designs", articulo);
-                
-                // Contar el total de diseños en la tabla para verificar que hay datos
+
+
                 var totalDesigns = await _context.Designs.CountAsync();
-                // Registrar en el log cuántos diseños hay en total
+
                 _logger.LogInformation("📊 Total de diseños en tabla: {Total}", totalDesigns);
-                
-                // Buscar el diseño específico en la tabla designs usando el código de artículo
+
+
                 var design = await _context.Designs
-                    .Where(d => d.ArticleF == articulo) // Filtrar por código de artículo
-                    .FirstOrDefaultAsync(); // Obtener el primer resultado o null
-                
-                // Verificar si se encontró el diseño
+                    .Where(d => d.ArticleF == articulo)
+                    .FirstOrDefaultAsync();
+
+
                 if (design != null)
                 {
-                    // Si se encontró, registrar en el log el ID del diseño
+
                     _logger.LogInformation("✅ Diseño encontrado: ID={Id}", design.Id);
-                    
-                    // Extraer los colores del diseño en una lista
+
+
                     var colores = new List<string>();
-                    // Agregar cada color solo si no es null o vacío
+
                     if (!string.IsNullOrWhiteSpace(design.Color1)) colores.Add(design.Color1);
                     if (!string.IsNullOrWhiteSpace(design.Color2)) colores.Add(design.Color2);
                     if (!string.IsNullOrWhiteSpace(design.Color3)) colores.Add(design.Color3);
@@ -893,77 +893,77 @@ namespace backend.Controllers
                     if (!string.IsNullOrWhiteSpace(design.Color8)) colores.Add(design.Color8);
                     if (!string.IsNullOrWhiteSpace(design.Color9)) colores.Add(design.Color9);
                     if (!string.IsNullOrWhiteSpace(design.Color10)) colores.Add(design.Color10);
-                    
-                    // Retornar respuesta exitosa con toda la información del diseño
+
+
                     return Ok(new
                     {
-                        success = true, // Indicador de operación exitosa
-                        found = true, // Indicador de que el artículo fue encontrado
-                        message = $"Artículo '{articulo}' encontrado en tabla designs", // Mensaje descriptivo
-                        totalDesignsInTable = totalDesigns, // Total de diseños en la tabla
-                        design = new // Información completa del diseño encontrado
+                        success = true,
+                        found = true,
+                        message = $"Artículo '{articulo}' encontrado en tabla designs",
+                        totalDesignsInTable = totalDesigns,
+                        design = new
                         {
-                            id = design.Id, // ID del diseño
-                            articleF = design.ArticleF, // Código del artículo
-                            client = design.Client, // Cliente
-                            description = design.Description, // Descripción
-                            substrate = design.Substrate, // Sustrato
-                            type = design.Type, // Tipo
-                            printType = design.PrintType, // Tipo de impresión
-                            colorCount = design.ColorCount, // Cantidad de colores
-                            colores = colores, // Lista de colores
-                            status = design.Status // Estado
+                            id = design.Id,
+                            articleF = design.ArticleF,
+                            client = design.Client,
+                            description = design.Description,
+                            substrate = design.Substrate,
+                            type = design.Type,
+                            printType = design.PrintType,
+                            colorCount = design.ColorCount,
+                            colores = colores,
+                            status = design.Status
                         },
-                        timestamp = DateTime.UtcNow // Timestamp de la respuesta
+                        timestamp = DateTime.UtcNow
                     });
                 }
                 else
                 {
-                    // Si NO se encontró el diseño, registrar advertencia en el log
+
                     _logger.LogWarning("⚠️ Diseño NO encontrado");
-                    
-                    // Obtener algunos ejemplos de artículos de la tabla para ayudar al usuario
+
+
                     var ejemplos = await _context.Designs
-                        .Select(d => d.ArticleF) // Seleccionar solo el código de artículo
-                        .Take(10) // Tomar los primeros 10
-                        .ToListAsync(); // Convertir a lista
-                    
-                    // Retornar respuesta indicando que no se encontró el artículo
+                        .Select(d => d.ArticleF)
+                        .Take(10)
+                        .ToListAsync();
+
+
                     return Ok(new
                     {
-                        success = true, // Operación exitosa (aunque no se encontró el artículo)
-                        found = false, // Indicador de que el artículo NO fue encontrado
-                        message = $"Artículo '{articulo}' NO encontrado en tabla designs", // Mensaje descriptivo
-                        totalDesignsInTable = totalDesigns, // Total de diseños en la tabla
-                        ejemplosArticulos = ejemplos, // Lista de ejemplos de artículos
-                        sugerencia = "Verifica que el código de artículo sea exacto (mayúsculas/minúsculas y espacios)", // Sugerencia para el usuario
-                        timestamp = DateTime.UtcNow // Timestamp de la respuesta
+                        success = true,
+                        found = false,
+                        message = $"Artículo '{articulo}' NO encontrado en tabla designs",
+                        totalDesignsInTable = totalDesigns,
+                        ejemplosArticulos = ejemplos,
+                        sugerencia = "Verifica que el código de artículo sea exacto (mayúsculas/minúsculas y espacios)",
+                        timestamp = DateTime.UtcNow
                     });
                 }
             }
             catch (Exception ex)
             {
-                // Capturar cualquier excepción durante la búsqueda
+
                 _logger.LogError(ex, "❌ Error en test de búsqueda de diseño");
-                // Retornar respuesta de error con detalles
+
                 return StatusCode(500, new
                 {
-                    success = false, // Indicador de operación fallida
-                    error = ex.Message, // Mensaje de error
-                    innerError = ex.InnerException?.Message, // Error interno si existe
-                    stackTrace = ex.StackTrace, // Stack trace para debugging
-                    timestamp = DateTime.UtcNow // Timestamp de la respuesta
+                    success = false,
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message,
+                    stackTrace = ex.StackTrace,
+                    timestamp = DateTime.UtcNow
                 });
             }
-        } // Fin del método TestDesignLookup
+        }
 
-        /// <summary>
-        /// POST: api/maquinas/{articulo}/generate-ff459
-        /// Genera el formato FF459 para una máquina específica
-        /// Registra la fecha y hora de impresión en la tabla Activities
-        /// </summary>
-        /// <param name="articulo">Código del artículo de la máquina</param>
-        /// <returns>Datos del formato FF459 en formato JSON</returns>
+
+
+
+
+
+
+
         [HttpPost("{articulo}/generate-ff459")]
         public async Task<ActionResult<object>> GenerateFF459Format(string articulo)
         {
@@ -971,7 +971,7 @@ namespace backend.Controllers
             {
                 _logger.LogInformation($"📄 Generando formato FF459 para artículo: {articulo}");
 
-                // Obtener información del usuario
+
                 int userId = 1;
                 string userName = "Sistema";
                 try
@@ -989,21 +989,21 @@ namespace backend.Controllers
                     _logger.LogWarning(userEx, "⚠️ Error obteniendo información del usuario");
                 }
 
-                // ===== VERIFICAR PERMISOS =====
+
                 if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.MACHINES_PRINT))
                 {
                     _logger.LogWarning($"🚫 Usuario {userId} ({userName}) intentó generar FF459 sin permiso");
                     return Forbid();
                 }
 
-                // Buscar la máquina en la base de datos
+
                 var connectionString = _context.Database.GetConnectionString();
                 using var connection = new MySqlConnector.MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
                 using var command = connection.CreateCommand();
                 command.CommandText = @"
-                    SELECT 
+                    SELECT
                         articulo, numero_maquina, ot_sap, cliente, referencia, td,
                         numero_colores, colores, kilos, metros, fecha_tinta_en_maquina, sustrato,
                         estado, observaciones
@@ -1022,7 +1022,7 @@ namespace backend.Controllers
                     });
                 }
 
-                // Construir el objeto FF459
+
                 var ff459Data = new
                 {
                     articulo = reader.GetString("articulo"),
@@ -1046,7 +1046,7 @@ namespace backend.Controllers
 
                 await reader.CloseAsync();
 
-                // ✅ Registrar actividad de impresión del formato FF459
+
                 try
                 {
                     var timestamp = DateTime.Now;
@@ -1097,14 +1097,14 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// GET: api/maquinas/ff459-history
-        /// Obtiene el historial de impresiones del formato FF459
-        /// </summary>
-        /// <param name="articulo">Filtrar por artículo específico (opcional)</param>
-        /// <param name="startDate">Fecha de inicio (opcional)</param>
-        /// <param name="endDate">Fecha de fin (opcional)</param>
-        /// <returns>Lista de impresiones del formato FF459</returns>
+
+
+
+
+
+
+
+
         [HttpGet("ff459-history")]
         public async Task<ActionResult<object>> GetFF459History(
             [FromQuery] string? articulo = null,
@@ -1113,7 +1113,7 @@ namespace backend.Controllers
         {
             try
             {
-                // ===== VERIFICAR PERMISOS =====
+
                 int userId = GetCurrentUserId();
                 if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.MACHINES_PRINT))
                 {
@@ -1123,13 +1123,13 @@ namespace backend.Controllers
 
                 _logger.LogInformation("📊 Consultando historial de impresiones FF459");
 
-                // Construir consulta SQL con filtros opcionales
+
                 var connectionString = _context.Database.GetConnectionString();
                 using var connection = new MySqlConnector.MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
                 var query = @"
-                    SELECT 
+                    SELECT
                         a.Id,
                         a.UserId,
                         a.UserCode,
@@ -1215,17 +1215,17 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// POST: api/maquinas/import/excel-multisheet
-        /// Importa programación desde Excel con múltiples hojas (una por máquina)
-        /// Formato de hojas: MAQ 11, MAQ 12, ..., MAQ 21
-        /// Columnas: A=mq imp, C=articulo f, D=cliente, E=referencia, F=td, G=timp, 
-        ///           K=numero de colores, O=kilos, S=sustrato, T=ot sap, 
-        ///           W=colores en maquina (fecha), AG=metros
-        /// Filas: 1-2 son encabezados, datos desde fila 3 en adelante
-        /// </summary>
+
+
+
+
+
+
+
+
+
         [HttpPost("import/excel-multisheet")]
-        [RequestSizeLimit(524_288_000)] // 500MB limit
+        [RequestSizeLimit(524_288_000)]
         [RequestFormLimits(MultipartBodyLengthLimit = 524_288_000)]
         public async Task<IActionResult> ImportFromExcelMultiSheet(IFormFile file)
         {
@@ -1243,22 +1243,22 @@ namespace backend.Controllers
 
                 _logger.LogInformation($"📥 Iniciando importación masiva desde Excel: {file.FileName}");
 
-                // ===== VERIFICAR PERMISOS =====
+
                 int userId = GetCurrentUserId();
                 if (userId == 0) userId = 1;
 
-                if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.ACTION_IMPORT) && 
+                if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.ACTION_IMPORT) &&
                     !await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.ACTION_ADD_PROGRAMMING))
                 {
                     _logger.LogWarning($"🚫 Usuario {userId} intentó importar Excel sin permisos");
                     return Forbid();
                 }
 
-                // ===== ELIMINAR SOLO PROGRAMAS TERMINADOS (Optimizado para memoria) =====
+
                 var countTerminados = await _context.Maquinas
                     .Where(m => m.Estado == "TERMINADO")
                     .ExecuteDeleteAsync();
-                
+
                 if (countTerminados > 0)
                 {
                     _logger.LogInformation($"🗑️ {countTerminados} programas TERMINADOS eliminados antes de importar");
@@ -1268,7 +1268,7 @@ namespace backend.Controllers
                     _logger.LogInformation("ℹ️ No hay programas TERMINADOS para eliminar");
                 }
 
-                // Configurar EPPlus para uso no comercial
+
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
                 var importResults = new Dictionary<int, ImportSheetResult>();
@@ -1282,15 +1282,15 @@ namespace backend.Controllers
                     {
                         _logger.LogInformation($"� Excel contiene {package.Workbook.Worksheets.Count} hojas");
 
-                        // Procesar cada hoja del Excel
+
                         foreach (var worksheet in package.Workbook.Worksheets)
                         {
                             var sheetName = worksheet.Name.Trim();
                             _logger.LogInformation($"📄 Procesando hoja: {sheetName}");
 
-                            // Extraer número de máquina del nombre de la hoja (ej: "MAQ 11" → 11)
+
                             var machineNumber = ExtractMachineNumber(sheetName);
-                            
+
                             if (machineNumber == null)
                             {
                                 _logger.LogWarning($"⚠️ Hoja '{sheetName}' ignorada: no se pudo extraer número de máquina");
@@ -1305,25 +1305,25 @@ namespace backend.Controllers
 
                             _logger.LogInformation($"✅ Máquina identificada: {machineNumber}");
 
-                            // Abrir una única conexión para buscar diseños en esta hoja
+
                             using var designConn = new MySqlConnector.MySqlConnection(_context.Database.GetConnectionString());
                             await designConn.OpenAsync();
 
-                            // Procesar datos de la hoja
+
                             var result = await ProcessWorksheet(worksheet, machineNumber.Value, designConn);
                             importResults[machineNumber.Value] = result;
-                            
+
                             totalCreated += result.Created;
                             totalErrors += result.Errors;
                             sheetsProcessed++;
 
                             _logger.LogInformation($"📊 Máquina {machineNumber}: {result.Created} creados, {result.Updated} actualizados, {result.Errors} errores");
-                            
-                            // Forzar recolección de basura para liberar memoria de EPPlus tras cada hoja compleja
+
+
                             GC.Collect(2, GCCollectionMode.Forced, true);
                             _logger.LogDebug("🧹 Recolección de basura ejecutada tras finalizar hoja");
-                            
-                            // Log detallado si no se creó ningún registro
+
+
                             if (result.Created == 0)
                             {
                                 _logger.LogWarning($"⚠️ Máquina {machineNumber}: NO se crearon registros. Errores: {result.Errors}");
@@ -1367,13 +1367,13 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// Extrae el número de máquina del nombre de la hoja
-        /// Soporta formatos: "MAQ 11", "MAQ11", "Maquina 11", "11", etc.
-        /// </summary>
+
+
+
+
         private int? ExtractMachineNumber(string sheetName)
         {
-            // Buscar cualquier número en el nombre de la hoja
+
             var match = System.Text.RegularExpressions.Regex.Match(sheetName, @"\d+");
             if (match.Success && int.TryParse(match.Value, out int number))
             {
@@ -1382,41 +1382,41 @@ namespace backend.Controllers
             return null;
         }
 
-        /// <summary>
-        /// Procesa una hoja de Excel y crea registros de programación para una máquina
-        /// </summary>
+
+
+
         private async Task<ImportSheetResult> ProcessWorksheet(ExcelWorksheet worksheet, int machineNumber, MySqlConnector.MySqlConnection designConn)
         {
             var result = new ImportSheetResult();
             var rowCount = worksheet.Dimension?.Rows ?? 0;
-            var processedOts = new HashSet<string>(); // Rastrear OTs procesadas en esta hoja
+            var processedOts = new HashSet<string>();
 
             _logger.LogInformation($"📊 Procesando máquina {machineNumber}: Hoja tiene {rowCount} filas");
 
-            // Empezar desde la fila 3 (filas 1-2 son encabezados)
+
             for (int row = 3; row <= rowCount; row++)
             {
                 try
                 {
-                    // Leer datos de las columnas especificadas
-                    var otSap = GetCellValue(worksheet, row, "T")?.Trim(); // Columna T
-                    var articulo = GetCellValue(worksheet, row, "C")?.Trim(); // Columna C
-                    var cliente = GetCellValue(worksheet, row, "D")?.Trim(); // Columna D
 
-                    // Log de datos leídos para debugging
+                    var otSap = GetCellValue(worksheet, row, "T")?.Trim();
+                    var articulo = GetCellValue(worksheet, row, "C")?.Trim();
+                    var cliente = GetCellValue(worksheet, row, "D")?.Trim();
+
+
                     if (row == 3)
                     {
                         _logger.LogDebug($"🔍 Máquina {machineNumber}, Primera fila de datos: OT={otSap}, Articulo={articulo}, Cliente={cliente}");
                     }
 
-                    // Validar campos obligatorios
+
                     if (string.IsNullOrEmpty(otSap) || string.IsNullOrEmpty(articulo) || string.IsNullOrEmpty(cliente))
                     {
                         _logger.LogDebug($"⚠️ Fila {row} ignorada: faltan datos obligatorios (OT SAP, Artículo o Cliente)");
                         continue;
                     }
 
-                    // Verificar si la OT ya fue procesada en esta hoja
+
                     if (processedOts.Contains(otSap))
                     {
                         _logger.LogDebug($"⚠️ Fila {row} ignorada: OT {otSap} duplicada en el mismo archivo");
@@ -1425,34 +1425,34 @@ namespace backend.Controllers
                         continue;
                     }
 
-                    // Buscar si la OT ya existe en la base de datos para actualizarla
+
                     var existingMachine = await _context.Maquinas
                         .FirstOrDefaultAsync(m => m.OtSap == otSap);
-                    
+
                     bool isUpdate = existingMachine != null;
 
-                    // Marcar OT como procesada
+
                     processedOts.Add(otSap);
 
-                    var referencia = GetCellValue(worksheet, row, "E")?.Trim(); // Columna E
-                    var td = GetCellValue(worksheet, row, "F")?.Trim(); // Columna F
-                    var tipoImpresion = GetCellValue(worksheet, row, "G")?.Trim(); // Columna G
-                    var numeroColoresStr = GetCellValue(worksheet, row, "K")?.Trim(); // Columna K
-                    var kilosStr = GetCellValue(worksheet, row, "O")?.Trim(); // Columna O
-                    var sustrato = GetCellValue(worksheet, row, "S")?.Trim(); // Columna S
-                    var fechaTintaStr = GetCellValue(worksheet, row, "W")?.Trim(); // Columna W
-                    var metrosStr = GetCellValue(worksheet, row, "AG")?.Trim(); // Columna AG
+                    var referencia = GetCellValue(worksheet, row, "E")?.Trim();
+                    var td = GetCellValue(worksheet, row, "F")?.Trim();
+                    var tipoImpresion = GetCellValue(worksheet, row, "G")?.Trim();
+                    var numeroColoresStr = GetCellValue(worksheet, row, "K")?.Trim();
+                    var kilosStr = GetCellValue(worksheet, row, "O")?.Trim();
+                    var sustrato = GetCellValue(worksheet, row, "S")?.Trim();
+                    var fechaTintaStr = GetCellValue(worksheet, row, "W")?.Trim();
+                    var metrosStr = GetCellValue(worksheet, row, "AG")?.Trim();
 
-                    // Parsear número de colores con mejor manejo
-                    int numeroColores = 1; // Default
+
+                    int numeroColores = 1;
                     if (!string.IsNullOrEmpty(numeroColoresStr))
                     {
-                        // Intentar parsear como entero
+
                         if (int.TryParse(numeroColoresStr, out int coloresInt))
                         {
                             numeroColores = coloresInt;
                         }
-                        // Si falla, intentar parsear como decimal y convertir a entero
+
                         else if (decimal.TryParse(numeroColoresStr, out decimal coloresDecimal))
                         {
                             numeroColores = (int)coloresDecimal;
@@ -1468,49 +1468,85 @@ namespace backend.Controllers
                         _logger.LogDebug($"📊 Fila {row}: Número de colores vacío, usando default 1");
                     }
 
-                    // Parsear kilos - Solo parte entera (ignorar decimales tras la coma)
+
                     decimal kilos = 0;
                     if (!string.IsNullOrEmpty(kilosStr))
                     {
                         try {
-                            // 1. Dividir por coma para ignorar decimales (Usuario: "diguitos depues de la como no de usaran")
-                            var kiloParts = kilosStr.Split(',');
-                            var kiloIntPart = kiloParts[0];
-                            // 2. Limpiar todo lo que no sea número (puntos, espacios, etc)
-                            var kiloClean = new string(kiloIntPart.Where(c => char.IsDigit(c) || c == '-').ToArray());
-                            
-                            if (decimal.TryParse(kiloClean, out decimal kValue)) {
+
+
+
+
+
+                            var kiloClean = kilosStr.Replace(".", "");
+
+
+                            kiloClean = kiloClean.Replace(",", ".");
+
+
+                            if (decimal.TryParse(kiloClean, System.Globalization.NumberStyles.Any,
+                                System.Globalization.CultureInfo.InvariantCulture, out decimal kValue))
+                            {
                                 kilos = kValue;
-                                // Validar límite DECIMAL(10,3) - Máximo 7 dígitos enteros para dejar espacio a .000
-                                if (kilos > 9999999m) kilos = 9999999m;
+
+                                if (kilos > 9999999.999m) kilos = 9999999.999m;
+
+                                _logger.LogDebug($"💰 Fila {row}: Kilos parseados: '{kilosStr}' → {kilos}");
                             }
-                        } catch { kilos = 0; }
+                            else
+                            {
+                                _logger.LogWarning($"⚠️ Fila {row}: No se pudo parsear kilos '{kilosStr}'");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning($"⚠️ Fila {row}: Error parseando kilos '{kilosStr}': {ex.Message}");
+                            kilos = 0;
+                        }
                     }
 
-                    // Parsear metros - Solo parte entera (ignorar decimales tras la coma)
+
                     decimal? metros = null;
                     if (!string.IsNullOrEmpty(metrosStr))
                     {
                         try {
-                            // 1. Dividir por coma (formato ES: 1.234,56 -> 1.234)
+
+
+
+
                             var metroParts = metrosStr.Split(',');
                             var metroIntPart = metroParts[0];
-                            // 2. Limpiar caracteres no numéricos (ej: el punto de 1.234)
-                            var metroClean = new string(metroIntPart.Where(c => char.IsDigit(c) || c == '-').ToArray());
-                            
-                            if (decimal.TryParse(metroClean, out decimal mValue)) {
-                                // Validar límite DECIMAL(10,2) - Máximo 8 dígitos enteros
+
+
+                            var metroClean = metroIntPart.Replace(".", "");
+
+
+                            if (decimal.TryParse(metroClean, System.Globalization.NumberStyles.Any,
+                                System.Globalization.CultureInfo.InvariantCulture, out decimal mValue))
+                            {
+
                                 if (mValue > 99999999m) metros = 99999999m;
                                 else metros = mValue;
+
+                                _logger.LogDebug($"📏 Fila {row}: Metros parseados (solo enteros): '{metrosStr}' → {metros}");
                             }
-                        } catch { metros = null; }
+                            else
+                            {
+                                _logger.LogWarning($"⚠️ Fila {row}: No se pudo parsear metros '{metrosStr}'");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning($"⚠️ Fila {row}: Error parseando metros '{metrosStr}': {ex.Message}");
+                            metros = null;
+                        }
                     }
 
-                    // Parsear fecha - mejorado para manejar fechas de Excel
+
                     DateTime fechaTinta = DateTime.Now;
                     if (!string.IsNullOrEmpty(fechaTintaStr))
                     {
-                        // Primero intentar parsear como número de Excel (OADate)
+
                         if (double.TryParse(fechaTintaStr, out double oaDate))
                         {
                             try
@@ -1523,13 +1559,13 @@ namespace backend.Controllers
                                 _logger.LogWarning($"⚠️ Fila {row}: OADate inválido '{fechaTintaStr}', intentando otros formatos");
                             }
                         }
-                        
-                        // Si no es OADate, intentar parsear como string
+
+
                         if (fechaTinta == DateTime.Now && !DateTime.TryParse(fechaTintaStr, out fechaTinta))
                         {
-                            // Intentar parsear formato dd/mm/yyyy hh:mm
-                            var formats = new[] { 
-                                "dd/MM/yyyy HH:mm", 
+
+                            var formats = new[] {
+                                "dd/MM/yyyy HH:mm",
                                 "dd/MM/yyyy H:mm",
                                 "d/M/yyyy HH:mm",
                                 "d/M/yyyy H:mm",
@@ -1539,9 +1575,9 @@ namespace backend.Controllers
                                 "M/d/yyyy H:mm",
                                 "M/d/yyyy"
                             };
-                            
-                            if (!DateTime.TryParseExact(fechaTintaStr, formats, 
-                                System.Globalization.CultureInfo.InvariantCulture, 
+
+                            if (!DateTime.TryParseExact(fechaTintaStr, formats,
+                                System.Globalization.CultureInfo.InvariantCulture,
                                 System.Globalization.DateTimeStyles.None, out fechaTinta))
                             {
                                 _logger.LogWarning($"⚠️ Fila {row}: fecha inválida '{fechaTintaStr}', usando fecha actual");
@@ -1554,24 +1590,24 @@ namespace backend.Controllers
                         _logger.LogDebug($"📅 Fila {row}: Fecha vacía, usando fecha actual");
                     }
 
-                    // ===== CARGAR COLORES DESDE TABLA DE DISEÑO =====
-                    // Buscar el diseño por artículo F para obtener los colores
-                    // IMPORTANTE: Usar AsNoTracking para evitar conflictos de rastreo
-                    // ===== OBTENER DISEÑO (Usando Raw SQL para evitar errores de EF like '0HModified') =====
+
+
+
+
                     Design? design = null;
-                    try 
+                    try
                     {
                         using var designCmd = designConn.CreateCommand();
                         designCmd.CommandText = @"
-                            SELECT client, description, substrate, type, ancho_mm, printType, status, 
-                                   `color 1`, `color 2`, `color 3`, `color 4`, `color 5`, 
+                            SELECT client, description, substrate, type, ancho_mm, printType, status,
+                                   `color 1`, `color 2`, `color 3`, `color 4`, `color 5`,
                                    `color 6`, `color 7`, `color 8`, `color 9`, `color 10`,
                                    ColorCount
-                            FROM designs 
-                            WHERE ArticleF = @art 
+                            FROM designs
+                            WHERE ArticleF = @art
                             LIMIT 1";
                         designCmd.Parameters.AddWithValue("@art", articulo);
-                        
+
                         using var designReader = await designCmd.ExecuteReaderAsync();
                         if (await designReader.ReadAsync())
                         {
@@ -1603,11 +1639,11 @@ namespace backend.Controllers
                     {
                         _logger.LogWarning($"⚠️ Error al buscar diseño para {articulo}: {ex.Message}");
                     }
-                    
+
                     var coloresArray = new List<string>();
                     if (design != null)
                     {
-                        // Construir lista de colores desde las columnas Color1 a Color10
+
                         if (!string.IsNullOrWhiteSpace(design.Color1)) coloresArray.Add(design.Color1);
                         if (!string.IsNullOrWhiteSpace(design.Color2)) coloresArray.Add(design.Color2);
                         if (!string.IsNullOrWhiteSpace(design.Color3)) coloresArray.Add(design.Color3);
@@ -1618,7 +1654,7 @@ namespace backend.Controllers
                         if (!string.IsNullOrWhiteSpace(design.Color8)) coloresArray.Add(design.Color8);
                         if (!string.IsNullOrWhiteSpace(design.Color9)) coloresArray.Add(design.Color9);
                         if (!string.IsNullOrWhiteSpace(design.Color10)) coloresArray.Add(design.Color10);
-                        
+
                         _logger.LogDebug($"🎨 Fila {row}: {coloresArray.Count} colores cargados desde diseño para artículo {articulo}");
                     }
                     else
@@ -1626,29 +1662,29 @@ namespace backend.Controllers
                         _logger.LogDebug($"⚠️ Fila {row}: No se encontró diseño para artículo {articulo}");
                     }
 
-                    // FALLBACK: Si no hay colores del diseño, usar el número de colores del Excel
+
                     if (coloresArray.Count == 0)
                     {
-                        // Priorizar ColorCount de la tabla designs si existe
+
                         int fallbackCount = (design != null && design.ColorCount > 0) ? (int)design.ColorCount : numeroColores;
-                        
+
                         if (fallbackCount > 0)
                         {
                             _logger.LogDebug($"⚖️ Fila {row}: Usando {fallbackCount} colores como fallback (sin nombres de pantones)");
                             for (int i = 1; i <= fallbackCount; i++)
                             {
-                                // Llenar con etiquetas genéricas para que se visualicen los bloques en el frontend
+
                                 coloresArray.Add($"COLOR {i}");
                             }
                         }
                     }
 
-                    // Serializar colores a JSON
+
                     var coloresJson = System.Text.Json.JsonSerializer.Serialize(coloresArray);
 
-                    // Usar la entidad existente o crear una nueva
+
                     var maquina = existingMachine ?? new Maquina();
-                    
+
                     maquina.OtSap = otSap;
                     maquina.Articulo = articulo;
                     maquina.NumeroMaquina = machineNumber;
@@ -1662,38 +1698,50 @@ namespace backend.Controllers
                     maquina.Metros = metros;
                     maquina.FechaTintaEnMaquina = fechaTinta;
                     maquina.Sustrato = sustrato ?? "";
-                    
-                    // ===== LÓGICA DE ESTADO (PROTECCIÓN DE ESTADOS ACTIVOS) =====
-                    // Definir los estados que se deben proteger/mantener si ya existen
-                    // Eliminamos 'LISTO' de esta lista para que se resetee a 'Sin asignar' (null) según solicitud
-                    var protectedStates = new[] { "PREPARANDO", "SUSPENDIDO", "CORRIENDO" };
 
-                    // Si ya existe y está en un estado protegido, mantener tanto el estado como las observaciones
-                    if (isUpdate && existingMachine != null && !string.IsNullOrEmpty(existingMachine.Estado) 
+
+
+
+                    var protectedStates = new[] { "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO" };
+
+
+                    if (isUpdate && existingMachine != null && !string.IsNullOrEmpty(existingMachine.Estado)
                         && protectedStates.Contains(existingMachine.Estado.ToUpper()))
                     {
+
                         maquina.Estado = existingMachine.Estado;
-                        maquina.Observaciones = existingMachine.Observaciones; // Mantener motivo de suspensión/notas
-                        _logger.LogDebug($"🛡️ OT {otSap} mantiene estado protegido: {maquina.Estado}");
+
+
+
+                        maquina.Observaciones = existingMachine.Observaciones;
+
+
+                        maquina.LastActionBy = existingMachine.LastActionBy;
+                        maquina.LastActionAt = existingMachine.LastActionAt;
+
+
+                        maquina.PreparandoStartedAt = existingMachine.PreparandoStartedAt;
+
+                        _logger.LogDebug($"🛡️ OT {otSap} mantiene estado protegido: {maquina.Estado} con observaciones: {maquina.Observaciones}");
                     }
                     else
                     {
-                        // Si es nuevo o no está en un estado protegido, cargar como sin asignar
-                        maquina.Estado = null; // null se mapea a "Sin asignar" en el frontend
-                        
-                        maquina.Observaciones = isUpdate 
+
+                        maquina.Estado = null;
+
+                        maquina.Observaciones = isUpdate
                             ? $"Actualizado desde Excel - Hoja MAQ {machineNumber}"
                             : $"Importado desde Excel - Hoja MAQ {machineNumber}";
-                        
+
                         _logger.LogDebug($"🆕 OT {otSap} cargada como 'Sin asignar'");
                     }
-                    
+
                     if (!isUpdate) {
                         maquina.CreatedAt = DateTime.Now;
                     }
                     maquina.UpdatedAt = DateTime.Now;
 
-                    // Guardar en base de datos
+
                     if (isUpdate) {
                         _context.Maquinas.Update(maquina);
                         result.Updated++;
@@ -1703,8 +1751,8 @@ namespace backend.Controllers
                     }
 
                     await _context.SaveChangesAsync();
-                    
-                    // CRÍTICO: Limpiar el contexto después de guardar para evitar conflictos de rastreo
+
+
                     _context.ChangeTracker.Clear();
 
                     _logger.LogDebug($"✅ Fila {row}: Registro {(isUpdate ? "actualizado" : "creado")} - OT {otSap}");
@@ -1715,9 +1763,9 @@ namespace backend.Controllers
                     var errorMsg = $"Fila {row}: {ex.Message}";
                     result.ErrorDetails.Add(errorMsg);
                     _logger.LogError(ex, $"❌ Error procesando fila {row}");
-                    
-                    // CRÍTICO: Limpiar el contexto también en caso de error
-                    // Esto evita que errores en una fila afecten las siguientes
+
+
+
                     _context.ChangeTracker.Clear();
                 }
             }
@@ -1725,9 +1773,9 @@ namespace backend.Controllers
             return result;
         }
 
-        /// <summary>
-        /// Obtiene el valor de una celda por su referencia de columna (ej: "A", "C", "AG")
-        /// </summary>
+
+
+
         private string? GetCellValue(ExcelWorksheet worksheet, int row, string columnLetter)
         {
             try
@@ -1741,9 +1789,9 @@ namespace backend.Controllers
             }
         }
 
-        /// <summary>
-        /// Clase para almacenar resultados de importación por hoja
-        /// </summary>
+
+
+
         private class ImportSheetResult
         {
             public int Created { get; set; } = 0;
@@ -1752,17 +1800,17 @@ namespace backend.Controllers
             public List<string> ErrorDetails { get; set; } = new List<string>();
         }
 
-    } // Fin de la clase MaquinasController
+    }
 
-    /// <summary>
-    /// DTO para actualizar el estado de un programa de máquina
-    /// Contiene los campos necesarios para cambiar el estado de un programa
-    /// </summary>
+
+
+
+
     public class UpdateStatusRequest
     {
-        // Estado nuevo del programa (PREPARANDO, LISTO, CORRIENDO, SUSPENDIDO, TERMINADO)
+
         public string Estado { get; set; } = "";
-        // Observaciones opcionales sobre el cambio de estado
+
         public string? Observaciones { get; set; }
     }
-} // Fin del namespace
+}
