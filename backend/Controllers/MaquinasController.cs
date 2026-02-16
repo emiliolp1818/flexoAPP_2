@@ -1228,18 +1228,14 @@ namespace backend.Controllers
 
                 _logger.LogInformation($"📥 Iniciando importación masiva desde Excel: {file.FileName}");
 
-                // ===== ELIMINAR SOLO PROGRAMAS TERMINADOS =====
-                // Antes de importar, eliminar solo los programas con estado TERMINADO
-                // Los programas PREPARANDO, LISTO, SUSPENDIDO y CORRIENDO se mantienen
-                var programasTerminados = await _context.Maquinas
+                // ===== ELIMINAR SOLO PROGRAMAS TERMINADOS (Optimizado para memoria) =====
+                var countTerminados = await _context.Maquinas
                     .Where(m => m.Estado == "TERMINADO")
-                    .ToListAsync();
+                    .ExecuteDeleteAsync();
                 
-                if (programasTerminados.Any())
+                if (countTerminados > 0)
                 {
-                    _context.Maquinas.RemoveRange(programasTerminados);
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation($"🗑️ {programasTerminados.Count} programas TERMINADOS eliminados antes de importar");
+                    _logger.LogInformation($"🗑️ {countTerminados} programas TERMINADOS eliminados antes de importar");
                 }
                 else
                 {
@@ -1295,7 +1291,11 @@ namespace backend.Controllers
                             totalErrors += result.Errors;
                             sheetsProcessed++;
 
-                            _logger.LogInformation($"📊 Máquina {machineNumber}: {result.Created} creados, {result.Errors} errores");
+                            _logger.LogInformation($"📊 Máquina {machineNumber}: {result.Created} creados, {result.Updated} actualizados, {result.Errors} errores");
+                            
+                            // Forzar recolección de basura para liberar memoria de EPPlus tras cada hoja compleja
+                            GC.Collect(2, GCCollectionMode.Forced, true);
+                            _logger.LogDebug("🧹 Recolección de basura ejecutada tras finalizar hoja");
                             
                             // Log detallado si no se creó ningún registro
                             if (result.Created == 0)
