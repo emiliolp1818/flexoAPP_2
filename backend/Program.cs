@@ -246,7 +246,7 @@ try
     builder.Services.AddAuthorization();
 
     // ===== CONFIGURACIÓN DE BASE DE DATOS MYSQL RAILWAY =====
-    string connectionString;
+    string? connectionString;
     
     try 
     {
@@ -289,7 +289,7 @@ try
             // Usar versión fija para evitar problemas de conexión en Render
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 21));
             
-            options.UseMySql(connectionString, serverVersion, mySqlOptions =>
+            options.UseMySql(connectionString!, serverVersion, mySqlOptions =>
             {
                 mySqlOptions.CommandTimeout(90); // Aumentar timeout para Railway
                 mySqlOptions.EnableRetryOnFailure(

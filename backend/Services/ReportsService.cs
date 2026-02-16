@@ -33,7 +33,7 @@ namespace FlexoAPP.API.Services
                 query = query.Where(p => filter.MachineNumbers.Contains(p.NumeroMaquina));
 
             if (filter.Status?.Any() == true)
-                query = query.Where(p => filter.Status.Contains(p.Estado));
+                query = query.Where(p => p.Estado != null && filter.Status.Contains(p.Estado!));
 
             var programs = await query.ToListAsync();
 
@@ -68,7 +68,7 @@ namespace FlexoAPP.API.Services
                 query = query.Where(p => filter.MachineNumbers.Contains(p.NumeroMaquina));
 
             if (filter.Status?.Any() == true)
-                query = query.Where(p => filter.Status.Contains(p.Estado));
+                query = query.Where(p => p.Estado != null && filter.Status.Contains(p.Estado!));
 
             if (!string.IsNullOrEmpty(filter.Cliente))
                 query = query.Where(p => p.Cliente.Contains(filter.Cliente));
@@ -614,7 +614,7 @@ namespace FlexoAPP.API.Services
         /// Obtener actividades de máquinas desde backup real
         /// TODO: Implementar restauración real desde archivos de backup
         /// </summary>
-        public async Task<MachineActivityReportDto> GetMachineActivitiesFromBackupAsync(string backupId)
+        public Task<MachineActivityReportDto> GetMachineActivitiesFromBackupAsync(string backupId)
         {
             // TODO: Implementar carga real desde archivo de backup
             // var backupData = await _backupService.RestoreBackup(backupId);
@@ -632,7 +632,7 @@ namespace FlexoAPP.API.Services
             };
 
             // Retornar estructura vacía hasta implementar restauración real
-            return new MachineActivityReportDto
+            var report = new MachineActivityReportDto
             {
                 User = backupUser,              // Usuario representativo del backup
                 ReportDate = DateTime.Now,      // Fecha actual como placeholder
@@ -646,13 +646,15 @@ namespace FlexoAPP.API.Services
                 BackupId = backupId,            // ID del backup utilizado
                 IsFromBackup = true             // Flag indicando origen desde backup
             };
+
+            return Task.FromResult(report);
         }
 
         /// <summary>
         /// Obtener lista de usuarios desde la base de datos real
         /// TODO: Implementar consulta real a la tabla Users
         /// </summary>
-        public async Task<List<UserDto>> GetUsersListAsync()
+        public Task<List<UserDto>> GetUsersListAsync()
         {
             // TODO: Implementar consulta real a la base de datos
             // return await _context.Users
@@ -661,7 +663,7 @@ namespace FlexoAPP.API.Services
             //     .ToListAsync();
             
             // Por ahora, retornar solo el usuario administrador que existe
-            return new List<UserDto>
+            var users = new List<UserDto>
             {
                 new UserDto 
                 { 
@@ -674,6 +676,8 @@ namespace FlexoAPP.API.Services
                     IsActive = true 
                 }
             };
+
+            return Task.FromResult(users);
         }
 
         // Métodos auxiliares para generar datos simulados

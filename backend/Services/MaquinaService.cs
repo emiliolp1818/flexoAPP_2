@@ -310,7 +310,7 @@ namespace flexoAPP.Services
                 Metros = maquina.Metros,
                 FechaTintaEnMaquina = maquina.FechaTintaEnMaquina,
                 Sustrato = maquina.Sustrato,
-                Estado = maquina.Estado,
+                Estado = maquina.Estado ?? "LISTO",
                 Observaciones = maquina.Observaciones,
                 LastActionBy = maquina.LastActionBy,
                 LastActionAt = maquina.LastActionAt,

@@ -16,10 +16,9 @@ namespace FlexoAPP.API.Attributes
         private readonly bool _requireAll;
 
         /// <summary>
-        /// Constructor
+        /// Constructor que requiere TODOS los permisos especificados
         /// </summary>
         /// <param name="permissions">Permisos requeridos</param>
-        /// <param name="requireAll">Si es true, requiere TODOS los permisos. Si es false, requiere AL MENOS UNO</param>
         public RequirePermissionAttribute(params string[] permissions)
         {
             _requiredPermissions = permissions;

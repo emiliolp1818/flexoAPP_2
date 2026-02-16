@@ -375,10 +375,10 @@ namespace FlexoAPP.API.Repositories
                 if (!string.IsNullOrEmpty(search))
                 {
                     query = query.Where(d => 
-                        d.ArticleF.Contains(search) ||
-                        d.Client.Contains(search) ||
-                        d.Description.Contains(search) ||
-                        d.Substrate.Contains(search));
+                        (d.ArticleF ?? string.Empty).Contains(search) ||
+                        (d.Client ?? string.Empty).Contains(search) ||
+                        (d.Description ?? string.Empty).Contains(search) ||
+                        (d.Substrate ?? string.Empty).Contains(search));
                 }
 
                 // Get total count before pagination

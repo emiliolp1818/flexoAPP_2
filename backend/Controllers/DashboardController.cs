@@ -97,12 +97,14 @@ namespace FlexoAPP.API.Controllers
                     
                     // Contar máquinas en estado "Listo" (case insensitive)
                     readyOrders = allMaquinas.Count(m => 
-                        m.Estado.Equals("Listo", StringComparison.OrdinalIgnoreCase) ||
-                        m.Estado.Equals("LISTO", StringComparison.OrdinalIgnoreCase));
+                        !string.IsNullOrEmpty(m.Estado) &&
+                        (m.Estado.Equals("Listo", StringComparison.OrdinalIgnoreCase) ||
+                         m.Estado.Equals("LISTO", StringComparison.OrdinalIgnoreCase)));
                     
                     var today = DateTime.Today;
                     // Contar máquinas que cambiaron a "Listo" hoy
                     readyToday = allMaquinas.Count(m =>
+                        !string.IsNullOrEmpty(m.Estado) &&
                         (m.Estado.Equals("Listo", StringComparison.OrdinalIgnoreCase) ||
                          m.Estado.Equals("LISTO", StringComparison.OrdinalIgnoreCase)) &&
                         m.UpdatedAt.Date == today);

@@ -1254,11 +1254,8 @@ namespace backend.Controllers
                 var totalErrors = 0;
                 var sheetsProcessed = 0;
 
-                using (var stream = new MemoryStream())
+                using (var stream = file.OpenReadStream())
                 {
-                    await file.CopyToAsync(stream);
-                    stream.Position = 0;
-
                     using (var package = new ExcelPackage(stream))
                     {
                         _logger.LogInformation($"� Excel contiene {package.Workbook.Worksheets.Count} hojas");
@@ -1286,8 +1283,12 @@ namespace backend.Controllers
 
                             _logger.LogInformation($"✅ Máquina identificada: {machineNumber}");
 
+                            // Abrir una única conexión para buscar diseños en esta hoja
+                            using var designConn = new MySqlConnector.MySqlConnection(_context.Database.GetConnectionString());
+                            await designConn.OpenAsync();
+
                             // Procesar datos de la hoja
-                            var result = await ProcessWorksheet(worksheet, machineNumber.Value);
+                            var result = await ProcessWorksheet(worksheet, machineNumber.Value, designConn);
                             importResults[machineNumber.Value] = result;
                             
                             totalCreated += result.Created;
@@ -1358,7 +1359,7 @@ namespace backend.Controllers
         /// <summary>
         /// Procesa una hoja de Excel y crea registros de programación para una máquina
         /// </summary>
-        private async Task<ImportSheetResult> ProcessWorksheet(ExcelWorksheet worksheet, int machineNumber)
+        private async Task<ImportSheetResult> ProcessWorksheet(ExcelWorksheet worksheet, int machineNumber, MySqlConnector.MySqlConnection designConn)
         {
             var result = new ImportSheetResult();
             var rowCount = worksheet.Dimension?.Rows ?? 0;
@@ -1550,8 +1551,6 @@ namespace backend.Controllers
                     Design? design = null;
                     try 
                     {
-                        using var designConn = new MySqlConnector.MySqlConnection(_context.Database.GetConnectionString());
-                        await designConn.OpenAsync();
                         using var designCmd = designConn.CreateCommand();
                         designCmd.CommandText = @"
                             SELECT client, description, substrate, type, ancho_mm, printType, status, 
@@ -1644,8 +1643,8 @@ namespace backend.Controllers
                     maquina.Articulo = articulo;
                     maquina.NumeroMaquina = machineNumber;
                     maquina.Cliente = cliente;
-                    maquina.Referencia = referencia;
-                    maquina.Td = td;
+                    maquina.Referencia = referencia ?? string.Empty;
+                    maquina.Td = td ?? string.Empty;
                     maquina.TipoImpresion = tipoImpresion;
                     maquina.NumeroColores = coloresArray.Count;
                     maquina.Colores = coloresJson;

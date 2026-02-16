@@ -236,7 +236,7 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogInformation($"Getting document with ID: {id}");
                 
                 // Variable para almacenar el documento encontrado
-                object documento = null;
+                object? documento = null;
                 
                 // Crear conexión a la base de datos
                 using (var connection = new MySqlConnection(_connectionString))
@@ -647,7 +647,7 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogInformation($"Deleting document with ID: {id}");
                 
                 // Variable para almacenar la ruta del archivo a eliminar
-                string rutaArchivo = null;
+                string? rutaArchivo = null;
                 
                 // Crear conexión a la base de datos
                 using (var connection = new MySqlConnection(_connectionString))
