@@ -281,10 +281,10 @@ try
         throw;
     }
 
-    // ===== CONFIGURAR ENTITY FRAMEWORK CON MYSQL =====
+    // ===== CONFIGURAR ENTITY FRAMEWORK CON MYSQL (POOLING) =====
     try 
     {
-        builder.Services.AddDbContext<FlexoAPPDbContext>(options =>
+        builder.Services.AddDbContextPool<FlexoAPPDbContext>(options =>
         {
             // Usar versión fija para evitar problemas de conexión en Render
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 21));

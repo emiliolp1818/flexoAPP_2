@@ -1442,58 +1442,42 @@ namespace backend.Controllers
                         _logger.LogDebug($"📊 Fila {row}: Número de colores vacío, usando default 1");
                     }
 
-                    // Parsear kilos - Solo parte entera (sin decimales)
-                    // Según instrucción: aplicar lo mismo que metros (quitar puntos, ignorar lo que esté después de la coma)
+                    // Parsear kilos - Solo parte entera (ignorar decimales tras la coma)
                     decimal kilos = 0;
                     if (!string.IsNullOrEmpty(kilosStr))
                     {
-                        // 1. Quitar puntos (separadores de miles)
-                        var kilosClean = kilosStr.Replace(".", "").Trim();
-                        // 2. Tomar solo lo que está antes de la coma (separador decimal)
-                        var parts = kilosClean.Split(',');
-                        var kilosIntPart = parts[0];
-                        
-                        if (decimal.TryParse(kilosIntPart, out decimal kilosValue))
-                        {
-                            kilos = kilosValue;
+                        try {
+                            // 1. Dividir por coma para ignorar decimales (Usuario: "diguitos depues de la como no de usaran")
+                            var kiloParts = kilosStr.Split(',');
+                            var kiloIntPart = kiloParts[0];
+                            // 2. Limpiar todo lo que no sea número (puntos, espacios, etc)
+                            var kiloClean = new string(kiloIntPart.Where(c => char.IsDigit(c) || c == '-').ToArray());
                             
-                            // Validar límite DECIMAL(10,3)
-                            if (kilos > 9999999.999m) kilos = 0;
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"⚠️ Fila {row}: kilos inválido '{kilosStr}', usando 0");
-                        }
+                            if (decimal.TryParse(kiloClean, out decimal kValue)) {
+                                kilos = kValue;
+                                // Validar límite DECIMAL(10,3) - Máximo 7 dígitos enteros para dejar espacio a .000
+                                if (kilos > 9999999m) kilos = 9999999m;
+                            }
+                        } catch { kilos = 0; }
                     }
 
-                    // Parsear metros - Solo parte entera (antes de la coma/punto)
-                    // Según instrucción: ignorar decimales y cargar sin separadores
+                    // Parsear metros - Solo parte entera (ignorar decimales tras la coma)
                     decimal? metros = null;
                     if (!string.IsNullOrEmpty(metrosStr))
                     {
-                        // 1. Quitar puntos (separadores de miles en formato ES)
-                        // 2. Tomar solo lo que está antes de la coma (separador decimal)
-                        var metrosClean = metrosStr.Replace(".", "").Trim();
-                        var parts = metrosClean.Split(',');
-                        var metrosIntPart = parts[0];
-                        
-                        if (decimal.TryParse(metrosIntPart, out decimal metrosValue))
-                        {
-                            // Validar que no exceda el límite de DECIMAL(10,2)
-                            if (metrosValue > 99999999.99m)
-                            {
-                                _logger.LogWarning($"⚠️ Fila {row}: metros {metrosValue} excede límite, usando NULL");
-                                metros = null;
+                        try {
+                            // 1. Dividir por coma (formato ES: 1.234,56 -> 1.234)
+                            var metroParts = metrosStr.Split(',');
+                            var metroIntPart = metroParts[0];
+                            // 2. Limpiar caracteres no numéricos (ej: el punto de 1.234)
+                            var metroClean = new string(metroIntPart.Where(c => char.IsDigit(c) || c == '-').ToArray());
+                            
+                            if (decimal.TryParse(metroClean, out decimal mValue)) {
+                                // Validar límite DECIMAL(10,2) - Máximo 8 dígitos enteros
+                                if (mValue > 99999999m) metros = 99999999m;
+                                else metros = mValue;
                             }
-                            else
-                            {
-                                metros = metrosValue;
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"⚠️ Fila {row}: metros inválido '{metrosStr}', usando NULL");
-                        }
+                        } catch { metros = null; }
                     }
 
                     // Parsear fecha - mejorado para manejar fechas de Excel
