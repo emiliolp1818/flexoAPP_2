@@ -1665,20 +1665,32 @@ namespace backend.Controllers
                     
                     // ===== LÓGICA DE ESTADO (PROTECCIÓN DE ESTADOS ACTIVOS) =====
                     // Definir los estados que se deben proteger/mantener si ya existen
-                    // Eliminamos 'LISTO' de esta lista para que se resetee a 'Sin asignar' (null) según solicitud
-                    var protectedStates = new[] { "PREPARANDO", "SUSPENDIDO", "CORRIENDO" };
+                    // IMPORTANTE: Proteger TODOS los estados activos para no perder el progreso del operario
+                    var protectedStates = new[] { "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO" };
 
                     // Si ya existe y está en un estado protegido, mantener tanto el estado como las observaciones
                     if (isUpdate && existingMachine != null && !string.IsNullOrEmpty(existingMachine.Estado) 
                         && protectedStates.Contains(existingMachine.Estado.ToUpper()))
                     {
+                        // MANTENER el estado actual (no resetear)
                         maquina.Estado = existingMachine.Estado;
-                        maquina.Observaciones = existingMachine.Observaciones; // Mantener motivo de suspensión/notas
-                        _logger.LogDebug($"🛡️ OT {otSap} mantiene estado protegido: {maquina.Estado}");
+                        
+                        // MANTENER las observaciones existentes (especialmente importante para SUSPENDIDO)
+                        // Las observaciones contienen el motivo de suspensión y otra información crítica
+                        maquina.Observaciones = existingMachine.Observaciones;
+                        
+                        // MANTENER LastActionBy y LastActionAt para no perder el historial
+                        maquina.LastActionBy = existingMachine.LastActionBy;
+                        maquina.LastActionAt = existingMachine.LastActionAt;
+                        
+                        // MANTENER preparando_started_at para no perder el tiempo transcurrido
+                        maquina.PreparandoStartedAt = existingMachine.PreparandoStartedAt;
+                        
+                        _logger.LogDebug($"🛡️ OT {otSap} mantiene estado protegido: {maquina.Estado} con observaciones: {maquina.Observaciones}");
                     }
                     else
                     {
-                        // Si es nuevo o no está en un estado protegido, cargar como sin asignar
+                        // Si es nuevo o está TERMINADO, cargar como sin asignar
                         maquina.Estado = null; // null se mapea a "Sin asignar" en el frontend
                         
                         maquina.Observaciones = isUpdate 
