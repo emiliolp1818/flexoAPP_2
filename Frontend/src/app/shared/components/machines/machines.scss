@@ -4509,3 +4509,10 @@ tr.expanded-detail-row {
     background-color: $primary-blue-100 !important;
   }
 }
+// Colores para iconos de estado en el menú
+.status-icon-menu {
+  &.status-preparando { color: #f59e0b !important; }
+  &.status-listo { color: #10b981 !important; }
+  &.status-corriendo { color: #3b82f6 !important; }
+  &.status-terminado { color: #ef4444 !important; }
+}

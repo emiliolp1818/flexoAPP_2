@@ -72,7 +72,7 @@ export class ConsultaPedidosComponent implements OnInit {
   searchTermArticulo = signal('');
   pedidosAgrupados = signal<PedidoAgrupado[]>([]);
   allPedidos = signal<any[]>([]);
-  
+
   // Paginación
   pageSize = signal(25);
   pageIndex = signal(0);
@@ -110,7 +110,7 @@ export class ConsultaPedidosComponent implements OnInit {
     private snackBar: MatSnackBar,
     private backupService: MaquinasBackupService,
     private pantoneService: PantoneLiveService
-  ) {}
+  ) { }
 
   ngOnInit() {
     console.log('🔍 Módulo de Consulta de Pedidos inicializado');
@@ -132,7 +132,7 @@ export class ConsultaPedidosComponent implements OnInit {
       const todosPedidos = [...pedidosActuales, ...pedidosHistorico];
       this.allPedidos.set(todosPedidos);
       this.agruparPedidosCombinados(todosPedidos);
-      
+
       this.snackBar.open(`${todosPedidos.length} pedidos cargados (actuales + histórico)`, 'Cerrar', { duration: 2000 });
     } catch (error) {
       console.error('❌ Error cargando pedidos:', error);
@@ -145,7 +145,7 @@ export class ConsultaPedidosComponent implements OnInit {
   // Cargar pedidos actuales
   async cargarPedidosActuales(): Promise<any[]> {
     try {
-      const response: any = await this.http.get(`${environment.apiUrl}/maquinas`).toPromise();
+      const response: any = await this.http.get(`${environment.apiUrl}/maquinas`).toPromise() || { success: false };
       if (response && response.success && response.data) {
         return response.data.map((p: any) => ({ ...p, esHistorico: false }));
       }
@@ -167,7 +167,7 @@ export class ConsultaPedidosComponent implements OnInit {
       if (this.searchTermArticulo()) filters.articulo = this.searchTermArticulo();
       if (this.searchTermOT()) filters.otSap = this.searchTermOT();
 
-      const response = await this.backupService.searchBackup(filters).toPromise();
+      const response: any = await this.backupService.searchBackup(filters).toPromise() || { data: [] };
       if (response && response.data) {
         return response.data.map((p: any) => ({ ...p, esHistorico: true }));
       }
@@ -216,7 +216,7 @@ export class ConsultaPedidosComponent implements OnInit {
       }
     });
 
-    const agrupados = Array.from(grupos.values()).sort((a, b) => 
+    const agrupados = Array.from(grupos.values()).sort((a, b) =>
       a.articulo.localeCompare(b.articulo)
     );
 
@@ -226,7 +226,7 @@ export class ConsultaPedidosComponent implements OnInit {
   // Parsear colores desde JSON string
   parseColores(coloresData: any): string[] {
     if (!coloresData) return [];
-    
+
     try {
       if (typeof coloresData === 'string') {
         return JSON.parse(coloresData);
@@ -236,7 +236,7 @@ export class ConsultaPedidosComponent implements OnInit {
     } catch (e) {
       console.warn('Error parseando colores:', e);
     }
-    
+
     return [];
   }
 
@@ -344,15 +344,15 @@ export class ConsultaPedidosComponent implements OnInit {
   getTextColor(hexColor: string): string {
     // Remover el # si existe
     const hex = hexColor.replace('#', '');
-    
+
     // Convertir a RGB
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
-    
+
     // Calcular brillo usando la fórmula de luminancia relativa
     const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    
+
     // Si el brillo es mayor a 128, usar texto negro, sino blanco
     return brightness > 128 ? '#000000' : '#FFFFFF';
   }

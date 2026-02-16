@@ -1031,7 +1031,7 @@ $header-blue-900: #1e3a8a;
 .scrollable-table-area {
   flex: 1; 
   padding: 0 12px 12px 12px; 
-  overflow: hidden; 
+  overflow: visible; // Cambiar a visible para permitir scroll interno
   display: flex; 
   flex-direction: column; 
   min-height: 0; 
@@ -1109,7 +1109,7 @@ $header-blue-900: #1e3a8a;
 .table-container {
   flex: 1; 
   overflow-y: auto; 
-  overflow-x: hidden; 
+  overflow-x: auto; 
   position: relative; 
   min-height: 0; 
 
@@ -1174,8 +1174,8 @@ $header-blue-900: #1e3a8a;
 
 .designs-table-modern {
   width: 100%;
-  min-width: 100%;
-  max-width: 100%;
+  min-width: 1400px; // Ancho mínimo para activar scroll horizontal
+  max-width: none; // Permitir que la tabla sea más ancha
   background: white;
   border-collapse: separate;
   border-spacing: 0;
@@ -3051,7 +3051,9 @@ $header-blue-900: #1e3a8a;
   
   ::ng-deep .mat-mdc-tab-body-content {
     height: 100%;
-    overflow: hidden;
+    overflow: visible; // Permitir que el contenido interno maneje su propio scroll
+    display: flex;
+    flex-direction: column;
   }
   
   ::ng-deep .mat-mdc-tab-labels {

@@ -663,51 +663,6 @@ namespace backend.Controllers
 
 
 
-        /// <summary>
-        /// DELETE: api/maquinas/clear-all
-        /// Limpiar toda la programación de máquinas
-        /// </summary>
-        [HttpDelete("clear-all")]
-        public async Task<ActionResult<object>> ClearAllProgramming()
-        {
-            try
-            {
-                var userId = GetCurrentUserId();
-                if (userId == 0) userId = 1; // Usuario por defecto
-
-                // ===== VERIFICAR PERMISOS =====
-                if (!await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.USERS_DELETE) && 
-                    !await HasPermissionAsync(userId, FlexoAPP.API.Models.PermissionCodes.PERMISSIONS_MANAGE))
-                {
-                    _logger.LogWarning($"🚫 Usuario {userId} intentó limpiar toda la programación sin permisos adecuados");
-                    return Forbid();
-                }
-
-                _logger.LogWarning("🗑️ Limpiando toda la programación de máquinas - Usuario: {UserId}", userId);
-
-                var deletedCount = await _maquinaService.ClearAllProgrammingAsync(userId);
-
-                return Ok(new
-                {
-                    success = true,
-                    message = $"Programación limpiada exitosamente. {deletedCount} programas eliminados.",
-                    deletedCount = deletedCount,
-                    clearedAt = DateTime.UtcNow,
-                    timestamp = DateTime.UtcNow
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error limpiando programación de máquinas");
-                return StatusCode(500, new
-                {
-                    success = false,
-                    error = "Error interno del servidor",
-                    message = ex.Message,
-                    timestamp = DateTime.UtcNow
-                });
-            }
-        }
 
         /// <summary>
         /// GET: api/maquinas/design-info/{articulo}

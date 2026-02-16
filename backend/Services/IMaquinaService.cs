@@ -6,7 +6,6 @@ namespace flexoAPP.Services
     public interface IMaquinaService
     {
         Task<MaquinaDto> UpdateMachineStatusAsync(string otSap, string estado, string? observaciones, int? userId, string? userName);
-        Task<int> ClearAllProgrammingAsync(int? userId);
         Task<object> FixDatabaseSchemaAsync();
         Task<object> UpdateKilosDecimalPrecisionAsync();
     }

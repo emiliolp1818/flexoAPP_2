@@ -61,7 +61,7 @@ export class CreateUserDialogComponent implements OnInit {
     { value: 'Retornos', label: 'Retornos', icon: 'assignment_return' }
   ];
 
-  constructor() {}
+  constructor() { }
 
   ngOnInit() {
     this.initializeForm();
@@ -165,12 +165,12 @@ export class CreateUserDialogComponent implements OnInit {
       '#2563eb', '#7c3aed', '#dc2626', '#059669', '#d97706',
       '#0891b2', '#be185d', '#4338ca', '#16a34a', '#ea580c'
     ];
-    
+
     let hash = 0;
     for (let i = 0; i < firstName.length; i++) {
       hash = firstName.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
+
     return colors[Math.abs(hash) % colors.length];
   }
 
@@ -191,10 +191,10 @@ export class CreateUserDialogComponent implements OnInit {
     }
 
     this.loading.set(true);
-    
+
     try {
       const formData = this.userForm.value;
-      
+
       // Preparar datos del usuario - CORREGIDO PARA MYSQL CON IMAGEN BASE64
       const createUserDto = {
         userCode: formData.userCode.trim(),
@@ -216,7 +216,7 @@ export class CreateUserDialogComponent implements OnInit {
 
       // Crear usuario en la base de datos MySQL
       console.log('🔄 Enviando datos a:', `${environment.apiUrl}/auth/users`);
-      const response = await this.http.post<any>(`${environment.apiUrl}/auth/users`, createUserDto).toPromise();
+      const response = await this.http.post<any>(`${environment.apiUrl}/auth/users`, createUserDto).toPromise() || { success: false };
 
       if (response) {
         console.log('✅ Usuario creado exitosamente:', response);
@@ -236,7 +236,7 @@ export class CreateUserDialogComponent implements OnInit {
       }
     } catch (error: any) {
       console.error('❌ Error creando usuario:', error);
-      
+
       let errorMessage = 'Error al crear el usuario';
       if (error.error?.message) {
         errorMessage = error.error.message;

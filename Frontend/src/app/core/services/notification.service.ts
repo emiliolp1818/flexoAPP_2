@@ -28,8 +28,8 @@ export class NotificationService {
    */
   private async loadNotificationSettings() {
     try {
-      const configs = await this.http.get<any[]>(`${environment.apiUrl}/system/configs`).toPromise();
-      
+      const configs = await this.http.get<any[]>(`${environment.apiUrl}/system/configs`).toPromise() || [];
+
       if (configs) {
         const enabledConfig = configs.find(c => c.id === 'enable_notifications');
         const soundConfig = configs.find(c => c.id === 'notification_sound');
@@ -157,7 +157,7 @@ export class NotificationService {
   private playNotificationSound(type: 'success' | 'error' | 'info' | 'warning') {
     try {
       const audio = new Audio();
-      
+
       // Usar diferentes tonos según el tipo de notificación
       switch (type) {
         case 'success':

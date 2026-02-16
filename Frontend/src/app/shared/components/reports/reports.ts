@@ -258,7 +258,7 @@ export class ReportsComponent implements OnInit {
       console.log('📊 Total de actividades recibidas:', response?.activities?.length || 0);
 
       if (response && response.activities) {
-        const activities = response.activities.map((a: any) => ({
+        const activities: AuditActivity[] = (response.activities as any[]).map((a: any) => ({
           ...a,
           timestamp: new Date(a.timestamp),
           expanded: false

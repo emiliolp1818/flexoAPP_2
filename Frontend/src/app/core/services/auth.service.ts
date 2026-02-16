@@ -19,7 +19,8 @@ export interface User {
   phone?: string;
   permissions?: string[];
   createdAt?: string;
-  lastLogin?: string;
+  lastLogin?: string | Date | null;
+  lastLogout?: string | Date | null;
 }
 
 export interface LoginRequest {
@@ -102,6 +103,12 @@ export class AuthService {
    * Cerrar sesión
    */
   logout(): void {
+    try {
+      this.http.post(`${environment.apiUrl}/auth/logout`, {}).subscribe({
+        next: () => { },
+        error: () => { }
+      });
+    } catch { }
     this.clearSession();
     this.router.navigate(['/login']);
   }

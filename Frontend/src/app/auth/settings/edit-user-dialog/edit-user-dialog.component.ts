@@ -96,7 +96,7 @@ export class EditUserDialogComponent implements OnInit {
 
   // ===== CONSTRUCTOR =====
   // Recibe los datos del usuario a editar mediante inyección de datos del diálogo
-  constructor(@Inject(MAT_DIALOG_DATA) public userData: User) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public userData: User) { }
 
   // ===== CICLO DE VIDA DEL COMPONENTE =====
   /**
@@ -123,35 +123,35 @@ export class EditUserDialogComponent implements OnInit {
         Validators.maxLength(50),                      // Máximo 50 caracteres
         Validators.pattern(/^[A-Za-z0-9\-_]+$/)       // Solo letras, números, guiones y guiones bajos
       ]],
-      
+
       // Campo nombre - Nombre del usuario
       firstName: ['', [
         Validators.required,                           // Campo obligatorio
         Validators.minLength(2),                       // Mínimo 2 caracteres
         Validators.maxLength(50)                       // Máximo 50 caracteres
       ]],
-      
+
       // Campo apellido - Apellido del usuario
       lastName: ['', [
         Validators.required,                           // Campo obligatorio
         Validators.minLength(2),                       // Mínimo 2 caracteres
         Validators.maxLength(50)                       // Máximo 50 caracteres
       ]],
-      
+
       // Campo rol - Rol del usuario en el sistema
       role: ['', Validators.required],                 // Campo obligatorio, debe ser uno de los roles disponibles
-      
+
       // Campo email - Correo electrónico (opcional)
       email: ['', [
         Validators.email,                              // Validación de formato de email
         Validators.maxLength(100)                      // Máximo 100 caracteres
       ]],
-      
+
       // Campo teléfono - Número de teléfono (opcional)
       phone: ['', [
         Validators.pattern(/^[\+]?[0-9\s\-\(\)]{7,20}$/) // Patrón para números de teléfono internacionales
       ]],
-      
+
       // Campo estado activo - Determina si el usuario puede acceder al sistema
       isActive: [true]                                 // Por defecto activo
     });
@@ -178,7 +178,7 @@ export class EditUserDialogComponent implements OnInit {
 
       // Aplicar los datos al formulario reactivo
       this.userForm.patchValue(formData);
-      
+
       // Guardar copia de datos originales para detectar cambios posteriores
       this.originalFormData.set({ ...formData });
 
@@ -205,7 +205,7 @@ export class EditUserDialogComponent implements OnInit {
   hasChanges(): boolean {
     const currentData = this.userForm.value;      // Datos actuales del formulario
     const originalData = this.originalFormData(); // Datos originales guardados
-    
+
     // Si no hay datos originales, no hay cambios
     if (!originalData) return false;
 
@@ -222,7 +222,7 @@ export class EditUserDialogComponent implements OnInit {
    */
   onFileSelected(event: any) {
     const file = event.target.files[0];  // Obtener el primer archivo seleccionado
-    
+
     if (file) {
       // ===== VALIDACIÓN DE TIPO DE ARCHIVO =====
       // Solo permitir archivos de imagen (image/*)
@@ -269,11 +269,11 @@ export class EditUserDialogComponent implements OnInit {
     // Obtener nombre del formulario actual o datos originales
     const firstName = this.userForm.get('firstName')?.value || this.userData.firstName || '';
     const lastName = this.userForm.get('lastName')?.value || this.userData.lastName || '';
-    
+
     // Extraer primera letra de cada nombre
     const firstInitial = firstName.charAt(0).toUpperCase();
     const lastInitial = lastName.charAt(0).toUpperCase();
-    
+
     // Retornar iniciales o "NU" (Nuevo Usuario) si no hay datos
     return firstInitial + lastInitial || 'NU';
   }
@@ -286,19 +286,19 @@ export class EditUserDialogComponent implements OnInit {
   getPreviewAvatarColor(): string {
     // Obtener nombre para generar hash (actual o original)
     const firstName = this.userForm.get('firstName')?.value || this.userData.firstName || 'default';
-    
+
     // Paleta de colores corporativos para avatares
     const colors = [
       '#2563eb', '#7c3aed', '#dc2626', '#059669', '#d97706',  // Azul, Púrpura, Rojo, Verde, Naranja
       '#0891b2', '#be185d', '#4338ca', '#16a34a', '#ea580c'   // Cian, Rosa, Índigo, Verde Lima, Naranja Oscuro
     ];
-    
+
     // Generar hash simple del nombre para consistencia
     let hash = 0;
     for (let i = 0; i < firstName.length; i++) {
       hash = firstName.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
+
     // Retornar color basado en el hash
     return colors[Math.abs(hash) % colors.length];
   }
@@ -313,17 +313,17 @@ export class EditUserDialogComponent implements OnInit {
   getProfileImageUrl(profileImageUrl: string | undefined): string {
     // Si no hay URL, retornar cadena vacía
     if (!profileImageUrl || profileImageUrl.trim() === '' || profileImageUrl === 'null') return '';
-    
+
     // Si es base64, devolverla directamente
     if (profileImageUrl.startsWith('data:image/')) {
       return profileImageUrl;
     }
-    
+
     // Si ya es una URL completa (http/https), devolverla tal como está
     if (profileImageUrl.startsWith('http')) {
       return profileImageUrl;
     }
-    
+
     // Si es una ruta relativa, construir URL completa usando imageBaseUrl del environment
     const baseUrl = (environment as any).imageBaseUrl || environment.apiUrl.replace('/api', '');
     const imagePath = profileImageUrl.startsWith('/') ? profileImageUrl : `/${profileImageUrl}`;
@@ -340,13 +340,13 @@ export class EditUserDialogComponent implements OnInit {
   formatFullDate(date: any): string {
     // Si no hay fecha, mostrar mensaje por defecto
     if (!date) return 'No disponible';
-    
+
     // Convertir a objeto Date
     const targetDate = new Date(date);
-    
+
     // Verificar si la fecha es válida (NaN indica fecha inválida)
     if (isNaN(targetDate.getTime())) return 'No disponible';
-    
+
     // Formatear fecha en español con formato completo
     return targetDate.toLocaleString('es-ES', {
       year: 'numeric',      // Año completo (ej: 2024)
@@ -367,23 +367,23 @@ export class EditUserDialogComponent implements OnInit {
     // ===== CONFIRMACIÓN DE ACCIÓN =====
     // Mostrar diálogo de confirmación con información del usuario
     const confirmMessage = `¿Restablecer la contraseña de ${this.userData.firstName} ${this.userData.lastName}?\n\nSe enviará una nueva contraseña temporal al correo: ${this.userData.email}`;
-    
+
     if (!confirm(confirmMessage)) {
       return; // Usuario canceló la acción
     }
 
     // ===== PROCESO DE RESTABLECIMIENTO =====
     this.loading.set(true); // Activar indicador de carga
-    
+
     try {
       console.log(`🔐 Restableciendo contraseña para usuario: ${this.userData.userCode}`);
-      
+
       // Llamada a API para restablecer contraseña en MySQL
       const response = await this.http.post(`${environment.apiUrl}/auth/users/${this.userData.id}/reset-password`, {}).toPromise();
-      
+
       if (response) {
         console.log(`✅ Contraseña restablecida para: ${this.userData.userCode}`);
-        
+
         // Mostrar notificación de éxito
         this.snackBar.open(`Contraseña restablecida. Nueva contraseña enviada a ${this.userData.email}`, 'Cerrar', {
           duration: 5000,
@@ -392,7 +392,7 @@ export class EditUserDialogComponent implements OnInit {
       }
     } catch (error) {
       console.error('❌ Error restableciendo contraseña:', error);
-      
+
       // ===== MANEJO DE ERRORES CON FALLBACK =====
       // En caso de error de conexión, mostrar simulación para demo
       this.snackBar.open(`Contraseña restablecida para ${this.userData.firstName} (simulación)`, 'Cerrar', {
@@ -450,10 +450,10 @@ export class EditUserDialogComponent implements OnInit {
 
     // ===== PROCESO DE GUARDADO =====
     this.loading.set(true); // Activar indicador de carga
-    
+
     try {
       const formData = this.userForm.value; // Obtener datos del formulario
-      
+
       // ===== PREPARACIÓN DE DATOS PARA API =====
       // Crear objeto DTO (Data Transfer Object) con datos limpios
       const updateUserDto = {
@@ -472,7 +472,7 @@ export class EditUserDialogComponent implements OnInit {
       console.log('📱 Teléfono a actualizar:', updateUserDto.phone);
 
       // ===== LLAMADA A API PARA ACTUALIZAR USUARIO EN MYSQL =====
-      const response = await this.http.put<any>(`${environment.apiUrl}/auth/users/${this.userData.id}`, updateUserDto).toPromise();
+      const response = await this.http.put<any>(`${environment.apiUrl}/auth/users/${this.userData.id}`, updateUserDto).toPromise() || { success: false };
 
       if (response) {
         console.log('✅ Usuario actualizado exitosamente:', response);
@@ -494,10 +494,10 @@ export class EditUserDialogComponent implements OnInit {
       }
     } catch (error: any) {
       console.error('❌ Error actualizando usuario:', error);
-      
+
       // ===== MANEJO DETALLADO DE ERRORES =====
       let errorMessage = 'Error al actualizar el usuario';
-      
+
       // Personalizar mensaje según el tipo de error HTTP
       if (error.error?.message) {
         errorMessage = error.error.message;                    // Mensaje específico del servidor
@@ -540,10 +540,10 @@ export class EditUserDialogComponent implements OnInit {
       console.log('📤 Subiendo imagen de perfil para usuario ID:', userId);
       const response = await this.http.post(`${environment.apiUrl}/users/${userId}/profile-image`, formData).toPromise();
       console.log('✅ Imagen de perfil actualizada exitosamente:', response);
-      
+
     } catch (error) {
       console.error('❌ Error actualizando imagen de perfil:', error);
-      
+
       // ===== NOTIFICACIÓN DE ERROR PARCIAL =====
       // Informar que el usuario se actualizó pero la imagen falló
       this.snackBar.open('Usuario actualizado, pero hubo un error al actualizar la imagen', 'Cerrar', {

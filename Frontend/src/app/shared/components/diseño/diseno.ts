@@ -391,7 +391,8 @@ export class DesignComponent implements OnInit, OnDestroy {
         console.log(`✅ Cargados ${response.items.length} diseños de ${response.totalCount} totales`);
 
         // Procesar colores para cada diseño
-        const processedDesigns = response.items.map((design: FlexographicDesign) => ({
+        const items = response.items as any[];
+        const processedDesigns: FlexographicDesign[] = items.map((design: FlexographicDesign) => ({
           ...design,
           colors: this.extractColorsFromDesign(design)
         }));
@@ -583,11 +584,12 @@ export class DesignComponent implements OnInit, OnDestroy {
 
       const response = await this.http.get<any>(`${environment.apiUrl}/designs/paginated`, { params }).toPromise();
 
-      if (response) {
+      if (response && response.items) {
         console.log(`✅ ${response.items.length} diseños cargados`);
 
         // Procesar colores
-        const processedDesigns = response.items.map((design: FlexographicDesign) => ({
+        const items = response.items as any[];
+        const processedDesigns: FlexographicDesign[] = items.map((design: FlexographicDesign) => ({
           ...design,
           colors: this.extractColorsFromDesign(design)
         }));
@@ -682,7 +684,8 @@ export class DesignComponent implements OnInit, OnDestroy {
       if (response && response.items) {
         console.log(`✅ ${response.items.length} diseños cargados de ${response.totalCount} totales`);
 
-        const processedDesigns = response.items.map((design: FlexographicDesign) => ({
+        const items = response.items as any[];
+        const processedDesigns: FlexographicDesign[] = items.map((design: FlexographicDesign) => ({
           ...design,
           colors: this.extractColorsFromDesign(design)
         }));
@@ -1078,13 +1081,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       if (response && Array.isArray(response)) {
         console.log(`📊 ${response.length} diseños cargados exitosamente`);
-        
+
         // Process colors for each design
         const processedDesigns = response.map((design: FlexographicDesign) => ({
           ...design,
           colors: this.extractColorsFromDesign(design)
         }));
-        
+
         this.allDesigns.set(processedDesigns);
         this.filteredDesigns.set(processedDesigns);
         this.totalRecords.set(processedDesigns.length);
@@ -1887,17 +1890,17 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   formatColorName(color: string): string {
     if (!color) return '';
     const term = color.toUpperCase().trim();
-    
+
     // Si ya empieza con "P " o "P_" o "PANTONE", no agregar otra P
     if (term.startsWith('P ') || term.startsWith('P_')) {
       return term.replace('P_', 'P '); // Reemplazar P_ con P (espacio)
     }
-    
+
     // Si empieza con PANTONE, reemplazar con P
     if (term.startsWith('PANTONE ')) {
       return `P ${term.substring(8)}`;
     }
-    
+
     // Si no tiene P, agregarla
     return `P ${term}`;
   }
@@ -1918,7 +1921,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         category: 'Basic'
       };
     }
-    
+
     try {
       const color = this.pantoneService.getOrCreateColor(colorName);
       console.log('🎨 Color obtenido:', colorName, '→', color.hex);
@@ -2392,28 +2395,28 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
   // ===== MÉTODOS ANILOX =====
-  
+
   /**
    * Cargar datos de anilox desde el backend
    */
   async initializeAniloxData() {
+    const previousSelectedMachine = this.selectedMachine;
+    const previousSearchTerm = this.aniloxSearchTerm;
+
     try {
       const aniloxList = await this.aniloxService.getAll().toPromise();
-      
+
       if (aniloxList && aniloxList.length > 0) {
         this.aniloxData = aniloxList;
-        
+
         // Extraer máquinas únicas y ordenarlas
         const machinesSet = new Set(aniloxList.map(a => a.maquina));
         const machinesFromData = Array.from(machinesSet).sort((a, b) => a - b);
-        
+
         // Combinar con las máquinas por defecto para asegurar que todas estén disponibles
         const allMachines = new Set([...this.availableMachines, ...machinesFromData]);
         this.availableMachines = Array.from(allMachines).sort((a, b) => a - b);
-        
-        // Inicializar datos filtrados
-        this.filteredAniloxData = [...this.aniloxData];
-        
+
         console.log(`✅ ${aniloxList.length} anilox cargados desde el backend`);
         console.log(`📋 Máquinas disponibles:`, this.availableMachines);
       } else {
@@ -2427,10 +2430,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         duration: 5000,
         panelClass: ['error-snackbar']
       });
-      
+
       // Mantener las máquinas por defecto en caso de error
       this.aniloxData = [];
       this.filteredAniloxData = [];
+    } finally {
+      this.selectedMachine = previousSelectedMachine || 'all';
+      this.aniloxSearchTerm = previousSearchTerm || '';
+      this.filterAnilox();
     }
   }
 
@@ -2449,26 +2456,26 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (result) {
         try {
           const newAnilox = await this.aniloxService.create(result).toPromise();
-          
+
           if (newAnilox) {
             this.snackBar.open(`Anilox ${newAnilox.codigo} creado exitosamente`, 'Cerrar', {
               duration: 3000,
               panelClass: ['success-snackbar']
             });
-            
+
             // Recargar datos
             await this.initializeAniloxData();
           }
         } catch (error: any) {
           console.error('❌ Error creando anilox:', error);
-          
+
           let errorMessage = 'Error al crear el anilox';
           if (error.status === 400) {
             errorMessage = error.error?.message || 'Datos inválidos';
           } else if (error.status === 401) {
             errorMessage = 'No tienes permisos para crear anilox';
           }
-          
+
           this.snackBar.open(errorMessage, 'Cerrar', {
             duration: 5000,
             panelClass: ['error-snackbar']
@@ -2494,7 +2501,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (result) {
         try {
           const updatedAnilox = await this.aniloxService.update(anilox.id, result).toPromise();
-          
+
           if (updatedAnilox) {
             // Mensaje personalizado con icono de check
             this.snackBar.open(`✓ ${updatedAnilox.codigo} guardado`, '', {
@@ -2503,13 +2510,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
               horizontalPosition: 'center',
               verticalPosition: 'top'
             });
-            
+
             // Recargar datos
             await this.initializeAniloxData();
           }
         } catch (error: any) {
           console.error('❌ Error actualizando anilox:', error);
-          
+
           let errorMessage = 'Error al actualizar el anilox';
           if (error.status === 400) {
             errorMessage = error.error?.message || 'Datos inválidos';
@@ -2518,7 +2525,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           } else if (error.status === 401) {
             errorMessage = 'No tienes permisos para editar anilox';
           }
-          
+
           this.snackBar.open(errorMessage, 'Cerrar', {
             duration: 5000,
             panelClass: ['error-snackbar']
@@ -2550,7 +2557,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (confirmed) {
         try {
           await this.aniloxService.delete(anilox.id).toPromise();
-          
+
           // Mensaje personalizado con icono de eliminación en rojo
           this.snackBar.open(`🗑️ ${anilox.codigo} eliminado`, '', {
             duration: 2500,
@@ -2558,19 +2565,19 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
             horizontalPosition: 'center',
             verticalPosition: 'top'
           });
-          
+
           // Recargar datos
           await this.initializeAniloxData();
         } catch (error: any) {
           console.error('❌ Error eliminando anilox:', error);
-          
+
           let errorMessage = 'Error al eliminar el anilox';
           if (error.status === 404) {
             errorMessage = 'Anilox no encontrado';
           } else if (error.status === 401) {
             errorMessage = 'No tienes permisos para eliminar anilox';
           }
-          
+
           this.snackBar.open(errorMessage, 'Cerrar', {
             duration: 5000,
             panelClass: ['error-snackbar']
@@ -2587,15 +2594,15 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       console.log('🔄 Cargando configuraciones de máquinas...');
       const configs = await this.machineConfigService.getAll().toPromise();
-      
+
       console.log('📦 Respuesta del servidor:', configs);
-      
+
       if (configs && configs.length > 0) {
         // Mapear las configuraciones al objeto machinesCargaMuestra
         configs.forEach(config => {
           this.machinesCargaMuestra[config.numero_maquina] = config.carga_muestra || null;
         });
-        
+
         console.log('✅ Configuraciones de máquinas cargadas:', this.machinesCargaMuestra);
       } else {
         console.warn('⚠️ No se encontraron configuraciones de máquinas');
@@ -2615,11 +2622,11 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     console.log('🔵 ===== INICIO updateMachineCargaMuestra =====');
     console.log('📝 Máquina:', machine);
     console.log('📝 Event target value:', event.target.value);
-    
+
     const newValue = event.target.value;
     const cargaMuestra = newValue && newValue.trim() !== '' ? parseFloat(newValue) : null;
     const currentValue = this.machinesCargaMuestra[machine];
-    
+
     console.log('📝 Nuevo valor parseado:', cargaMuestra);
     console.log('📝 Valor actual en memoria:', currentValue);
 
@@ -2631,16 +2638,16 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
     try {
       console.log(`📤 Enviando petición PUT para MQ ${machine} con valor: ${cargaMuestra}`);
-      
+
       const response = await this.machineConfigService.updateCargaMuestra(machine, cargaMuestra).toPromise();
-      
+
       console.log('✅ Respuesta del servidor:', response);
-      
+
       if (response) {
         // Actualizar el valor local SOLO después de guardar exitosamente
         this.machinesCargaMuestra[machine] = cargaMuestra;
         console.log('✅ Valor actualizado en memoria:', this.machinesCargaMuestra[machine]);
-        
+
         // Mensaje compacto de éxito
         this.snackBar.open(`✓ Carga muestra MQ ${machine} actualizada`, '', {
           duration: 2000,
@@ -2651,23 +2658,23 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     } catch (error: any) {
       console.error('❌ Error actualizando carga muestra:', error);
-      
+
       let errorMessage = 'Error al actualizar carga muestra';
       if (error.status === 404) {
         errorMessage = 'Configuración de máquina no encontrada';
       } else if (error.status === 401) {
         errorMessage = 'No tienes permisos para actualizar configuraciones';
       }
-      
+
       this.snackBar.open(errorMessage, 'Cerrar', {
         duration: 3000,
         panelClass: ['error-snackbar']
       });
-      
+
       // Revertir el valor en el input al valor original
       event.target.value = currentValue !== null && currentValue !== undefined ? currentValue : '';
     }
-    
+
     console.log('🔵 ===== FIN updateMachineCargaMuestra =====');
   }
 
@@ -2706,10 +2713,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       // Procesar datos (empezar desde fila 2, fila 1 es header)
       const aniloxList: any[] = [];
-      
+
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
-        
+
         // Columnas: C=Codigo(2), D=Maquina(3), E=Lineatura(4), F=AporteTeorico(5), G=Proveedor(6), H=Aporte(7), I=FactorEficiencia(8), J=Densidad(9)
         const codigo = row[2]?.toString().trim();
         const maquina = parseInt(row[3]);
@@ -2758,9 +2765,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
       if (response) {
         console.log('✅ Respuesta del servidor:', response);
-        
+
         this.uploadProgress.set(100);
-        
+
         this.snackBar.open(
           `Importación completada: ${response.created} creados, ${response.updated} actualizados`,
           'Cerrar',
@@ -2772,14 +2779,14 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
     } catch (error: any) {
       console.error('❌ Error importando anilox desde Excel:', error);
-      
+
       let errorMessage = 'Error al importar el archivo Excel';
       if (error.status === 400) {
         errorMessage = error.error?.message || 'Datos inválidos en el Excel';
       } else if (error.status === 401) {
         errorMessage = 'No tienes permisos para importar anilox';
       }
-      
+
       this.snackBar.open(errorMessage, 'Cerrar', {
         duration: 5000,
         panelClass: ['error-snackbar']
@@ -2809,7 +2816,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
   filterAnilox() {
     const searchLower = this.aniloxSearchTerm.toLowerCase().trim();
-    
+
     if (!searchLower) {
       // Si no hay término de búsqueda, solo aplicar filtro de máquina
       if (this.selectedMachine === 'all') {
@@ -2822,12 +2829,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
     // Aplicar ambos filtros
     let filtered = this.aniloxData;
-    
+
     if (this.selectedMachine !== 'all') {
       filtered = filtered.filter((a: any) => a.maquina === parseInt(this.selectedMachine));
     }
 
-    filtered = filtered.filter((a: any) => 
+    filtered = filtered.filter((a: any) =>
       a.codigo.toString().includes(searchLower) ||
       a.bcm.toString().includes(searchLower) ||
       a.lineatura.toString().includes(searchLower) ||

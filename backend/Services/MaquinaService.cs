@@ -178,28 +178,7 @@ namespace flexoAPP.Services
             return MapToDto(updated);
         }
 
-        public async Task<int> ClearAllProgrammingAsync(int? userId)
-        {
-            try
-            {
-                var connectionString = _context.Database.GetConnectionString();
-                using var connection = new MySqlConnector.MySqlConnection(connectionString);
-                await connection.OpenAsync();
 
-                using var command = connection.CreateCommand();
-                command.CommandText = "DELETE FROM maquinas";
-                
-                var rowsAffected = await command.ExecuteNonQueryAsync();
-                _logger.LogInformation("🗑️ Programación eliminada. Registros: {Count}", rowsAffected);
-                
-                return rowsAffected;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error eliminando programación");
-                throw;
-            }
-        }
 
         public async Task<object> FixDatabaseSchemaAsync()
         {

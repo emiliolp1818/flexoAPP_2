@@ -51,17 +51,28 @@ export class PermissionsService {
      * Cargar permisos del usuario actual
      */
     loadCurrentUserPermissions(userId: number): Observable<UserPermissionsResponse> {
+        console.log(`🔐 Iniciando carga de permisos para usuario ID: ${userId}...`);
         return this.getUserPermissions(userId).pipe(
             tap(response => {
-                // Si el usuario es el administrador (ID 1), le otorgamos todos los permisos posibles
+                // Si el usuario es el administrador (ID 1) o tiene rol 'Admin', le otorgamos todos los permisos posibles
                 // Esto garantiza que la interfaz refleje acceso total para el admin
-                if (userId === 1) {
-                    const allPossibleCodes = response.allPermissions.map(p => p.code);
-                    this.permissions.set(allPossibleCodes);
-                    console.log(`🔐 Administrador detectado (ID: ${userId}): otorgando acceso total (${allPossibleCodes.length} permisos)`);
+                if (userId === 1 || response.role === 'Admin') {
+                    const allPossibleCodes = response.allPermissions && response.allPermissions.length > 0
+                        ? response.allPermissions.map(p => p.code)
+                        : [];
+
+                    if (allPossibleCodes.length > 0) {
+                        this.permissions.set(allPossibleCodes);
+                        console.log(`🔐 Administrador/Admin detectado (ID: ${userId}): otorgando acceso total (${allPossibleCodes.length} permisos)`);
+                    } else {
+                        console.warn(`⚠️ No se encontraron permisos definidos en el sistema para el administrador.`);
+                        // Mantenemos permisos vacíos o cargamos lo que vino por defecto
+                        this.permissions.set(response.permissions || []);
+                    }
                 } else {
-                    this.permissions.set(response.permissions);
+                    this.permissions.set(response.permissions || []);
                     console.log(`🔐 Permisos del usuario cargados: ${response.grantedCount}/${response.totalCount}`);
+                    console.log('📋 Códigos concedidos:', response.permissions);
                 }
             })
         );

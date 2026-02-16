@@ -71,13 +71,17 @@ interface MachineProgram {
   messageReadBy?: string; // Quién leyó el mensaje
 }
 
-// Interfaz que define los permisos del usuario en el módulo
 interface UserPermissions {
   canLoadExcel: boolean; // Permiso para cargar archivos Excel
   canDownloadTemplate: boolean; // Permiso para descargar plantillas
   canViewFF459: boolean; // Permiso para ver formato FF459
-  canClearPrograms: boolean; // Permiso para limpiar programación
   canSendMessages: boolean; // Permiso para enviar mensajes (solo admin y supervisor)
+  // Permisos de estados
+  canStatusPrealistando: boolean;
+  canStatusListo: boolean;
+  canStatusCorriendo: boolean;
+  canStatusTerminado: boolean;
+  canStatusSuspendido: boolean;
 }
 
 // Interfaz que define las estadísticas de una máquina
@@ -208,14 +212,25 @@ export class MachinesComponent implements OnInit {
     // Estas señales de permisos provienen del PermissionsService (que es reactivo)
     const perms = this.permissionsService.permissions();
 
+    // Log para debugging de permisos (solo si hay cambios)
+    if (perms.length === 0) {
+      console.warn('⚠️ No se han cargado los permisos del usuario o no tiene permisos asignados');
+    } else {
+      console.log(`🔐 Permisos reactivos actualizados: ${perms.length} códigos disponibles`);
+    }
+
     return {
       canLoadExcel: this.permissionsService.hasPermission(PERMISSIONS.ACTION_IMPORT) ||
         this.permissionsService.hasPermission(PERMISSIONS.ACTION_ADD_PROGRAMMING),
       canDownloadTemplate: this.permissionsService.hasPermission(PERMISSIONS.ACTION_EXPORT),
       canViewFF459: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_PRINT),
-      canClearPrograms: this.permissionsService.hasPermission(PERMISSIONS.USERS_DELETE) ||
-        this.permissionsService.hasPermission(PERMISSIONS.PERMISSIONS_MANAGE),
-      canSendMessages: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_SEND_MESSAGE)
+      canSendMessages: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_SEND_MESSAGE),
+      // Estados
+      canStatusPrealistando: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_PREALISTANDO),
+      canStatusListo: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_LISTO),
+      canStatusCorriendo: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_CORRIENDO),
+      canStatusTerminado: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_TERMINADO),
+      canStatusSuspendido: this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_SUSPENDIDO)
     };
   });
 
@@ -266,6 +281,16 @@ export class MachinesComponent implements OnInit {
     // Cargar mensajes persistentes desde localStorage ANTES de cargar programas
     console.log('📱 Cargando mensajes desde localStorage...');
     this.loadMessagesFromStorage();
+
+    // Asegurar que los permisos estén cargados (fallback por si falla la carga automática en AuthService)
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser && currentUser.id && this.permissionsService.permissions().length === 0) {
+      console.log('🔐 Solicitando carga manual de permisos en ngOnInit...');
+      this.permissionsService.loadCurrentUserPermissions(Number(currentUser.id)).subscribe({
+        next: () => console.log('✅ Permisos cargados manualmente en ngOnInit'),
+        error: (err) => console.error('❌ Error cargando permisos manualmente en ngOnInit:', err)
+      });
+    }
 
     // Verificar que los mensajes se cargaron correctamente
     setTimeout(() => {
@@ -2325,52 +2350,6 @@ export class MachinesComponent implements OnInit {
   }
 
   /**
-   * Limpiar toda la programación de máquinas
-   * Requiere confirmación del usuario y permisos adecuados
-   */
-  async clearAllProgramming() {
-    // ===== VERIFICAR PERMISOS =====
-    if (!this.userPermissions().canClearPrograms) {
-      this.snackBar.open('No tienes permiso para limpiar la programación', 'Cerrar', { duration: 3000 });
-      return;
-    }
-
-    // ===== CONFIRMACIÓN =====
-    if (!confirm('¿Estás seguro de que deseas ELIMINAR TODA la programación? Esta acción no se puede deshacer.')) {
-      return;
-    }
-
-    try {
-      this.loading.set(true);
-      console.log('🗑️ Limpiando toda la programación...');
-
-      const response = await firstValueFrom(
-        this.http.delete<any>(`${environment.apiUrl}/maquinas/clear-all`)
-      );
-
-      if (response && response.success) {
-        this.snackBar.open(response.message || 'Programación limpiada exitosamente', 'Cerrar', { duration: 5000 });
-
-        // Limpiar mensajes locales también
-        this.programMessages.set(new Map());
-        this.saveMessagesToStorage();
-
-        // Recargar datos (estará vacío)
-        await this.loadPrograms();
-
-        console.log('✅ Programación limpiada exitosamente');
-      } else {
-        throw new Error(response?.message || 'Error al limpiar programación');
-      }
-    } catch (error: any) {
-      console.error('❌ Error limpiando programación:', error);
-      this.snackBar.open(error.message || 'Error al conectar con el servidor', 'Cerrar', { duration: 5000 });
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  /**
    * Método para refrescar los datos de todas las máquinas
    */
   async refreshData() {
@@ -2912,35 +2891,35 @@ export class MachinesComponent implements OnInit {
    * Verificar si el usuario puede cambiar el estado a PREPARANDO
    */
   canChangeToPreparando(): boolean {
-    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_PREALISTANDO);
+    return this.userPermissions().canStatusPrealistando;
   }
 
   /**
    * Verificar si el usuario puede cambiar el estado a LISTO
    */
   canChangeToListo(): boolean {
-    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_LISTO);
+    return this.userPermissions().canStatusListo;
   }
 
   /**
    * Verificar si el usuario puede cambiar el estado a CORRIENDO
    */
   canChangeToCorriendo(): boolean {
-    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_CORRIENDO);
+    return this.userPermissions().canStatusCorriendo;
   }
 
   /**
    * Verificar si el usuario puede cambiar el estado a TERMINADO
    */
   canChangeToTerminado(): boolean {
-    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_TERMINADO);
+    return this.userPermissions().canStatusTerminado;
   }
 
   /**
    * Verificar si el usuario puede cambiar el estado a SUSPENDIDO
    */
   canChangeToSuspendido(): boolean {
-    return this.permissionsService.hasPermission(PERMISSIONS.MACHINES_STATUS_SUSPENDIDO);
+    return this.userPermissions().canStatusSuspendido;
   }
 
   /**

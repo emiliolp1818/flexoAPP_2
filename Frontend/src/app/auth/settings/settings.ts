@@ -362,6 +362,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
         console.log(`📊 ${mappedUsers.length} usuarios cargados desde MySQL flexoapp_bd`);
         this.users.set(mappedUsers);                  // Actualizar señal reactiva con usuarios cargados
+        await this.attachAuthActivities();
 
         // Notificación de éxito eliminada - No mostrar mensajes técnicos molestos
       } else {
@@ -1058,6 +1059,85 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     return `${dateStr} ${timeStr}`;
   }
+
+  private async attachAuthActivities() {
+    try {
+      const activities: any[] = (await this.http.get<any[]>(`${environment.apiUrl}/audit/auth-activities`).toPromise()) || [];
+      if (!activities || !Array.isArray(activities)) return;
+
+      const byUser: Record<number, { lastLogin?: Date; lastLogout?: Date }> = {};
+
+      for (const act of activities) {
+        const uidNum = typeof act.userId === 'number' ? act.userId : parseInt(String(act.userId), 10);
+        if (!uidNum || isNaN(uidNum)) continue;
+        const ts = act.timestamp ? new Date(act.timestamp) : null;
+        if (!ts || isNaN(ts.getTime())) continue;
+
+        const bucket = byUser[uidNum] || {};
+        if (act.action === 'LOGIN_SUCCESS') {
+          if (!bucket.lastLogin || ts > bucket.lastLogin) bucket.lastLogin = ts;
+        } else if (act.action === 'LOGOUT') {
+          if (!bucket.lastLogout || ts > bucket.lastLogout) bucket.lastLogout = ts;
+        }
+        byUser[uidNum] = bucket;
+      }
+
+      const updated = this.users().map(u => {
+        const uidNum = parseInt(String(u.id), 10);
+        const bucket = byUser[uidNum];
+        const lastLogin = bucket?.lastLogin ? bucket.lastLogin : (u as any).lastLogin ? new Date((u as any).lastLogin) : null;
+        const lastLogout = bucket?.lastLogout ? bucket.lastLogout : (u as any).lastLogout ? new Date((u as any).lastLogout) : null;
+        return { ...u, lastLogin, lastLogout };
+      });
+
+      this.users.set(updated);
+    } catch (e) {
+      console.error('Error obteniendo actividades de autenticación:', e);
+    }
+  }
+
+  formatLastConnectionLabel(user: any): string {
+    const isSpanish = this.languageService.getLanguage() === 'es';
+    const ln = user?.lastLogin ? new Date(user.lastLogin) : null;
+    const hasLn = ln && !isNaN(ln.getTime());
+    if (!hasLn) return isSpanish ? 'Nunca' : 'Never';
+    return (isSpanish ? 'Login:' : 'Login:') + ' ' + this.formatRelativeDate(ln);
+  }
+
+  formatLastConnectionTooltip(user: any): string {
+    const isSpanish = this.languageService.getLanguage() === 'es';
+    const ln = user?.lastLogin ? new Date(user.lastLogin) : null;
+    const lo = user?.lastLogout ? new Date(user.lastLogout) : null;
+    const lnValid = ln && !isNaN(ln.getTime());
+    const loValid = lo && !isNaN(lo.getTime());
+    const lnStr = lnValid ? `${this.timeFormatService.formatDate(ln!)} ${this.timeFormatService.formatTime(ln!)}` : (isSpanish ? 'Nunca ha iniciado sesión' : 'Never logged in');
+    const loStr = loValid ? `${this.timeFormatService.formatDate(lo!)} ${this.timeFormatService.formatTime(lo!)}` : (isSpanish ? 'Sin desconexión registrada' : 'No logout recorded');
+    const elapsed = loValid ? this.formatElapsedSinceLogout(user) : (isSpanish ? 'N/D' : 'N/A');
+    return `${isSpanish ? 'Último acceso' : 'Last login'}: ${lnStr}\n${isSpanish ? 'Último cierre' : 'Last logout'}: ${loStr}\n${isSpanish ? 'Tiempo desde desconexión' : 'Elapsed since logout'}: ${elapsed}`;
+  }
+
+  formatElapsedSinceLogout(user: any): string {
+    const lo = user?.lastLogout ? new Date(user.lastLogout) : null;
+    if (!lo || isNaN(lo.getTime())) return '';
+    const diffMs = Date.now() - lo.getTime();
+    if (diffMs < 0) return '0s / 0m / 0h';
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    return `${seconds}s / ${minutes}m / ${hours}h`;
+  }
+
+  formatLastConnectionDate(user: any): string {
+    const isSpanish = this.languageService.getLanguage() === 'es';
+    const lo = user?.lastLogout ? new Date(user.lastLogout) : null;
+    const ln = user?.lastLogin ? new Date(user.lastLogin) : null;
+    const base = lo && !isNaN(lo.getTime()) ? lo : ln && !isNaN(ln.getTime()) ? ln : null;
+    if (!base) return isSpanish ? '' : '';
+    const dateStr = this.timeFormatService.formatDate(base);
+    const timeStr = this.timeFormatService.formatTime(base);
+    return `${dateStr} ${timeStr}`;
+  }
+
 
   // ===== NUEVAS ACCIONES FUNCIONALES =====
 
