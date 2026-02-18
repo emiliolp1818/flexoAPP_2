@@ -49,18 +49,30 @@ FROM INFORMATION_SCHEMA.TRIGGERS
 WHERE EVENT_OBJECT_SCHEMA = 'flexoapp_bd'
   AND EVENT_OBJECT_TABLE = 'maquinas';
 
--- ===== PASO 4: VER VALORES ACTUALES PROBLEMÁTICOS =====
+-- ===== PASO 4: VER TODAS LAS COLUMNAS DE LA TABLA =====
+SELECT '===== VERIFICANDO NOMBRES DE COLUMNAS =====' AS paso;
+
+SELECT 
+    COLUMN_NAME,
+    COLUMN_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'flexoapp_bd'
+  AND TABLE_NAME = 'maquinas'
+ORDER BY ORDINAL_POSITION;
+
+-- ===== PASO 5: VER VALORES ACTUALES PROBLEMÁTICOS =====
+-- Nota: Ajustar nombres de columnas según el resultado anterior
 SELECT '===== VALORES PROBLEMÁTICOS ACTUALES =====' AS paso;
 
+-- Intentar con diferentes variaciones de nombres de columnas
 SELECT 
     ot_sap,
     Articulo,
-    NumeroMaquina,
     Kilos,
     metros,
     UpdatedAt
 FROM maquinas
-WHERE Kilos > 9999999 OR metros > 99999999
+WHERE Kilos > 9999999 OR (metros IS NOT NULL AND metros > 99999999)
 ORDER BY UpdatedAt DESC
 LIMIT 10;
 
@@ -109,14 +121,28 @@ CHECK (Kilos >= 0 AND Kilos <= 9999999.999);
 -- ===== PASO 8: LIMPIAR VALORES INCORRECTOS =====
 SELECT '===== LIMPIANDO VALORES INCORRECTOS =====' AS paso;
 
--- Resetear valores fuera de rango a 0
+-- Contar registros con valores fuera de rango
+SELECT 
+    COUNT(*) as registros_con_kilos_invalidos
+FROM maquinas 
+WHERE Kilos > 9999999.999 OR Kilos < 0;
+
+SELECT 
+    COUNT(*) as registros_con_metros_invalidos
+FROM maquinas 
+WHERE metros IS NOT NULL AND (metros > 99999999 OR metros < 0);
+
+-- Resetear valores fuera de rango a valores seguros
 UPDATE maquinas 
-SET Kilos = 0 
-WHERE Kilos > 9999999.999;
+SET Kilos = 0.001
+WHERE Kilos > 9999999.999 OR Kilos < 0;
 
 UPDATE maquinas 
 SET metros = NULL 
-WHERE metros > 99999999;
+WHERE metros IS NOT NULL AND (metros > 99999999 OR metros < 0);
+
+-- Mostrar cuántos registros se actualizaron
+SELECT ROW_COUNT() as registros_actualizados;
 
 -- ===== VERIFICACIÓN FINAL =====
 SELECT '===== VERIFICACIÓN FINAL =====' AS paso;
