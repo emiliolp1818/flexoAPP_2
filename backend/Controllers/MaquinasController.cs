@@ -1469,40 +1469,64 @@ namespace backend.Controllers
                     }
 
 
-                    decimal kilos = 0;
+                    decimal kilos = 0.001m; // Valor mínimo por defecto para cumplir validación
                     if (!string.IsNullOrEmpty(kilosStr))
                     {
                         try {
+                            // Log del valor original
+                            _logger.LogInformation($"🔍 Fila {row}: Kilos original del Excel: '{kilosStr}'");
 
-
-
-
-
-                            var kiloClean = kilosStr.Replace(".", "");
-
-
-                            kiloClean = kiloClean.Replace(",", ".");
-
+                            // Limpiar el string: remover espacios y caracteres no numéricos excepto . y ,
+                            var kiloClean = kilosStr.Trim();
+                            
+                            // Detectar formato: si tiene punto como separador de miles y coma como decimal (formato español)
+                            // Ejemplo: "1.234,56" → "1234.56"
+                            if (kiloClean.Contains(".") && kiloClean.Contains(","))
+                            {
+                                // Formato español: punto = miles, coma = decimal
+                                kiloClean = kiloClean.Replace(".", "");
+                                kiloClean = kiloClean.Replace(",", ".");
+                                _logger.LogDebug($"📊 Fila {row}: Formato español detectado: '{kilosStr}' → '{kiloClean}'");
+                            }
+                            else if (kiloClean.Contains(",") && !kiloClean.Contains("."))
+                            {
+                                // Solo coma: formato español sin miles
+                                kiloClean = kiloClean.Replace(",", ".");
+                                _logger.LogDebug($"📊 Fila {row}: Formato español simple: '{kilosStr}' → '{kiloClean}'");
+                            }
+                            // Si solo tiene punto, asumimos formato inglés (ya está correcto)
 
                             if (decimal.TryParse(kiloClean, System.Globalization.NumberStyles.Any,
                                 System.Globalization.CultureInfo.InvariantCulture, out decimal kValue))
                             {
-                                kilos = kValue;
-
-                                if (kilos > 9999999.999m) kilos = 9999999.999m;
-
-                                _logger.LogDebug($"💰 Fila {row}: Kilos parseados: '{kilosStr}' → {kilos}");
+                                if (kValue > 0)
+                                {
+                                    kilos = kValue;
+                                    if (kilos > 9999999.999m) kilos = 9999999.999m;
+                                    _logger.LogInformation($"✅ Fila {row}: Kilos parseados exitosamente: '{kilosStr}' → {kilos}");
+                                }
+                                else
+                                {
+                                    _logger.LogWarning($"⚠️ Fila {row}: Kilos es 0 o negativo '{kilosStr}', usando mínimo 0.001");
+                                    kilos = 0.001m;
+                                }
                             }
                             else
                             {
-                                _logger.LogWarning($"⚠️ Fila {row}: No se pudo parsear kilos '{kilosStr}'");
+                                _logger.LogError($"❌ Fila {row}: No se pudo parsear kilos '{kilosStr}' después de limpiar a '{kiloClean}', usando mínimo 0.001");
+                                kilos = 0.001m;
                             }
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning($"⚠️ Fila {row}: Error parseando kilos '{kilosStr}': {ex.Message}");
-                            kilos = 0;
+                            _logger.LogError($"❌ Fila {row}: Error parseando kilos '{kilosStr}': {ex.Message}, usando mínimo 0.001");
+                            kilos = 0.001m;
                         }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"⚠️ Fila {row}: Kilos vacío, usando mínimo 0.001");
+                        kilos = 0.001m;
                     }
 
 
@@ -1510,36 +1534,77 @@ namespace backend.Controllers
                     if (!string.IsNullOrEmpty(metrosStr))
                     {
                         try {
+                            // Log del valor original
+                            _logger.LogInformation($"🔍 Fila {row}: Metros original del Excel: '{metrosStr}'");
 
-
-
-
-                            var metroParts = metrosStr.Split(',');
-                            var metroIntPart = metroParts[0];
-
-
-                            var metroClean = metroIntPart.Replace(".", "");
-
+                            // Limpiar el string
+                            var metroClean = metrosStr.Trim();
+                            
+                            // Detectar si tiene coma (formato español)
+                            if (metroClean.Contains(","))
+                            {
+                                // Tomar solo la parte entera (antes de la coma)
+                                var metroParts = metroClean.Split(',');
+                                metroClean = metroParts[0];
+                                _logger.LogDebug($"📏 Fila {row}: Tomando parte entera: '{metrosStr}' → '{metroClean}'");
+                            }
+                            else if (metroClean.Contains("."))
+                            {
+                                // Puede ser formato inglés con punto decimal, o español con punto como miles
+                                // Si tiene más de un punto, es separador de miles
+                                var dotCount = metroClean.Count(c => c == '.');
+                                if (dotCount > 1)
+                                {
+                                    // Múltiples puntos = separador de miles español
+                                    metroClean = metroClean.Replace(".", "");
+                                    _logger.LogDebug($"📏 Fila {row}: Removiendo separadores de miles: '{metrosStr}' → '{metroClean}'");
+                                }
+                                else
+                                {
+                                    // Un solo punto = puede ser decimal inglés, tomar parte entera
+                                    var metroParts = metroClean.Split('.');
+                                    metroClean = metroParts[0];
+                                    _logger.LogDebug($"📏 Fila {row}: Tomando parte entera (formato inglés): '{metrosStr}' → '{metroClean}'");
+                                }
+                            }
+                            
+                            // Remover cualquier punto restante (separador de miles)
+                            metroClean = metroClean.Replace(".", "");
 
                             if (decimal.TryParse(metroClean, System.Globalization.NumberStyles.Any,
                                 System.Globalization.CultureInfo.InvariantCulture, out decimal mValue))
                             {
-
-                                if (mValue > 99999999m) metros = 99999999m;
-                                else metros = mValue;
-
-                                _logger.LogDebug($"📏 Fila {row}: Metros parseados (solo enteros): '{metrosStr}' → {metros}");
+                                if (mValue > 99999999m)
+                                {
+                                    metros = 99999999m;
+                                    _logger.LogWarning($"⚠️ Fila {row}: Metros excede máximo, limitando a 99999999");
+                                }
+                                else if (mValue < 0)
+                                {
+                                    metros = null;
+                                    _logger.LogWarning($"⚠️ Fila {row}: Metros negativo, estableciendo a NULL");
+                                }
+                                else
+                                {
+                                    metros = mValue;
+                                    _logger.LogInformation($"✅ Fila {row}: Metros parseados exitosamente (solo enteros): '{metrosStr}' → {metros}");
+                                }
                             }
                             else
                             {
-                                _logger.LogWarning($"⚠️ Fila {row}: No se pudo parsear metros '{metrosStr}'");
+                                _logger.LogError($"❌ Fila {row}: No se pudo parsear metros '{metrosStr}' después de limpiar a '{metroClean}'");
+                                metros = null;
                             }
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning($"⚠️ Fila {row}: Error parseando metros '{metrosStr}': {ex.Message}");
+                            _logger.LogError($"❌ Fila {row}: Error parseando metros '{metrosStr}': {ex.Message}");
                             metros = null;
                         }
+                    }
+                    else
+                    {
+                        _logger.LogDebug($"📏 Fila {row}: Metros vacío, estableciendo a NULL");
                     }
 
 

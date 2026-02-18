@@ -91,8 +91,8 @@ namespace FlexoAPP.API.Models.Entities
 
         [Required]
         [Column(TypeName = "DECIMAL(10,3)")]
-        [Range(0.001, 99999.999, ErrorMessage = "Los kilos deben ser mayor a 0")]
-        public decimal Kilos { get; set; }
+        [Range(0.001, 9999999.999, ErrorMessage = "Los kilos deben estar entre 0.001 y 9999999.999")]
+        public decimal Kilos { get; set; } = 0.001m;
 
 
 
