@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { PermissionsService } from '../../shared/services/permissions.service';
+import { SignalRService } from '../../shared/services/signalr.service';
 
 import { environment } from '../../../environments/environment';
 
@@ -48,6 +49,7 @@ export class AuthService {
   private readonly USER_KEY = 'flexoapp_user';
 
   private permissionsService = inject(PermissionsService);
+  private signalRService = inject(SignalRService);
 
   constructor(
     private http: HttpClient,
@@ -167,6 +169,10 @@ export class AuthService {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUserSubject.next(user);
 
+    // Iniciar SignalR
+    this.signalRService.startConnection(token).catch(err => {
+      console.error('❌ Error iniciando SignalR:', err);
+    });
 
     if (user && user.id) {
       this.permissionsService.loadCurrentUserPermissions(Number(user.id)).subscribe({
@@ -178,6 +184,9 @@ export class AuthService {
 
 
   private clearSession(): void {
+    // Detener SignalR
+    this.signalRService.stopConnection();
+    
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.currentUserSubject.next(null);

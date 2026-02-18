@@ -25,17 +25,20 @@ namespace backend.Controllers
         private readonly ILogger<MaquinasController> _logger;
         private readonly IMaquinaService _maquinaService;
         private readonly IActivityLoggerService _activityLogger;
+        private readonly ISignalRNotificationService _signalRService;
 
         public MaquinasController(
             FlexoAPPDbContext context,
             ILogger<MaquinasController> logger,
             IMaquinaService maquinaService,
-            IActivityLoggerService activityLogger)
+            IActivityLoggerService activityLogger,
+            ISignalRNotificationService signalRService)
         {
             _context = context;
             _logger = logger;
             _maquinaService = maquinaService;
             _activityLogger = activityLogger;
+            _signalRService = signalRService;
         }
 
 
@@ -1337,6 +1340,18 @@ namespace backend.Controllers
                 }
 
                 _logger.LogInformation($"✅ Importación completada: {sheetsProcessed} hojas procesadas, {totalCreated} registros creados, {totalErrors} errores");
+
+                // Notificar a todos los clientes sobre la importación
+                var userName = User.Identity?.Name ?? "Sistema";
+                foreach (var result in importResults)
+                {
+                    await _signalRService.NotifyExcelImported(
+                        result.Key, 
+                        result.Value.Created, 
+                        result.Value.Updated, 
+                        userName
+                    );
+                }
 
                 return Ok(new
                 {

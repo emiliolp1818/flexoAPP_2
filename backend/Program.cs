@@ -345,6 +345,9 @@ try
     // Authentication & Authorization
     builder.Services.AddScoped<IAuthService, AuthService>();
 
+    // SignalR Notifications
+    builder.Services.AddSingleton<ISignalRNotificationService, SignalRNotificationService>();
+    Log.Information("✅ SignalR Notification Service registered");
 
     builder.Services.AddScoped<IPdfConversionService, PdfConversionService>();
     Log.Information("✅ PdfConversionService registered (Free, No Watermark)");
@@ -514,8 +517,12 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
 
-
+    // ===== MAP ENDPOINTS =====
     app.MapControllers();
+    
+    // SignalR Hub
+    app.MapHub<FlexoAPP.API.Hubs.MaquinasHub>("/hubs/maquinas");
+    Log.Information("✅ SignalR Hub mapeado en /hubs/maquinas");
 
 
 

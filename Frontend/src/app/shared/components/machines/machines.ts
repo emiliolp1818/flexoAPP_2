@@ -1,5 +1,5 @@
 
-import { Component, OnInit, signal, computed, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, ChangeDetectorRef } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
@@ -23,7 +23,7 @@ import { FormsModule } from '@angular/forms';
 
 import { HttpClient, HttpBackend } from '@angular/common/http';
 
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 
@@ -41,6 +41,7 @@ import { PermissionsService } from '../../services/permissions.service';
 import { PERMISSIONS } from '../../models/permission.model';
 
 import { ExcelService } from '../../services/excel.service';
+import { SignalRService } from '../../services/signalr.service';
 
 
 interface MachineProgram {
@@ -126,9 +127,10 @@ interface MachineStats {
     ])
   ]
 })
-export class MachinesComponent implements OnInit {
+export class MachinesComponent implements OnInit, OnDestroy {
 
-
+  private signalRService = inject(SignalRService);
+  private signalRSubscriptions: Subscription[] = [];
   private readonly DEFAULT_MACHINE_CONFIGS: Record<number, number> = {
     11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0
   };
@@ -321,6 +323,79 @@ export class MachinesComponent implements OnInit {
       console.log('🎯 Seleccionando máquina por defecto:', this.machineNumbers[0]);
       this.selectMachine(this.machineNumbers[0]);
     }
+
+    // Configurar listeners de SignalR
+    this.setupSignalRListeners();
+  }
+
+  /**
+   * Configurar listeners de SignalR para notificaciones en tiempo real
+   */
+  private setupSignalRListeners(): void {
+    console.log('📡 Configurando listeners de SignalR...');
+
+    // Máquina actualizada
+    this.signalRSubscriptions.push(
+      this.signalRService.machineUpdated$.subscribe(notification => {
+        console.log('📢 [SignalR] Máquina actualizada:', notification);
+        this.snackBar.open(`Máquina ${notification.machineNumber} actualizada por ${notification.userName}`, 'Cerrar', { duration: 3000 });
+        this.loadPrograms();
+      })
+    );
+
+    // Estado cambiado
+    this.signalRSubscriptions.push(
+      this.signalRService.machineStateChanged$.subscribe(notification => {
+        console.log('📢 [SignalR] Estado cambiado:', notification);
+        this.snackBar.open(
+          `Máquina ${notification.machineNumber}: ${notification.oldState} → ${notification.newState}`,
+          'Cerrar',
+          { duration: 4000 }
+        );
+        this.loadPrograms();
+      })
+    );
+
+    // Excel importado
+    this.signalRSubscriptions.push(
+      this.signalRService.excelImported$.subscribe(notification => {
+        console.log('📢 [SignalR] Excel importado:', notification);
+        this.snackBar.open(
+          `Excel importado en Máquina ${notification.machineNumber}: ${notification.created} creados, ${notification.updated} actualizados`,
+          'Cerrar',
+          { duration: 5000 }
+        );
+        this.loadPrograms();
+      })
+    );
+
+    // Máquina eliminada
+    this.signalRSubscriptions.push(
+      this.signalRService.machineDeleted$.subscribe(notification => {
+        console.log('📢 [SignalR] Máquina eliminada:', notification);
+        this.snackBar.open(`Programa ${notification.otSap} eliminado`, 'Cerrar', { duration: 3000 });
+        this.loadPrograms();
+      })
+    );
+
+    // Refresh global
+    this.signalRSubscriptions.push(
+      this.signalRService.refreshAll$.subscribe(notification => {
+        console.log('📢 [SignalR] Refresh global:', notification);
+        this.snackBar.open(`Actualizando datos: ${notification.reason}`, 'Cerrar', { duration: 3000 });
+        this.loadPrograms();
+      })
+    );
+
+    console.log('✅ Listeners de SignalR configurados');
+  }
+
+  /**
+   * Limpiar suscripciones al destruir el componente
+   */
+  ngOnDestroy(): void {
+    console.log('🧹 Limpiando suscripciones de SignalR...');
+    this.signalRSubscriptions.forEach(sub => sub.unsubscribe());
   }
 
 
