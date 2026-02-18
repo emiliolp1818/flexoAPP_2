@@ -1,8 +1,11 @@
 -- =====================================================
 -- VERIFICACIÓN RÁPIDA: Ver nombres de columnas
 -- =====================================================
+-- NOTA: Este script funciona tanto para 'railway' como 'flexoapp_bd'
+-- =====================================================
 
-USE flexoapp_bd;
+-- Detectar el nombre de la base de datos actual
+SET @db_name = DATABASE();
 
 -- Ver todas las columnas de la tabla maquinas
 SELECT 
@@ -11,7 +14,7 @@ SELECT
     IS_NULLABLE,
     COLUMN_DEFAULT
 FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_SCHEMA = 'flexoapp_bd'
+WHERE TABLE_SCHEMA = @db_name
   AND TABLE_NAME = 'maquinas'
 ORDER BY ORDINAL_POSITION;
 

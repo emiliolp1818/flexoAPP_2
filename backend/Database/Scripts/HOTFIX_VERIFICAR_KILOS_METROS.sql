@@ -3,9 +3,12 @@
 -- =====================================================
 -- Propósito: Diagnosticar por qué en producción aparecen valores 999999999999
 -- Fecha: 2026-02-18
+-- NOTA: Funciona con cualquier nombre de base de datos (railway o flexoapp_bd)
 -- =====================================================
 
-USE flexoapp_bd;
+-- Detectar el nombre de la base de datos actual
+SET @db_name = DATABASE();
+SELECT CONCAT('Trabajando en base de datos: ', @db_name) AS info;
 
 -- ===== PASO 1: VERIFICAR ESTRUCTURA ACTUAL =====
 SELECT '===== VERIFICANDO ESTRUCTURA DE COLUMNAS =====' AS paso;
@@ -19,7 +22,7 @@ SELECT
     NUMERIC_PRECISION,
     NUMERIC_SCALE
 FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_SCHEMA = 'flexoapp_bd'
+WHERE TABLE_SCHEMA = @db_name
   AND TABLE_NAME = 'maquinas'
   AND COLUMN_NAME IN ('Kilos', 'metros')
 ORDER BY ORDINAL_POSITION;
@@ -32,9 +35,9 @@ SELECT
     CONSTRAINT_TYPE,
     TABLE_NAME
 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
-WHERE TABLE_SCHEMA = 'flexoapp_bd'
+WHERE TABLE_SCHEMA = @db_name
   AND TABLE_NAME = 'maquinas'
-  AND CONSTRAINT_NAME LIKE '%kilo%' OR CONSTRAINT_NAME LIKE '%metro%';
+  AND (CONSTRAINT_NAME LIKE '%kilo%' OR CONSTRAINT_NAME LIKE '%metro%');
 
 -- ===== PASO 3: VERIFICAR TRIGGERS =====
 SELECT '===== VERIFICANDO TRIGGERS =====' AS paso;
@@ -46,7 +49,7 @@ SELECT
     ACTION_TIMING,
     ACTION_STATEMENT
 FROM INFORMATION_SCHEMA.TRIGGERS
-WHERE EVENT_OBJECT_SCHEMA = 'flexoapp_bd'
+WHERE EVENT_OBJECT_SCHEMA = @db_name
   AND EVENT_OBJECT_TABLE = 'maquinas';
 
 -- ===== PASO 4: VER TODAS LAS COLUMNAS DE LA TABLA =====
@@ -83,7 +86,7 @@ SELECT '===== ELIMINANDO CONSTRAINTS PROBLEMÁTICOS =====' AS paso;
 SET @constraint_exists = (
     SELECT COUNT(*)
     FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
-    WHERE TABLE_SCHEMA = 'flexoapp_bd'
+    WHERE TABLE_SCHEMA = @db_name
       AND TABLE_NAME = 'maquinas'
       AND CONSTRAINT_NAME = 'chk_maquinas_kilos_positivos'
 );
@@ -155,7 +158,7 @@ SELECT
     NUMERIC_PRECISION,
     NUMERIC_SCALE
 FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_SCHEMA = 'flexoapp_bd'
+WHERE TABLE_SCHEMA = @db_name
   AND TABLE_NAME = 'maquinas'
   AND COLUMN_NAME IN ('Kilos', 'metros');
 
