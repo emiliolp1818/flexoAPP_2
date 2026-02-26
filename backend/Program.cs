@@ -29,6 +29,37 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    // ===== DETECTAR ENTORNO (RAILWAY O RENDER) =====
+    var isRailway = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT"));
+    var environmentName = isRailway ? "Railway" : "Production";
+    
+    Log.Information($"🌍 Entorno detectado: {environmentName}");
+    
+    // Cargar configuración específica del entorno
+    if (isRailway)
+    {
+        builder.Configuration.AddJsonFile("appsettings.Railway.json", optional: true, reloadOnChange: true);
+        
+        // Reemplazar variables de entorno en la cadena de conexión
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (!string.IsNullOrEmpty(connectionString))
+        {
+            connectionString = connectionString
+                .Replace("${MYSQL_HOST}", Environment.GetEnvironmentVariable("MYSQL_HOST"))
+                .Replace("${MYSQL_PORT}", Environment.GetEnvironmentVariable("MYSQL_PORT"))
+                .Replace("${MYSQL_DATABASE}", Environment.GetEnvironmentVariable("MYSQL_DATABASE"))
+                .Replace("${MYSQL_USER}", Environment.GetEnvironmentVariable("MYSQL_USER"))
+                .Replace("${MYSQL_PASSWORD}", Environment.GetEnvironmentVariable("MYSQL_PASSWORD"));
+            
+            builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+            Log.Information("✅ Cadena de conexión Railway configurada");
+        }
+        
+        // Configurar URL con el puerto de Railway
+        var railwayPort = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        builder.Configuration["Urls"] = $"http://0.0.0.0:{railwayPort}";
+        Log.Information($"✅ Puerto Railway configurado: {railwayPort}");
+    }
 
     // ===== INTEGRACIÓN DE SERILOG =====
     builder.Host.UseSerilog();
@@ -79,8 +110,13 @@ try
         options.AddDefaultPolicy(policy =>
         {
             policy.WithOrigins(
+                // Render
                 "https://flexoapp-backend.onrender.com",
                 "https://flexoapp-frontend.onrender.com",
+                // Railway (actualizar con tu dominio real cuando lo tengas)
+                "https://*.up.railway.app",
+                "https://*.railway.app",
+                // Local
                 "http://localhost:4200",
                 "http://localhost:8080",
                 "http://127.0.0.1:4200",

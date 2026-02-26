@@ -44,347 +44,351 @@
 
 
 
-  <div class="scrollable-table-area">
+      <div class="scrollable-table-area">
 
 
 
 
-    <mat-card class="table-card">
+        <mat-card class="table-card">
 
 
-      <mat-card-header>
-        <div class="header-with-search">
+          <mat-card-header>
+            <div class="header-with-search">
 
-          <div class="title-section">
-            <mat-card-title>
+              <div class="title-section">
+                <mat-card-title>
 
-              <mat-icon>table_view</mat-icon>
+                  <mat-icon>table_view</mat-icon>
 
-              Base de Datos de Diseños Flexográficos
+                  Base de Datos de Diseños Flexográficos
 
-              <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
-                ({{ filteredDesigns().length }} registros)
-              </span>
-            </mat-card-title>
-
-
-            <div class="search-results-inline" *ngIf="searchTerm()">
-              <span class="results-count">
-                {{ filteredDesigns().length }} resultado(s) para "{{ searchTerm() }}"
-              </span>
-            </div>
-          </div>
+                  <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+                    ({{ filteredDesigns().length }} registros)
+                  </span>
+                </mat-card-title>
 
 
-          <div class="search-and-actions-section">
-
-            <div class="search-section-inline">
-              <mat-form-field appearance="outline" class="search-field-inline">
-                <mat-label>Buscar diseños</mat-label>
-                <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
-                  placeholder="Artículo F, Cliente o Descripción">
-                <mat-icon matSuffix>search</mat-icon>
-              </mat-form-field>
-
-
-              <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm()" class="clear-search-btn-inline"
-                matTooltip="Limpiar búsqueda">
-                <mat-icon>clear</mat-icon>
-              </button>
-            </div>
-
-
-            <div class="header-actions-inline">
-
-              <button mat-raised-button (click)="createNewDesign()" class="create-design-btn"
-                [disabled]="loading()" matTooltip="Crear nuevo diseño flexográfico">
-                <mat-icon>add</mat-icon>
-                Crear
-              </button>
-
-
-              <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn" [disabled]="uploading()"
-                matTooltip="Subir diseños desde Excel">
-                <mat-icon>cloud_upload</mat-icon>
-                <span *ngIf="!uploading()">Importar</span>
-                <span *ngIf="uploading()">{{uploadProgress()}}%</span>
-              </button>
-
-
-              <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn"
-                matTooltip="Exportar diseños a Excel">
-                <mat-icon>download</mat-icon>
-                Exportar
-              </button>
-
-
-              <button mat-icon-button (click)="refreshDesigns()" class="refresh-btn" [disabled]="loading()"
-                matTooltip="Actualizar lista de diseños">
-                <mat-icon [class.spinning]="loading()">refresh</mat-icon>
-              </button>
-            </div>
-          </div>
-        </div>
-      </mat-card-header>
-
-
-
-      <mat-card-content>
-
-
-        <div class="table-container">
-
-
-
-
-          <table mat-table [dataSource]="filteredDesigns()" class="excel-table designs-table-modern">
-
-
-
-            <ng-container matColumnDef="articleF">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>tag</mat-icon>
-                  <span>Art</span>
+                <div class="search-results-inline" *ngIf="searchTerm()">
+                  <span class="results-count">
+                    {{ filteredDesigns().length }} resultado(s) para "{{ searchTerm() }}"
+                  </span>
                 </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell article-cell">
-                <span class="article-code">{{ design.articleF }}</span>
-              </td>
-            </ng-container>
+              </div>
 
 
-            <ng-container matColumnDef="client">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>business</mat-icon>
-                  <span>Cliente</span>
+              <div class="search-and-actions-section">
+
+                <div class="search-section-inline">
+                  <mat-form-field appearance="outline" class="search-field-inline">
+                    <mat-label>Buscar diseños</mat-label>
+                    <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
+                      placeholder="Artículo F, Cliente o Descripción">
+                    <mat-icon matSuffix>search</mat-icon>
+                  </mat-form-field>
+
+
+                  <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm()" class="clear-search-btn-inline"
+                    matTooltip="Limpiar búsqueda">
+                    <mat-icon>clear</mat-icon>
+                  </button>
                 </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell client-cell" [matTooltip]="design.client" matTooltipPosition="above">
-                <span class="client-name">{{ design.client }}</span>
-              </td>
-            </ng-container>
 
 
-            <ng-container matColumnDef="description">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>description</mat-icon>
-                  <span>Descripción</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell description-cell" [matTooltip]="design.description" matTooltipPosition="above">
-                <span class="description-text">{{ design.description }}</span>
-              </td>
-            </ng-container>
+                <div class="header-actions-inline">
 
-
-            <ng-container matColumnDef="substrate">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>layers</mat-icon>
-                  <span>Sustrato</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell substrate-cell">
-                <span class="substrate-text">{{ design.substrate }}</span>
-              </td>
-            </ng-container>
-
-
-            <ng-container matColumnDef="type">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>category</mat-icon>
-                  <span>Tipo</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell type-cell" [matTooltip]="design.type" matTooltipPosition="above">
-                <span class="type-text">{{ design.type || 'N/A' }}</span>
-              </td>
-            </ng-container>
-
-
-            <ng-container matColumnDef="anchoMm">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>straighten</mat-icon>
-                  <span>Ancho (mm)</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell ancho-cell">
-                <span class="ancho-text">{{ design.anchoMm || 'N/A' }}</span>
-              </td>
-            </ng-container>
-
-
-            <ng-container matColumnDef="printType">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>print</mat-icon>
-                  <span>Impresión</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell print-type-cell" [matTooltip]="(design.printType || 'N/A').replace('_', ' ')" matTooltipPosition="above">
-                <span class="print-type-text">{{ (design.printType || 'N/A').replace('_', ' ') }}</span>
-              </td>
-            </ng-container>
-
-
-            <ng-container matColumnDef="colors">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>palette</mat-icon>
-                  <span>Colores</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell colors-cell">
-                <div class="numero-colores-container-inline">
-                  <button mat-raised-button
-                    [class]="'numero-colores-btn' + (isColorsExpanded(design.id?.toString() || '') ? ' active' : '')"
-                    (click)="toggleColors(design.id?.toString() || '', $event)"
-                    [matTooltip]="getColorsTooltip(design)"
-                    matTooltipClass="colors-tooltip"
-                    matTooltipPosition="right">
-                    <mat-icon class="colors-icon-small">palette</mat-icon>
-                    <span class="numero-colores-text">{{ design.colorCount || 0 }}</span>
+                  <button mat-raised-button (click)="createNewDesign()" class="create-design-btn" [disabled]="loading()"
+                    matTooltip="Crear nuevo diseño flexográfico">
+                    <mat-icon>add</mat-icon>
+                    Crear
                   </button>
 
-                  <div class="colors-chips-inline" *ngIf="isColorsExpanded(design.id?.toString() || '')">
-                    <div *ngFor="let colorName of design.colors; let i = index" class="color-chip">
-                      <span class="chip-num">{{ i + 1 }}</span>
-                      <div class="chip-color-box" [style.background-color]="getPantoneColor(colorName).hex"></div>
-                      <span class="chip-name">{{ formatColorName(colorName) }}</span>
+
+                  <button mat-raised-button (click)="triggerFileUpload()" class="bulk-upload-btn"
+                    [disabled]="uploading()" matTooltip="Subir diseños desde Excel">
+                    <mat-icon>cloud_upload</mat-icon>
+                    <span *ngIf="!uploading()">Importar</span>
+                    <span *ngIf="uploading()">{{uploadProgress()}}%</span>
+                  </button>
+
+
+                  <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn"
+                    matTooltip="Exportar diseños a Excel">
+                    <mat-icon>download</mat-icon>
+                    Exportar
+                  </button>
+
+
+                  <button mat-icon-button (click)="refreshDesigns()" class="refresh-btn" [disabled]="loading()"
+                    matTooltip="Actualizar lista de diseños">
+                    <mat-icon [class.spinning]="loading()">refresh</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-card-header>
+
+
+
+          <mat-card-content>
+
+
+            <div class="table-container">
+
+
+
+
+              <table mat-table [dataSource]="filteredDesigns()" class="excel-table designs-table-modern">
+
+
+
+                <ng-container matColumnDef="articleF">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>tag</mat-icon>
+                      <span>Art</span>
                     </div>
-                  </div>
-                </div>
-              </td>
-            </ng-container>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell article-cell">
+                    <span class="article-code">{{ design.articleF }}</span>
+                  </td>
+                </ng-container>
 
 
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>toggle_on</mat-icon>
-                  <span>Estado</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell status-cell" [matTooltip]="getDesignStatus(design)" matTooltipPosition="above">
-                <span class="status-text">{{ getDesignStatus(design) }}</span>
-              </td>
-            </ng-container>
+                <ng-container matColumnDef="client">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>business</mat-icon>
+                      <span>Cliente</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell client-cell" [matTooltip]="design.client"
+                    matTooltipPosition="above">
+                    <span class="client-name">{{ design.client }}</span>
+                  </td>
+                </ng-container>
 
 
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef class="excel-header">
-                <div class="header-content">
-                  <mat-icon>settings</mat-icon>
-                  <span>Acciones</span>
-                </div>
-              </th>
-              <td mat-cell *matCellDef="let design" class="excel-cell actions-cell">
-                <div class="action-buttons">
-                  <button mat-icon-button (click)="editDesign(design)" [disabled]="loading()"
-                    matTooltip="Editar diseño" class="action-btn edit-btn">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-
-                  <button mat-icon-button (click)="duplicateDesign(design)" [disabled]="loading()"
-                    matTooltip="Duplicar diseño" class="action-btn duplicate-btn">
-                    <mat-icon>content_copy</mat-icon>
-                  </button>
-
-                  <button mat-icon-button (click)="deleteDesign(design)" [disabled]="loading()"
-                    matTooltip="Eliminar diseño" class="action-btn delete-btn">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </div>
-              </td>
-            </ng-container>
+                <ng-container matColumnDef="description">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>description</mat-icon>
+                      <span>Descripción</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell description-cell"
+                    [matTooltip]="design.description" matTooltipPosition="above">
+                    <span class="description-text">{{ design.description }}</span>
+                  </td>
+                </ng-container>
 
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="excel-row"
-              [attr.data-design-id]="row.id"
-              [attr.data-article]="row.articleF"></tr>
-          </table>
+                <ng-container matColumnDef="substrate">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>layers</mat-icon>
+                      <span>Sustrato</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell substrate-cell">
+                    <span class="substrate-text">{{ design.substrate }}</span>
+                  </td>
+                </ng-container>
+
+
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>category</mat-icon>
+                      <span>Tipo</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell type-cell" [matTooltip]="design.type"
+                    matTooltipPosition="above">
+                    <span class="type-text">{{ design.type || 'N/A' }}</span>
+                  </td>
+                </ng-container>
+
+
+                <ng-container matColumnDef="anchoMm">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>straighten</mat-icon>
+                      <span>Ancho (mm)</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell ancho-cell">
+                    <span class="ancho-text">{{ design.anchoMm || 'N/A' }}</span>
+                  </td>
+                </ng-container>
+
+
+                <ng-container matColumnDef="printType">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>print</mat-icon>
+                      <span>Impresión</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell print-type-cell"
+                    [matTooltip]="(design.printType || 'N/A').replace('_', ' ')" matTooltipPosition="above">
+                    <span class="print-type-text">{{ (design.printType || 'N/A').replace('_', ' ') }}</span>
+                  </td>
+                </ng-container>
+
+
+                <ng-container matColumnDef="colors">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>palette</mat-icon>
+                      <span>Colores</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell colors-cell">
+                    <div class="numero-colores-container-inline">
+                      <button mat-raised-button
+                        [class]="'numero-colores-btn' + (isColorsExpanded(design.id?.toString() || '') ? ' active' : '')"
+                        (click)="toggleColors(design.id?.toString() || '', $event)"
+                        [matTooltip]="getColorsTooltip(design)" matTooltipClass="colors-tooltip"
+                        matTooltipPosition="right">
+                        <mat-icon class="colors-icon-small">palette</mat-icon>
+                        <span class="numero-colores-text">{{ design.colorCount || 0 }}</span>
+                      </button>
+
+                      <div class="colors-chips-inline" *ngIf="isColorsExpanded(design.id?.toString() || '')">
+                        <div *ngFor="let colorName of design.colors; let i = index" class="color-chip">
+                          <span class="chip-num">{{ i + 1 }}</span>
+                          <div class="chip-color-box" [style.background-color]="getPantoneColor(colorName).hex"></div>
+                          <span class="chip-name">{{ formatColorName(colorName) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </ng-container>
+
+
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>toggle_on</mat-icon>
+                      <span>Estado</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell status-cell"
+                    [matTooltip]="getDesignStatus(design)" matTooltipPosition="above">
+                    <span class="status-text">{{ getDesignStatus(design) }}</span>
+                  </td>
+                </ng-container>
+
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>settings</mat-icon>
+                      <span>Acciones</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell actions-cell">
+                    <div class="action-buttons">
+                      <button mat-icon-button (click)="editDesign(design)" [disabled]="loading()"
+                        matTooltip="Editar diseño" class="action-btn edit-btn">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+
+                      <button mat-icon-button (click)="duplicateDesign(design)" [disabled]="loading()"
+                        matTooltip="Duplicar diseño" class="action-btn duplicate-btn">
+                        <mat-icon>content_copy</mat-icon>
+                      </button>
+
+                      <button mat-icon-button (click)="deleteDesign(design)" [disabled]="loading()"
+                        matTooltip="Eliminar diseño" class="action-btn delete-btn">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
+
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="excel-row"
+                  [attr.data-design-id]="row.id" [attr.data-article]="row.articleF"></tr>
+              </table>
 
 
 
 
 
-          <div *ngIf="filteredDesigns().length === 0 && !loading()" class="no-data">
+              <div *ngIf="filteredDesigns().length === 0 && !loading()" class="no-data">
 
-            <mat-icon>design_services</mat-icon>
+                <mat-icon>design_services</mat-icon>
 
-            <p *ngIf="!searchTerm()">No hay diseños registrados en la base de datos</p>
+                <p *ngIf="!searchTerm()">No hay diseños registrados en la base de datos</p>
 
-            <p *ngIf="searchTerm()">No se encontraron diseños que coincidan con "{{ searchTerm() }}"</p>
+                <p *ngIf="searchTerm()">No se encontraron diseños que coincidan con "{{ searchTerm() }}"</p>
 
-            <button mat-raised-button (click)="createNewDesign()" *ngIf="!searchTerm()">
+                <button mat-raised-button (click)="createNewDesign()" *ngIf="!searchTerm()">
 
-              <mat-icon>add</mat-icon>
-              Crear Primer Diseño
-            </button>
-          </div>
-
-
-
-
-          <div *ngIf="loading()" class="loading-container">
-
-            <mat-icon class="loading-icon">refresh</mat-icon>
-
-            <p>Cargando diseños desde la base de datos...</p>
-          </div>
-
-        </div>
+                  <mat-icon>add</mat-icon>
+                  Crear Primer Diseño
+                </button>
+              </div>
 
 
 
-        <div class="pagination-controls" *ngIf="filteredDesigns().length > 0">
 
-          <div class="pagination-info">
-            Mostrando <b>{{ (currentPage() - 1) * pageSize() + 1 }} - {{ Math.min(currentPage() * pageSize(),
-              filteredDesigns().length)
-              }}</b> de <b>{{ filteredDesigns().length }}</b> diseños
-          </div>
+              <div *ngIf="loading()" class="loading-container">
 
+                <mat-icon class="loading-icon">refresh</mat-icon>
 
-          <div class="pagination-actions">
-            <button (click)="previousPage()" [disabled]="currentPage() === 1 || loading()" mat-ripple
-              class="nav-btn prev-btn">
-              <mat-icon>chevron_left</mat-icon>
-              Anterior
-            </button>
+                <p>Cargando diseños desde la base de datos...</p>
+              </div>
 
-            <div class="current-page-indicator">
-              Página <span>{{ currentPage() }}</span>
             </div>
 
-            <button (click)="nextPage()" [disabled]="!hasMoreData() || loading()" mat-ripple class="nav-btn next-btn">
-              Siguiente
-              <mat-icon>chevron_right</mat-icon>
-            </button>
-          </div>
 
 
-          <div class="page-size-container">
-            <mat-form-field appearance="outline" class="page-size-select mini-select">
-              <mat-select [ngModel]="pageSize()" (selectionChange)="onPageSizeChange($event.value)">
-                <mat-option [value]="25">25 / pág</mat-option>
-                <mat-option [value]="50">50 / pág</mat-option>
-                <mat-option [value]="100">100 / pág</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </div>
-      </mat-card-content>
+            <div class="pagination-controls" *ngIf="filteredDesigns().length > 0">
 
-    </mat-card>
+              <div class="pagination-info">
+                Mostrando <b>{{ (currentPage() - 1) * pageSize() + 1 }} - {{ Math.min(currentPage() * pageSize(),
+                  filteredDesigns().length)
+                  }}</b> de <b>{{ filteredDesigns().length }}</b> diseños
+              </div>
 
-  </div>
+
+              <div class="pagination-actions">
+                <button (click)="previousPage()" [disabled]="currentPage() === 1 || loading()" mat-ripple
+                  class="nav-btn prev-btn">
+                  <mat-icon>chevron_left</mat-icon>
+                  Anterior
+                </button>
+
+                <div class="current-page-indicator">
+                  Página <span>{{ currentPage() }}</span>
+                </div>
+
+                <button (click)="nextPage()" [disabled]="!hasMoreData() || loading()" mat-ripple
+                  class="nav-btn next-btn">
+                  Siguiente
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
+              </div>
+
+
+              <div class="page-size-container">
+                <mat-form-field appearance="outline" class="page-size-select mini-select">
+                  <mat-select [ngModel]="pageSize()" (selectionChange)="onPageSizeChange($event.value)">
+                    <mat-option [value]="25">25 / pág</mat-option>
+                    <mat-option [value]="50">50 / pág</mat-option>
+                    <mat-option [value]="100">100 / pág</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+          </mat-card-content>
+
+        </mat-card>
+
+      </div>
 
 
     </mat-tab>
@@ -411,30 +415,18 @@
 
             <div class="machine-buttons">
               <div class="machine-item" *ngFor="let machine of availableMachines">
-                <button
-                  mat-raised-button
-                  [class.active]="selectedMachine === machine.toString()"
-                  (click)="selectMachine(machine)"
-                  class="machine-btn">
+                <button mat-raised-button [class.active]="selectedMachine === machine.toString()"
+                  (click)="selectMachine(machine)" class="machine-btn">
                   <mat-icon>settings</mat-icon>
                   <span>MQ {{ machine }}</span>
                 </button>
                 <mat-form-field class="carga-muestra-input" appearance="outline">
-                  <input
-                    matInput
-                    type="number"
-                    step="0.01"
-                    [value]="machinesCargaMuestra[machine] || ''"
-                    (blur)="updateMachineCargaMuestra(machine, $event)"
-                    placeholder="Carga"
-                    class="carga-input">
+                  <input matInput type="number" step="0.01" [value]="machinesCargaMuestra[machine] || ''"
+                    (blur)="updateMachineCargaMuestra(machine, $event)" placeholder="Carga" class="carga-input">
                 </mat-form-field>
               </div>
 
-              <button
-                mat-raised-button
-                [class.active]="selectedMachine === 'all'"
-                (click)="selectMachine('all')"
+              <button mat-raised-button [class.active]="selectedMachine === 'all'" (click)="selectMachine('all')"
                 class="machine-btn all-machines">
                 <mat-icon>view_list</mat-icon>
                 <span>Todas</span>
@@ -532,8 +524,7 @@
                   </th>
                   <td mat-cell *matCellDef="let anilox" class="anilox-cell marca-cell">
                     <span class="marca-badge" [class.apex]="anilox.marca === 'APEX'"
-                          [class.zecher]="anilox.marca === 'ZECHER'"
-                          [class.harper]="anilox.marca === 'HARPER'">
+                      [class.zecher]="anilox.marca === 'ZECHER'" [class.harper]="anilox.marca === 'HARPER'">
                       {{ anilox.marca }}
                     </span>
                   </td>
@@ -561,7 +552,8 @@
                     </div>
                   </th>
                   <td mat-cell *matCellDef="let anilox" class="anilox-cell">
-                    <span class="factor-value">{{ anilox.factor_eficiencia ? anilox.factor_eficiencia + '%' : '35%' }}</span>
+                    <span class="factor-value">{{ anilox.factor_eficiencia ? anilox.factor_eficiencia + '%' : '35%'
+                      }}</span>
                   </td>
                 </ng-container>
 
@@ -574,7 +566,8 @@
                     </div>
                   </th>
                   <td mat-cell *matCellDef="let anilox" class="anilox-cell">
-                    <span class="densidad-value">{{ anilox.densidad !== null && anilox.densidad !== undefined ? anilox.densidad : '0.885' }}</span>
+                    <span class="densidad-value">{{ anilox.densidad !== null && anilox.densidad !== undefined ?
+                      anilox.densidad : '0.885' }}</span>
                   </td>
                 </ng-container>
 
@@ -588,10 +581,12 @@
                   </th>
                   <td mat-cell *matCellDef="let anilox" class="anilox-cell actions-cell">
                     <div class="action-buttons">
-                      <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar anilox" (click)="editAnilox(anilox)">
+                      <button mat-icon-button class="action-btn edit-btn" matTooltip="Editar anilox"
+                        (click)="editAnilox(anilox)">
                         <mat-icon>edit</mat-icon>
                       </button>
-                      <button mat-icon-button class="action-btn delete-btn" matTooltip="Eliminar anilox" (click)="deleteAnilox(anilox)">
+                      <button mat-icon-button class="action-btn delete-btn" matTooltip="Eliminar anilox"
+                        (click)="deleteAnilox(anilox)">
                         <mat-icon>delete</mat-icon>
                       </button>
                     </div>
@@ -626,192 +621,265 @@
 <!-- Fin del contenedor principal de diseños -->
 
 <!-- ===== DIÁLOGO MODAL PARA CREAR DISEÑO ===== -->
-<!-- Diálogo modal scrollable con todos los campos dinámicos -->
 <div class="dialog-overlay" *ngIf="showCreateForm()" (click)="cancelCreateDesign()">
   <div class="dialog-container" (click)="$event.stopPropagation()">
 
-
-    <div class="dialog-header">
-      <div class="dialog-title">
-        <mat-icon>add_circle</mat-icon>
-        <h2>Crear Nuevo Diseño Flexográfico</h2>
+    <!-- Header del dialog de crear -->
+    <div class="dialog-header create-header">
+      <div class="dialog-header-left">
+        <div class="dialog-icon-wrapper create-icon">
+          <mat-icon>add_circle</mat-icon>
+        </div>
+        <div class="dialog-header-text">
+          <h2>Nuevo Diseño</h2>
+          <span class="dialog-subtitle">Flexográfico — Complete todos los campos requeridos</span>
+        </div>
       </div>
-      <button mat-icon-button (click)="cancelCreateDesign()" class="dialog-close-btn">
+      <button mat-icon-button (click)="cancelCreateDesign()" class="dialog-close-btn" matTooltip="Cerrar">
         <mat-icon>close</mat-icon>
       </button>
     </div>
 
-
+    <!-- Contenido del dialog -->
     <div class="dialog-content">
-      <form [formGroup]="createDesignForm" class="create-design-form">
+      <form [formGroup]="createDesignForm" class="design-form">
 
+        <!-- SECCIÓN 1: Identificación -->
+        <div class="form-section">
+          <div class="section-header">
+            <div class="section-icon identification-icon">
+              <mat-icon>fingerprint</mat-icon>
+            </div>
+            <div class="section-info">
+              <h3 class="section-title">Identificación</h3>
+              <p class="section-desc">Datos principales del diseño</p>
+            </div>
+          </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Artículo F *</mat-label>
-            <input matInput formControlName="articleF" placeholder="Ej: F204567">
-            <mat-icon matSuffix>article</mat-icon>
-            <mat-error *ngIf="createDesignForm.get('articleF')?.hasError('required')">
-              El artículo F es requerido
-            </mat-error>
-          </mat-form-field>
+          <div class="fields-grid">
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Artículo F</mat-label>
+              <input matInput formControlName="articleF" placeholder="Ej: F204567">
+              <mat-icon matPrefix class="field-icon">tag</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-error *ngIf="createDesignForm.get('articleF')?.hasError('required')">
+                El artículo F es requerido
+              </mat-error>
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Cliente *</mat-label>
-            <input matInput formControlName="client" placeholder="Ej: ABSORBENTES S.A.">
-            <mat-icon matSuffix>business</mat-icon>
-            <mat-error *ngIf="createDesignForm.get('client')?.hasError('required')">
-              El cliente es requerido
-            </mat-error>
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Cliente</mat-label>
+              <input matInput formControlName="client" placeholder="Ej: ABSORBENTES S.A.">
+              <mat-icon matPrefix class="field-icon">business</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-error *ngIf="createDesignForm.get('client')?.hasError('required')">
+                El cliente es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-full">
+              <mat-label>Descripción del Diseño</mat-label>
+              <textarea matInput formControlName="description" rows="2"
+                placeholder="Descripción detallada del diseño flexográfico"></textarea>
+              <mat-icon matPrefix class="field-icon">description</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-error *ngIf="createDesignForm.get('description')?.hasError('required')">
+                La descripción es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
         </div>
 
+        <!-- SECCIÓN 2: Especificaciones Técnicas -->
+        <div class="form-section">
+          <div class="section-header">
+            <div class="section-icon technical-icon">
+              <mat-icon>settings</mat-icon>
+            </div>
+            <div class="section-info">
+              <h3 class="section-title">Especificaciones Técnicas</h3>
+              <p class="section-desc">Material, dimensiones y tipo de impresión</p>
+            </div>
+          </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Descripción *</mat-label>
-            <textarea matInput formControlName="description" rows="3"
-              placeholder="Descripción detallada del diseño"></textarea>
-            <mat-icon matSuffix>description</mat-icon>
-            <mat-error *ngIf="createDesignForm.get('description')?.hasError('required')">
-              La descripción es requerida
-            </mat-error>
-          </mat-form-field>
+          <div class="fields-grid">
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Sustrato</mat-label>
+              <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
+              <mat-icon matPrefix class="field-icon">layers</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-error *ngIf="createDesignForm.get('substrate')?.hasError('required')">
+                El sustrato es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Tipo de Estructura</mat-label>
+              <mat-select formControlName="type">
+                <mat-option value="LAMINA">
+                  <mat-icon style="margin-right:8px;font-size:18px;vertical-align:middle">view_stream</mat-icon>
+                  LÁMINA
+                </mat-option>
+                <mat-option value="TUBULAR">
+                  <mat-icon style="margin-right:8px;font-size:18px;vertical-align:middle">circle</mat-icon>
+                  TUBULAR
+                </mat-option>
+                <mat-option value="SEMITUBULAR">
+                  <mat-icon style="margin-right:8px;font-size:18px;vertical-align:middle">lens_blur</mat-icon>
+                  SEMITUBULAR
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix class="field-icon">category</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Tipo de Impresión</mat-label>
+              <mat-select formControlName="printType">
+                <mat-option value="CARA">CARA</mat-option>
+                <mat-option value="DORSO">DORSO</mat-option>
+                <mat-option value="CARA_DORSO">CARA Y DORSO</mat-option>
+              </mat-select>
+              <mat-icon matPrefix class="field-icon">print</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Ancho (mm)</mat-label>
+              <input matInput type="number" formControlName="anchoMm" placeholder="Ej: 350" min="1">
+              <mat-icon matPrefix class="field-icon">straighten</mat-icon>
+              <mat-hint>Opcional — Ancho del sustrato en milímetros</mat-hint>
+              <mat-error *ngIf="createDesignForm.get('anchoMm')?.hasError('min')">
+                El ancho debe ser mayor a 0
+              </mat-error>
+            </mat-form-field>
+          </div>
         </div>
 
-
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Sustrato *</mat-label>
-            <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
-            <mat-icon matSuffix>layers</mat-icon>
-            <mat-error *ngIf="createDesignForm.get('substrate')?.hasError('required')">
-              El sustrato es requerido
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Tipo *</mat-label>
-            <mat-select formControlName="type">
-              <mat-option value="LAMINA">LÁMINA</mat-option>
-              <mat-option value="TUBULAR">TUBULAR</mat-option>
-              <mat-option value="SEMITUBULAR">SEMITUBULAR</mat-option>
-            </mat-select>
-            <mat-icon matSuffix>category</mat-icon>
-          </mat-form-field>
-        </div>
-
-
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Tipo de Impresión *</mat-label>
-            <mat-select formControlName="printType">
-              <mat-option value="CARA">CARA</mat-option>
-              <mat-option value="DORSO">DORSO</mat-option>
-              <mat-option value="CARA_DORSO">CARA Y DORSO</mat-option>
-            </mat-select>
-            <mat-icon matSuffix>print</mat-icon>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Número de Colores *</mat-label>
-            <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateColors()">
-            <mat-icon matSuffix>palette</mat-icon>
-          </mat-form-field>
-        </div>
-
-
-        <div class="form-row colors-section" *ngIf="createDesignForm.get('colorCount')?.value > 0">
-          <div class="colors-header">
-            <h4>
+        <!-- SECCIÓN 3: Colores Pantone -->
+        <div class="form-section colors-form-section">
+          <div class="section-header">
+            <div class="section-icon colors-icon">
               <mat-icon>palette</mat-icon>
-              Colores Pantone Live
-            </h4>
-            <p class="colors-description">
-              Selecciona los colores Pantone para cada posición (P = Pantone Live)
-            </p>
-          </div>
-
-
-          <div class="most-used-colors">
-            <span class="section-label">Más utilizados:</span>
-            <div class="color-chips">
-              <div *ngFor="let color of getMostUsedColors()" class="color-chip" [style.background-color]="color.hex"
-                [title]="color.displayName + ' - ' + color.hex" (click)="selectPantoneColor(0, color)">
-                <span class="color-code">{{ color.displayName }}</span>
-              </div>
+            </div>
+            <div class="section-info">
+              <h3 class="section-title">Colores Pantone</h3>
+              <p class="section-desc">Definición de la paleta cromática del diseño</p>
             </div>
           </div>
 
+          <div class="fields-grid">
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Número de Colores</mat-label>
+              <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateColors()">
+              <mat-icon matPrefix class="field-icon">format_list_numbered</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-hint>Mínimo 1, máximo 12 colores</mat-hint>
+            </mat-form-field>
+          </div>
 
-          <div class="color-selectors">
-            <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
-              <label class="color-label">Color {{ i + 1 }}:</label>
-
-              <mat-form-field appearance="outline" class="color-field">
-                <mat-label>Buscar Pantone</mat-label>
-                <input matInput [value]="color.displayName"
-                  (input)="searchPantoneColors($any($event.target).value); updateColorManual(i, $any($event.target).value)"
-                  [matAutocomplete]="colorAuto" placeholder="Ej: 209, Black, Cyan">
-                <mat-icon matSuffix>search</mat-icon>
-
-                <mat-autocomplete #colorAuto="matAutocomplete"
-                  (optionSelected)="selectPantoneColor(i, $event.option.value)">
-                  <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
-                    class="color-option">
-                    <div class="color-option-content">
-                      <div class="color-preview" [style.background-color]="pantoneColor.hex">
-                      </div>
-                      <div class="color-info">
-                        <span class="color-name">{{ pantoneColor.displayName }}</span>
-                        <span class="color-hex">{{ pantoneColor.hex }}</span>
-                      </div>
-                    </div>
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
-
-
-              <div class="selected-color-preview">
-                <div class="color-swatch" [style.background-color]="color.hex"
-                  [title]="color.displayName + ' - ' + color.hex">
-                </div>
-                <div class="color-details">
+          <!-- Panel de colores expandible -->
+          <div class="colors-panel" *ngIf="createDesignForm.get('colorCount')?.value > 0">
+            <div class="most-used-colors">
+              <span class="section-label">
+                <mat-icon>star</mat-icon>
+                Más utilizados:
+              </span>
+              <div class="color-chips">
+                <div *ngFor="let color of getMostUsedColors()" class="color-chip" [style.background-color]="color.hex"
+                  [title]="color.displayName + ' - ' + color.hex" (click)="selectPantoneColor(0, color)">
                   <span class="color-code">{{ color.displayName }}</span>
-                  <span class="color-hex">{{ color.hex }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="color-selectors">
+              <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
+                <div class="color-number-badge">{{ i + 1 }}</div>
+
+                <mat-form-field appearance="outline" class="color-field">
+                  <mat-label>Color {{ i + 1 }}</mat-label>
+                  <input matInput [value]="color.displayName"
+                    (input)="searchPantoneColors($any($event.target).value); updateColorManual(i, $any($event.target).value)"
+                    [matAutocomplete]="colorAuto" placeholder="Ej: 209, Black, Cyan">
+                  <mat-icon matSuffix>search</mat-icon>
+
+                  <mat-autocomplete #colorAuto="matAutocomplete"
+                    (optionSelected)="selectPantoneColor(i, $event.option.value)">
+                    <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
+                      class="color-option">
+                      <div class="color-option-content">
+                        <div class="color-preview" [style.background-color]="pantoneColor.hex"></div>
+                        <div class="color-info">
+                          <span class="color-name">{{ pantoneColor.displayName }}</span>
+                          <span class="color-hex">{{ pantoneColor.hex }}</span>
+                        </div>
+                      </div>
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+
+                <div class="color-swatch-preview" [style.background-color]="color.hex"
+                  [class.empty-swatch]="!color.hex || color.hex === '#cccccc'"
+                  [title]="color.displayName + ' — ' + color.hex">
+                  <mat-icon *ngIf="!color.hex || color.hex === '#cccccc'" class="empty-icon">add</mat-icon>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- SECCIÓN 4: Estado -->
+        <div class="form-section status-form-section">
+          <div class="section-header">
+            <div class="section-icon status-icon">
+              <mat-icon>toggle_on</mat-icon>
+            </div>
+            <div class="section-info">
+              <h3 class="section-title">Estado del Diseño</h3>
+              <p class="section-desc">Disponibilidad en el sistema</p>
+            </div>
+          </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Estado *</mat-label>
-            <mat-select formControlName="status">
-              <mat-option value="ACTIVO">ACTIVO</mat-option>
-              <mat-option value="INACTIVO">INACTIVO</mat-option>
-            </mat-select>
-            <mat-icon matSuffix>toggle_on</mat-icon>
-          </mat-form-field>
+          <div class="fields-grid">
+            <div class="status-selector-group field-half">
+              <button type="button" class="status-option-btn"
+                [class.active-activo]="createDesignForm.get('status')?.value === 'ACTIVO'"
+                (click)="createDesignForm.get('status')?.setValue('ACTIVO')">
+                <mat-icon>check_circle</mat-icon>
+                <span>ACTIVO</span>
+              </button>
+              <button type="button" class="status-option-btn"
+                [class.active-inactivo]="createDesignForm.get('status')?.value === 'INACTIVO'"
+                (click)="createDesignForm.get('status')?.setValue('INACTIVO')">
+                <mat-icon>cancel</mat-icon>
+                <span>INACTIVO</span>
+              </button>
+            </div>
+          </div>
         </div>
 
       </form>
     </div>
 
-
+    <!-- Footer del dialog -->
     <div class="dialog-footer">
-      <button mat-button (click)="cancelCreateDesign()" [disabled]="loading()" class="cancel-btn">
-        <mat-icon>cancel</mat-icon>
-        Cancelar
-      </button>
-      <button mat-raised-button color="primary" (click)="saveNewDesign()"
-        [disabled]="!createDesignForm.valid || loading()" class="save-btn">
-        <mat-icon *ngIf="loading()">refresh</mat-icon>
-        <mat-icon *ngIf="!loading()">save</mat-icon>
-        {{ loading() ? 'Guardando...' : 'Guardar Diseño' }}
-      </button>
+      <div class="footer-info">
+        <mat-icon>info_outline</mat-icon>
+        <span>Los campos marcados con <strong class="req-star">*</strong> son obligatorios</span>
+      </div>
+      <div class="footer-actions">
+        <button mat-stroked-button (click)="cancelCreateDesign()" [disabled]="loading()" class="cancel-btn">
+          <mat-icon>close</mat-icon>
+          Cancelar
+        </button>
+        <button mat-raised-button (click)="saveNewDesign()" [disabled]="!createDesignForm.valid || loading()"
+          class="save-btn create-save-btn">
+          <mat-icon *ngIf="loading()" class="spinning">refresh</mat-icon>
+          <mat-icon *ngIf="!loading()">add_circle</mat-icon>
+          {{ loading() ? 'Guardando...' : 'Crear Diseño' }}
+        </button>
+      </div>
     </div>
 
   </div>
@@ -819,190 +887,263 @@
 <!-- Fin del diálogo modal de creación -->
 
 <!-- ===== DIÁLOGO MODAL PARA EDITAR DISEÑO ===== -->
-<!-- Diálogo modal scrollable para editar diseño existente -->
 <div class="dialog-overlay" *ngIf="showEditForm()" (click)="cancelEditDesign()">
   <div class="dialog-container" (click)="$event.stopPropagation()">
 
-
+    <!-- Header del dialog de editar -->
     <div class="dialog-header edit-header">
-      <div class="dialog-title">
-        <mat-icon>edit</mat-icon>
-        <h2>Editar Diseño: {{ editingDesign()?.articleF }}</h2>
+      <div class="dialog-header-left">
+        <div class="dialog-icon-wrapper edit-icon">
+          <mat-icon>edit</mat-icon>
+        </div>
+        <div class="dialog-header-text">
+          <h2>Editar Diseño</h2>
+          <span class="dialog-subtitle">{{ editingDesign()?.articleF }} — {{ editingDesign()?.client }}</span>
+        </div>
       </div>
-      <button mat-icon-button (click)="cancelEditDesign()" class="dialog-close-btn">
+      <button mat-icon-button (click)="cancelEditDesign()" class="dialog-close-btn" matTooltip="Cerrar">
         <mat-icon>close</mat-icon>
       </button>
     </div>
 
-
+    <!-- Contenido del dialog de editar -->
     <div class="dialog-content">
-      <form [formGroup]="editDesignForm" class="create-design-form">
+      <form [formGroup]="editDesignForm" class="design-form">
 
+        <!-- SECCIÓN 1: Identificación -->
+        <div class="form-section">
+          <div class="section-header">
+            <div class="section-icon identification-icon">
+              <mat-icon>fingerprint</mat-icon>
+            </div>
+            <div class="section-info">
+              <h3 class="section-title">Identificación</h3>
+              <p class="section-desc">Datos principales del diseño</p>
+            </div>
+          </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Artículo F *</mat-label>
-            <input matInput formControlName="articleF" placeholder="Ej: F204567" [readonly]="true">
-            <mat-icon matSuffix>article</mat-icon>
-            <mat-hint>El Artículo F no se puede modificar</mat-hint>
-          </mat-form-field>
+          <div class="fields-grid">
+            <mat-form-field appearance="outline" class="field-half readonly-field">
+              <mat-label>Artículo F</mat-label>
+              <input matInput formControlName="articleF" [readonly]="true">
+              <mat-icon matPrefix class="field-icon">tag</mat-icon>
+              <mat-icon matSuffix class="lock-icon">lock</mat-icon>
+              <mat-hint>No editable — Identificador único</mat-hint>
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Cliente *</mat-label>
-            <input matInput formControlName="client" placeholder="Ej: ABSORBENTES S.A.">
-            <mat-icon matSuffix>business</mat-icon>
-            <mat-error *ngIf="editDesignForm.get('client')?.hasError('required')">
-              El cliente es requerido
-            </mat-error>
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Cliente</mat-label>
+              <input matInput formControlName="client" placeholder="Ej: ABSORBENTES S.A.">
+              <mat-icon matPrefix class="field-icon">business</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-error *ngIf="editDesignForm.get('client')?.hasError('required')">
+                El cliente es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-full">
+              <mat-label>Descripción del Diseño</mat-label>
+              <textarea matInput formControlName="description" rows="2"
+                placeholder="Descripción detallada del diseño flexográfico"></textarea>
+              <mat-icon matPrefix class="field-icon">description</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-error *ngIf="editDesignForm.get('description')?.hasError('required')">
+                La descripción es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
         </div>
 
+        <!-- SECCIÓN 2: Especificaciones Técnicas -->
+        <div class="form-section">
+          <div class="section-header">
+            <div class="section-icon technical-icon">
+              <mat-icon>settings</mat-icon>
+            </div>
+            <div class="section-info">
+              <h3 class="section-title">Especificaciones Técnicas</h3>
+              <p class="section-desc">Material, dimensiones y tipo de impresión</p>
+            </div>
+          </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Descripción *</mat-label>
-            <textarea matInput formControlName="description" rows="3"
-              placeholder="Descripción detallada del diseño"></textarea>
-            <mat-icon matSuffix>description</mat-icon>
-            <mat-error *ngIf="editDesignForm.get('description')?.hasError('required')">
-              La descripción es requerida
-            </mat-error>
-          </mat-form-field>
+          <div class="fields-grid">
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Sustrato</mat-label>
+              <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
+              <mat-icon matPrefix class="field-icon">layers</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-error *ngIf="editDesignForm.get('substrate')?.hasError('required')">
+                El sustrato es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Tipo de Estructura</mat-label>
+              <mat-select formControlName="type">
+                <mat-option value="LAMINA">
+                  <mat-icon style="margin-right:8px;font-size:18px;vertical-align:middle">view_stream</mat-icon>
+                  LÁMINA
+                </mat-option>
+                <mat-option value="TUBULAR">
+                  <mat-icon style="margin-right:8px;font-size:18px;vertical-align:middle">circle</mat-icon>
+                  TUBULAR
+                </mat-option>
+                <mat-option value="SEMITUBULAR">
+                  <mat-icon style="margin-right:8px;font-size:18px;vertical-align:middle">lens_blur</mat-icon>
+                  SEMITUBULAR
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix class="field-icon">category</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Tipo de Impresión</mat-label>
+              <mat-select formControlName="printType">
+                <mat-option value="CARA">CARA</mat-option>
+                <mat-option value="DORSO">DORSO</mat-option>
+                <mat-option value="CARA_DORSO">CARA Y DORSO</mat-option>
+              </mat-select>
+              <mat-icon matPrefix class="field-icon">print</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Ancho (mm)</mat-label>
+              <input matInput type="number" formControlName="anchoMm" placeholder="Ej: 350" min="1">
+              <mat-icon matPrefix class="field-icon">straighten</mat-icon>
+              <mat-hint>Opcional — Ancho del sustrato en milímetros</mat-hint>
+              <mat-error *ngIf="editDesignForm.get('anchoMm')?.hasError('min')">
+                El ancho debe ser mayor a 0
+              </mat-error>
+            </mat-form-field>
+          </div>
         </div>
 
-
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Sustrato *</mat-label>
-            <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
-            <mat-icon matSuffix>layers</mat-icon>
-            <mat-error *ngIf="editDesignForm.get('substrate')?.hasError('required')">
-              El sustrato es requerido
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Tipo *</mat-label>
-            <mat-select formControlName="type">
-              <mat-option value="LAMINA">LÁMINA</mat-option>
-              <mat-option value="TUBULAR">TUBULAR</mat-option>
-              <mat-option value="SEMITUBULAR">SEMITUBULAR</mat-option>
-            </mat-select>
-            <mat-icon matSuffix>category</mat-icon>
-          </mat-form-field>
-        </div>
-
-
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Tipo de Impresión *</mat-label>
-            <mat-select formControlName="printType">
-              <mat-option value="CARA">CARA</mat-option>
-              <mat-option value="DORSO">DORSO</mat-option>
-              <mat-option value="CARA_DORSO">CARA Y DORSO</mat-option>
-            </mat-select>
-            <mat-icon matSuffix>print</mat-icon>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Número de Colores *</mat-label>
-            <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateEditColors()">
-            <mat-icon matSuffix>palette</mat-icon>
-          </mat-form-field>
-        </div>
-
-
-        <div class="form-row colors-section" *ngIf="editDesignForm.get('colorCount')?.value > 0">
-          <div class="colors-header">
-            <h4>
+        <!-- SECCIÓN 3: Colores Pantone -->
+        <div class="form-section colors-form-section">
+          <div class="section-header">
+            <div class="section-icon colors-icon">
               <mat-icon>palette</mat-icon>
-              Colores Pantone Live
-            </h4>
-            <p class="colors-description">
-              Selecciona los colores Pantone para cada posición (P = Pantone Live)
-            </p>
-          </div>
-
-
-          <div class="most-used-colors">
-            <span class="section-label">Más utilizados:</span>
-            <div class="color-chips">
-              <div *ngFor="let color of getMostUsedColors()" class="color-chip" [style.background-color]="color.hex"
-                [title]="color.displayName + ' - ' + color.hex" (click)="selectPantoneColor(0, color)">
-                <span class="color-code">{{ color.displayName }}</span>
-              </div>
+            </div>
+            <div class="section-info">
+              <h3 class="section-title">Colores Pantone</h3>
+              <p class="section-desc">Definición de la paleta cromática del diseño</p>
             </div>
           </div>
 
+          <div class="fields-grid">
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Número de Colores</mat-label>
+              <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateEditColors()">
+              <mat-icon matPrefix class="field-icon">format_list_numbered</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-hint>Mínimo 1, máximo 12 colores</mat-hint>
+            </mat-form-field>
+          </div>
 
-          <div class="color-selectors">
-            <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
-              <label class="color-label">Color {{ i + 1 }}:</label>
-
-              <mat-form-field appearance="outline" class="color-field">
-                <mat-label>Buscar Pantone</mat-label>
-                <input matInput [value]="color.displayName"
-                  (input)="searchPantoneColors($any($event.target).value); updateColorManual(i, $any($event.target).value)"
-                  [matAutocomplete]="colorAutoEdit" placeholder="Ej: 209, Black, Magenta">
-                <mat-icon matSuffix>search</mat-icon>
-
-                <mat-autocomplete #colorAutoEdit="matAutocomplete"
-                  (optionSelected)="selectPantoneColor(i, $event.option.value)">
-                  <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
-                    class="color-option">
-                    <div class="color-option-content">
-                      <div class="color-preview" [style.background-color]="pantoneColor.hex">
-                      </div>
-                      <div class="color-info">
-                        <span class="color-name">{{ pantoneColor.displayName }}</span>
-                        <span class="color-hex">{{ pantoneColor.hex }}</span>
-                      </div>
-                    </div>
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
-
-
-              <div class="selected-color-preview">
-                <div class="color-swatch" [style.background-color]="color.hex"
-                  [title]="color.displayName + ' - ' + color.hex">
-                </div>
-                <div class="color-details">
+          <!-- Panel de colores expandible -->
+          <div class="colors-panel" *ngIf="editDesignForm.get('colorCount')?.value > 0">
+            <div class="most-used-colors">
+              <span class="section-label">
+                <mat-icon>star</mat-icon>
+                Más utilizados:
+              </span>
+              <div class="color-chips">
+                <div *ngFor="let color of getMostUsedColors()" class="color-chip" [style.background-color]="color.hex"
+                  [title]="color.displayName + ' - ' + color.hex" (click)="selectPantoneColor(0, color)">
                   <span class="color-code">{{ color.displayName }}</span>
-                  <span class="color-hex">{{ color.hex }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="color-selectors">
+              <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
+                <div class="color-number-badge">{{ i + 1 }}</div>
+
+                <mat-form-field appearance="outline" class="color-field">
+                  <mat-label>Color {{ i + 1 }}</mat-label>
+                  <input matInput [value]="color.displayName"
+                    (input)="searchPantoneColors($any($event.target).value); updateColorManual(i, $any($event.target).value)"
+                    [matAutocomplete]="colorAutoEdit" placeholder="Ej: 209, Black, Magenta">
+                  <mat-icon matSuffix>search</mat-icon>
+
+                  <mat-autocomplete #colorAutoEdit="matAutocomplete"
+                    (optionSelected)="selectPantoneColor(i, $event.option.value)">
+                    <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
+                      class="color-option">
+                      <div class="color-option-content">
+                        <div class="color-preview" [style.background-color]="pantoneColor.hex"></div>
+                        <div class="color-info">
+                          <span class="color-name">{{ pantoneColor.displayName }}</span>
+                          <span class="color-hex">{{ pantoneColor.hex }}</span>
+                        </div>
+                      </div>
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+
+                <div class="color-swatch-preview" [style.background-color]="color.hex"
+                  [class.empty-swatch]="!color.hex || color.hex === '#cccccc'"
+                  [title]="color.displayName + ' — ' + color.hex">
+                  <mat-icon *ngIf="!color.hex || color.hex === '#cccccc'" class="empty-icon">add</mat-icon>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- SECCIÓN 4: Estado -->
+        <div class="form-section status-form-section">
+          <div class="section-header">
+            <div class="section-icon status-icon">
+              <mat-icon>toggle_on</mat-icon>
+            </div>
+            <div class="section-info">
+              <h3 class="section-title">Estado del Diseño</h3>
+              <p class="section-desc">Disponibilidad en el sistema</p>
+            </div>
+          </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Estado *</mat-label>
-            <mat-select formControlName="status">
-              <mat-option value="ACTIVO">ACTIVO</mat-option>
-              <mat-option value="INACTIVO">INACTIVO</mat-option>
-            </mat-select>
-            <mat-icon matSuffix>toggle_on</mat-icon>
-          </mat-form-field>
+          <div class="fields-grid">
+            <div class="status-selector-group field-half">
+              <button type="button" class="status-option-btn"
+                [class.active-activo]="editDesignForm.get('status')?.value === 'ACTIVO'"
+                (click)="editDesignForm.get('status')?.setValue('ACTIVO')">
+                <mat-icon>check_circle</mat-icon>
+                <span>ACTIVO</span>
+              </button>
+              <button type="button" class="status-option-btn"
+                [class.active-inactivo]="editDesignForm.get('status')?.value === 'INACTIVO'"
+                (click)="editDesignForm.get('status')?.setValue('INACTIVO')">
+                <mat-icon>cancel</mat-icon>
+                <span>INACTIVO</span>
+              </button>
+            </div>
+          </div>
         </div>
 
       </form>
     </div>
 
-
+    <!-- Footer del dialog de editar -->
     <div class="dialog-footer">
-      <button mat-button (click)="cancelEditDesign()" [disabled]="loading()" class="cancel-btn">
-        <mat-icon>cancel</mat-icon>
-        Cancelar
-      </button>
-      <button mat-raised-button color="primary" (click)="saveEditedDesign()"
-        [disabled]="!editDesignForm.valid || loading()" class="save-btn">
-        <mat-icon *ngIf="loading()">refresh</mat-icon>
-        <mat-icon *ngIf="!loading()">save</mat-icon>
-        {{ loading() ? 'Guardando...' : 'Guardar Cambios' }}
-      </button>
+      <div class="footer-info">
+        <mat-icon>info_outline</mat-icon>
+        <span>Los campos marcados con <strong class="req-star">*</strong> son obligatorios</span>
+      </div>
+      <div class="footer-actions">
+        <button mat-stroked-button (click)="cancelEditDesign()" [disabled]="loading()" class="cancel-btn">
+          <mat-icon>close</mat-icon>
+          Cancelar
+        </button>
+        <button mat-raised-button (click)="saveEditedDesign()" [disabled]="!editDesignForm.valid || loading()"
+          class="save-btn edit-save-btn">
+          <mat-icon *ngIf="loading()" class="spinning">refresh</mat-icon>
+          <mat-icon *ngIf="!loading()">save</mat-icon>
+          {{ loading() ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
     </div>
 
   </div>
