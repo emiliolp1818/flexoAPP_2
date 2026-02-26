@@ -9,22 +9,20 @@ RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build:railway
 
-# Verificar dónde quedó el build (para debugging)
-RUN echo "=== Contenido de dist/ ===" && find dist -maxdepth 3 -type f -name "index.html"
-
 # ── Etapa 2: RUNTIME ─────────────────────────────────────────────────────────
-FROM node:22-alpine AS runner
+# nginx es el servidor estático estándar para SPAs en Docker/Railway
+FROM nginx:alpine AS runner
 
-# serve -s: modo SPA — redirige todas las rutas a index.html (necesario para Angular Router)
-RUN npm install -g serve
+# Copiar el build de Angular al directorio de nginx
+COPY --from=builder /app/dist/flexoapp/browser /usr/share/nginx/html
 
-WORKDIR /app
+# Copiar config de nginx con soporte para variable $PORT de Railway
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-# Angular 17+ con @angular/build:application genera en dist/<proyecto>/browser/
-COPY --from=builder /app/dist/flexoapp/browser ./public
+# gettext provee envsubst para reemplazar $PORT en nginx.conf en runtime
+RUN apk add --no-cache gettext
 
 EXPOSE 3000
 
-# -s = single-page app mode (redirige 404 a index.html para rutas de Angular)
-# --listen solo acepta número de puerto — Railway pasa $PORT como variable de entorno
-CMD ["sh", "-c", "serve -s public -l ${PORT:-3000}"]
+# Railway inyecta $PORT; envsubst lo sustituye en la config de nginx antes de arrancar
+CMD ["/bin/sh", "-c", "envsubst '$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
