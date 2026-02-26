@@ -421,29 +421,37 @@ try
     Log.Information("🔧 Configuring middleware pipeline...");
 
 
-    try
+    // ===== VERIFICACIÓN DE BASE DE DATOS (NO FATAL) =====
+    // Si la DB no está disponible al arrancar, el app igual inicia.
+    // Los errores de DB se verán en los logs sin crashear el proceso.
+    _ = Task.Run(async () =>
     {
-        using (var scope = app.Services.CreateScope())
+        await Task.Delay(2000); // Espera 2s para que el server esté listo
+        try
         {
+            using var scope = app.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<FlexoAPPDbContext>();
             Log.Information("🔍 Verificando conexión a base de datos...");
-
-
-            await context.Database.CanConnectAsync();
-            Log.Information("✅ Conexión a base de datos exitosa");
-
-
-            Log.Information("🗄️ Verificando estructura de base de datos...");
-            await context.Database.EnsureCreatedAsync();
-            Log.Information("✅ Estructura de base de datos verificada");
+            var canConnect = await context.Database.CanConnectAsync();
+            if (canConnect)
+            {
+                Log.Information("✅ Conexión a base de datos exitosa");
+            }
+            else
+            {
+                Log.Error("❌ CanConnect() retornó false — revisa las variables MYSQL en Railway");
+            }
         }
-    }
-    catch (Exception ex)
-    {
-        Log.Fatal("❌ Error conectando a base de datos: {Error}", ex.Message);
-        Log.Fatal("❌ Stack trace: {StackTrace}", ex.StackTrace);
-        throw;
-    }
+        catch (Exception ex)
+        {
+            Log.Error("❌ Error conectando a DB: {Error}", ex.Message);
+            Log.Error("🔍 Connection string usada (sin password): {CS}",
+                System.Text.RegularExpressions.Regex.Replace(
+                    app.Services.GetRequiredService<IConfiguration>()
+                        .GetConnectionString("DefaultConnection") ?? "(null)",
+                    @"Password=[^;]+", "Password=***"));
+        }
+    });
 
 
 
