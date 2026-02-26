@@ -27,4 +27,4 @@ EXPOSE 3000
 
 # -s = single-page app mode (redirige 404 a index.html para rutas de Angular)
 # --listen solo acepta número de puerto — Railway pasa $PORT como variable de entorno
-CMD ["sh", "-c", "serve -s public --listen ${PORT:-3000}"]
+CMD ["sh", "-c", "serve -s public -l ${PORT:-3000}"]
