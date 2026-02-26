@@ -1,9 +1,8 @@
-# Configuración de Nixpacks para Railway - FRONTEND Angular
+# Configuración Nixpacks - FRONTEND Angular 20
 # Angular 20 requiere: ^20.19.0 || ^22.12.0 || >=24.0.0
-# nodejs_22 en nixpkgs da v22.11 (insuficiente), usamos nodejs_24
 
 [phases.setup]
-nixPkgs = ["nodejs_24"]
+# No especificar nixPkgs aquí — Railway debe usar NIXPACKS_NODE_VERSION del env
 
 [phases.install]
 cmds = ["npm install --legacy-peer-deps"]
