@@ -1,7 +1,7 @@
 {
   "phases": {
     "setup": {
-      "nixPkgs": ["dotnet-sdk_8"]
+      "nixPkgs": ["dotnet-sdk_8", "dotnet-runtime_8"]
     },
     "install": {
       "cmds": ["dotnet restore"]
@@ -11,6 +11,6 @@
     }
   },
   "start": {
-    "cmd": "ASPNETCORE_URLS=http://0.0.0.0:$PORT ./out/FlexoAPP.API"
+    "cmd": "dotnet out/FlexoAPP.API.dll"
   }
 }

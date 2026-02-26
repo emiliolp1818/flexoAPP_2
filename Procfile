@@ -1,1 +1,1 @@
-web: ASPNETCORE_URLS=http://0.0.0.0:$PORT ./out/FlexoAPP.API
+web: dotnet out/FlexoAPP.API.dll
