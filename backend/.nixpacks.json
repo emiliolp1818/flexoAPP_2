@@ -1,0 +1,16 @@
+{
+  "phases": {
+    "setup": {
+      "nixPkgs": ["dotnet-sdk_8"]
+    },
+    "install": {
+      "cmds": ["dotnet restore"]
+    },
+    "build": {
+      "cmds": ["dotnet build --configuration Release --no-restore"]
+    }
+  },
+  "start": {
+    "cmd": "dotnet run --configuration Release --no-build --urls http://0.0.0.0:$PORT"
+  }
+}

@@ -6,19 +6,16 @@
 # Instalar .NET 8 SDK
 nixPkgs = ["dotnet-sdk_8"]
 
-[phases.build]
-# Comando para compilar el backend
-# Como Root Directory es "backend", ya estamos en esa carpeta
-cmds = [
-  "dotnet restore",
-  "dotnet build --configuration Release"
-]
-
 [phases.install]
-# No necesitamos instalar dependencias adicionales
-cmds = []
+# Restaurar dependencias
+cmds = ["dotnet restore"]
+
+[phases.build]
+# Compilar el proyecto en modo Release
+cmds = ["dotnet build --configuration Release --no-restore"]
 
 [start]
 # Comando para iniciar la aplicación
+# Usar dotnet run en lugar de ejecutar el binario directamente
 # Railway proporciona la variable $PORT automáticamente
-cmd = "dotnet run --configuration Release --urls http://0.0.0.0:$PORT"
+cmd = "dotnet run --configuration Release --no-build --urls http://0.0.0.0:$PORT"
