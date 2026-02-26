@@ -113,14 +113,18 @@ try
                 // Render
                 "https://flexoapp-backend.onrender.com",
                 "https://flexoapp-frontend.onrender.com",
-                // Railway (actualizar con tu dominio real cuando lo tengas)
+                // Railway
+                "https://flexoapp-backend.up.railway.app",
+                "https://flexoapp-frontend.up.railway.app",
                 "https://*.up.railway.app",
                 "https://*.railway.app",
                 // Local
                 "http://localhost:4200",
                 "http://localhost:8080",
+                "http://localhost:3000",
                 "http://127.0.0.1:4200",
-                "http://127.0.0.1:8080"
+                "http://127.0.0.1:8080",
+                "http://127.0.0.1:3000"
             )
             .SetIsOriginAllowedToAllowWildcardSubdomains()
             .AllowAnyMethod()

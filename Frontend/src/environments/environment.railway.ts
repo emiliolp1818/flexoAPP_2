@@ -1,12 +1,10 @@
 
 export const environment = {
   production: true,
-  // IMPORTANTE: Reemplaza XXXX con tu dominio real de Railway backend
-  // Ejemplo: https://flexoapp-backend-production-a1b2.up.railway.app
-  apiUrl: 'https://TU-DOMINIO-BACKEND-RAILWAY.up.railway.app/api',
-  socketUrl: 'https://TU-DOMINIO-BACKEND-RAILWAY.up.railway.app',
+  apiUrl: 'https://flexoapp-backend.up.railway.app/api',
+  socketUrl: 'https://flexoapp-backend.up.railway.app',
   fallbackUrls: [
-    'https://TU-DOMINIO-BACKEND-RAILWAY.up.railway.app/api',
+    'https://flexoapp-backend.up.railway.app/api',
     'https://flexoapp-backend.onrender.com/api'  // Fallback a Render
   ],
   enableLogging: true,  // Activado para debugging en Railway
@@ -16,7 +14,7 @@ export const environment = {
   networkMode: false,
   disableNetworkStability: true,
   allowCrossOrigin: true,
-  networkInterface: 'TU-DOMINIO-BACKEND-RAILWAY.up.railway.app',
-  imageBaseUrl: 'https://TU-DOMINIO-BACKEND-RAILWAY.up.railway.app',
+  networkInterface: 'flexoapp-backend.up.railway.app',
+  imageBaseUrl: 'https://flexoapp-backend.up.railway.app',
   alternativeUrls: []
 };
