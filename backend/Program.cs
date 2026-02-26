@@ -41,17 +41,17 @@ try
         builder.Configuration.AddJsonFile("appsettings.Railway.json", optional: true, reloadOnChange: true);
         
         // Reemplazar variables de entorno en la cadena de conexión
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        if (!string.IsNullOrEmpty(connectionString))
+        var railwayConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (!string.IsNullOrEmpty(railwayConnectionString))
         {
-            connectionString = connectionString
+            railwayConnectionString = railwayConnectionString
                 .Replace("${MYSQL_HOST}", Environment.GetEnvironmentVariable("MYSQL_HOST"))
                 .Replace("${MYSQL_PORT}", Environment.GetEnvironmentVariable("MYSQL_PORT"))
                 .Replace("${MYSQL_DATABASE}", Environment.GetEnvironmentVariable("MYSQL_DATABASE"))
                 .Replace("${MYSQL_USER}", Environment.GetEnvironmentVariable("MYSQL_USER"))
                 .Replace("${MYSQL_PASSWORD}", Environment.GetEnvironmentVariable("MYSQL_PASSWORD"));
             
-            builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+            builder.Configuration["ConnectionStrings:DefaultConnection"] = railwayConnectionString;
             Log.Information("✅ Cadena de conexión Railway configurada");
         }
         
