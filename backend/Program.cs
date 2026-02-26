@@ -294,33 +294,30 @@ try
 
 
     // ===== CONFIGURACIÓN DE BASE DE DATOS MYSQL RAILWAY =====
-    string? connectionString;
+    string? dbConnectionString;
 
     try
     {
-
-        connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+        dbConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
                           ?? Environment.GetEnvironmentVariable("DATABASE_URL")
                           ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-        if (string.IsNullOrEmpty(connectionString))
+        if (string.IsNullOrEmpty(dbConnectionString))
         {
             throw new InvalidOperationException("No se encontró cadena de conexión a la base de datos");
         }
 
-
-        if (connectionString.StartsWith("mysql://"))
+        if (dbConnectionString.StartsWith("mysql://"))
         {
-            var uri = new Uri(connectionString);
+            var uri = new Uri(dbConnectionString);
             var userInfo = uri.UserInfo.Split(':');
-            connectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=60;DefaultCommandTimeout=60;";
+            dbConnectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=60;DefaultCommandTimeout=60;";
         }
 
         Log.Information("🔌 Configurando conexión a MySQL Railway");
 
-
         var maskedConnectionString = System.Text.RegularExpressions.Regex.Replace(
-            connectionString, @"Password=[^;]+", "Password=***");
+            dbConnectionString, @"Password=[^;]+", "Password=***");
         Log.Information("🔌 Connection: {ConnectionString}", maskedConnectionString);
     }
     catch (Exception ex)
@@ -337,7 +334,7 @@ try
 
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 21));
 
-            options.UseMySql(connectionString!, serverVersion, mySqlOptions =>
+            options.UseMySql(dbConnectionString!, serverVersion, mySqlOptions =>
             {
                 mySqlOptions.CommandTimeout(90);
                 mySqlOptions.EnableRetryOnFailure(

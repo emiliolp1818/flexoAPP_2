@@ -1,8 +1,9 @@
 ================================================================================
   GUÍA COMPLETA DE DESPLIEGUE EN RAILWAY - FlexoAPP
-  Versión: 1.1
-  Fecha: 18 de Febrero 2026
+  Versión: 1.2
+  Fecha: 26 de Febrero 2026
   NOTA: Esta es una configuración TEMPORAL para pruebas
+  ✅ ACTUALIZADO: Corregidos errores de Dockerfile y connectionString
 ================================================================================
 
 ⚠️ IMPORTANTE: ESTRUCTURA DEL REPOSITORIO
@@ -454,6 +455,17 @@ Si quieres desplegar el frontend también en Railway:
 ================================================================================
 8. SOLUCIÓN DE PROBLEMAS
 ================================================================================
+
+⚠️ PROBLEMA RESUELTO: Railway usaba .NET 6 en lugar de .NET 8
+--------------------------------------------------------------
+SÍNTOMA: Error "The current .NET SDK does not support targeting .NET 8.0"
+CAUSA: Railway detectaba archivos Dockerfile.backup en el repositorio
+SOLUCIÓN APLICADA:
+✅ Eliminados todos los archivos Dockerfile y Dockerfile.backup
+✅ Railway ahora usa Nixpacks con .NET 8 automáticamente
+✅ Error CS0136 de variable connectionString duplicada corregido en Program.cs
+
+Si ves este error, verifica que NO existan archivos Dockerfile en tu repo.
 
 PROBLEMA 1: "Build Failed - .NET SDK not found"
 ------------------------------------------------

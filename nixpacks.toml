@@ -11,11 +11,11 @@ nixPkgs = ["dotnet-sdk_8"]
 cmds = ["dotnet restore"]
 
 [phases.build]
-# Compilar el proyecto en modo Release
-cmds = ["dotnet build --configuration Release --no-restore"]
+# Publicar el proyecto en modo Release
+cmds = ["dotnet publish --no-restore -c Release -o out"]
 
 [start]
 # Comando para iniciar la aplicación
-# Usar dotnet run en lugar de ejecutar el binario directamente
+# Ejecutar el DLL publicado
 # Railway proporciona la variable $PORT automáticamente
-cmd = "dotnet run --configuration Release --no-build --urls http://0.0.0.0:$PORT"
+cmd = "cd out && dotnet FlexoAPP.API.dll --urls http://0.0.0.0:$PORT"

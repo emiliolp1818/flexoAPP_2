@@ -7,10 +7,10 @@
       "cmds": ["dotnet restore"]
     },
     "build": {
-      "cmds": ["dotnet build --configuration Release --no-restore"]
+      "cmds": ["dotnet publish --no-restore -c Release -o out"]
     }
   },
   "start": {
-    "cmd": "dotnet run --configuration Release --no-build --urls http://0.0.0.0:$PORT"
+    "cmd": "cd out && dotnet FlexoAPP.API.dll --urls http://0.0.0.0:$PORT"
   }
 }
