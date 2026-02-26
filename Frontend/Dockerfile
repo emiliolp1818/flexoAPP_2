@@ -20,8 +20,10 @@ RUN npm install -g serve
 
 WORKDIR /app
 
-# Copiar solo el build final (no el código fuente)
+# Copiar solo el build final (no el código fuente ni node_modules)
 COPY --from=builder /app/dist/flexoapp/browser ./browser
 
-# Railway asigna el puerto dinámicamente via $PORT
-CMD serve -s browser -l ${PORT:-3000} --no-clipboard
+EXPOSE 3000
+
+# $PORT lo asigna Railway dinámicamente — usar sh -c para que se expanda la variable
+CMD ["sh", "-c", "serve -s browser -l tcp://0.0.0.0:${PORT:-3000} --no-clipboard"]
