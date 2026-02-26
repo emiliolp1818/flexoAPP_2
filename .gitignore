@@ -31,8 +31,11 @@ logs/
 # ===== ARCHIVOS DE ENTORNO Y CONFIGURACIÓN =====
 .env
 .env.*
+# Solo el appsettings principal (tiene credenciales locales)
+backend/appsettings.json
 appsettings.Development.json
 connectionstrings.json
+# NOTA: appsettings.example.json y appsettings.Railway.json SÍ se suben
 
 # ===== ARCHIVOS DE SISTEMA =====
 .DS_Store
