@@ -1,29 +1,25 @@
 # ── Etapa 1: BUILD ──────────────────────────────────────────────────────────
-# node:22-alpine da Node.js 22.x >= 22.12 (compatible con Angular 20)
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Instalar dependencias primero (mejor uso de caché Docker)
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
-# Copiar el resto del código y compilar con configuración Railway
 COPY . .
 RUN npm run build:railway
 
 # ── Etapa 2: RUNTIME ─────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
 
-# Instalar 'serve' para servir archivos estáticos
-RUN npm install -g serve
+# http-server: más simple y confiable que serve para puertos dinámicos
+RUN npm install -g http-server
 
 WORKDIR /app
 
-# Copiar solo el build final (no el código fuente ni node_modules)
 COPY --from=builder /app/dist/flexoapp/browser ./browser
 
 EXPOSE 3000
 
-# $PORT lo asigna Railway dinámicamente — usar sh -c para que se expanda la variable
-CMD ["sh", "-c", "serve -s browser -l tcp://0.0.0.0:${PORT:-3000} --no-clipboard"]
+# http-server usa -p PORT (sin esquemas tcp://, sin bugs de protocolo)
+CMD ["sh", "-c", "http-server browser -p ${PORT:-3000} --cors -c-1 -g"]
