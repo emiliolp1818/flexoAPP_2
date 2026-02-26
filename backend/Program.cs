@@ -109,24 +109,23 @@ try
     {
         options.AddDefaultPolicy(policy =>
         {
-            policy.WithOrigins(
-                // Render
-                "https://flexoapp-backend.onrender.com",
-                "https://flexoapp-frontend.onrender.com",
-                // Railway
-                "https://flexoapp-backend.up.railway.app",
-                "https://flexoapp-frontend.up.railway.app",
-                "https://*.up.railway.app",
-                "https://*.railway.app",
-                // Local
-                "http://localhost:4200",
-                "http://localhost:8080",
-                "http://localhost:3000",
-                "http://127.0.0.1:4200",
-                "http://127.0.0.1:8080",
-                "http://127.0.0.1:3000"
-            )
-            .SetIsOriginAllowedToAllowWildcardSubdomains()
+            policy.SetIsOriginAllowed(origin =>
+            {
+                // Permitir todos los dominios de Railway (el subdominio es dinámico)
+                if (origin.Contains(".railway.app") || origin.Contains(".up.railway.app"))
+                    return true;
+                // Permitir Render
+                if (origin.Contains("onrender.com"))
+                    return true;
+                // Permitir localhost para desarrollo
+                if (origin.Contains("localhost") || origin.Contains("127.0.0.1"))
+                    return true;
+                // Permitir IPs de red local
+                if (System.Text.RegularExpressions.Regex.IsMatch(origin,
+                    @"https?://(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)\d{1,3}\.\d{1,3}(:\d+)?"))
+                    return true;
+                return false;
+            })
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -490,7 +489,8 @@ try
     }
 
 
-    app.UseCors(app.Environment.IsProduction() ? "RenderProduction" : "RenderProduction");
+    // Usar política default (permite railway.app, onrender.com y localhost)
+    app.UseCors();
 
 
     app.UseStaticFiles();
@@ -536,19 +536,17 @@ try
     });
 
 
-    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+    // Swagger disponible siempre (útil para verificar el API en Railway)
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "FlexoAPP Enhanced API v2.1.0");
-            c.RoutePrefix = "swagger";
-            c.DisplayRequestDuration();
-            c.EnableDeepLinking();
-            c.EnableFilter();
-            c.ShowExtensions();
-        });
-    }
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FlexoAPP Enhanced API v2.1.0");
+        c.RoutePrefix = "swagger";
+        c.DisplayRequestDuration();
+        c.EnableDeepLinking();
+        c.EnableFilter();
+        c.ShowExtensions();
+    });
 
 
     app.UseAuthentication();
