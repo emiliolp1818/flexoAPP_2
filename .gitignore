@@ -21,6 +21,7 @@ obj/
 *.pdb
 *.dll
 *.exe
+*.sln
 [Dd]ebug/
 [Rr]elease/
 .vs/
