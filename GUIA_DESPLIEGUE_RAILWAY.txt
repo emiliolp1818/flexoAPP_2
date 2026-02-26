@@ -169,19 +169,23 @@ PASO 4.1 - AGREGAR SERVICIO BACKEND
 5. Busca y selecciona "flexoAPP_2"
 6. Railway te preguntará qué rama usar
 7. Selecciona la rama "render"
+8. Railway creará el servicio y comenzará a desplegarlo
 
-8. IMPORTANTE - Configurar Root Directory:
-   - Antes de hacer clic en "Deploy", ve a "Settings"
-   - Busca "Root Directory"
-   - Escribe: backend
-   - Esto le dice a Railway que solo compile la carpeta backend
+9. IMPORTANTE - Configurar Root Directory:
+   - Haz clic en el servicio que se acaba de crear
+   - Ve a la pestaña "Settings" (en el menú superior)
+   - Busca la sección "Source" (está al principio)
+   - Verás "Source Repo: emiliolp1818/flexoAPP_2"
+   - Debajo verás "Add Root Directory (used for build and deploy steps)"
+   - Haz clic en "Add Root Directory"
+   - Escribe exactamente: backend
+   - Presiona Enter o haz clic fuera del campo
+   - Railway redesplegará automáticamente con la nueva configuración
 
-9. Cambia el nombre del servicio:
-   - Haz clic en el nombre del servicio (arriba)
-   - Escribe: "FlexoAPP-Backend"
-   - Presiona Enter
-
-10. Haz clic en "Deploy"
+10. Cambia el nombre del servicio (opcional pero recomendado):
+    - Haz clic en el nombre del servicio (arriba a la izquierda)
+    - Escribe: "FlexoAPP-Backend"
+    - Presiona Enter
 
 PASO 4.2 - ESPERAR EL PRIMER DEPLOY DEL BACKEND
 ------------------------------------------------
@@ -207,25 +211,30 @@ Si quieres desplegar el frontend también en Railway:
 2. Selecciona "GitHub Repo"
 3. Selecciona el MISMO repositorio "flexoAPP_2"
 4. Selecciona la rama "render"
+5. Railway creará el servicio
 
-5. IMPORTANTE - Configurar Root Directory:
-   - Antes de hacer clic en "Deploy", ve a "Settings"
-   - Busca "Root Directory"
-   - Escribe: Frontend
-   - Esto le dice a Railway que solo compile la carpeta Frontend
+6. IMPORTANTE - Configurar Root Directory:
+   - Haz clic en el servicio que se acaba de crear
+   - Ve a la pestaña "Settings"
+   - Busca la sección "Source"
+   - Haz clic en "Add Root Directory"
+   - Escribe exactamente: Frontend
+   - Presiona Enter
 
-6. Configurar Build Settings:
-   - En "Settings", busca "Build Command"
+7. Configurar Build y Start Commands:
+   - En "Settings", busca la sección "Build"
+   - En "Custom Build Command", haz clic en "Add Build Command"
    - Escribe: npm install && npm run build:prod
-   - Busca "Start Command"
+   - Busca la sección "Deploy"
+   - En "Custom Start Command", haz clic en "Add Start Command"
    - Escribe: npx serve -s dist/flexoapp -l $PORT
 
-7. Cambia el nombre del servicio:
+8. Cambia el nombre del servicio:
    - Haz clic en el nombre del servicio
    - Escribe: "FlexoAPP-Frontend"
    - Presiona Enter
 
-8. Haz clic en "Deploy"
+9. Railway redesplegará automáticamente
 
 PASO 4.4 - ESTRUCTURA FINAL DEL PROYECTO
 -----------------------------------------
@@ -307,17 +316,49 @@ PASO 5.4 - REDESPLEGAR CON NUEVAS VARIABLES
 6. VERIFICAR EL DESPLIEGUE
 ================================================================================
 
+PASO 6.0 - QUÉ VERÁS EN SETTINGS (REFERENCIA)
+----------------------------------------------
+Cuando abras Settings de tu servicio backend, verás estas secciones en orden:
+
+1. SOURCE
+   - Source Repo: emiliolp1818/flexoAPP_2
+   - Root Directory: backend (esto es lo que configuraste)
+   - Branch connected to production: render
+
+2. NETWORKING
+   - Public Networking
+   - Generate Domain (aquí generas el dominio público)
+   - TCP Proxy
+
+3. SCALE
+   - Regions & Replicas
+   - Replica Limits (CPU y Memory)
+
+4. BUILD
+   - Builder: Railpack (Default)
+   - Custom Build Command (opcional)
+   - Watch Paths (opcional)
+
+5. DEPLOY
+   - Custom Start Command (opcional)
+   - Healthcheck Path (opcional)
+   - Restart Policy: On Failure
+
 PASO 6.1 - GENERAR DOMINIO PÚBLICO
 -----------------------------------
-1. Haz clic en tu servicio backend
+1. Haz clic en tu servicio backend (FlexoAPP-Backend)
 2. Ve a la pestaña "Settings"
 3. Busca la sección "Networking"
-4. Haz clic en "Generate Domain"
-5. Railway generará un dominio como:
+4. En "Public Networking", verás:
+   "Access to this service publicly through HTTP or TCP"
+5. Haz clic en "Generate Domain"
+6. Railway generará un dominio como:
    
    https://flexoapp-backend-production-xxxx.up.railway.app
    
    COPIA ESTE DOMINIO - Lo necesitarás después
+
+NOTA: El dominio puede tardar 10-30 segundos en estar disponible
 
 PASO 6.2 - VERIFICAR QUE LA API FUNCIONA
 -----------------------------------------
@@ -464,28 +505,31 @@ SOLUCIÓN:
 PROBLEMA 8: "Railway no encuentra el proyecto .NET"
 ----------------------------------------------------
 SOLUCIÓN:
-- Verifica que configuraste "Root Directory" = "backend"
+- Verifica que configuraste el Root Directory correctamente
 - Pasos:
   1. Haz clic en tu servicio backend
   2. Ve a "Settings"
-  3. Busca "Root Directory" o "Source"
-  4. Debe decir: backend
-  5. Si no está configurado, agrégalo y redespliega
+  3. Busca la sección "Source" (al principio)
+  4. Debe mostrar "Root Directory: backend"
+  5. Si no está, haz clic en "Add Root Directory"
+  6. Escribe: backend
+  7. Railway redesplegará automáticamente
 
 PROBLEMA 9: "Build falla con 'No .csproj found'"
 -------------------------------------------------
 SOLUCIÓN:
-- El Root Directory no está configurado correctamente
-- Debe ser exactamente: backend (sin / al final)
-- Redespliega después de cambiar
+- El Root Directory no está configurado o está mal escrito
+- Debe ser exactamente: backend (sin / al final, sin mayúsculas)
+- Verifica en Settings → Source → Root Directory
+- Si está mal, corrígelo y Railway redesplegará
 
-PROBLEMA 10: "Frontend y Backend se despliegan juntos"
--------------------------------------------------------
+PROBLEMA 10: "No veo la opción 'Add Root Directory'"
+-----------------------------------------------------
 SOLUCIÓN:
-- Necesitas crear DOS servicios separados
-- Servicio 1: Root Directory = backend
-- Servicio 2: Root Directory = Frontend
-- Cada uno se despliega independientemente
+- Si ya hay un Root Directory configurado, verás el valor actual
+- Para cambiarlo, haz clic en el valor actual
+- Aparecerá un campo de texto donde puedes editarlo
+- Si no ves nada, busca en Settings → Source (primera sección)
 
 ================================================================================
 9. ARCHIVOS CREADOS AUTOMÁTICAMENTE
