@@ -614,17 +614,6 @@ try
     });
 
 
-    try
-    {
-
-        await FlexoAPP.API.Data.SeedData.InitializeAsync(app.Services);
-        Log.Information("✅ Base de datos inicializada con datos esenciales");
-    }
-    catch (Exception ex)
-    {
-        Log.Warning("⚠️ No se pudieron inicializar los datos esenciales: {Error}", ex.Message);
-    }
-
 
     Log.Information("=========================================");
     Log.Information("🚀 FLEXOAPP API - READY");
