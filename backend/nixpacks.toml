@@ -1,4 +1,4 @@
-# Configuración de Nixpacks para Railway - BACKEND .NET 8
+# Configuración Nixpacks - BACKEND .NET 8
 [phases.setup]
 nixPkgs = ["dotnet-sdk_8"]
 
@@ -6,7 +6,9 @@ nixPkgs = ["dotnet-sdk_8"]
 cmds = ["dotnet restore"]
 
 [phases.build]
-cmds = ["dotnet publish --no-restore -c Release -o out"]
+# Self-contained: incluye el runtime en el ejecutable, evita conflictos de versión
+cmds = ["dotnet publish --no-restore -c Release -o out --self-contained true -r linux-x64"]
 
 [start]
-cmd = "dotnet out/FlexoAPP.API.dll --urls http://0.0.0.0:$PORT"
+# Ejecuta el binario nativo (no necesita 'dotnet' instalado en el servidor)
+cmd = "./out/FlexoAPP.API --urls http://0.0.0.0:$PORT"

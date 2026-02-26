@@ -4,7 +4,7 @@
         "builder": "NIXPACKS"
     },
     "deploy": {
-        "startCommand": "dotnet out/FlexoAPP.API.dll --urls http://0.0.0.0:$PORT",
+        "startCommand": "./out/FlexoAPP.API --urls http://0.0.0.0:$PORT",
         "restartPolicyType": "ON_FAILURE",
         "restartPolicyMaxRetries": 10
     }
