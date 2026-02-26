@@ -40,19 +40,33 @@ try
     {
         builder.Configuration.AddJsonFile("appsettings.Railway.json", optional: true, reloadOnChange: true);
         
-        // Reemplazar variables de entorno en la cadena de conexión
+        // Railway MySQL plugin puede usar MYSQLHOST (sin guión bajo) o MYSQL_HOST (con guión bajo)
+        var mysqlHost     = Environment.GetEnvironmentVariable("MYSQLHOST")     ?? Environment.GetEnvironmentVariable("MYSQL_HOST");
+        var mysqlPort     = Environment.GetEnvironmentVariable("MYSQLPORT")     ?? Environment.GetEnvironmentVariable("MYSQL_PORT") ?? "3306";
+        var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQLDATABASE") ?? Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+        var mysqlUser     = Environment.GetEnvironmentVariable("MYSQLUSER")     ?? Environment.GetEnvironmentVariable("MYSQL_USER");
+        var mysqlPassword = Environment.GetEnvironmentVariable("MYSQLPASSWORD") ?? Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
+
+        Log.Information("🔍 Railway MySQL vars → Host:{Host} Port:{Port} DB:{DB} User:{User}",
+            mysqlHost ?? "(null)", mysqlPort, mysqlDatabase ?? "(null)", mysqlUser ?? "(null)");
+
+        // Reemplazar variables de entorno en la cadena de conexión del appsettings.Railway.json
         var railwayConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        if (!string.IsNullOrEmpty(railwayConnectionString))
+        if (!string.IsNullOrEmpty(railwayConnectionString) && !string.IsNullOrEmpty(mysqlHost))
         {
             railwayConnectionString = railwayConnectionString
-                .Replace("${MYSQL_HOST}", Environment.GetEnvironmentVariable("MYSQL_HOST"))
-                .Replace("${MYSQL_PORT}", Environment.GetEnvironmentVariable("MYSQL_PORT"))
-                .Replace("${MYSQL_DATABASE}", Environment.GetEnvironmentVariable("MYSQL_DATABASE"))
-                .Replace("${MYSQL_USER}", Environment.GetEnvironmentVariable("MYSQL_USER"))
-                .Replace("${MYSQL_PASSWORD}", Environment.GetEnvironmentVariable("MYSQL_PASSWORD"));
+                .Replace("${MYSQL_HOST}",     mysqlHost)
+                .Replace("${MYSQL_PORT}",     mysqlPort)
+                .Replace("${MYSQL_DATABASE}", mysqlDatabase)
+                .Replace("${MYSQL_USER}",     mysqlUser)
+                .Replace("${MYSQL_PASSWORD}", mysqlPassword);
             
             builder.Configuration["ConnectionStrings:DefaultConnection"] = railwayConnectionString;
-            Log.Information("✅ Cadena de conexión Railway configurada");
+            Log.Information("✅ Cadena de conexión Railway configurada desde variables individuales");
+        }
+        else
+        {
+            Log.Warning("⚠️ Variables MySQL individuales no encontradas, se usará DATABASE_URL/MYSQL_URL como fallback");
         }
         
         // Configurar URL con el puerto de Railway
@@ -269,20 +283,27 @@ try
 
     try
     {
+        // Prioridad: variable directa > URL completa (MYSQL_URL o DATABASE_URL) > config cargada
         dbConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                          ?? Environment.GetEnvironmentVariable("MYSQL_URL")
+                          ?? Environment.GetEnvironmentVariable("MYSQLURL")
                           ?? Environment.GetEnvironmentVariable("DATABASE_URL")
                           ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrEmpty(dbConnectionString))
         {
-            throw new InvalidOperationException("No se encontró cadena de conexión a la base de datos");
+            throw new InvalidOperationException("No se encontró cadena de conexión a la base de datos. Variables disponibles: " +
+                string.Join(", ", Environment.GetEnvironmentVariables().Keys.Cast<string>()
+                    .Where(k => k.Contains("MYSQL") || k.Contains("DATABASE") || k.Contains("DB"))
+                    .OrderBy(k => k)));
         }
 
-        if (dbConnectionString.StartsWith("mysql://"))
+        if (dbConnectionString.StartsWith("mysql://") || dbConnectionString.StartsWith("mysql+mysqlconnector://"))
         {
-            var uri = new Uri(dbConnectionString);
+            var cleanUrl = dbConnectionString.Replace("mysql+mysqlconnector://", "mysql://");
+            var uri = new Uri(cleanUrl);
             var userInfo = uri.UserInfo.Split(':');
-            dbConnectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={userInfo[1]};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=60;DefaultCommandTimeout=60;";
+            dbConnectionString = $"Server={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};User={userInfo[0]};Password={Uri.UnescapeDataString(userInfo[1])};AllowUserVariables=True;UseAffectedRows=False;SslMode=Required;ConnectionTimeout=60;DefaultCommandTimeout=60;";
         }
 
         Log.Information("🔌 Configurando conexión a MySQL Railway");
