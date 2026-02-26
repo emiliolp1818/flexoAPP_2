@@ -923,9 +923,17 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
 
+  private _selectingColor = false;
+
   updateColorManual(index: number, value: string) {
+    // Si se acaba de seleccionar via autocomplete, ignorar el blur
+    if (this._selectingColor) return;
+
+    // Si el campo está vacío, no sobreescribir el color actual
+    if (!value || !value.trim()) return;
+
     const currentColors = [...this.selectedColors()];
-    const pantoneColor = this.pantoneService.getOrCreateColor(value);
+    const pantoneColor = this.pantoneService.getOrCreateColor(value.trim());
 
     currentColors[index] = pantoneColor;
     this.selectedColors.set(currentColors);
@@ -937,6 +945,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
 
   selectPantoneColor(colorIndex: number, color: PantoneColor) {
+    // Marcar que se está seleccionando via autocomplete para bloquear el blur
+    this._selectingColor = true;
+    setTimeout(() => { this._selectingColor = false; }, 300);
+
     const currentColors = [...this.selectedColors()];
     currentColors[colorIndex] = color;
     this.selectedColors.set(currentColors);

@@ -1,0 +1,661 @@
+================================================================================
+  GUÍA COMPLETA DE DESPLIEGUE EN RAILWAY - FlexoAPP
+  Versión: 1.1
+  Fecha: 18 de Febrero 2026
+  NOTA: Esta es una configuración TEMPORAL para pruebas
+================================================================================
+
+⚠️ IMPORTANTE: ESTRUCTURA DEL REPOSITORIO
+================================================================================
+
+Tu repositorio tiene esta estructura:
+
+flexoAPP_2/
+├── backend/              ← Backend .NET (API)
+│   ├── Controllers/
+│   ├── Models/
+│   ├── Program.cs
+│   └── flexoAPP.csproj
+├── Frontend/             ← Frontend Angular
+│   ├── src/
+│   ├── package.json
+│   └── angular.json
+├── railway.json          ← Configuración Railway
+├── nixpacks.toml         ← Instrucciones de build
+└── Procfile              ← Comando de inicio
+
+CÓMO DESPLEGAR EN RAILWAY:
+
+Opción 1 - SOLO BACKEND (Recomendado para pruebas):
+  → Crear 1 servicio MySQL
+  → Crear 1 servicio Backend (Root Directory = "backend")
+  → Usar frontend local o de Render
+
+Opción 2 - BACKEND + FRONTEND:
+  → Crear 1 servicio MySQL
+  → Crear 1 servicio Backend (Root Directory = "backend")
+  → Crear 1 servicio Frontend (Root Directory = "Frontend")
+
+Esta guía cubre ambas opciones.
+
+================================================================================
+
+ÍNDICE:
+1. Requisitos Previos
+2. Crear Cuenta y Proyecto en Railway
+3. Configurar Base de Datos MySQL
+4. Desplegar Backend desde GitHub
+5. Configurar Variables de Entorno
+6. Verificar el Despliegue
+7. Actualizar Frontend (Opcional)
+8. Solución de Problemas
+9. Archivos Creados Automáticamente
+
+================================================================================
+1. REQUISITOS PREVIOS
+================================================================================
+
+✓ Cuenta de GitHub con el repositorio flexoAPP_2
+✓ Código ya está en la rama 'render' con los archivos de configuración
+✓ Navegador web (Chrome, Firefox, Edge)
+✓ Tarjeta de crédito (Railway requiere verificación, pero tiene plan gratuito)
+
+ARCHIVOS YA CREADOS EN EL REPOSITORIO:
+- railway.json (configuración del proyecto)
+- nixpacks.toml (instrucciones de build)
+- Procfile (comando de inicio)
+- .railwayignore (archivos a ignorar)
+- backend/appsettings.Railway.json (configuración específica)
+- backend/Program.cs (modificado para detectar Railway)
+
+================================================================================
+2. CREAR CUENTA Y PROYECTO EN RAILWAY
+================================================================================
+
+PASO 2.1 - CREAR CUENTA
+------------------------
+1. Abre tu navegador y ve a: https://railway.app
+2. Haz clic en "Login" (esquina superior derecha)
+3. Selecciona "Login with GitHub"
+4. Autoriza Railway para acceder a tu cuenta de GitHub
+5. Completa el proceso de verificación (puede pedir tarjeta de crédito)
+
+PASO 2.2 - CREAR NUEVO PROYECTO
+--------------------------------
+1. Una vez dentro, haz clic en "New Project" (botón morado)
+2. Verás varias opciones:
+   - Deploy from GitHub repo
+   - Deploy a Template
+   - Empty Project
+   
+3. Selecciona "Empty Project"
+4. Railway creará un proyecto vacío
+5. Cambia el nombre del proyecto:
+   - Haz clic en el nombre del proyecto (arriba a la izquierda)
+   - Escribe: "FlexoAPP-Backend"
+   - Presiona Enter
+
+================================================================================
+3. CONFIGURAR BASE DE DATOS MYSQL
+================================================================================
+
+PASO 3.1 - AGREGAR MYSQL AL PROYECTO
+-------------------------------------
+1. Dentro de tu proyecto, haz clic en "+ New" (botón morado)
+2. Selecciona "Database"
+3. Selecciona "Add MySQL"
+4. Railway creará automáticamente una base de datos MySQL
+5. Espera 30-60 segundos mientras se aprovisiona
+
+PASO 3.2 - OBTENER CREDENCIALES DE LA BASE DE DATOS
+----------------------------------------------------
+1. Haz clic en el servicio "MySQL" que acabas de crear
+2. Ve a la pestaña "Variables" (en el menú superior)
+3. Verás estas variables (CÓPIALAS en un bloc de notas):
+
+   MYSQLHOST=monorail.proxy.rlwy.net
+   MYSQLPORT=12345
+   MYSQLDATABASE=railway
+   MYSQLUSER=root
+   MYSQLPASSWORD=AbCdEfGhIjKlMnOpQrStUvWxYz123456
+
+   NOTA: Los valores serán diferentes para ti. Copia TUS valores reales.
+
+4. También verás una variable llamada:
+   MYSQL_URL=mysql://root:password@host:port/railway
+   
+   Esta es la cadena de conexión completa (también cópiala)
+
+PASO 3.3 - CONECTAR A LA BASE DE DATOS (OPCIONAL)
+--------------------------------------------------
+Si quieres conectarte desde tu computadora para ejecutar scripts SQL:
+
+1. En la pestaña "Variables" del servicio MySQL, busca:
+   - MYSQLHOST
+   - MYSQLPORT
+   - MYSQLUSER
+   - MYSQLPASSWORD
+   - MYSQLDATABASE
+
+2. Usa estos datos en MySQL Workbench o cualquier cliente MySQL:
+   Host: [MYSQLHOST]
+   Port: [MYSQLPORT]
+   User: [MYSQLUSER]
+   Password: [MYSQLPASSWORD]
+   Database: [MYSQLDATABASE]
+
+3. Ejecuta los scripts de la carpeta backend/Database/Scripts/ si es necesario
+
+================================================================================
+4. DESPLEGAR BACKEND Y FRONTEND DESDE EL MISMO REPOSITORIO
+================================================================================
+
+IMPORTANTE: Backend y Frontend están en el MISMO repositorio pero en carpetas
+diferentes. Necesitas crear DOS servicios en Railway, cada uno apuntando a su
+carpeta correspondiente.
+
+PASO 4.1 - AGREGAR SERVICIO BACKEND
+------------------------------------
+1. En tu proyecto, haz clic en "+ New" (botón morado)
+2. Selecciona "GitHub Repo"
+3. Si es la primera vez, Railway pedirá permisos:
+   - Haz clic en "Configure GitHub App"
+   - Selecciona tu cuenta de GitHub
+   - Selecciona "Only select repositories"
+   - Busca y selecciona "flexoAPP_2"
+   - Haz clic en "Install & Authorize"
+
+4. Ahora verás una lista de tus repositorios
+5. Busca y selecciona "flexoAPP_2"
+6. Railway te preguntará qué rama usar
+7. Selecciona la rama "render"
+
+8. IMPORTANTE - Configurar Root Directory:
+   - Antes de hacer clic en "Deploy", ve a "Settings"
+   - Busca "Root Directory"
+   - Escribe: backend
+   - Esto le dice a Railway que solo compile la carpeta backend
+
+9. Cambia el nombre del servicio:
+   - Haz clic en el nombre del servicio (arriba)
+   - Escribe: "FlexoAPP-Backend"
+   - Presiona Enter
+
+10. Haz clic en "Deploy"
+
+PASO 4.2 - ESPERAR EL PRIMER DEPLOY DEL BACKEND
+------------------------------------------------
+1. Railway comenzará a construir tu aplicación
+2. Haz clic en el servicio "FlexoAPP-Backend"
+3. Ve a la pestaña "Deployments"
+4. Verás el deploy en progreso con logs en tiempo real
+5. Espera 3-5 minutos (el primer deploy es más lento)
+
+En los logs deberías ver:
+✓ "Nixpacks build successful"
+✓ "Installing .NET SDK 8"
+✓ "dotnet restore"
+✓ "dotnet build --configuration Release"
+✓ "Build succeeded"
+✓ "Application started"
+
+PASO 4.3 - AGREGAR SERVICIO FRONTEND (OPCIONAL)
+------------------------------------------------
+Si quieres desplegar el frontend también en Railway:
+
+1. En tu proyecto, haz clic en "+ New" (botón morado)
+2. Selecciona "GitHub Repo"
+3. Selecciona el MISMO repositorio "flexoAPP_2"
+4. Selecciona la rama "render"
+
+5. IMPORTANTE - Configurar Root Directory:
+   - Antes de hacer clic en "Deploy", ve a "Settings"
+   - Busca "Root Directory"
+   - Escribe: Frontend
+   - Esto le dice a Railway que solo compile la carpeta Frontend
+
+6. Configurar Build Settings:
+   - En "Settings", busca "Build Command"
+   - Escribe: npm install && npm run build:prod
+   - Busca "Start Command"
+   - Escribe: npx serve -s dist/flexoapp -l $PORT
+
+7. Cambia el nombre del servicio:
+   - Haz clic en el nombre del servicio
+   - Escribe: "FlexoAPP-Frontend"
+   - Presiona Enter
+
+8. Haz clic en "Deploy"
+
+PASO 4.4 - ESTRUCTURA FINAL DEL PROYECTO
+-----------------------------------------
+Tu proyecto en Railway debería tener 3 servicios:
+
+1. MySQL (base de datos)
+2. FlexoAPP-Backend (carpeta backend/)
+3. FlexoAPP-Frontend (carpeta Frontend/) - OPCIONAL
+
+Cada servicio se despliega independientemente pero desde el mismo repositorio.
+
+NOTA IMPORTANTE:
+- Si solo quieres probar el backend, NO necesitas desplegar el frontend
+- Puedes usar el frontend local (npm start) apuntando al backend de Railway
+- O puedes seguir usando el frontend de Render apuntando al backend de Railway
+
+================================================================================
+5. CONFIGURAR VARIABLES DE ENTORNO
+================================================================================
+
+PASO 5.1 - AGREGAR VARIABLES AL SERVICIO BACKEND
+-------------------------------------------------
+1. Haz clic en tu servicio backend (el que tiene el código de GitHub)
+2. Ve a la pestaña "Variables"
+3. Haz clic en "+ New Variable"
+4. Agrega estas variables UNA POR UNA:
+
+   Variable 1:
+   Name: ASPNETCORE_ENVIRONMENT
+   Value: Railway
+
+   Variable 2:
+   Name: RAILWAY_ENVIRONMENT
+   Value: production
+
+5. Después de agregar cada variable, haz clic en "Add"
+
+PASO 5.2 - VINCULAR BASE DE DATOS CON BACKEND
+----------------------------------------------
+Railway puede vincular automáticamente las variables de MySQL:
+
+1. Asegúrate de estar en la pestaña "Variables" de tu servicio backend
+2. Busca la sección "Service Variables" o "Reference Variables"
+3. Haz clic en "+ Add Reference"
+4. Selecciona tu servicio MySQL
+5. Railway agregará automáticamente:
+   - MYSQLHOST
+   - MYSQLPORT
+   - MYSQLDATABASE
+   - MYSQLUSER
+   - MYSQLPASSWORD
+   - MYSQL_URL
+
+6. Estas variables ahora están disponibles para tu aplicación
+
+PASO 5.3 - VERIFICAR VARIABLES
+-------------------------------
+En la pestaña "Variables" deberías ver:
+
+Variables propias:
+✓ ASPNETCORE_ENVIRONMENT = Railway
+✓ RAILWAY_ENVIRONMENT = production
+
+Variables de MySQL (referenciadas):
+✓ MYSQLHOST = monorail.proxy.rlwy.net
+✓ MYSQLPORT = 12345
+✓ MYSQLDATABASE = railway
+✓ MYSQLUSER = root
+✓ MYSQLPASSWORD = [tu password]
+✓ MYSQL_URL = mysql://...
+
+PASO 5.4 - REDESPLEGAR CON NUEVAS VARIABLES
+--------------------------------------------
+1. Después de agregar las variables, Railway redesplegará automáticamente
+2. Si no lo hace, ve a "Deployments" y haz clic en "Redeploy"
+3. Espera 2-3 minutos
+
+================================================================================
+6. VERIFICAR EL DESPLIEGUE
+================================================================================
+
+PASO 6.1 - GENERAR DOMINIO PÚBLICO
+-----------------------------------
+1. Haz clic en tu servicio backend
+2. Ve a la pestaña "Settings"
+3. Busca la sección "Networking"
+4. Haz clic en "Generate Domain"
+5. Railway generará un dominio como:
+   
+   https://flexoapp-backend-production-xxxx.up.railway.app
+   
+   COPIA ESTE DOMINIO - Lo necesitarás después
+
+PASO 6.2 - VERIFICAR QUE LA API FUNCIONA
+-----------------------------------------
+1. Abre tu navegador
+2. Ve a: https://TU-DOMINIO.up.railway.app/health
+   
+   Ejemplo: https://flexoapp-backend-production-xxxx.up.railway.app/health
+
+3. Deberías ver:
+   {
+     "status": "Healthy",
+     "checks": {
+       "database": "Healthy",
+       "self": "Healthy"
+     }
+   }
+
+4. Si ves esto, ¡tu backend está funcionando! ✓
+
+PASO 6.3 - VERIFICAR SWAGGER (DOCUMENTACIÓN API)
+-------------------------------------------------
+1. Ve a: https://TU-DOMINIO.up.railway.app/swagger
+
+2. Deberías ver la interfaz de Swagger con todos los endpoints
+
+3. Prueba el endpoint de login:
+   - Expande "POST /api/auth/login"
+   - Haz clic en "Try it out"
+   - Ingresa credenciales de prueba
+   - Haz clic en "Execute"
+   - Deberías recibir un token JWT
+
+PASO 6.4 - VERIFICAR LOGS
+--------------------------
+1. Ve a la pestaña "Deployments"
+2. Haz clic en el deployment activo
+3. Verás los logs en tiempo real
+4. Busca estos mensajes:
+
+   ✓ "🚀 Iniciando FlexoAPP Backend - Render/Railway Production"
+   ✓ "🌍 Entorno detectado: Railway"
+   ✓ "✅ Cadena de conexión Railway configurada"
+   ✓ "✅ Puerto Railway configurado: 8080"
+   ✓ "✅ SignalR Hub mapeado en /hubs/maquinas"
+   ✓ "Application started"
+
+================================================================================
+7. ACTUALIZAR FRONTEND (OPCIONAL)
+================================================================================
+
+Si quieres que tu frontend Angular apunte a Railway en lugar de Render:
+
+PASO 7.1 - ACTUALIZAR ENVIRONMENT
+----------------------------------
+1. Abre el archivo: Frontend/src/environments/environment.ts
+
+2. Agrega una nueva configuración:
+
+   export const environment = {
+     production: true,
+     apiUrl: 'https://TU-DOMINIO-RAILWAY.up.railway.app/api',
+     fallbackUrls: [
+       'https://flexoapp-backend.onrender.com/api'
+     ]
+   };
+
+3. Reemplaza TU-DOMINIO-RAILWAY con el dominio que Railway te dio
+
+PASO 7.2 - PROBAR LOCALMENTE
+-----------------------------
+1. Abre terminal en la carpeta Frontend
+2. Ejecuta: npm start
+3. Abre http://localhost:4200
+4. Intenta hacer login
+5. Si funciona, el frontend está conectado a Railway ✓
+
+PASO 7.3 - DESPLEGAR FRONTEND (OPCIONAL)
+-----------------------------------------
+Si quieres desplegar el frontend también en Railway:
+
+1. En tu proyecto Railway, haz clic en "+ New"
+2. Selecciona "GitHub Repo"
+3. Selecciona el mismo repositorio "flexoAPP_2"
+4. Railway detectará que es un proyecto Angular
+5. Configura el build:
+   - Root Directory: Frontend
+   - Build Command: npm run build
+   - Start Command: npx serve -s dist/flexoapp -l $PORT
+
+6. Genera un dominio para el frontend
+7. Actualiza CORS en el backend con el nuevo dominio del frontend
+
+================================================================================
+8. SOLUCIÓN DE PROBLEMAS
+================================================================================
+
+PROBLEMA 1: "Build Failed - .NET SDK not found"
+------------------------------------------------
+SOLUCIÓN:
+- Verifica que nixpacks.toml existe en la raíz del repositorio
+- Verifica que contiene: nixPkgs = ["dotnet-sdk_8"]
+- Redespliega desde la pestaña Deployments
+
+PROBLEMA 2: "Database connection failed"
+-----------------------------------------
+SOLUCIÓN:
+- Ve a Variables y verifica que las variables de MySQL están presentes
+- Verifica que MYSQLHOST, MYSQLPORT, etc. tienen valores
+- Verifica que el servicio MySQL está corriendo (debe estar verde)
+- Redespliega el backend
+
+PROBLEMA 3: "Port already in use"
+----------------------------------
+SOLUCIÓN:
+- Railway asigna el puerto automáticamente en la variable $PORT
+- Verifica que Program.cs usa Environment.GetEnvironmentVariable("PORT")
+- No hardcodees el puerto en ningún lado
+
+PROBLEMA 4: "CORS error en el frontend"
+----------------------------------------
+SOLUCIÓN:
+- Verifica que el dominio del frontend está en la lista de CORS en Program.cs
+- Agrega el dominio exacto en WithOrigins()
+- Redespliega el backend
+
+PROBLEMA 5: "SignalR no conecta"
+---------------------------------
+SOLUCIÓN:
+- Verifica que el endpoint /hubs/maquinas está accesible
+- Prueba: https://TU-DOMINIO.up.railway.app/hubs/maquinas
+- Verifica que WebSockets están habilitados en Railway (lo están por defecto)
+- Revisa los logs del navegador (F12 → Console)
+
+PROBLEMA 6: "Application crashed"
+----------------------------------
+SOLUCIÓN:
+- Ve a Deployments → Logs
+- Busca el error específico
+- Errores comunes:
+  * Missing environment variable → Agrega la variable
+  * Database connection → Verifica MySQL está corriendo
+  * Port binding → Verifica que usas $PORT
+
+PROBLEMA 8: "Railway no encuentra el proyecto .NET"
+----------------------------------------------------
+SOLUCIÓN:
+- Verifica que configuraste "Root Directory" = "backend"
+- Pasos:
+  1. Haz clic en tu servicio backend
+  2. Ve a "Settings"
+  3. Busca "Root Directory" o "Source"
+  4. Debe decir: backend
+  5. Si no está configurado, agrégalo y redespliega
+
+PROBLEMA 9: "Build falla con 'No .csproj found'"
+-------------------------------------------------
+SOLUCIÓN:
+- El Root Directory no está configurado correctamente
+- Debe ser exactamente: backend (sin / al final)
+- Redespliega después de cambiar
+
+PROBLEMA 10: "Frontend y Backend se despliegan juntos"
+-------------------------------------------------------
+SOLUCIÓN:
+- Necesitas crear DOS servicios separados
+- Servicio 1: Root Directory = backend
+- Servicio 2: Root Directory = Frontend
+- Cada uno se despliega independientemente
+
+================================================================================
+9. ARCHIVOS CREADOS AUTOMÁTICAMENTE
+================================================================================
+
+Los siguientes archivos YA FUERON CREADOS y están en tu repositorio:
+
+1. railway.json
+   Ubicación: Raíz del proyecto
+   Propósito: Configuración del proyecto Railway
+   Contenido: Define el builder (NIXPACKS) y comando de inicio
+
+2. nixpacks.toml
+   Ubicación: Raíz del proyecto
+   Propósito: Instrucciones de build para Nixpacks
+   Contenido: Instala .NET 8, compila el proyecto
+
+3. Procfile
+   Ubicación: Raíz del proyecto
+   Propósito: Comando de inicio alternativo
+   Contenido: cd backend && dotnet run --configuration Release
+
+4. .railwayignore
+   Ubicación: Raíz del proyecto
+   Propósito: Archivos a ignorar en el deploy
+   Contenido: Frontend/, node_modules/, logs/, etc.
+
+5. backend/appsettings.Railway.json
+   Ubicación: backend/
+   Propósito: Configuración específica para Railway
+   Contenido: ConnectionString con variables de entorno, JWT settings
+
+6. backend/Program.cs (MODIFICADO)
+   Ubicación: backend/
+   Propósito: Detectar Railway y configurar automáticamente
+   Cambios:
+   - Detecta si está en Railway (variable RAILWAY_ENVIRONMENT)
+   - Carga appsettings.Railway.json
+   - Reemplaza variables ${MYSQL_HOST}, ${MYSQL_PORT}, etc.
+   - Configura puerto dinámico
+   - Agrega dominios Railway a CORS
+
+================================================================================
+10. COMANDOS ÚTILES
+================================================================================
+
+VER LOGS EN TIEMPO REAL:
+- Ve a Deployments → Click en deployment activo → Logs
+
+REDESPLEGAR:
+- Ve a Deployments → Click en "Redeploy"
+
+ROLLBACK A VERSIÓN ANTERIOR:
+- Ve a Deployments → Click en deployment anterior → "Redeploy"
+
+PAUSAR SERVICIO (para ahorrar créditos):
+- Ve a Settings → Scroll abajo → "Remove Service"
+- NOTA: Esto elimina el servicio, no solo lo pausa
+
+CAMBIAR RAMA DE GITHUB:
+- Ve a Settings → "Source" → Cambia la rama
+
+AGREGAR VARIABLE DE ENTORNO:
+- Ve a Variables → "+ New Variable"
+
+ELIMINAR VARIABLE:
+- Ve a Variables → Click en la X junto a la variable
+
+================================================================================
+11. COSTOS Y LÍMITES
+================================================================================
+
+PLAN GRATUITO (Trial):
+- $5 USD de crédito gratis al registrarte
+- Suficiente para ~500 horas de uso
+- Requiere tarjeta de crédito para verificación
+- No se cobra automáticamente al terminar el crédito
+
+PLAN HOBBY ($5/mes):
+- $5 USD de crédito mensual
+- Suficiente para proyectos pequeños
+- Incluye:
+  * 500 horas de ejecución
+  * 512 MB RAM por servicio
+  * 1 GB almacenamiento
+  * Dominios personalizados
+
+LÍMITES IMPORTANTES:
+- Máximo 2 servicios en plan gratuito
+- Máximo 512 MB RAM por servicio
+- Sin límite de ancho de banda
+- Sin límite de requests
+
+MONITOREAR USO:
+- Ve a tu proyecto → "Usage" (en el menú izquierdo)
+- Verás cuánto crédito has usado
+
+================================================================================
+12. COMPARACIÓN: RAILWAY VS RENDER
+================================================================================
+
+RAILWAY:
+✓ Más rápido para desplegar (2-3 minutos)
+✓ Mejor para desarrollo y pruebas
+✓ Logs en tiempo real más claros
+✓ Fácil de configurar variables de entorno
+✓ WebSockets funcionan sin configuración extra
+✗ Requiere tarjeta de crédito
+✗ Plan gratuito limitado ($5 crédito)
+
+RENDER:
+✓ Plan gratuito sin tarjeta de crédito
+✓ Mejor para producción a largo plazo
+✓ Más estable para aplicaciones 24/7
+✗ Deploys más lentos (5-10 minutos)
+✗ Servicios gratuitos se duermen después de 15 min inactividad
+✗ Configuración más compleja
+
+RECOMENDACIÓN:
+- Usa Railway para PRUEBAS y DESARROLLO
+- Usa Render para PRODUCCIÓN final
+
+================================================================================
+13. PRÓXIMOS PASOS
+================================================================================
+
+DESPUÉS DE DESPLEGAR EN RAILWAY:
+
+1. ✓ Verifica que /health responde correctamente
+2. ✓ Prueba el login desde Swagger
+3. ✓ Prueba importar un Excel
+4. ✓ Verifica que SignalR conecta (revisa logs del navegador)
+5. ✓ Prueba con 2 navegadores para ver sincronización en tiempo real
+6. ✓ Monitorea los logs por 24 horas para detectar errores
+
+SI TODO FUNCIONA BIEN:
+- Puedes mantener Railway para pruebas
+- Mantén Render para producción
+- Usa Railway cuando necesites probar cambios rápidamente
+
+SI NO FUNCIONA:
+- Revisa la sección "8. SOLUCIÓN DE PROBLEMAS"
+- Revisa los logs en Railway
+- Puedes revertir a Render en cualquier momento
+
+================================================================================
+14. CONTACTO Y SOPORTE
+================================================================================
+
+DOCUMENTACIÓN OFICIAL:
+- Railway: https://docs.railway.app
+- .NET en Railway: https://docs.railway.app/guides/dotnet
+
+SOPORTE RAILWAY:
+- Discord: https://discord.gg/railway
+- Twitter: @Railway
+- Email: team@railway.app
+
+NOTAS FINALES:
+- Esta configuración es TEMPORAL para pruebas
+- Los archivos de configuración ya están en tu repositorio
+- Solo necesitas seguir los pasos en Railway
+- Si algo falla, puedes volver a Render sin problemas
+
+================================================================================
+FIN DE LA GUÍA
+================================================================================
+
+Creado por: Kiro AI Assistant
+Fecha: 18 de Febrero 2026
+Versión: 1.0
+
+¡Buena suerte con el despliegue! 🚀

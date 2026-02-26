@@ -771,6 +771,12 @@ $header-blue-900: #1e3a8a;
           height: 18px;
           color: $gray-400;
         }
+
+        .req-star {
+          color: #ef4444;
+          font-weight: 800;
+          font-size: 1rem;
+        }
       }
 
       .footer-actions {
@@ -854,7 +860,7 @@ $header-blue-900: #1e3a8a;
 
     &.details-header {
       mat-icon {
-        color: $warning-orange;
+        color: $warning-amber;
       }
     }
   }

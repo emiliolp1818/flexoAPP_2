@@ -1,5 +1,6 @@
-# Configuración de Nixpacks para Railway
-# Este archivo le dice a Railway cómo construir y ejecutar la aplicación
+# Configuración de Nixpacks para Railway - BACKEND
+# Este archivo le dice a Railway cómo construir y ejecutar el BACKEND
+# IMPORTANTE: En Railway, configura "Root Directory" = "backend"
 
 [phases.setup]
 # Instalar .NET 8 SDK
@@ -7,8 +8,8 @@ nixPkgs = ["dotnet-sdk_8"]
 
 [phases.build]
 # Comando para compilar el backend
+# Como Root Directory es "backend", ya estamos en esa carpeta
 cmds = [
-  "cd backend",
   "dotnet restore",
   "dotnet build --configuration Release"
 ]
@@ -20,4 +21,4 @@ cmds = []
 [start]
 # Comando para iniciar la aplicación
 # Railway proporciona la variable $PORT automáticamente
-cmd = "cd backend && dotnet run --configuration Release --urls http://0.0.0.0:$PORT"
+cmd = "dotnet run --configuration Release --urls http://0.0.0.0:$PORT"

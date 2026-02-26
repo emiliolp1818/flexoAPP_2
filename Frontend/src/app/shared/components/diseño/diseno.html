@@ -799,9 +799,9 @@
 
                 <mat-form-field appearance="outline" class="color-field">
                   <mat-label>Color {{ i + 1 }}</mat-label>
-                  <input matInput [value]="color.displayName"
-                    (input)="searchPantoneColors($any($event.target).value); updateColorManual(i, $any($event.target).value)"
-                    [matAutocomplete]="colorAuto" placeholder="Ej: 209, Black, Cyan">
+                  <input matInput [value]="color.displayName" (input)="searchPantoneColors($any($event.target).value)"
+                    (blur)="updateColorManual(i, $any($event.target).value)" [matAutocomplete]="colorAuto"
+                    placeholder="Ej: 209, Black, Cyan">
                   <mat-icon matSuffix>search</mat-icon>
 
                   <mat-autocomplete #colorAuto="matAutocomplete"
@@ -1063,9 +1063,9 @@
 
                 <mat-form-field appearance="outline" class="color-field">
                   <mat-label>Color {{ i + 1 }}</mat-label>
-                  <input matInput [value]="color.displayName"
-                    (input)="searchPantoneColors($any($event.target).value); updateColorManual(i, $any($event.target).value)"
-                    [matAutocomplete]="colorAutoEdit" placeholder="Ej: 209, Black, Magenta">
+                  <input matInput [value]="color.displayName" (input)="searchPantoneColors($any($event.target).value)"
+                    (blur)="updateColorManual(i, $any($event.target).value)" [matAutocomplete]="colorAutoEdit"
+                    placeholder="Ej: 209, Black, Magenta">
                   <mat-icon matSuffix>search</mat-icon>
 
                   <mat-autocomplete #colorAutoEdit="matAutocomplete"
