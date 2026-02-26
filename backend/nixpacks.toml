@@ -6,9 +6,10 @@ nixPkgs = ["dotnet-sdk_8"]
 cmds = ["dotnet restore"]
 
 [phases.build]
-# Self-contained: incluye el runtime en el ejecutable, evita conflictos de versión
-cmds = ["dotnet publish --no-restore -c Release -o out --self-contained true -r linux-x64"]
+cmds = [
+  "dotnet publish --no-restore -c Release -o out --self-contained true -r linux-x64",
+  "chmod +x out/FlexoAPP.API"
+]
 
 [start]
-# Ejecuta el binario nativo (no necesita 'dotnet' instalado en el servidor)
 cmd = "./out/FlexoAPP.API --urls http://0.0.0.0:$PORT"
