@@ -422,11 +422,9 @@ try
 
 
     // ===== VERIFICACIÓN DE BASE DE DATOS (NO FATAL) =====
-    // Si la DB no está disponible al arrancar, el app igual inicia.
-    // Los errores de DB se verán en los logs sin crashear el proceso.
     _ = Task.Run(async () =>
     {
-        await Task.Delay(2000); // Espera 2s para que el server esté listo
+        await Task.Delay(3000); // Espera 3s para que el server esté listo
         try
         {
             using var scope = app.Services.CreateScope();
@@ -436,6 +434,17 @@ try
             if (canConnect)
             {
                 Log.Information("✅ Conexión a base de datos exitosa");
+
+                // Crear tablas que falten (ej: system_configs) sin perder datos existentes
+                try
+                {
+                    await context.Database.EnsureCreatedAsync();
+                    Log.Information("✅ Estructura de base de datos verificada (tablas creadas si faltaban)");
+                }
+                catch (Exception dbEx)
+                {
+                    Log.Warning("⚠️ EnsureCreated parcial: {Error}", dbEx.Message);
+                }
             }
             else
             {
@@ -444,14 +453,10 @@ try
         }
         catch (Exception ex)
         {
-            Log.Error("❌ Error conectando a DB: {Error}", ex.Message);
-            Log.Error("🔍 Connection string usada (sin password): {CS}",
-                System.Text.RegularExpressions.Regex.Replace(
-                    app.Services.GetRequiredService<IConfiguration>()
-                        .GetConnectionString("DefaultConnection") ?? "(null)",
-                    @"Password=[^;]+", "Password=***"));
+            Log.Error("❌ Error en verificación de DB: {Error}", ex.Message);
         }
     });
+
 
 
 
