@@ -18,7 +18,6 @@
     "start:hybrid": "ng serve --configuration=hybrid --host=0.0.0.0 --port=4200",
     "build": "ng build --configuration=production",
     "build:prod": "ng build --configuration=production",
-    "build:render": "ng build --configuration=render",
     "build:railway": "ng build --configuration=railway",
     "watch": "ng build --watch --configuration=development",
     "test": "ng test --watch=false --browsers=ChromeHeadless",

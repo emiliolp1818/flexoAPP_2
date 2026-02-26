@@ -25,13 +25,13 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Log.Information("🚀 Iniciando FlexoAPP Backend - Render/Railway Production");
+    Log.Information("🚀 Iniciando FlexoAPP Backend");
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // ===== DETECTAR ENTORNO (RAILWAY O RENDER) =====
+    // ===== DETECTAR ENTORNO RAILWAY =====
     var isRailway = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RAILWAY_ENVIRONMENT"));
-    var environmentName = isRailway ? "Railway" : "Production";
+    var environmentName = isRailway ? "Railway" : "Development";
     
     Log.Information($"🌍 Entorno detectado: {environmentName}");
     
@@ -65,14 +65,13 @@ try
     builder.Host.UseSerilog();
 
 
-    // ===== CONFIGURACIÓN DE KESTREL PARA RENDER =====
+    // ===== CONFIGURACIÓN DE KESTREL =====
     builder.WebHost.ConfigureKestrel(options =>
     {
         options.Limits.MaxRequestBodySize = 524_288_000;
         options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
 
-
-        var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
         options.ListenAnyIP(int.Parse(port));
     });
 
@@ -104,18 +103,15 @@ try
     });
 
 
-    // ===== CORS CONFIGURATION (RENDER/RAILWAY) =====
+    // ===== CORS CONFIGURATION =====
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>
         {
             policy.SetIsOriginAllowed(origin =>
             {
-                // Permitir todos los dominios de Railway (el subdominio es dinámico)
+                // Permitir todos los dominios de Railway
                 if (origin.Contains(".railway.app") || origin.Contains(".up.railway.app"))
-                    return true;
-                // Permitir Render
-                if (origin.Contains("onrender.com"))
                     return true;
                 // Permitir localhost para desarrollo
                 if (origin.Contains("localhost") || origin.Contains("127.0.0.1"))
@@ -124,30 +120,6 @@ try
                 if (System.Text.RegularExpressions.Regex.IsMatch(origin,
                     @"https?://(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)\d{1,3}\.\d{1,3}(:\d+)?"))
                     return true;
-                return false;
-            })
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
-        });
-
-
-        options.AddPolicy("RenderProduction", policy =>
-        {
-            policy.SetIsOriginAllowed(origin =>
-            {
-
-                if (origin.Contains("onrender.com"))
-                    return true;
-
-
-                if (origin.Contains("localhost") || origin.Contains("127.0.0.1"))
-                    return true;
-
-
-                if (System.Text.RegularExpressions.Regex.IsMatch(origin, @"https?://(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)\d{1,3}\.\d{1,3}(:\d+)?"))
-                    return true;
-
                 return false;
             })
             .AllowAnyMethod()
@@ -182,9 +154,9 @@ try
     {
         c.SwaggerDoc("v1", new OpenApiInfo
         {
-            Title = "FlexoAPP API - Render/Railway",
+            Title = "FlexoAPP API",
             Version = "v2.0.0",
-            Description = "Sistema de Gestión Flexográfica - MySQL Railway",
+            Description = "Sistema de Gestión Flexográfica",
             Contact = new OpenApiContact
             {
                 Name = "FlexoAPP Team",
@@ -489,7 +461,7 @@ try
     }
 
 
-    // Usar política default (permite railway.app, onrender.com y localhost)
+    // Usar política default (permite railway.app y localhost)
     app.UseCors();
 
 
@@ -608,37 +580,36 @@ try
 
 
     app.MapGet("/", () => new {
-
-        message = "FlexoAPP Enhanced API - Render/Railway Edition",
+        message = "FlexoAPP API",
         status = "running",
         timestamp = DateTime.UtcNow,
-        version = "v2.2.0",
+        version = "v2.0.0",
         framework = ".NET 8.0",
-
+        environment = isRailway ? "Railway" : "Development",
 
         features = new {
-            database = "MySQL Railway with Connection Pooling",
+            database = "MySQL with Connection Pooling",
             caching = "Memory Cache",
             logging = "Serilog Structured Logging",
             profiling = "MiniProfiler Enabled",
             compression = "Brotli + Gzip Enabled",
-            authentication = "JWT Bearer Token"
+            authentication = "JWT Bearer Token",
+            realtime = "SignalR WebSockets"
         },
 
-
         login = "admin / admin123",
-
 
         endpoints = new[] {
             "/api/auth/login",
             "/api/auth/me",
             "/api/designs",
             "/api/maquinas",
-            "/api/machine-programs",
-            "/api/performance",
+            "/api/activities",
+            "/api/reports",
             "/health",
             "/swagger",
-            "/profiler"
+            "/profiler",
+            "/hubs/maquinas"
         }
     });
 
@@ -656,22 +627,19 @@ try
 
 
     Log.Information("=========================================");
-    Log.Information("🚀 FLEXOAPP ENHANCED API - RENDER/RAILWAY READY");
+    Log.Information("🚀 FLEXOAPP API - READY");
     Log.Information("=========================================");
     Log.Information("🌐 Framework: ASP.NET Core 8.0");
-    Log.Information("🗄️ Database: MySQL Railway with connection pooling");
+    Log.Information("🌍 Environment: {Environment}", environmentName);
+    Log.Information("🗄️ Database: MySQL with connection pooling");
     Log.Information("💾 Caching: Memory Cache with 100MB limit");
     Log.Information("📝 Logging: Serilog with structured logging");
     Log.Information("⚡ Profiling: MiniProfiler enabled (/profiler)");
     Log.Information("🔐 Authentication: JWT Bearer Token");
-    Log.Information("🌍 CORS: Enabled for Render domains");
+    Log.Information("🔌 SignalR: WebSocket Hub at /hubs/maquinas");
     Log.Information("📊 Health Checks: /health, /health/ready, /health/live");
     Log.Information("🗜️ Compression: Brotli + Gzip enabled");
     Log.Information("👤 Default Login: admin / admin123");
-    Log.Information("🔌 MySQL Server: Railway (hopper.proxy.rlwy.net:43791)");
-    Log.Information("📁 Database: railway");
-    Log.Information("🌐 Backend URL: https://flexoapp-backend.onrender.com");
-    Log.Information("🌐 Frontend URL: https://flexoapp-frontend.onrender.com");
     Log.Information("=========================================");
 
     app.Run();
