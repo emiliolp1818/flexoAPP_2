@@ -22,7 +22,10 @@ COPY nginx.conf /etc/nginx/templates/default.conf.template
 # gettext provee envsubst para reemplazar $PORT en nginx.conf en runtime
 RUN apk add --no-cache gettext
 
+# Script de arranque
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 EXPOSE 3000
 
-# Railway inyecta $PORT; envsubst lo sustituye en la config de nginx antes de arrancar
-CMD ["/bin/sh", "-c", "envsubst '$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+CMD ["/bin/sh", "/start.sh"]
