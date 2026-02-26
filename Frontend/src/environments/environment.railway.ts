@@ -4,10 +4,9 @@ export const environment = {
   apiUrl: 'https://flexoapp-backend.up.railway.app/api',
   socketUrl: 'https://flexoapp-backend.up.railway.app',
   fallbackUrls: [
-    'https://flexoapp-backend.up.railway.app/api',
-    'https://flexoapp-backend.onrender.com/api'  // Fallback a Render
+    'https://flexoapp-backend.up.railway.app/api'
   ],
-  enableLogging: true,  // Activado para debugging en Railway
+  enableLogging: true,
   enableDebugMode: false,
   cacheTimeout: 10 * 60 * 1000,
   retryAttempts: 3,
