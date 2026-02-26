@@ -1,1 +1,1 @@
-web: cd out && dotnet FlexoAPP.API.dll --urls http://0.0.0.0:$PORT
+web: ASPNETCORE_URLS=http://0.0.0.0:$PORT ./out/FlexoAPP.API

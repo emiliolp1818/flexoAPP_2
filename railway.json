@@ -5,7 +5,7 @@
     "buildCommand": "dotnet restore && dotnet publish -c Release -o out"
   },
   "deploy": {
-    "startCommand": "cd out && dotnet FlexoAPP.API.dll --urls http://0.0.0.0:$PORT",
+    "startCommand": "ASPNETCORE_URLS=http://0.0.0.0:$PORT ./out/FlexoAPP.API",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
