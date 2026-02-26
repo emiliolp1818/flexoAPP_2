@@ -5,6 +5,10 @@
   "author": "FlexoAPP Team",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve --configuration=hybrid --host=0.0.0.0 --port=4200",

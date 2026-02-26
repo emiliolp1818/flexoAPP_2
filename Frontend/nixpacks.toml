@@ -1,0 +1,16 @@
+# Configuración de Nixpacks para Railway - FRONTEND Angular
+# Angular 20 requiere Node.js >= 20.19.0
+
+[phases.setup]
+# Instalar Node.js 22 LTS (compatible con Angular 20)
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm install --legacy-peer-deps"]
+
+[phases.build]
+cmds = ["npm run build:railway"]
+
+[start]
+# Servir archivos estáticos del build en el puerto dinámico de Railway
+cmd = "npx serve -s dist/flexoapp/browser -l $PORT --no-clipboard"
