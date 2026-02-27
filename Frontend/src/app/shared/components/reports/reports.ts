@@ -115,6 +115,13 @@ export class ReportsComponent implements OnInit {
 
   selectedModule = signal<string | null>(null);
 
+  // Paginación progresiva de pedidos MACHINES
+  readonly ORDERS_PAGE_SIZE = 20;
+  visibleOrdersCount = signal<number>(this.ORDERS_PAGE_SIZE);
+
+  // Paginación progresiva de tabla de actividades (por módulo)
+  readonly ACTIVITIES_PAGE_SIZE = 30;
+  private visibleActivitiesCountMap: Map<string, number> = new Map();
 
   private machineStatsCache: any = null;
   private machineStatsActivitiesCount: number = 0;
@@ -389,65 +396,47 @@ export class ReportsComponent implements OnInit {
   onUserSearch() {
     const searchTerm = this.userSearchText.toLowerCase().trim();
 
-    console.log('🔍 onUserSearch - Término de búsqueda:', searchTerm);
-
     if (!searchTerm) {
       this.filteredUsers.set(this.users());
       this.filterForm.patchValue({ userId: null });
-      console.log('🔍 Búsqueda vacía - userId limpiado');
       return;
     }
 
-
+    // Buscar coincidencia exacta por código (sin sobrescribir el texto del input)
     const exactCodeMatch = this.users().find(user =>
       user.userCode.toLowerCase() === searchTerm
     );
 
-
     if (exactCodeMatch) {
-      console.log('✅ Usuario encontrado por código exacto:', exactCodeMatch);
-      console.log('✅ Configurando userId en formulario:', exactCodeMatch.id);
-      this.userSearchText = exactCodeMatch.userCode;
+      // Solo actualizamos el ID en el form, NO sobrescribimos userSearchText
       this.filterForm.patchValue({ userId: exactCodeMatch.id });
       this.filteredUsers.set([exactCodeMatch]);
-
-
-      const currentUserId = this.filterForm.get('userId')?.value;
-      console.log('✅ userId después de patchValue:', currentUserId);
-
       return;
     }
 
-
+    // Filtrar usuarios que coincidan con el término
     const filtered = this.users().filter(user =>
-
       user.userCode.toLowerCase().includes(searchTerm) ||
-
       user.firstName.toLowerCase().includes(searchTerm) ||
-
       user.lastName.toLowerCase().includes(searchTerm) ||
-
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm)
     );
 
-    console.log('🔍 Usuarios filtrados:', filtered.length);
     this.filteredUsers.set(filtered);
 
-
     if (filtered.length === 1) {
-      console.log('✅ Usuario único encontrado:', filtered[0]);
-      console.log('✅ Configurando userId en formulario:', filtered[0].id);
-      this.userSearchText = filtered[0].userCode;
+      // Único resultado: guardar ID pero NO sobrescribir lo que el usuario escribe
       this.filterForm.patchValue({ userId: filtered[0].id });
-
-
-      const currentUserId = this.filterForm.get('userId')?.value;
-      console.log('✅ userId después de patchValue:', currentUserId);
     } else {
-
-      console.log('⚠️ Múltiples resultados o ninguno - limpiando userId');
       this.filterForm.patchValue({ userId: null });
     }
+  }
+
+  // Selección explícita de usuario desde un item de la lista sugerida
+  selectUser(user: any) {
+    this.userSearchText = user.userCode;
+    this.filterForm.patchValue({ userId: user.id });
+    this.filteredUsers.set([user]);
   }
 
 
@@ -872,6 +861,63 @@ export class ReportsComponent implements OnInit {
 
   selectModule(module: string | null) {
     this.selectedModule.set(module);
+    // Resetear contadores de paginación al cambiar módulo
+    this.visibleOrdersCount.set(this.ORDERS_PAGE_SIZE);
+    this.visibleActivitiesCountMap.clear();
+  }
+
+  // ──────────────────────────────────────────
+  // Paginación progresiva de pedidos (MACHINES)
+  // ──────────────────────────────────────────
+
+  /** Retorna solo los pedidos visibles actualmente */
+  getVisibleOrders(orderDetails: any[]): any[] {
+    // Los más recientes primero (ordenados por el último timestamp del historial)
+    const sorted = [...orderDetails].sort((a, b) => {
+      const tsA = a.historialEstados?.length
+        ? new Date(a.historialEstados[a.historialEstados.length - 1].timestamp).getTime()
+        : 0;
+      const tsB = b.historialEstados?.length
+        ? new Date(b.historialEstados[b.historialEstados.length - 1].timestamp).getTime()
+        : 0;
+      return tsB - tsA;
+    });
+    return sorted.slice(0, this.visibleOrdersCount());
+  }
+
+  hasMoreOrders(orderDetails: any[]): boolean {
+    return this.visibleOrdersCount() < orderDetails.length;
+  }
+
+  loadMoreOrders() {
+    this.visibleOrdersCount.update(n => n + this.ORDERS_PAGE_SIZE);
+  }
+
+  // ──────────────────────────────────────────
+  // Paginación progresiva de actividades (tabla)
+  // ──────────────────────────────────────────
+
+  getVisibleActivitiesForModule(module: string): AuditActivity[] {
+    const all = this.getActivitiesByModule(module);
+    const visible = this.visibleActivitiesCountMap.get(module) ?? this.ACTIVITIES_PAGE_SIZE;
+    // Ordenar más recientes primero
+    const sorted = [...all].sort((a, b) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    return sorted.slice(0, visible);
+  }
+
+  hasMoreActivities(module: string): boolean {
+    const all = this.getActivitiesByModule(module);
+    const visible = this.visibleActivitiesCountMap.get(module) ?? this.ACTIVITIES_PAGE_SIZE;
+    return visible < all.length;
+  }
+
+  loadMoreActivities(module: string) {
+    const current = this.visibleActivitiesCountMap.get(module) ?? this.ACTIVITIES_PAGE_SIZE;
+    this.visibleActivitiesCountMap.set(module, current + this.ACTIVITIES_PAGE_SIZE);
+    // Forzar detección de cambios actualizando la señal
+    this.filteredActivities.set([...this.filteredActivities()]);
   }
 
 

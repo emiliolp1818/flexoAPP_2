@@ -38,14 +38,24 @@
           <div class="filter-row-compact">
 
             <mat-form-field appearance="outline" class="filter-field-compact">
-              <mat-label>Código Usuario</mat-label>
+              <mat-label>Código / Nombre Usuario</mat-label>
               <input type="text" matInput [(ngModel)]="userSearchText" [ngModelOptions]="{standalone: true}"
-                (input)="onUserSearch()" placeholder="Ej: 123">
+                (input)="onUserSearch()" placeholder="Ej: 123 o Juan" autocomplete="off">
               <mat-icon matPrefix>person</mat-icon>
               <button matSuffix mat-icon-button (click)="clearUserSearch()" *ngIf="userSearchText">
                 <mat-icon>clear</mat-icon>
               </button>
             </mat-form-field>
+
+            <!-- Sugerencias de usuario (lista desplegable manual) -->
+            <div class="user-suggestions"
+              *ngIf="userSearchText && filteredUsers().length > 0 && filteredUsers().length < 8">
+              <div class="suggestion-item" *ngFor="let u of filteredUsers()" (click)="selectUser(u)">
+                <mat-icon class="sugg-icon">person</mat-icon>
+                <span class="sugg-code">{{ u.userCode }}</span>
+                <span class="sugg-name">{{ u.firstName }} {{ u.lastName }}</span>
+              </div>
+            </div>
 
 
             <mat-form-field appearance="outline" class="filter-field-compact filter-date">
@@ -95,13 +105,11 @@
             </div>
             <div class="module-actions">
               <button mat-icon-button (click)="exportModuleToPDF(module.value, $event)"
-                [disabled]="getModuleCount(module.value) === 0"
-                matTooltip="Exportar a PDF">
+                [disabled]="getModuleCount(module.value) === 0" matTooltip="Exportar a PDF">
                 <mat-icon>picture_as_pdf</mat-icon>
               </button>
               <button mat-icon-button (click)="exportModuleToExcel(module.value, $event)"
-                [disabled]="getModuleCount(module.value) === 0"
-                matTooltip="Exportar a Excel">
+                [disabled]="getModuleCount(module.value) === 0" matTooltip="Exportar a Excel">
                 <mat-icon>table_chart</mat-icon>
               </button>
               <mat-icon class="expand-icon">
@@ -152,12 +160,20 @@
 
 
               <div class="orders-list" *ngIf="stats.orderDetails && stats.orderDetails.length > 0">
-                <h4 class="orders-title">
-                  <mat-icon>list</mat-icon>
-                  Detalle de Pedidos Completados
-                </h4>
-                <div class="order-item" *ngFor="let order of stats.orderDetails; let i = index">
-                  <div class="order-number">Pedido #{{ i + 1 }}</div>
+                <div class="orders-header-row">
+                  <h4 class="orders-title">
+                    <mat-icon>list</mat-icon>
+                    Detalle de Pedidos Completados
+                    <span class="orders-count-badge">
+                      Mostrando {{ getVisibleOrders(stats.orderDetails).length }} de {{ stats.orderDetails.length }}
+                    </span>
+                  </h4>
+                </div>
+                <div class="order-item" *ngFor="let order of getVisibleOrders(stats.orderDetails); let i = index">
+                  <div class="order-number">Pedido #{{ i + 1 }} <span class="order-date-badge"
+                      *ngIf="order.historialEstados?.length">{{
+                      order.historialEstados[order.historialEstados.length-1].timestamp | date:'dd/MM/yyyy HH:mm'
+                      }}</span></div>
 
                   <div class="order-user-info" *ngIf="order.historialEstados && order.historialEstados.length > 0">
                     <div class="user-info-header">
@@ -232,12 +248,21 @@
                           <div *ngIf="estado.observaciones && estado.observaciones !== '-'"
                             style="padding-left: 138px; font-size: 12px; font-style: italic;"
                             [style.color]="estado.estado === 'SUSPENDIDO' ? '#dc2626' : '#666'">
-                            <span style="font-weight: 500;">{{ estado.estado === 'SUSPENDIDO' ? 'Motivo:' : 'Observaciones:' }}</span> {{ estado.observaciones }}
+                            <span style="font-weight: 500;">{{ estado.estado === 'SUSPENDIDO' ? 'Motivo:' :
+                              'Observaciones:' }}</span> {{ estado.observaciones }}
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <!-- Botón cargar más pedidos -->
+                <div class="load-more-container" *ngIf="hasMoreOrders(stats.orderDetails)">
+                  <button mat-stroked-button color="primary" (click)="loadMoreOrders()" class="load-more-btn">
+                    <mat-icon>expand_more</mat-icon>
+                    Cargar más pedidos ({{ stats.orderDetails.length - visibleOrdersCount() }} restantes)
+                  </button>
                 </div>
               </div>
             </ng-container>
@@ -245,7 +270,11 @@
 
 
           <div *ngIf="module.value !== 'MACHINES'" class="module-activities-table">
-            <table mat-table [dataSource]="getActivitiesByModule(module.value)" class="activities-table">
+            <div class="activities-count-bar">
+              <span>Mostrando {{ getVisibleActivitiesForModule(module.value).length }} de {{
+                getModuleCount(module.value) }} actividades (más recientes primero)</span>
+            </div>
+            <table mat-table [dataSource]="getVisibleActivitiesForModule(module.value)" class="activities-table">
 
 
               <ng-container matColumnDef="timestamp">
@@ -329,6 +358,16 @@
               <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isExpandedRow" class="detail-row">
               </tr>
             </table>
+
+            <!-- Botón cargar más actividades -->
+            <div class="load-more-container" *ngIf="hasMoreActivities(module.value)">
+              <button mat-stroked-button color="primary" (click)="loadMoreActivities(module.value)"
+                class="load-more-btn">
+                <mat-icon>expand_more</mat-icon>
+                Cargar más actividades ({{ getModuleCount(module.value) -
+                getVisibleActivitiesForModule(module.value).length }} restantes)
+              </button>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>

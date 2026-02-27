@@ -29,6 +29,7 @@ RUN mkdir -p uploads
 
 EXPOSE 8080
 
-# Program.cs ya configura el puerto via ConfigureKestrel con $PORT
-# NO pasar --urls aquí para evitar conflicto con el código
-CMD ["sh", "-c", "./FlexoAPP.API"]
+# ASPNETCORE_URLS es el método estándar de Railway para .NET
+# El shell expande $PORT antes de lanzar la app
+CMD ["sh", "-c", "ASPNETCORE_URLS=http://+:${PORT:-8080} ./FlexoAPP.API"]
+
