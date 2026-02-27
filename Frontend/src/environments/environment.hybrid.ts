@@ -2,11 +2,11 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:10000/api',
-  socketUrl: 'http://localhost:10000',
+  apiUrl: 'http://localhost:8080/api',
+  socketUrl: 'http://localhost:8080',
   fallbackUrls: [
-    'http://localhost:10000/api',
-    'http://192.168.1.14:10000/api'
+    'http://localhost:8080/api',
+    'http://127.0.0.1:8080/api'
   ],
   enableLogging: true,
   enableDebugMode: true,
@@ -16,9 +16,9 @@ export const environment = {
   disableNetworkStability: false,
   allowCrossOrigin: true,
   networkInterface: 'localhost',
-  imageBaseUrl: 'http://localhost:10000',
+  imageBaseUrl: 'http://localhost:8080',
   alternativeUrls: [
-    'http://localhost:10000/api',
-    'http://192.168.1.14:10000/api'
+    'http://localhost:8080/api',
+    'http://127.0.0.1:8080/api'
   ]
 };
