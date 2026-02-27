@@ -185,5 +185,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.hidePassword.set(!this.hidePassword());
   }
 
-
+  onForgotPassword(event: Event): void {
+    event.preventDefault();
+    // TODO: Implementar funcionalidad de recuperar contraseña
+    console.log('🔑 Recuperar contraseña solicitado');
+    this.errorMessage.set('Funcionalidad de recuperación de contraseña próximamente disponible. Contacte al administrador.');
+  }
 }
