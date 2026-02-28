@@ -64,8 +64,11 @@ export class PantoneLiveService {
     { code: '212', name: 'Pantone 212 C', displayName: 'P 212', hex: '#F25278', rgb: { r: 242, g: 82, b: 120 }, cmyk: { c: 0, m: 73, y: 35, k: 0 }, category: 'Pink' },
     { code: '213', name: 'Pantone 213 C', displayName: 'P 213', hex: '#E31C79', rgb: { r: 227, g: 28, b: 121 }, cmyk: { c: 0, m: 88, y: 47, k: 11 }, category: 'Pink' },
     { code: '214', name: 'Pantone 214 C', displayName: 'P 214', hex: '#C6007E', rgb: { r: 198, g: 0, b: 126 }, cmyk: { c: 0, m: 100, y: 36, k: 22 }, category: 'Pink' },
+    { code: '2101', name: 'Pantone 2101 C', displayName: 'P 2101', hex: '#F04E98', rgb: { r: 240, g: 78, b: 152 }, cmyk: { c: 0, m: 68, y: 15, k: 6 }, category: 'Pink' },
 
 
+
+    { code: '012', name: 'Pantone 012 C', displayName: 'P 012', hex: '#FFD100', rgb: { r: 255, g: 209, b: 0 }, cmyk: { c: 0, m: 18, y: 100, k: 0 }, category: 'Yellow' },
     { code: '1345', name: 'Pantone 1345 C', displayName: 'P 1345', hex: '#FDD086', rgb: { r: 253, g: 208, b: 134 }, cmyk: { c: 0, m: 18, y: 47, k: 1 }, category: 'Orange' },
     { code: '1355', name: 'Pantone 1355 C', displayName: 'P 1355', hex: '#FFC56E', rgb: { r: 255, g: 197, b: 110 }, cmyk: { c: 0, m: 23, y: 57, k: 0 }, category: 'Orange' },
     { code: '1365', name: 'Pantone 1365 C', displayName: 'P 1365', hex: '#FFB549', rgb: { r: 255, g: 181, b: 73 }, cmyk: { c: 0, m: 29, y: 71, k: 0 }, category: 'Orange' },
@@ -114,7 +117,12 @@ export class PantoneLiveService {
     { code: '132', name: 'Pantone 132 C', displayName: 'P 132', hex: '#A08629', rgb: { r: 160, g: 134, b: 41 }, cmyk: { c: 0, m: 16, y: 74, k: 37 }, category: 'Yellow' },
     { code: '133', name: 'Pantone 133 C', displayName: 'P 133', hex: '#876D2E', rgb: { r: 135, g: 109, b: 46 }, cmyk: { c: 0, m: 19, y: 66, k: 47 }, category: 'Yellow' },
     { code: '134', name: 'Pantone 134 C', displayName: 'P 134', hex: '#FDD26E', rgb: { r: 253, g: 210, b: 110 }, cmyk: { c: 0, m: 17, y: 57, k: 1 }, category: 'Yellow' },
+    { code: '7548', name: 'Pantone 7548 C', displayName: 'P 7548', hex: '#FFC72C', rgb: { r: 255, g: 199, b: 44 }, cmyk: { c: 0, m: 22, y: 91, k: 0 }, category: 'Yellow / Gold' },
+    
+    {code: '7506', name: 'Pantone 7506 C', displayName: 'P 7506', hex: '#EFDBB2',  rgb: { r: 239, g: 219, b: 178 }, cmyk: { c: 0, m: 8, y: 26, k: 6 }, category: 'Beige / Cream' },
 
+
+    {code: '7595', name: 'Pantone 7595 C', displayName: 'P 7595',  hex: '#C4622D', rgb: { r: 196, g: 98, b: 45 }, cmyk: { c: 0, m: 50, y: 77, k: 23 }, category: 'Brown / Orange' },
 
     { code: '347', name: 'Pantone 347 C', displayName: 'P 347', hex: '#009639', rgb: { r: 0, g: 150, b: 57 }, cmyk: { c: 100, m: 0, y: 62, k: 41 }, category: 'Green' },
     { code: '348', name: 'Pantone 348 C', displayName: 'P 348', hex: '#00843D', rgb: { r: 0, g: 132, b: 61 }, cmyk: { c: 100, m: 0, y: 54, k: 48 }, category: 'Green' },
@@ -122,14 +130,34 @@ export class PantoneLiveService {
     { code: '355', name: 'Pantone 355 C', displayName: 'P 355', hex: '#00B140', rgb: { r: 0, g: 177, b: 64 }, cmyk: { c: 100, m: 0, y: 100, k: 5 }, category: 'Green' },
     { code: '356', name: 'Pantone 356 C', displayName: 'P 356', hex: '#007A33', rgb: { r: 0, g: 122, b: 51 }, cmyk: { c: 100, m: 0, y: 58, k: 52 }, category: 'Green' },
     { code: '357', name: 'Pantone 357 C', displayName: 'P 357', hex: '#215732', rgb: { r: 33, g: 87, b: 50 }, cmyk: { c: 62, m: 0, y: 42, k: 66 }, category: 'Green' },
+    { code: '368', name: 'Pantone 368 C', displayName:' P 368', hex: '#64A70B',  rgb: { r: 100, g: 167, b: 11 }, cmyk: { c: 40, m: 0, y: 93, k: 35 },category: 'Green'},
     { code: '376', name: 'Pantone 376 C', displayName: 'P 376', hex: '#84BD00', rgb: { r: 132, g: 189, b: 0 }, cmyk: { c: 55, m: 0, y: 100, k: 5 }, category: 'Green' },
     { code: '377', name: 'Pantone 377 C', displayName: 'P 377', hex: '#7A9A01', rgb: { r: 122, g: 154, b: 1 }, cmyk: { c: 21, m: 0, y: 99, k: 40 }, category: 'Green' },
     { code: '3405', name: 'Pantone 3405 C', displayName: 'P 3405', hex: '#00B140', rgb: { r: 0, g: 177, b: 64 }, cmyk: { c: 100, m: 0, y: 64, k: 31 }, category: 'Green' },
+    { code: '3520', name: 'Pantone 3520 C', displayName: 'P 3520', hex: '#7FD13B', rgb: { r: 127, g: 209, b: 59 }, cmyk: { c: 39, m: 0, y: 72, k: 18 }, category: 'Green' },
+    { code: '3522', name: 'Pantone 3522 C', displayName: 'P 3522', hex: '#6CC24A', rgb: { r: 108, g: 194, b: 74 }, cmyk: { c: 44, m: 0, y: 62, k: 24 }, category: 'Green' },
+    { code: '3525', name: 'Pantone 3525 C', displayName: 'P 3525', hex: '#57AB27', rgb: { r: 87, g: 171, b: 39 }, cmyk: { c: 49, m: 0, y: 77, k: 33 }, category: 'Green' },
+    { code: '3527', name: 'Pantone 3527 C', displayName: 'P 3527', hex: '#3A7728', rgb: { r: 58, g: 119, b: 40 }, cmyk: { c: 51, m: 0, y: 66, k: 53 }, category: 'Green' },
+    { code: '3529', name: 'Pantone 3529 C', displayName: 'P 3529', hex: '#1CA421', rgb: { r: 28, g: 164, b: 33 }, cmyk: { c: 83, m: 0, y: 80, k: 36 }, category: 'Green' },
+    { code: '7730', name: 'Pantone 7730 C', displayName: 'P 7730', hex: '#4B9560', rgb: { r: 75, g: 149, b: 96 }, cmyk: { c: 50, m: 0, y: 36, k: 42 }, category: 'Green' },
+    { code: '7732', name: 'Pantone 7732 C', displayName: 'P 7732', hex: '#3E8853', rgb: { r: 62, g: 136, b: 83 }, cmyk: { c: 54, m: 0, y: 39, k: 47 }, category: 'Green' },
+    { code: '7734', name: 'Pantone 7734 C', displayName: 'P 7734', hex: '#3A7D44', rgb: { r: 58, g: 125, b: 68 }, cmyk: { c: 54, m: 0, y: 46, k: 51 }, category: 'Green' },
+    { code: '7736', name: 'Pantone 7736 C', displayName: 'P 7736', hex: '#34703D', rgb: { r: 52, g: 112, b: 61 }, cmyk: { c: 54, m: 0, y: 46, k: 56 }, category: 'Green' },
+    { code: '7738', name: 'Pantone 7738 C', displayName: 'P 7738', hex: '#275D38', rgb: { r: 39, g: 93, b: 56 }, cmyk: { c: 58, m: 0, y: 40, k: 64 }, category: 'Green' },
+    { code: '7739', name: 'Pantone 7739 C', displayName: 'P 7739', hex: '#319B42', rgb: { r: 49, g: 155, b: 66 }, cmyk: { c: 68, m: 0, y: 57, k: 39 }, category: 'Green' },
 
 
+    { code: '072', name: 'Pantone 072 C', displayName: 'P 072', hex: '#10069F', rgb: { r: 16, g: 6, b: 159 }, cmyk: { c: 90, m: 100, y: 0, k: 2 }, category: 'Blue' },
+    { code: '280', name: 'Pantone 280 C', displayName: 'P 280', hex: '#012169', rgb: { r: 1, g: 33, b: 105 }, cmyk: { c: 99, m: 69, y: 0, k: 59 }, category: 'Blue' },
+    { code: '281', name: 'Pantone 281 C', displayName: 'P 281', hex: '#00205B', rgb: { r: 0, g: 32, b: 91 }, cmyk: { c: 100, m: 65, y: 0, k: 64 }, category: 'Blue' },
+    { code: '282', name: 'Pantone 282 C', displayName: 'P 282', hex: '#041E42', rgb: { r: 4, g: 30, b: 66 }, cmyk: { c: 94, m: 55, y: 0, k: 74 }, category: 'Blue' },
+    { code: '283', name: 'Pantone 283 C', displayName: 'P 283', hex: '#92C1E9', rgb: { r: 146, g: 193, b: 233 }, cmyk: { c: 37, m: 17, y: 0, k: 9 }, category: 'Blue' },
+    { code: '284', name: 'Pantone 284 C', displayName: 'P 284', hex: '#6CACE4', rgb: { r: 108, g: 172, b: 228 }, cmyk: { c: 53, m: 25, y: 0, k: 11 }, category: 'Blue' },
     { code: '285', name: 'Pantone 285 C', displayName: 'P 285', hex: '#0072CE', rgb: { r: 0, g: 114, b: 206 }, cmyk: { c: 74, m: 43, y: 0, k: 0 }, category: 'Blue' },
     { code: '286', name: 'Pantone 286 C', displayName: 'P 286', hex: '#0033A0', rgb: { r: 0, g: 51, b: 160 }, cmyk: { c: 100, m: 68, y: 0, k: 37 }, category: 'Blue' },
     { code: '287', name: 'Pantone 287 C', displayName: 'P 287', hex: '#002F6C', rgb: { r: 0, g: 47, b: 108 }, cmyk: { c: 100, m: 56, y: 0, k: 58 }, category: 'Blue' },
+    { code: '288', name: 'Pantone 288 C', displayName: 'P 288', hex: '#002D72', rgb: { r: 0, g: 45, b: 114 }, cmyk: { c: 100, m: 61, y: 0, k: 55 }, category: 'Blue' },
+    { code: '289', name: 'Pantone 289 C', displayName: 'P 289', hex: '#0C2340', rgb: { r: 12, g: 35, b: 64 }, cmyk: { c: 81, m: 45, y: 0, k: 75 }, category: 'Blue' },
     { code: '290', name: 'Pantone 290 C', displayName: 'P 290', hex: '#B9D9EB', rgb: { r: 185, g: 217, b: 235 }, cmyk: { c: 21, m: 8, y: 0, k: 8 }, category: 'Blue' },
     { code: '291', name: 'Pantone 291 C', displayName: 'P 291', hex: '#9BCBEB', rgb: { r: 155, g: 203, b: 235 }, cmyk: { c: 34, m: 14, y: 0, k: 8 }, category: 'Blue' },
     { code: '292', name: 'Pantone 292 C', displayName: 'P 292', hex: '#69B3E7', rgb: { r: 105, g: 179, b: 231 }, cmyk: { c: 54, m: 22, y: 0, k: 9 }, category: 'Blue' },
@@ -149,37 +177,22 @@ export class PantoneLiveService {
     { code: '306', name: 'Pantone 306 C', displayName: 'P 306', hex: '#00B5E2', rgb: { r: 0, g: 181, b: 226 }, cmyk: { c: 100, m: 20, y: 0, k: 11 }, category: 'Blue' },
     { code: '307', name: 'Pantone 307 C', displayName: 'P 307', hex: '#006BA6', rgb: { r: 0, g: 107, b: 166 }, cmyk: { c: 100, m: 36, y: 0, k: 35 }, category: 'Blue' },
     { code: '308', name: 'Pantone 308 C', displayName: 'P 308', hex: '#00587C', rgb: { r: 0, g: 88, b: 124 }, cmyk: { c: 100, m: 29, y: 0, k: 51 }, category: 'Blue' },
+    { code: '532', name: 'Pantone 532 C', displayName: 'P 532', hex: '#27384C', rgb: { r: 39, g: 56, b: 76 }, cmyk: { c: 49, m: 26, y: 0, k: 70 }, category: 'Blue' },
+    { code: '533', name: 'Pantone 533 C', displayName: 'P 533', hex: '#1F2A44', rgb: { r: 31, g: 42, b: 68 }, cmyk: { c: 54, m: 38, y: 0, k: 73 }, category: 'Blue' },
+    { code: '534', name: 'Pantone 534 C', displayName: 'P 534', hex: '#1B2A3E', rgb: { r: 27, g: 42, b: 62 }, cmyk: { c: 56, m: 32, y: 0, k: 76 }, category: 'Blue' },
+    { code: '535', name: 'Pantone 535 C', displayName: 'P 535', hex: '#1A2332', rgb: { r: 26, g: 35, b: 50 }, cmyk: { c: 48, m: 30, y: 0, k: 80 }, category: 'Blue' },
+    { code: '648', name: 'Pantone 648 C', displayName: 'P 648', hex: '#002D72', rgb: { r: 0, g: 45, b: 114 }, cmyk: { c: 100, m: 61, y: 0, k: 55 }, category: 'Blue' },
+    { code: '2748', name: 'Pantone 2748 C', displayName: 'P 2748', hex: '#001489', rgb: { r: 0, g: 20, b: 137 }, cmyk: { c: 100, m: 85, y: 0, k: 46 }, category: 'Blue' },
     { code: '2925', name: 'Pantone 2925 C', displayName: 'P 2925', hex: '#009CDE', rgb: { r: 0, g: 156, b: 222 }, cmyk: { c: 100, m: 30, y: 0, k: 13 }, category: 'Blue' },
     { code: '2935', name: 'Pantone 2935 C', displayName: 'P 2935', hex: '#0057B8', rgb: { r: 0, g: 87, b: 184 }, cmyk: { c: 100, m: 53, y: 0, k: 28 }, category: 'Blue' },
     { code: '2945', name: 'Pantone 2945 C', displayName: 'P 2945', hex: '#004C97', rgb: { r: 0, g: 76, b: 151 }, cmyk: { c: 100, m: 50, y: 0, k: 41 }, category: 'Blue' },
     { code: '2955', name: 'Pantone 2955 C', displayName: 'P 2955', hex: '#003DA5', rgb: { r: 0, g: 61, b: 165 }, cmyk: { c: 100, m: 63, y: 0, k: 35 }, category: 'Blue' },
     { code: '2965', name: 'Pantone 2965 C', displayName: 'P 2965', hex: '#003594', rgb: { r: 0, g: 53, b: 148 }, cmyk: { c: 100, m: 64, y: 0, k: 42 }, category: 'Blue' },
     { code: 'Reflex Blue', name: 'Pantone Reflex Blue', displayName: 'P Reflex Blue', hex: '#001489', rgb: { r: 0, g: 20, b: 137 }, cmyk: { c: 100, m: 82, y: 0, k: 46 }, category: 'Blue' },
-    { code: '280', name: 'Pantone 280 C', displayName: 'P 280', hex: '#012169', rgb: { r: 1, g: 33, b: 105 }, cmyk: { c: 99, m: 69, y: 0, k: 59 }, category: 'Blue' },
-    { code: '281', name: 'Pantone 281 C', displayName: 'P 281', hex: '#00205B', rgb: { r: 0, g: 32, b: 91 }, cmyk: { c: 100, m: 65, y: 0, k: 64 }, category: 'Blue' },
-    { code: '282', name: 'Pantone 282 C', displayName: 'P 282', hex: '#041E42', rgb: { r: 4, g: 30, b: 66 }, cmyk: { c: 94, m: 55, y: 0, k: 74 }, category: 'Blue' },
-    { code: '283', name: 'Pantone 283 C', displayName: 'P 283', hex: '#92C1E9', rgb: { r: 146, g: 193, b: 233 }, cmyk: { c: 37, m: 17, y: 0, k: 9 }, category: 'Blue' },
-    { code: '284', name: 'Pantone 284 C', displayName: 'P 284', hex: '#6CACE4', rgb: { r: 108, g: 172, b: 228 }, cmyk: { c: 53, m: 25, y: 0, k: 11 }, category: 'Blue' },
-    { code: '288', name: 'Pantone 288 C', displayName: 'P 288', hex: '#002D72', rgb: { r: 0, g: 45, b: 114 }, cmyk: { c: 100, m: 61, y: 0, k: 55 }, category: 'Blue' },
-    { code: '289', name: 'Pantone 289 C', displayName: 'P 289', hex: '#0C2340', rgb: { r: 12, g: 35, b: 64 }, cmyk: { c: 81, m: 45, y: 0, k: 75 }, category: 'Blue' },
-    { code: '532', name: 'Pantone 532 C', displayName: 'P 532', hex: '#27384C', rgb: { r: 39, g: 56, b: 76 }, cmyk: { c: 49, m: 26, y: 0, k: 70 }, category: 'Blue' },
-    { code: '533', name: 'Pantone 533 C', displayName: 'P 533', hex: '#1F2A44', rgb: { r: 31, g: 42, b: 68 }, cmyk: { c: 54, m: 38, y: 0, k: 73 }, category: 'Blue' },
-    { code: '534', name: 'Pantone 534 C', displayName: 'P 534', hex: '#1B2A3E', rgb: { r: 27, g: 42, b: 62 }, cmyk: { c: 56, m: 32, y: 0, k: 76 }, category: 'Blue' },
-    { code: '535', name: 'Pantone 535 C', displayName: 'P 535', hex: '#1A2332', rgb: { r: 26, g: 35, b: 50 }, cmyk: { c: 48, m: 30, y: 0, k: 80 }, category: 'Blue' },
+   
 
 
-    { code: '3520', name: 'Pantone 3520 C', displayName: 'P 3520', hex: '#7FD13B', rgb: { r: 127, g: 209, b: 59 }, cmyk: { c: 39, m: 0, y: 72, k: 18 }, category: 'Green' },
-    { code: '3522', name: 'Pantone 3522 C', displayName: 'P 3522', hex: '#6CC24A', rgb: { r: 108, g: 194, b: 74 }, cmyk: { c: 44, m: 0, y: 62, k: 24 }, category: 'Green' },
-    { code: '3525', name: 'Pantone 3525 C', displayName: 'P 3525', hex: '#57AB27', rgb: { r: 87, g: 171, b: 39 }, cmyk: { c: 49, m: 0, y: 77, k: 33 }, category: 'Green' },
-    { code: '3527', name: 'Pantone 3527 C', displayName: 'P 3527', hex: '#3A7728', rgb: { r: 58, g: 119, b: 40 }, cmyk: { c: 51, m: 0, y: 66, k: 53 }, category: 'Green' },
-    { code: '3529', name: 'Pantone 3529 C', displayName: 'P 3529', hex: '#1CA421', rgb: { r: 28, g: 164, b: 33 }, cmyk: { c: 83, m: 0, y: 80, k: 36 }, category: 'Green' },
-    { code: '7730', name: 'Pantone 7730 C', displayName: 'P 7730', hex: '#4B9560', rgb: { r: 75, g: 149, b: 96 }, cmyk: { c: 50, m: 0, y: 36, k: 42 }, category: 'Green' },
-    { code: '7732', name: 'Pantone 7732 C', displayName: 'P 7732', hex: '#3E8853', rgb: { r: 62, g: 136, b: 83 }, cmyk: { c: 54, m: 0, y: 39, k: 47 }, category: 'Green' },
-    { code: '7734', name: 'Pantone 7734 C', displayName: 'P 7734', hex: '#3A7D44', rgb: { r: 58, g: 125, b: 68 }, cmyk: { c: 54, m: 0, y: 46, k: 51 }, category: 'Green' },
-    { code: '7736', name: 'Pantone 7736 C', displayName: 'P 7736', hex: '#34703D', rgb: { r: 52, g: 112, b: 61 }, cmyk: { c: 54, m: 0, y: 46, k: 56 }, category: 'Green' },
-    { code: '7738', name: 'Pantone 7738 C', displayName: 'P 7738', hex: '#275D38', rgb: { r: 39, g: 93, b: 56 }, cmyk: { c: 58, m: 0, y: 40, k: 64 }, category: 'Green' },
-    { code: '7739', name: 'Pantone 7739 C', displayName: 'P 7739', hex: '#319B42', rgb: { r: 49, g: 155, b: 66 }, cmyk: { c: 68, m: 0, y: 57, k: 39 }, category: 'Green' },
-
+    
 
     { code: '4170', name: 'Pantone 4170 C', displayName: 'P 4170', hex: '#6ECEB2', rgb: { r: 110, g: 206, b: 178 }, cmyk: { c: 47, m: 0, y: 14, k: 19 }, category: 'Green' },
     { code: '4172', name: 'Pantone 4172 C', displayName: 'P 4172', hex: '#82B1AA', rgb: { r: 130, g: 177, b: 170 }, cmyk: { c: 27, m: 0, y: 4, k: 31 }, category: 'Green' },
@@ -261,8 +274,8 @@ export class PantoneLiveService {
     { code: '3298', name: 'Pantone 3298 C', displayName: 'P 3298', hex: '#004F3E', rgb: { r: 0, g: 79, b: 62 }, cmyk: { c: 100, m: 0, y: 22, k: 69 }, category: 'Green' },
 
 
-    { code: 'NEGRO', name: 'Negro', displayName: 'P NEGRO', hex: '#000000', rgb: { r: 0, g: 0, b: 0 }, cmyk: { c: 0, m: 0, y: 0, k: 100 }, category: 'Black' },
-    { code: 'BLANCO', name: 'Blanco', displayName: 'P BLANCO', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 }, cmyk: { c: 0, m: 0, y: 0, k: 0 }, category: 'White' },
+    { code: 'NEGRO', name: 'Negro', displayName: 'NEGRO', hex: '#000000', rgb: { r: 0, g: 0, b: 0 }, cmyk: { c: 0, m: 0, y: 0, k: 100 }, category: 'Black' },
+    { code: 'BLANCO', name: 'Blanco', displayName: 'BLANCO', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 }, cmyk: { c: 0, m: 0, y: 0, k: 0 }, category: 'White' },
   ];
 
   constructor() { }

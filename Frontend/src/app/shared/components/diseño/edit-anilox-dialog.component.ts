@@ -119,15 +119,16 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
           <!-- Fila 4: Factor Eficiencia y Densidad -->
           <div class="form-row">
             <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Factor Eficiencia</mat-label>
-              <input matInput formControlName="factorEficiencia" placeholder="Ej: 0.85" type="text"
+              <mat-label>Factor Eficiencia (%)</mat-label>
+              <input matInput formControlName="factorEficiencia" placeholder="Ej: 0.20, 35, 85.5" type="number" step="0.01" min="0" max="100"
                      (input)="onFactorEficienciaInput($event)" (blur)="formatFactorEficiencia()">
               <mat-icon matSuffix>speed</mat-icon>
+              <mat-hint>Acepta decimales: 0.20, 35.00, etc.</mat-hint>
               <mat-error *ngIf="aniloxForm.get('factorEficiencia')?.hasError('min')">
                 El factor debe ser mayor o igual a 0
               </mat-error>
               <mat-error *ngIf="aniloxForm.get('factorEficiencia')?.hasError('max')">
-                El factor debe ser menor o igual a 1
+                El factor debe ser menor o igual a 100
               </mat-error>
             </mat-form-field>
 
@@ -357,7 +358,7 @@ export class EditAniloxDialogComponent {
       lineatura: [data.lineatura || null, [Validators.required, Validators.min(1)]],
       marca: [data.marca || '', [Validators.required]],
       volumenReal: [data.volumen_real || null, [Validators.required, Validators.min(0.01)]],
-      factorEficiencia: [data.factor_eficiencia || null, [Validators.min(0), Validators.max(1)]],
+      factorEficiencia: [data.factor_eficiencia || null, [Validators.min(0), Validators.max(100)]],
       densidad: [data.densidad || null, [Validators.min(0)]]
     });
 
