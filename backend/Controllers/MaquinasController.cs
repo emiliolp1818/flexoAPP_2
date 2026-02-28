@@ -1283,96 +1283,71 @@ namespace backend.Controllers
                 {
                     using (var package = new ExcelPackage(stream))
                     {
-                        _logger.LogInformation($"� Excel contiene {package.Workbook.Worksheets.Count} hojas");
+                        _logger.LogInformation($"📊 Excel contiene {package.Workbook.Worksheets.Count} hojas");
 
+                        // Buscar específicamente la hoja "PROGRAMA CC"
+                        var programaCCSheet = package.Workbook.Worksheets
+                            .FirstOrDefault(ws => ws.Name.Trim().Equals("PROGRAMA CC", StringComparison.OrdinalIgnoreCase));
 
-                        foreach (var worksheet in package.Workbook.Worksheets)
+                        if (programaCCSheet == null)
                         {
-                            var sheetName = worksheet.Name.Trim();
-                            _logger.LogInformation($"📄 Procesando hoja: {sheetName}");
-
-
-                            var machineNumber = ExtractMachineNumber(sheetName);
-
-                            if (machineNumber == null)
+                            _logger.LogError("❌ No se encontró la hoja 'PROGRAMA CC' en el archivo Excel");
+                            return BadRequest(new
                             {
-                                _logger.LogWarning($"⚠️ Hoja '{sheetName}' ignorada: no se pudo extraer número de máquina");
-                                continue;
-                            }
+                                message = "No se encontró la hoja 'PROGRAMA CC' en el archivo Excel",
+                                error = "La hoja requerida no existe. Verifique que el archivo tenga una hoja llamada 'PROGRAMA CC'"
+                            });
+                        }
 
-                            if (machineNumber < 11 || machineNumber > 21)
+                        _logger.LogInformation($"✅ Hoja 'PROGRAMA CC' encontrada, procesando...");
+
+                        using var designConn = new MySqlConnector.MySqlConnection(_context.Database.GetConnectionString());
+                        await designConn.OpenAsync();
+
+                        // Procesar la hoja PROGRAMA CC
+                        var result = await ProcessProgramaCCWorksheet(programaCCSheet, designConn);
+                        
+                        totalCreated = result.Created;
+                        totalErrors = result.Errors;
+                        sheetsProcessed = 1;
+
+                        _logger.LogInformation($"📊 PROGRAMA CC: {result.Created} creados, {result.Updated} actualizados, {result.Errors} errores");
+
+                        if (result.Created == 0)
+                        {
+                            _logger.LogWarning($"⚠️ PROGRAMA CC: NO se crearon registros. Errores: {result.Errors}");
+                            if (result.ErrorDetails.Any())
                             {
-                                _logger.LogWarning($"⚠️ Hoja '{sheetName}' ignorada: número de máquina {machineNumber} fuera de rango (11-21)");
-                                continue;
-                            }
-
-                            _logger.LogInformation($"✅ Máquina identificada: {machineNumber}");
-
-
-                            using var designConn = new MySqlConnector.MySqlConnection(_context.Database.GetConnectionString());
-                            await designConn.OpenAsync();
-
-
-                            var result = await ProcessWorksheet(worksheet, machineNumber.Value, designConn);
-                            importResults[machineNumber.Value] = result;
-
-                            totalCreated += result.Created;
-                            totalErrors += result.Errors;
-                            sheetsProcessed++;
-
-                            _logger.LogInformation($"📊 Máquina {machineNumber}: {result.Created} creados, {result.Updated} actualizados, {result.Errors} errores");
-
-
-                            GC.Collect(2, GCCollectionMode.Forced, true);
-                            _logger.LogDebug("🧹 Recolección de basura ejecutada tras finalizar hoja");
-
-
-                            if (result.Created == 0)
-                            {
-                                _logger.LogWarning($"⚠️ Máquina {machineNumber}: NO se crearon registros. Errores: {result.Errors}");
-                                if (result.ErrorDetails.Any())
-                                {
-                                    _logger.LogWarning($"   Detalles de errores: {string.Join(", ", result.ErrorDetails.Take(3))}");
-                                }
+                                _logger.LogWarning($"   Detalles de errores: {string.Join(", ", result.ErrorDetails.Take(5))}");
                             }
                         }
                     }
                 }
 
-                _logger.LogInformation($"✅ Importación completada: {sheetsProcessed} hojas procesadas, {totalCreated} registros creados, {totalErrors} errores");
+                _logger.LogInformation($"✅ Importación completada: {totalCreated} registros creados, {totalErrors} errores");
 
                 // Notificar a todos los clientes sobre la importación
                 var userName = User.Identity?.Name ?? "Sistema";
-                foreach (var result in importResults)
-                {
-                    await _signalRService.NotifyExcelImported(
-                        result.Key, 
-                        result.Value.Created, 
-                        result.Value.Updated, 
-                        userName
-                    );
-                }
+                await _signalRService.NotifyExcelImported(
+                    0, // No hay número de máquina específico
+                    totalCreated, 
+                    0, // No hay actualizaciones en esta versión
+                    userName
+                );
 
                 return Ok(new
                 {
                     message = "Importación completada",
                     sheetsProcessed,
                     totalCreated,
-                    totalUpdated = importResults.Sum(r => r.Value.Updated),
+                    totalUpdated = 0,
                     totalErrors,
-                    results = importResults.Select(r => new
-                    {
-                        machineNumber = r.Key,
-                        created = r.Value.Created,
-                        updated = r.Value.Updated,
-                        errors = r.Value.Errors,
-                        errorDetails = r.Value.ErrorDetails
-                    })
+                    errorDetails = totalErrors > 0 ? "Revise los logs para más detalles" : null
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error crítico al importar Excel multisheet");
+                _logger.LogError(ex, "❌ Error crítico al importar Excel PROGRAMA CC");
                 return StatusCode(500, new
                 {
                     message = "Error al importar Excel",
@@ -1878,6 +1853,193 @@ namespace backend.Controllers
             public int Updated { get; set; } = 0;
             public int Errors { get; set; } = 0;
             public List<string> ErrorDetails { get; set; } = new List<string>();
+        }
+
+        // Nuevo método para procesar la hoja PROGRAMA CC con el mapeo específico
+        private async Task<ImportSheetResult> ProcessProgramaCCWorksheet(ExcelWorksheet worksheet, MySqlConnector.MySqlConnection designConn)
+        {
+            var result = new ImportSheetResult();
+            var rowCount = worksheet.Dimension?.Rows ?? 0;
+            var processedOts = new HashSet<string>();
+
+            _logger.LogInformation($"📊 Procesando hoja PROGRAMA CC: {rowCount} filas totales");
+            _logger.LogInformation($"📋 Mapeo: B=MQ, C=ARTICULO, D=OT_SAP, E=CLIENTE, F=REFERENCIA, G=TD, H=T_IMP, I=NUM_COLORES, J=KILOS, K=METROS, L=COLORES_MQ, M=SUSTRATO, N=COLORES");
+
+            // Los datos empiezan en la fila 6 (filas 1-5 son encabezados)
+            for (int row = 6; row <= rowCount; row++)
+            {
+                try
+                {
+                    var mq = GetCellValue(worksheet, row, "B")?.Trim();
+                    var articulo = GetCellValue(worksheet, row, "C")?.Trim();
+                    var otSap = GetCellValue(worksheet, row, "D")?.Trim();
+                    var cliente = GetCellValue(worksheet, row, "E")?.Trim();
+                    var referencia = GetCellValue(worksheet, row, "F")?.Trim();
+                    var td = GetCellValue(worksheet, row, "G")?.Trim();
+                    var tipoImpresion = GetCellValue(worksheet, row, "H")?.Trim();
+                    var numeroColoresStr = GetCellValue(worksheet, row, "I")?.Trim();
+                    var kilosStr = GetCellValue(worksheet, row, "J")?.Trim();
+                    var metrosStr = GetCellValue(worksheet, row, "K")?.Trim();
+                    var coloresEnMaquina = GetCellValue(worksheet, row, "L")?.Trim();
+                    var sustrato = GetCellValue(worksheet, row, "M")?.Trim();
+                    var colores = GetCellValue(worksheet, row, "N")?.Trim();
+
+                    if (row == 6)
+                    {
+                        _logger.LogDebug($"🔍 Primera fila: MQ={mq}, OT={otSap}, Articulo={articulo}, Cliente={cliente}");
+                    }
+
+                    if (string.IsNullOrEmpty(otSap) || string.IsNullOrEmpty(articulo) || string.IsNullOrEmpty(cliente))
+                    {
+                        _logger.LogDebug($"⚠️ Fila {row} ignorada: faltan datos obligatorios");
+                        continue;
+                    }
+
+                    if (processedOts.Contains(otSap))
+                    {
+                        _logger.LogDebug($"⚠️ Fila {row} ignorada: OT {otSap} duplicada");
+                        result.Errors++;
+                        result.ErrorDetails.Add($"Fila {row}: OT {otSap} duplicada");
+                        continue;
+                    }
+
+                    processedOts.Add(otSap);
+
+                    int numeroMaquina = 11; // Valor por defecto
+                    if (!string.IsNullOrEmpty(mq) && int.TryParse(mq, out int mqNum))
+                    {
+                        if (mqNum >= 11 && mqNum <= 21)
+                        {
+                            numeroMaquina = mqNum;
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"⚠️ Fila {row}: Número de máquina {mqNum} fuera de rango (11-21), usando 11");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogDebug($"⚠️ Fila {row}: Número de máquina vacío o inválido, usando 11");
+                    }
+
+                    int numeroColores = 1;
+                    if (!string.IsNullOrEmpty(numeroColoresStr))
+                    {
+                        if (int.TryParse(numeroColoresStr, out int coloresInt))
+                        {
+                            numeroColores = coloresInt;
+                        }
+                        else if (decimal.TryParse(numeroColoresStr, out decimal coloresDecimal))
+                        {
+                            numeroColores = (int)coloresDecimal;
+                        }
+                    }
+
+                    decimal kilos = 0.001m;
+                    if (!string.IsNullOrEmpty(kilosStr))
+                    {
+                        try
+                        {
+                            var kiloClean = kilosStr.Trim();
+                            if (kiloClean.Contains(".") && kiloClean.Contains(","))
+                            {
+                                kiloClean = kiloClean.Replace(".", "").Replace(",", ".");
+                            }
+                            else if (kiloClean.Contains(","))
+                            {
+                                kiloClean = kiloClean.Replace(",", ".");
+                            }
+
+                            if (decimal.TryParse(kiloClean, System.Globalization.NumberStyles.Any,
+                                System.Globalization.CultureInfo.InvariantCulture, out decimal kValue) && kValue > 0)
+                            {
+                                kilos = kValue > 9999999.999m ? 9999999.999m : kValue;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"❌ Fila {row}: Error parseando kilos: {ex.Message}");
+                        }
+                    }
+
+                    decimal? metros = null;
+                    if (!string.IsNullOrEmpty(metrosStr))
+                    {
+                        try
+                        {
+                            var metroClean = metrosStr.Trim();
+                            if (metroClean.Contains(","))
+                            {
+                                metroClean = metroClean.Split(',')[0];
+                            }
+                            else if (metroClean.Contains("."))
+                            {
+                                var dotCount = metroClean.Count(c => c == '.');
+                                if (dotCount > 1)
+                                {
+                                    metroClean = metroClean.Replace(".", "");
+                                }
+                                else
+                                {
+                                    metroClean = metroClean.Split('.')[0];
+                                }
+                            }
+                            
+                            metroClean = metroClean.Replace(".", "");
+
+                            if (decimal.TryParse(metroClean, System.Globalization.NumberStyles.Any,
+                                System.Globalization.CultureInfo.InvariantCulture, out decimal mValue) && mValue >= 0)
+                            {
+                                metros = mValue > 99999999m ? 99999999m : mValue;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"❌ Fila {row}: Error parseando metros: {ex.Message}");
+                        }
+                    }
+
+                    var maquina = new Maquina
+                    {
+                        NumeroMaquina = numeroMaquina,
+                        OtSap = otSap,
+                        Articulo = articulo,
+                        Cliente = cliente,
+                        Referencia = referencia ?? string.Empty,
+                        Td = td ?? string.Empty,
+                        TipoImpresion = tipoImpresion,
+                        NumeroColores = numeroColores,
+                        Kilos = kilos,
+                        Metros = metros,
+                        Sustrato = sustrato ?? string.Empty,
+                        Colores = colores ?? string.Empty,
+                        FechaTintaEnMaquina = DateTime.Now,
+                        Estado = null,
+                        Observaciones = "Importado desde Excel - Hoja PROGRAMA CC",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        CreatedBy = 1,
+                        UpdatedBy = 1
+                    };
+
+                    _context.Maquinas.Add(maquina);
+                    await _context.SaveChangesAsync();
+                    _context.ChangeTracker.Clear();
+                    
+                    result.Created++;
+                    _logger.LogDebug($"✅ Fila {row}: Registro creado - OT {otSap}");
+                }
+                catch (Exception ex)
+                {
+                    result.Errors++;
+                    result.ErrorDetails.Add($"Fila {row}: {ex.Message}");
+                    _logger.LogError($"❌ Fila {row}: {ex.Message}");
+                    _context.ChangeTracker.Clear();
+                }
+            }
+
+            _logger.LogInformation($"📊 Completado: {result.Created} creados, {result.Errors} errores");
+            return result;
         }
 
     }
