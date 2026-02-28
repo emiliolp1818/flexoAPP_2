@@ -29,14 +29,14 @@ export class PantoneLiveService {
 
   private pantoneColors: PantoneColor[] = [
 
-    { code: 'Black', name: 'Pantone Black', displayName: 'Negro', hex: '#000000', rgb: { r: 0, g: 0, b: 0 }, cmyk: { c: 0, m: 0, y: 0, k: 100 }, category: 'Black' },
-    { code: 'White', name: 'Pantone White', displayName: 'Blanco', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 }, cmyk: { c: 0, m: 0, y: 0, k: 0 }, category: 'White' },
-    { code: 'Cyan', name: 'Pantone Cyan', displayName: 'P Cyan', hex: '#00AEEF', rgb: { r: 0, g: 174, b: 239 }, cmyk: { c: 100, m: 0, y: 0, k: 0 }, category: 'Cyan' },
-    { code: 'Magenta', name: 'Pantone Magenta', displayName: 'P Magenta', hex: '#EC008C', rgb: { r: 236, g: 0, b: 140 }, cmyk: { c: 0, m: 100, y: 0, k: 0 }, category: 'Pink' },
-    { code: 'Yellow', name: 'Pantone Yellow', displayName: 'Amarillo', hex: '#FFF200', rgb: { r: 255, g: 242, b: 0 }, cmyk: { c: 0, m: 0, y: 100, k: 0 }, category: 'Yellow' },
-    { code: 'Green', name: 'Pantone Green', displayName: 'Verde', hex: '#00A651', rgb: { r: 0, g: 166, b: 81 }, cmyk: { c: 100, m: 0, y: 51, k: 35 }, category: 'Green' },
-    { code: 'Orange', name: 'Pantone Orange', displayName: 'Naranja', hex: '#FF6900', rgb: { r: 255, g: 105, b: 0 }, cmyk: { c: 0, m: 59, y: 100, k: 0 }, category: 'Orange' },
-    { code: 'Violet', name: 'Pantone Violet', displayName: 'Violeta', hex: '#8B3F8F', rgb: { r: 139, g: 63, b: 143 }, cmyk: { c: 3, m: 56, y: 0, k: 44 }, category: 'Purple' },
+    { code: 'Black', name: ' Black', displayName: 'Negro', hex: '#000000', rgb: { r: 0, g: 0, b: 0 }, cmyk: { c: 0, m: 0, y: 0, k: 100 }, category: 'Black' },
+    { code: 'White', name: ' White', displayName: 'Blanco', hex: '#FFFFFF', rgb: { r: 255, g: 255, b: 255 }, cmyk: { c: 0, m: 0, y: 0, k: 0 }, category: 'White' },
+    { code: 'Cyan', name: ' Cyan', displayName: 'Cyan', hex: '#00AEEF', rgb: { r: 0, g: 174, b: 239 }, cmyk: { c: 100, m: 0, y: 0, k: 0 }, category: 'Cyan' },
+    { code: 'Magenta', name: ' Magenta', displayName: 'Magenta', hex: '#EC008C', rgb: { r: 236, g: 0, b: 140 }, cmyk: { c: 0, m: 100, y: 0, k: 0 }, category: 'Pink' },
+    { code: 'Yellow', name: ' Yellow', displayName: 'Amarillo', hex: '#FFF200', rgb: { r: 255, g: 242, b: 0 }, cmyk: { c: 0, m: 0, y: 100, k: 0 }, category: 'Yellow' },
+    { code: 'Green', name: ' Green', displayName: 'Verde', hex: '#00A651', rgb: { r: 0, g: 166, b: 81 }, cmyk: { c: 100, m: 0, y: 51, k: 35 }, category: 'Green' },
+    { code: 'Orange', name: ' Orange', displayName: 'Naranja', hex: '#FF6900', rgb: { r: 255, g: 105, b: 0 }, cmyk: { c: 0, m: 59, y: 100, k: 0 }, category: 'Orange' },
+    { code: 'Violet', name: ' Violet', displayName: 'Violeta', hex: '#8B3F8F', rgb: { r: 139, g: 63, b: 143 }, cmyk: { c: 3, m: 56, y: 0, k: 44 }, category: 'Purple' },
 
 
     { code: '185', name: 'Pantone 185 C', displayName: 'P 185', hex: '#E4002B', rgb: { r: 228, g: 0, b: 43 }, cmyk: { c: 0, m: 100, y: 81, k: 11 }, category: 'Red' },
