@@ -357,6 +357,58 @@ namespace FlexoAPP.API.Repositories
             }
         }
 
+        public async Task<int> DeleteDesignsByStatusAsync(string? status)
+        {
+            try
+            {
+                IQueryable<Design> query;
+                
+                if (status == null)
+                {
+                    query = _context.Designs.Where(d => d.Status == null);
+                }
+                else
+                {
+                    var statusUpper = status.ToUpper();
+                    query = _context.Designs.Where(d => d.Status != null && d.Status.ToUpper() == statusUpper);
+                }
+
+                var designsToDelete = await query.ToListAsync();
+                var count = designsToDelete.Count;
+
+                if (count > 0)
+                {
+                    _context.Designs.RemoveRange(designsToDelete);
+                    await _context.SaveChangesAsync();
+                }
+
+                return count;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error deleting designs by status: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<IEnumerable<Design>> GetDesignsByStatusesAsync(string[] statuses)
+        {
+            try
+            {
+                var statusesUpper = statuses.Select(s => s.ToUpper()).ToList();
+                
+                var designs = await _context.Designs
+                    .AsNoTracking()
+                    .Where(d => d.Status != null && statusesUpper.Contains(d.Status.ToUpper()))
+                    .ToListAsync();
+
+                return designs;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting designs by statuses: {ex.Message}", ex);
+            }
+        }
+
 
 
 

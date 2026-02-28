@@ -802,6 +802,28 @@ namespace FlexoAPP.API.Services
             {
                 _logger.LogInformation("🚀 Starting Excel import process for file: {FileName}", file.FileName);
 
+                // PASO 1: Eliminar diseños con estado "TERMINADO"
+                _logger.LogInformation("🗑️ Eliminando diseños con estado TERMINADO...");
+                var deletedCount = await _designRepository.DeleteDesignsByStatusAsync("TERMINADO");
+                _logger.LogInformation("✅ Eliminados {Count} diseños con estado TERMINADO", deletedCount);
+
+                // PASO 2: Obtener diseños con estados que deben mantenerse
+                _logger.LogInformation("🔍 Obteniendo diseños con estados PREPARANDO, LISTO, CORRIENDO, SUSPENDIDO...");
+                var estadosAMantener = new[] { "PREPARANDO", "LISTO", "CORRIENDO", "SUSPENDIDO" };
+                var designsToKeep = await _designRepository.GetDesignsByStatusesAsync(estadosAMantener);
+                var articlesF_ToKeep = new HashSet<string>(
+                    designsToKeep.Select(d => d.ArticleF ?? "").Where(a => !string.IsNullOrEmpty(a)),
+                    StringComparer.OrdinalIgnoreCase
+                );
+                _logger.LogInformation("✅ Se mantendrán {Count} diseños con estados activos", designsToKeep.Count());
+
+                // PASO 3: Eliminar diseños con estado "SIN ASIGNAR" o NULL
+                _logger.LogInformation("🗑️ Eliminando diseños con estado SIN ASIGNAR o NULL...");
+                var deletedUnassignedCount = await _designRepository.DeleteDesignsByStatusAsync("SIN ASIGNAR");
+                var deletedNullCount = await _designRepository.DeleteDesignsByStatusAsync(null);
+                _logger.LogInformation("✅ Eliminados {Count} diseños sin asignar", deletedUnassignedCount + deletedNullCount);
+
+                // PASO 4: Procesar el archivo Excel
                 using var stream = file.OpenReadStream();
                 using var package = new OfficeOpenXml.ExcelPackage(stream);
                 var worksheet = package.Workbook.Worksheets[0];
@@ -814,7 +836,6 @@ namespace FlexoAPP.API.Services
                     result.Errors.Add("El archivo Excel está vacío o solo contiene headers");
                     return result;
                 }
-
 
                 var batchSize = 1000;
                 var totalBatches = (int)Math.Ceiling((double)(rowCount - 1) / batchSize);
@@ -838,7 +859,15 @@ namespace FlexoAPP.API.Services
                             var design = ParseExcelRowToDesign(worksheet, row);
                             if (design != null)
                             {
-                                designs.Add(design);
+                                // Solo agregar si NO está en la lista de artículos a mantener
+                                if (!articlesF_ToKeep.Contains(design.ArticleF ?? ""))
+                                {
+                                    designs.Add(design);
+                                }
+                                else
+                                {
+                                    _logger.LogDebug("⏭️ Omitiendo ArticleF {ArticleF} - ya existe con estado activo", design.ArticleF);
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -848,7 +877,6 @@ namespace FlexoAPP.API.Services
                             _logger.LogWarning("⚠️ Error processing row {Row}: {Error}", row, ex.Message);
                         }
                     }
-
 
                     if (designs.Any())
                     {

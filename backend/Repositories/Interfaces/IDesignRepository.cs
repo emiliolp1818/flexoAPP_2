@@ -36,6 +36,8 @@ namespace FlexoAPP.API.Repositories
 
         Task BulkInsertDesignsAsync(IEnumerable<Design> designs);
         Task<int> ClearAllDesignsAsync();
+        Task<int> DeleteDesignsByStatusAsync(string? status);
+        Task<IEnumerable<Design>> GetDesignsByStatusesAsync(string[] statuses);
 
 
 

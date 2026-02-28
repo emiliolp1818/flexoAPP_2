@@ -1271,6 +1271,20 @@ namespace backend.Controllers
                     _logger.LogInformation("ℹ️ No hay programas TERMINADOS para eliminar");
                 }
 
+                // Eliminar programas SIN ASIGNAR (estado NULL o vacío)
+                var countSinAsignar = await _context.Maquinas
+                    .Where(m => m.Estado == null || m.Estado == "")
+                    .ExecuteDeleteAsync();
+
+                if (countSinAsignar > 0)
+                {
+                    _logger.LogInformation($"🗑️ {countSinAsignar} programas SIN ASIGNAR eliminados antes de importar");
+                }
+                else
+                {
+                    _logger.LogInformation("ℹ️ No hay programas SIN ASIGNAR para eliminar");
+                }
+
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
