@@ -1863,7 +1863,7 @@ namespace backend.Controllers
             var processedOts = new HashSet<string>();
 
             _logger.LogInformation($"📊 Procesando hoja PROGRAMA CC: {rowCount} filas totales");
-            _logger.LogInformation($"📋 Mapeo: B=MQ, C=ARTICULO, D=OT_SAP, E=CLIENTE, F=REFERENCIA, G=TD, H=T_IMP, I=NUM_COLORES, J=KILOS, K=METROS, L=COLORES_MQ, M=SUSTRATO, N=COLORES");
+            _logger.LogInformation($"📋 Mapeo: B=MQ, C=ARTICULO, D=OT_SAP, E=CLIENTE, F=REFERENCIA, G=TD, H=T_IMP, I=NUM_COLORES, J=KILOS, K=METROS, L=FECHA_TINTA_EN_MAQUINA, M=SUSTRATO, N=COLORES");
 
             // Los datos empiezan en la fila 6 (filas 1-5 son encabezados)
             for (int row = 6; row <= rowCount; row++)
@@ -1880,13 +1880,13 @@ namespace backend.Controllers
                     var numeroColoresStr = GetCellValue(worksheet, row, "I")?.Trim();
                     var kilosStr = GetCellValue(worksheet, row, "J")?.Trim();
                     var metrosStr = GetCellValue(worksheet, row, "K")?.Trim();
-                    var coloresEnMaquina = GetCellValue(worksheet, row, "L")?.Trim();
+                    var fechaTintaStr = GetCellValue(worksheet, row, "L")?.Trim(); // Fecha en que deben estar colores en máquina
                     var sustrato = GetCellValue(worksheet, row, "M")?.Trim();
                     var colores = GetCellValue(worksheet, row, "N")?.Trim();
 
                     if (row == 6)
                     {
-                        _logger.LogDebug($"🔍 Primera fila: MQ={mq}, OT={otSap}, Articulo={articulo}, Cliente={cliente}");
+                        _logger.LogDebug($"🔍 Primera fila: MQ={mq}, OT={otSap}, Articulo={articulo}, Cliente={cliente}, FechaTinta={fechaTintaStr}");
                     }
 
                     if (string.IsNullOrEmpty(otSap) || string.IsNullOrEmpty(articulo) || string.IsNullOrEmpty(cliente))
@@ -1999,6 +1999,73 @@ namespace backend.Controllers
                         }
                     }
 
+                    // Parsear fecha de tinta en máquina (columna L)
+                    DateTime fechaTinta = DateTime.Now;
+                    if (!string.IsNullOrEmpty(fechaTintaStr))
+                    {
+                        try
+                        {
+                            // Intentar parsear como número de serie de Excel (OADate)
+                            if (double.TryParse(fechaTintaStr, System.Globalization.NumberStyles.Any,
+                                System.Globalization.CultureInfo.InvariantCulture, out double oaDate))
+                            {
+                                try
+                                {
+                                    fechaTinta = DateTime.FromOADate(oaDate);
+                                    _logger.LogDebug($"📅 Fila {row}: Fecha parseada desde OADate: {fechaTinta:dd/MM/yyyy HH:mm}");
+                                }
+                                catch
+                                {
+                                    _logger.LogWarning($"⚠️ Fila {row}: OADate inválido '{fechaTintaStr}', intentando otros formatos");
+                                }
+                            }
+
+                            // Si no funcionó OADate, intentar parsear como texto
+                            if (fechaTinta == DateTime.Now)
+                            {
+                                var formats = new[] {
+                                    "dd/MM/yyyy HH:mm",
+                                    "dd/MM/yyyy H:mm",
+                                    "d/M/yyyy HH:mm",
+                                    "d/M/yyyy H:mm",
+                                    "dd/MM/yyyy",
+                                    "d/M/yyyy",
+                                    "M/d/yyyy HH:mm",
+                                    "M/d/yyyy H:mm",
+                                    "M/d/yyyy",
+                                    "yyyy-MM-dd HH:mm:ss",
+                                    "yyyy-MM-dd HH:mm",
+                                    "yyyy-MM-dd"
+                                };
+
+                                if (DateTime.TryParseExact(fechaTintaStr, formats,
+                                    System.Globalization.CultureInfo.InvariantCulture,
+                                    System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                                {
+                                    fechaTinta = parsedDate;
+                                    _logger.LogDebug($"📅 Fila {row}: Fecha parseada desde texto: {fechaTinta:dd/MM/yyyy HH:mm}");
+                                }
+                                else if (DateTime.TryParse(fechaTintaStr, out parsedDate))
+                                {
+                                    fechaTinta = parsedDate;
+                                    _logger.LogDebug($"📅 Fila {row}: Fecha parseada con TryParse: {fechaTinta:dd/MM/yyyy HH:mm}");
+                                }
+                                else
+                                {
+                                    _logger.LogWarning($"⚠️ Fila {row}: No se pudo parsear fecha '{fechaTintaStr}', usando fecha actual");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"❌ Fila {row}: Error parseando fecha '{fechaTintaStr}': {ex.Message}, usando fecha actual");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogDebug($"📅 Fila {row}: Fecha vacía, usando fecha actual");
+                    }
+
                     var maquina = new Maquina
                     {
                         NumeroMaquina = numeroMaquina,
@@ -2012,7 +2079,7 @@ namespace backend.Controllers
                         Kilos = kilos,
                         Metros = metros,
                         Sustrato = sustrato ?? string.Empty,
-                        FechaTintaEnMaquina = DateTime.Now,
+                        FechaTintaEnMaquina = fechaTinta, // Usar la fecha del Excel
                         Estado = null,
                         Observaciones = "Importado desde Excel - Hoja PROGRAMA CC",
                         CreatedAt = DateTime.UtcNow,
