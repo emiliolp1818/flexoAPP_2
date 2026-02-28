@@ -2012,7 +2012,6 @@ namespace backend.Controllers
                         Kilos = kilos,
                         Metros = metros,
                         Sustrato = sustrato ?? string.Empty,
-                        Colores = colores ?? string.Empty,
                         FechaTintaEnMaquina = DateTime.Now,
                         Estado = null,
                         Observaciones = "Importado desde Excel - Hoja PROGRAMA CC",
@@ -2021,6 +2020,20 @@ namespace backend.Controllers
                         CreatedBy = 1,
                         UpdatedBy = 1
                     };
+
+                    // Convertir colores de texto plano a JSON array
+                    if (!string.IsNullOrEmpty(colores))
+                    {
+                        var coloresArray = colores.Split(',')
+                            .Select(c => c.Trim())
+                            .Where(c => !string.IsNullOrEmpty(c))
+                            .ToArray();
+                        maquina.SetColoresArray(coloresArray);
+                    }
+                    else
+                    {
+                        maquina.SetColoresArray(new string[0]);
+                    }
 
                     _context.Maquinas.Add(maquina);
                     await _context.SaveChangesAsync();
