@@ -59,9 +59,13 @@ export class ExcelService {
     const data: any[][] = [];
     worksheet.eachRow((row, rowNumber) => {
       const rowData: any[] = [];
-      row.eachCell((cell, colNumber) => {
+      // Leer todas las columnas por índice (1-based en ExcelJS)
+      // Esto asegura que las columnas vacías también se incluyan
+      const maxCol = row.cellCount || 20; // Leer hasta 20 columnas o el máximo de la fila
+      for (let colNum = 1; colNum <= maxCol; colNum++) {
+        const cell = row.getCell(colNum);
         rowData.push(cell.value);
-      });
+      }
       data.push(rowData);
     });
 
