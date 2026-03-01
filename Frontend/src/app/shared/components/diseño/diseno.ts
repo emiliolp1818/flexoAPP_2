@@ -2574,12 +2574,18 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('📊 Datos leídos del Excel:', jsonData.length, 'filas');
       console.log('📊 Primera fila (encabezados):', jsonData[0]);
       console.log('📊 Segunda fila (primer dato):', jsonData[1]);
+      console.log('📊 Tercera fila (segundo dato):', jsonData[2]);
 
       const aniloxList: any[] = [];
 
       // Empezar desde la fila 2 (índice 1) ya que la fila 1 (índice 0) es encabezado
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
+
+        // Log de la fila completa para debugging
+        if (i <= 3) {
+          console.log(`🔍 Fila ${i + 1} completa:`, row);
+        }
 
         // Mapeo de columnas según especificación:
         // C (índice 2) = código
@@ -2592,24 +2598,35 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         // J (índice 9) = densidad
 
         const codigo = row[2]?.toString().trim();
-        const maquina = parseInt(row[3]);
-        const lineatura = parseInt(row[4]);
-        const bcm = parseInt(row[5]);
-        const proveedor = row[6]?.toString().trim() || 'APEX';
-        const volumenReal = parseFloat(row[7]);
-        const factorEficiencia = row[8] ? parseFloat(row[8]) : 35.00;
-        const densidad = row[9] ? parseFloat(row[9]) : 0.885;
+        const maquinaRaw = row[3];
+        const lineaturaRaw = row[4];
+        const bcmRaw = row[5];
+        const proveedorRaw = row[6];
+        const volumenRealRaw = row[7];
+        const factorEficienciaRaw = row[8];
+        const densidadRaw = row[9];
 
-        console.log(`📝 Fila ${i + 1}:`, {
-          codigo,
-          maquina,
-          lineatura,
-          bcm,
-          proveedor,
-          volumenReal,
-          factorEficiencia,
-          densidad
-        });
+        // Parsear valores numéricos de forma más robusta
+        const maquina = typeof maquinaRaw === 'number' ? maquinaRaw : parseInt(String(maquinaRaw || ''));
+        const lineatura = typeof lineaturaRaw === 'number' ? lineaturaRaw : parseInt(String(lineaturaRaw || ''));
+        const bcm = typeof bcmRaw === 'number' ? bcmRaw : parseInt(String(bcmRaw || ''));
+        const proveedor = proveedorRaw?.toString().trim() || 'APEX';
+        const volumenReal = typeof volumenRealRaw === 'number' ? volumenRealRaw : parseFloat(String(volumenRealRaw || ''));
+        const factorEficiencia = factorEficienciaRaw ? (typeof factorEficienciaRaw === 'number' ? factorEficienciaRaw : parseFloat(String(factorEficienciaRaw))) : 35.00;
+        const densidad = densidadRaw ? (typeof densidadRaw === 'number' ? densidadRaw : parseFloat(String(densidadRaw))) : 0.885;
+
+        if (i <= 3) {
+          console.log(`📝 Fila ${i + 1} parseada:`, {
+            codigo,
+            maquina,
+            lineatura,
+            bcm,
+            proveedor,
+            volumenReal,
+            factorEficiencia,
+            densidad
+          });
+        }
 
         // Validar datos requeridos
         if (!codigo || isNaN(maquina) || isNaN(lineatura) || isNaN(bcm) || isNaN(volumenReal)) {
