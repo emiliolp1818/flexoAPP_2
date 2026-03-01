@@ -18,6 +18,24 @@ namespace FlexoAPP.API.Controllers
             _logger = logger;
         }
 
+        private string GetCleanConnectionString()
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("Connection string not found");
+            }
+
+            // Remover parámetros no soportados por MySqlConnector
+            connectionString = System.Text.RegularExpressions.Regex.Replace(
+                connectionString,
+                @"ConnectionIdleTimeout=\d+;?",
+                "",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            return connectionString;
+        }
+
         private object ReadAniloxFromReader(MySqlDataReader reader)
         {
             return new
@@ -45,7 +63,7 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var aniloxList = new List<object>();
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand("SELECT * FROM anilox ORDER BY lineatura, volumen_real", connection);
@@ -72,7 +90,7 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var aniloxList = new List<object>();
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand(
@@ -103,7 +121,7 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var lineaturas = new List<int>();
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand("SELECT DISTINCT lineatura FROM anilox ORDER BY lineatura", connection);
@@ -130,7 +148,7 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var aniloxList = new List<object>();
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand(
@@ -161,7 +179,7 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var aniloxList = new List<object>();
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand(
@@ -192,7 +210,7 @@ namespace FlexoAPP.API.Controllers
             try
             {
                 var aniloxList = new List<object>();
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand(
@@ -227,7 +245,7 @@ namespace FlexoAPP.API.Controllers
             {
                 _logger.LogInformation($"📝 Creando anilox: {dto.Codigo}");
 
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand(
@@ -283,7 +301,7 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogInformation("📝 ID: {Id}", id);
                 _logger.LogInformation("📝 DTO recibido: {@Dto}", dto);
 
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 var updates = new List<string>();
@@ -382,7 +400,7 @@ namespace FlexoAPP.API.Controllers
         {
             try
             {
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 using var command = new MySqlCommand("DELETE FROM anilox WHERE id = @Id", connection);
@@ -418,7 +436,7 @@ namespace FlexoAPP.API.Controllers
                 int errors = 0;
                 var errorDetails = new List<string>();
 
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                using var connection = new MySqlConnection(GetCleanConnectionString());
                 await connection.OpenAsync();
 
                 foreach (var item in aniloxList)
@@ -538,7 +556,7 @@ namespace FlexoAPP.API.Controllers
                 {
                     try
                     {
-                        using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                        using var connection = new MySqlConnection(GetCleanConnectionString());
                         await connection.OpenAsync();
 
                         using var command = new MySqlCommand(@"
@@ -594,6 +612,73 @@ namespace FlexoAPP.API.Controllers
                     }
                 }
 
+        [HttpPost("force-migration")]
+        public async Task<IActionResult> ForceMigration()
+        {
+            try
+            {
+                _logger.LogInformation("🔧 Forzando migración de BCM a DECIMAL");
+                
+                using var connection = new MySqlConnection(GetCleanConnectionString());
+                await connection.OpenAsync();
+                
+                // Verificar tipo actual
+                using var checkCmd = new MySqlCommand(
+                    @"SELECT DATA_TYPE, COLUMN_TYPE 
+                      FROM INFORMATION_SCHEMA.COLUMNS 
+                      WHERE TABLE_SCHEMA = DATABASE() 
+                      AND TABLE_NAME = 'anilox' 
+                      AND COLUMN_NAME = 'bcm'", 
+                    connection);
+                
+                using var reader = await checkCmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var dataType = reader.GetString(0);
+                    var columnType = reader.GetString(1);
+                    _logger.LogInformation($"📊 Columna bcm actual: {dataType} ({columnType})");
+                    
+                    if (dataType == "int")
+                    {
+                        await reader.CloseAsync();
+                        _logger.LogInformation("🔄 Convirtiendo bcm de INT a DECIMAL(5,2)...");
+                        
+                        using var alterCmd = new MySqlCommand(
+                            "ALTER TABLE `anilox` MODIFY COLUMN `bcm` DECIMAL(5, 2) NOT NULL COMMENT 'BCM (Billion Cubic Microns) - soporta decimales como 8.3'",
+                            connection);
+                        
+                        await alterCmd.ExecuteNonQueryAsync();
+                        _logger.LogInformation("✅ Migración completada: bcm ahora es DECIMAL(5,2)");
+                        
+                        return Ok(new { 
+                            message = "Migración completada exitosamente",
+                            before = $"{dataType} ({columnType})",
+                            after = "decimal(5,2)"
+                        });
+                    }
+                    else
+                    {
+                        _logger.LogInformation("✅ Columna bcm ya es DECIMAL");
+                        return Ok(new { 
+                            message = "No se requiere migración, bcm ya es DECIMAL",
+                            currentType = $"{dataType} ({columnType})"
+                        });
+                    }
+                }
+                
+                return NotFound(new { message = "Columna bcm no encontrada" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error ejecutando migración forzada");
+                return StatusCode(500, new { 
+                    message = "Error ejecutando migración", 
+                    error = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
     }
 
 
@@ -633,71 +718,3 @@ namespace FlexoAPP.API.Controllers
         public decimal? Densidad { get; set; }
     }
 }
-
-
-    [HttpPost("force-migration")]
-    public async Task<IActionResult> ForceMigration()
-    {
-        try
-        {
-            _logger.LogInformation("🔧 Forzando migración de BCM a DECIMAL");
-            
-            using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            await connection.OpenAsync();
-            
-            // Verificar tipo actual
-            using var checkCmd = new MySqlCommand(
-                @"SELECT DATA_TYPE, COLUMN_TYPE 
-                  FROM INFORMATION_SCHEMA.COLUMNS 
-                  WHERE TABLE_SCHEMA = DATABASE() 
-                  AND TABLE_NAME = 'anilox' 
-                  AND COLUMN_NAME = 'bcm'", 
-                connection);
-            
-            using var reader = await checkCmd.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
-            {
-                var dataType = reader.GetString(0);
-                var columnType = reader.GetString(1);
-                _logger.LogInformation($"📊 Columna bcm actual: {dataType} ({columnType})");
-                
-                if (dataType == "int")
-                {
-                    await reader.CloseAsync();
-                    _logger.LogInformation("🔄 Convirtiendo bcm de INT a DECIMAL(5,2)...");
-                    
-                    using var alterCmd = new MySqlCommand(
-                        "ALTER TABLE `anilox` MODIFY COLUMN `bcm` DECIMAL(5, 2) NOT NULL COMMENT 'BCM (Billion Cubic Microns) - soporta decimales como 8.3'",
-                        connection);
-                    
-                    await alterCmd.ExecuteNonQueryAsync();
-                    _logger.LogInformation("✅ Migración completada: bcm ahora es DECIMAL(5,2)");
-                    
-                    return Ok(new { 
-                        message = "Migración completada exitosamente",
-                        before = $"{dataType} ({columnType})",
-                        after = "decimal(5,2)"
-                    });
-                }
-                else
-                {
-                    _logger.LogInformation("✅ Columna bcm ya es DECIMAL");
-                    return Ok(new { 
-                        message = "No se requiere migración, bcm ya es DECIMAL",
-                        currentType = $"{dataType} ({columnType})"
-                    });
-                }
-            }
-            
-            return NotFound(new { message = "Columna bcm no encontrada" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ Error ejecutando migración forzada");
-            return StatusCode(500, new { 
-                message = "Error ejecutando migración", 
-                error = ex.Message,
-                stackTrace = ex.StackTrace
-            });
-        }
-    }
