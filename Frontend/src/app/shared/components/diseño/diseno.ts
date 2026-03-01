@@ -2662,10 +2662,16 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
         this.uploadProgress.set(100);
 
+        let successMessage = `Importación completada: ${response.created} nuevos creados, ${response.updated} existentes sobrescritos`;
+        
+        if (response.message) {
+          successMessage = response.message;
+        }
+
         this.snackBar.open(
-          `Importación completada: ${response.created} creados, ${response.updated} actualizados`,
+          successMessage,
           'Cerrar',
-          { duration: 5000, panelClass: ['success-snackbar'] }
+          { duration: 6000, panelClass: ['success-snackbar'] }
         );
 
         await this.initializeAniloxData();
