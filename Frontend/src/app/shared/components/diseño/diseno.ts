@@ -2569,44 +2569,76 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     try {
       console.log('📂 Leyendo archivo Excel de anilox:', file.name);
 
-
       const jsonData = await this.excelService.readExcel(file);
 
       console.log('📊 Datos leídos del Excel:', jsonData.length, 'filas');
-
+      console.log('📊 Primera fila (encabezados):', jsonData[0]);
+      console.log('📊 Segunda fila (primer dato):', jsonData[1]);
 
       const aniloxList: any[] = [];
 
+      // Empezar desde la fila 2 (índice 1) ya que la fila 1 (índice 0) es encabezado
       for (let i = 1; i < jsonData.length; i++) {
         const row = jsonData[i];
 
+        // Mapeo de columnas según especificación:
+        // C (índice 2) = código
+        // D (índice 3) = máquina
+        // E (índice 4) = lineatura (LPI)
+        // F (índice 5) = BCM
+        // G (índice 6) = proveedor
+        // H (índice 7) = volumen real
+        // I (índice 8) = factor de eficiencia
+        // J (índice 9) = densidad
 
         const codigo = row[2]?.toString().trim();
         const maquina = parseInt(row[3]);
         const lineatura = parseInt(row[4]);
-        const aporteTeorico = parseInt(row[5]);
+        const bcm = parseInt(row[5]);
         const proveedor = row[6]?.toString().trim() || 'APEX';
-        const aporte = parseFloat(row[7]);
+        const volumenReal = parseFloat(row[7]);
         const factorEficiencia = row[8] ? parseFloat(row[8]) : 35.00;
         const densidad = row[9] ? parseFloat(row[9]) : 0.885;
 
-
-        if (!codigo || !maquina || !lineatura || !aporteTeorico || !aporte) {
-          console.warn(`⚠️ Fila ${i + 1} ignorada: datos incompletos`);
-          continue;
-        }
-
-        aniloxList.push({
+        console.log(`📝 Fila ${i + 1}:`, {
           codigo,
           maquina,
           lineatura,
-          aporteTeorico,
+          bcm,
           proveedor,
-          aporte,
+          volumenReal,
           factorEficiencia,
           densidad
         });
 
+        // Validar datos requeridos
+        if (!codigo || isNaN(maquina) || isNaN(lineatura) || isNaN(bcm) || isNaN(volumenReal)) {
+          console.warn(`⚠️ Fila ${i + 1} ignorada: datos incompletos o inválidos`, {
+            codigo: codigo || 'FALTA',
+            maquina: isNaN(maquina) ? 'INVÁLIDO' : maquina,
+            lineatura: isNaN(lineatura) ? 'INVÁLIDO' : lineatura,
+            bcm: isNaN(bcm) ? 'INVÁLIDO' : bcm,
+            volumenReal: isNaN(volumenReal) ? 'INVÁLIDO' : volumenReal
+          });
+          continue;
+        }
+
+        // Validar que la máquina esté en el rango válido (11-21)
+        if (maquina < 11 || maquina > 21) {
+          console.warn(`⚠️ Fila ${i + 1} ignorada: máquina ${maquina} fuera de rango (11-21)`);
+          continue;
+        }
+
+        aniloxList.push({
+          codigo: codigo,
+          maquina: maquina,
+          lineatura: lineatura,
+          aporteTeorico: bcm,
+          proveedor: proveedor,
+          aporte: volumenReal,
+          factorEficiencia: factorEficiencia,
+          densidad: densidad
+        });
 
         this.uploadProgress.set(Math.round((i / jsonData.length) * 50));
       }
@@ -2614,14 +2646,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log(`✅ ${aniloxList.length} anilox procesados del Excel`);
 
       if (aniloxList.length === 0) {
-        this.snackBar.open('No se encontraron datos válidos en el Excel', 'Cerrar', {
-          duration: 5000,
+        this.snackBar.open('No se encontraron datos válidos en el Excel. Verifica que las columnas sean: C=Código, D=Máquina, E=Lineatura, F=BCM, G=Proveedor, H=Volumen Real, I=Factor Eficiencia, J=Densidad', 'Cerrar', {
+          duration: 8000,
           panelClass: ['error-snackbar']
         });
         this.uploading.set(false);
         return;
       }
-
 
       this.uploadProgress.set(60);
       const response = await this.aniloxService.importFromExcel(aniloxList).toPromise();
@@ -2637,7 +2668,6 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           { duration: 5000, panelClass: ['success-snackbar'] }
         );
 
-
         await this.initializeAniloxData();
       }
     } catch (error: any) {
@@ -2648,6 +2678,8 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         errorMessage = error.error?.message || 'Datos inválidos en el Excel';
       } else if (error.status === 401) {
         errorMessage = 'No tienes permisos para importar anilox';
+      } else if (error.error?.message) {
+        errorMessage = error.error.message;
       }
 
       this.snackBar.open(errorMessage, 'Cerrar', {
