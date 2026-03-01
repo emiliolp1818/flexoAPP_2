@@ -2583,8 +2583,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         const row = jsonData[i];
 
         // Log de la fila completa para debugging
-        if (i <= 3) {
-          console.log(`🔍 Fila ${i + 1} completa:`, row);
+        if (i <= 5) {
+          console.log(`🔍 Fila ${i + 1} COMPLETA (todos los índices):`, row);
+          console.log(`   [0]=${row[0]}, [1]=${row[1]}, [2]=${row[2]}, [3]=${row[3]}, [4]=${row[4]}, [5]=${row[5]}, [6]=${row[6]}, [7]=${row[7]}, [8]=${row[8]}, [9]=${row[9]}, [10]=${row[10]}`);
         }
 
         // Mapeo de columnas según especificación:
@@ -2615,7 +2616,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         const factorEficiencia = factorEficienciaRaw ? (typeof factorEficienciaRaw === 'number' ? factorEficienciaRaw : parseFloat(String(factorEficienciaRaw))) : 35.00;
         const densidad = densidadRaw ? (typeof densidadRaw === 'number' ? densidadRaw : parseFloat(String(densidadRaw))) : 0.885;
 
-        if (i <= 3) {
+        if (i <= 5) {
           console.log(`📝 Fila ${i + 1} parseada:`, {
             codigo,
             maquina,
@@ -2626,6 +2627,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
             factorEficiencia,
             densidad
           });
+          console.log(`   Valores RAW: maq=${maquinaRaw}, lin=${lineaturaRaw}, bcm=${bcmRaw}, vol=${volumenRealRaw}`);
         }
 
         // Validar datos requeridos
