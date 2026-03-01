@@ -534,59 +534,65 @@ namespace FlexoAPP.API.Controllers
 
 
         [HttpGet("check-table")]
-        public async Task<IActionResult> CheckTableStructure()
-        {
-            try
-            {
-                using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-                await connection.OpenAsync();
-
-                using var command = new MySqlCommand(@"
-                    SELECT
-                        COLUMN_NAME,
-                        DATA_TYPE,
-                        COLUMN_DEFAULT,
-                        IS_NULLABLE,
-                        COLUMN_COMMENT
-                    FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE TABLE_SCHEMA = DATABASE()
-                    AND TABLE_NAME = 'anilox'
-                    ORDER BY ORDINAL_POSITION", connection);
-
-                var columns = new List<object>();
-                using var reader = await command.ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
+                public async Task<IActionResult> CheckTableStructure()
                 {
-                    columns.Add(new
+                    try
                     {
-                        name = reader.GetString(0),
-                        type = reader.GetString(1),
-                        defaultValue = reader.IsDBNull(2) ? null : reader.GetString(2),
-                        nullable = reader.GetString(3),
-                        comment = reader.IsDBNull(4) ? null : reader.GetString(4)
-                    });
+                        using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                        await connection.OpenAsync();
+
+                        using var command = new MySqlCommand(@"
+                            SELECT
+                                COLUMN_NAME,
+                                DATA_TYPE,
+                                COLUMN_TYPE,
+                                COLUMN_DEFAULT,
+                                IS_NULLABLE,
+                                COLUMN_COMMENT
+                            FROM INFORMATION_SCHEMA.COLUMNS
+                            WHERE TABLE_SCHEMA = DATABASE()
+                            AND TABLE_NAME = 'anilox'
+                            ORDER BY ORDINAL_POSITION", connection);
+
+                        var columns = new List<object>();
+                        using var reader = await command.ExecuteReaderAsync();
+
+                        while (await reader.ReadAsync())
+                        {
+                            columns.Add(new
+                            {
+                                name = reader.GetString(0),
+                                type = reader.GetString(1),
+                                columnType = reader.GetString(2),
+                                defaultValue = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                nullable = reader.GetString(4),
+                                comment = reader.IsDBNull(5) ? null : reader.GetString(5)
+                            });
+                        }
+
+                        var hasFactorEficiencia = columns.Any(c => ((dynamic)c).name == "factor_eficiencia");
+                        var hasDensidad = columns.Any(c => ((dynamic)c).name == "densidad");
+                        var bcmColumn = columns.FirstOrDefault(c => ((dynamic)c).name == "bcm");
+                        var bcmType = bcmColumn != null ? ((dynamic)bcmColumn).columnType : "NOT FOUND";
+
+                        return Ok(new
+                        {
+                            database = connection.Database,
+                            table = "anilox",
+                            columns,
+                            hasFactorEficiencia,
+                            hasDensidad,
+                            bcmType,
+                            bcmIsDecimal = bcmType.Contains("decimal"),
+                            status = hasFactorEficiencia && hasDensidad && bcmType.Contains("decimal") ? "✅ Tabla actualizada correctamente" : "❌ Faltan columnas o BCM no es DECIMAL"
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error verificando estructura de tabla");
+                        return StatusCode(500, new { message = "Error verificando tabla", error = ex.Message });
+                    }
                 }
-
-                var hasFactorEficiencia = columns.Any(c => ((dynamic)c).name == "factor_eficiencia");
-                var hasDensidad = columns.Any(c => ((dynamic)c).name == "densidad");
-
-                return Ok(new
-                {
-                    database = connection.Database,
-                    table = "anilox",
-                    columns,
-                    hasFactorEficiencia,
-                    hasDensidad,
-                    status = hasFactorEficiencia && hasDensidad ? "✅ Tabla actualizada" : "❌ Faltan columnas"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error verificando estructura de tabla");
-                return StatusCode(500, new { message = "Error verificando tabla", error = ex.Message });
-            }
-        }
 
     }
 
@@ -627,3 +633,71 @@ namespace FlexoAPP.API.Controllers
         public decimal? Densidad { get; set; }
     }
 }
+
+
+    [HttpPost("force-migration")]
+    public async Task<IActionResult> ForceMigration()
+    {
+        try
+        {
+            _logger.LogInformation("🔧 Forzando migración de BCM a DECIMAL");
+            
+            using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            await connection.OpenAsync();
+            
+            // Verificar tipo actual
+            using var checkCmd = new MySqlCommand(
+                @"SELECT DATA_TYPE, COLUMN_TYPE 
+                  FROM INFORMATION_SCHEMA.COLUMNS 
+                  WHERE TABLE_SCHEMA = DATABASE() 
+                  AND TABLE_NAME = 'anilox' 
+                  AND COLUMN_NAME = 'bcm'", 
+                connection);
+            
+            using var reader = await checkCmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                var dataType = reader.GetString(0);
+                var columnType = reader.GetString(1);
+                _logger.LogInformation($"📊 Columna bcm actual: {dataType} ({columnType})");
+                
+                if (dataType == "int")
+                {
+                    await reader.CloseAsync();
+                    _logger.LogInformation("🔄 Convirtiendo bcm de INT a DECIMAL(5,2)...");
+                    
+                    using var alterCmd = new MySqlCommand(
+                        "ALTER TABLE `anilox` MODIFY COLUMN `bcm` DECIMAL(5, 2) NOT NULL COMMENT 'BCM (Billion Cubic Microns) - soporta decimales como 8.3'",
+                        connection);
+                    
+                    await alterCmd.ExecuteNonQueryAsync();
+                    _logger.LogInformation("✅ Migración completada: bcm ahora es DECIMAL(5,2)");
+                    
+                    return Ok(new { 
+                        message = "Migración completada exitosamente",
+                        before = $"{dataType} ({columnType})",
+                        after = "decimal(5,2)"
+                    });
+                }
+                else
+                {
+                    _logger.LogInformation("✅ Columna bcm ya es DECIMAL");
+                    return Ok(new { 
+                        message = "No se requiere migración, bcm ya es DECIMAL",
+                        currentType = $"{dataType} ({columnType})"
+                    });
+                }
+            }
+            
+            return NotFound(new { message = "Columna bcm no encontrada" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error ejecutando migración forzada");
+            return StatusCode(500, new { 
+                message = "Error ejecutando migración", 
+                error = ex.Message,
+                stackTrace = ex.StackTrace
+            });
+        }
+    }
