@@ -61,6 +61,13 @@ try
                 .Replace("${MYSQL_USER}",     mysqlUser)
                 .Replace("${MYSQL_PASSWORD}", mysqlPassword);
             
+            // Remover parámetros no soportados por MySqlConnector
+            railwayConnectionString = System.Text.RegularExpressions.Regex.Replace(
+                railwayConnectionString, 
+                @"ConnectionIdleTimeout=\d+;?", 
+                "", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            
             builder.Configuration["ConnectionStrings:DefaultConnection"] = railwayConnectionString;
             Log.Information("✅ Cadena de conexión Railway configurada desde variables individuales");
         }
