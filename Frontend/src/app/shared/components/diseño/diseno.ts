@@ -2588,7 +2588,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           console.log(`   [0]=${row[0]}, [1]=${row[1]}, [2]=${row[2]}, [3]=${row[3]}, [4]=${row[4]}, [5]=${row[5]}, [6]=${row[6]}, [7]=${row[7]}, [8]=${row[8]}, [9]=${row[9]}, [10]=${row[10]}`);
         }
 
-        // Mapeo de columnas según especificación:
+        // Mapeo de columnas según especificación del usuario:
         // C (índice 2) = código
         // D (índice 3) = máquina
         // E (índice 4) = lineatura (LPI)
@@ -2610,8 +2610,8 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         // Parsear valores numéricos de forma más robusta
         const maquina = typeof maquinaRaw === 'number' ? maquinaRaw : parseInt(String(maquinaRaw || ''));
         const lineatura = typeof lineaturaRaw === 'number' ? lineaturaRaw : parseInt(String(lineaturaRaw || ''));
-        const bcm = typeof bcmRaw === 'number' ? bcmRaw : parseInt(String(bcmRaw || ''));
         const proveedor = proveedorRaw?.toString().trim() || 'APEX';
+        const bcm = typeof bcmRaw === 'number' ? bcmRaw : parseFloat(String(bcmRaw || ''));
         const volumenReal = typeof volumenRealRaw === 'number' ? volumenRealRaw : parseFloat(String(volumenRealRaw || ''));
         const factorEficiencia = factorEficienciaRaw ? (typeof factorEficienciaRaw === 'number' ? factorEficienciaRaw : parseFloat(String(factorEficienciaRaw))) : 35.00;
         const densidad = densidadRaw ? (typeof densidadRaw === 'number' ? densidadRaw : parseFloat(String(densidadRaw))) : 0.885;
