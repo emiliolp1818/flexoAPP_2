@@ -665,6 +665,61 @@ try
     Log.Information("👤 Default Login: admin / admin123");
     Log.Information("=========================================");
 
+    // ===== MIGRACIÓN AUTOMÁTICA: BCM A DECIMAL =====
+    if (isRailway)
+    {
+        try
+        {
+            Log.Information("🔧 Ejecutando migración: ALTER anilox.bcm to DECIMAL(5,2)");
+            using var scope = app.Services.CreateScope();
+            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            
+            using var connection = new MySql.Data.MySqlClient.MySqlConnection(connectionString);
+            await connection.OpenAsync();
+            
+            // Verificar si la columna ya es DECIMAL
+            using var checkCmd = new MySql.Data.MySqlClient.MySqlCommand(
+                @"SELECT DATA_TYPE, COLUMN_TYPE 
+                  FROM INFORMATION_SCHEMA.COLUMNS 
+                  WHERE TABLE_SCHEMA = DATABASE() 
+                  AND TABLE_NAME = 'anilox' 
+                  AND COLUMN_NAME = 'bcm'", 
+                connection);
+            
+            using var reader = await checkCmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                var dataType = reader.GetString(0);
+                var columnType = reader.GetString(1);
+                Log.Information($"📊 Columna bcm actual: {dataType} ({columnType})");
+                
+                if (dataType == "int")
+                {
+                    await reader.CloseAsync();
+                    Log.Information("🔄 Convirtiendo bcm de INT a DECIMAL(5,2)...");
+                    
+                    using var alterCmd = new MySql.Data.MySqlClient.MySqlCommand(
+                        "ALTER TABLE `anilox` MODIFY COLUMN `bcm` DECIMAL(5, 2) NOT NULL COMMENT 'BCM (Billion Cubic Microns) - soporta decimales como 8.3'",
+                        connection);
+                    
+                    await alterCmd.ExecuteNonQueryAsync();
+                    Log.Information("✅ Migración completada: bcm ahora es DECIMAL(5,2)");
+                }
+                else
+                {
+                    Log.Information("✅ Columna bcm ya es DECIMAL, no se requiere migración");
+                }
+            }
+            
+            await connection.CloseAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "❌ Error ejecutando migración de bcm");
+        }
+    }
+
     app.Run();
 }
 catch (Exception ex)
