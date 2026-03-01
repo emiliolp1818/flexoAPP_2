@@ -620,7 +620,7 @@ namespace FlexoAPP.API.Controllers
         public string Codigo { get; set; } = string.Empty;
         public int Maquina { get; set; }
         public int Lineatura { get; set; }
-        public int AporteTeorico { get; set; }
+        public decimal AporteTeorico { get; set; }  // Cambiado de int a decimal para soportar valores como 8.3
         public string? Proveedor { get; set; }
         public decimal Aporte { get; set; }
         public decimal? FactorEficiencia { get; set; }
