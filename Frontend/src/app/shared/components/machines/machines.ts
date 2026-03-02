@@ -2459,7 +2459,7 @@ export class MachinesComponent implements OnInit, OnDestroy {
     if (!program.estado || program.estado === 'SIN_ASIGNAR') {
       console.warn('⚠️ No se puede imprimir FF-459: El programa está en estado SIN_ASIGNAR');
       this.snackBar.open(
-        '⚠️ No se puede imprimir el formato FF-459. El programa debe tener un estado asignado (Preparando, Listo, Corriendo, etc.)',
+        '⚠️ No se puede imprimir El programa debe tener un estado (Preparando.)',
         'Cerrar',
         { duration: 6000, panelClass: ['warning-snackbar'] }
       );
