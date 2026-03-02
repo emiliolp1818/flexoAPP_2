@@ -146,5 +146,23 @@ namespace FlexoAPP.API.Services
                 _logger.LogError(ex, $"❌ Error enviando notificación de refresh global");
             }
         }
+
+        /// <summary>
+        /// Enviar notificación genérica de actualización de máquina con objeto personalizado
+        /// </summary>
+        public async Task NotifyMachineUpdatedAsync(object notification)
+        {
+            try
+            {
+                // Notificar a todos los clientes
+                await _hubContext.Clients.All.SendAsync("MachineUpdated", notification);
+
+                _logger.LogInformation($"📢 Notificación MachineUpdated enviada a todos los clientes");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error enviando notificación MachineUpdated");
+            }
+        }
     }
 }

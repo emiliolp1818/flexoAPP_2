@@ -29,5 +29,10 @@ namespace FlexoAPP.API.Services
         /// Notificar a todos los clientes que deben refrescar
         /// </summary>
         Task NotifyRefreshAll(string reason);
+
+        /// <summary>
+        /// Notificar actualización de máquina con objeto personalizado
+        /// </summary>
+        Task NotifyMachineUpdatedAsync(object notification);
     }
 }

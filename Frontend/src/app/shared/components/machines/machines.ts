@@ -2454,6 +2454,35 @@ export class MachinesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // ===== VALIDACIÓN: NO SE PUEDE IMPRIMIR SIN ACCIÓN =====
+    // Verificar que el programa NO esté en estado SIN_ASIGNAR
+    if (!program.estado || program.estado === 'SIN_ASIGNAR') {
+      console.warn('⚠️ No se puede imprimir FF-459: El programa está en estado SIN_ASIGNAR');
+      this.snackBar.open(
+        '⚠️ No se puede imprimir el formato FF-459. El programa debe tener un estado asignado (Preparando, Listo, Corriendo, etc.)',
+        'Cerrar',
+        { duration: 6000, panelClass: ['warning-snackbar'] }
+      );
+      return;
+    }
+
+    // Verificar que el programa tenga al menos una acción registrada
+    if (!program.lastActionBy || !program.lastActionAt) {
+      console.warn('⚠️ No se puede imprimir FF-459: El programa no tiene acciones registradas');
+      this.snackBar.open(
+        '⚠️ No se puede imprimir el formato FF-459. Primero debe registrarse una acción en el sistema.',
+        'Cerrar',
+        { duration: 6000, panelClass: ['warning-snackbar'] }
+      );
+      return;
+    }
+
+    console.log('✅ Validación de acción pasada:', {
+      lastActionBy: program.lastActionBy,
+      lastActionAt: program.lastActionAt,
+      estado: program.estado
+    });
+
 
 
     const currentUser = this.authService.getCurrentUser();

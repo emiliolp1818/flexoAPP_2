@@ -15,17 +15,20 @@ namespace flexoAPP.Services
         private readonly ILogger<MaquinaService> _logger;
         private readonly FlexoAPPDbContext _context;
         private readonly FlexoAPP.API.Services.IActivityLoggerService _activityLogger;
+        private readonly FlexoAPP.API.Services.ISignalRNotificationService _signalRService;
 
         public MaquinaService(
             IMaquinaRepository repository,
             ILogger<MaquinaService> logger,
             FlexoAPPDbContext context,
-            FlexoAPP.API.Services.IActivityLoggerService activityLogger)
+            FlexoAPP.API.Services.IActivityLoggerService activityLogger,
+            FlexoAPP.API.Services.ISignalRNotificationService signalRService)
         {
             _repository = repository;
             _logger = logger;
             _context = context;
             _activityLogger = activityLogger;
+            _signalRService = signalRService;
             EnsureDatabaseSchema();
         }
 
@@ -174,6 +177,29 @@ namespace flexoAPP.Services
                 );
             }
             catch {}
+
+            // ===== EMITIR EVENTO DE SIGNALR PARA NOTIFICAR A TODOS LOS CLIENTES =====
+            try
+            {
+                _logger.LogInformation($"📢 Emitiendo evento SignalR: MachineUpdated para OT {otSap}");
+                await _signalRService.NotifyMachineUpdatedAsync(new
+                {
+                    type = "MachineUpdated",
+                    otSap = otSap,
+                    machineNumber = existing.NumeroMaquina,
+                    action = "STATUS_CHANGED",
+                    oldState = oldStatus,
+                    newState = estadoUpper,
+                    observaciones = existing.Observaciones,
+                    userName = userName ?? "Sistema",
+                    timestamp = DateTime.Now
+                });
+                _logger.LogInformation($"✅ Evento SignalR emitido exitosamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error emitiendo evento SignalR para OT {otSap}");
+            }
 
             return MapToDto(updated);
         }
