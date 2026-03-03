@@ -306,3 +306,116 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     font-weight: 600 !important;
   }
 }
+
+
+// ===== ESTILOS PARA SNACKBARS PERSONALIZADOS DE ESTADOS =====
+.animated-snackbar {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// PREPARANDO - Amarillo/Ámbar
+.status-preparando-snackbar {
+  .mdc-snackbar__surface {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    color: #78350f !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4) !important;
+    border-left: 4px solid #b45309 !important;
+  }
+  
+  .mat-mdc-button {
+    color: #78350f !important;
+    font-weight: 700 !important;
+  }
+}
+
+// LISTO - Verde
+.status-listo-snackbar {
+  .mdc-snackbar__surface {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+    color: #064e3b !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+    border-left: 4px solid #047857 !important;
+  }
+  
+  .mat-mdc-button {
+    color: #064e3b !important;
+    font-weight: 700 !important;
+  }
+}
+
+// CORRIENDO - Azul
+.status-corriendo-snackbar {
+  .mdc-snackbar__surface {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+    color: #1e3a8a !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+    border-left: 4px solid #1d4ed8 !important;
+  }
+  
+  .mat-mdc-button {
+    color: #1e3a8a !important;
+    font-weight: 700 !important;
+  }
+}
+
+// SUSPENDIDO - Naranja/Rojo
+.status-suspendido-snackbar {
+  .mdc-snackbar__surface {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
+    color: #7c2d12 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4) !important;
+    border-left: 4px solid #c2410c !important;
+  }
+  
+  .mat-mdc-button {
+    color: #7c2d12 !important;
+    font-weight: 700 !important;
+  }
+}
+
+// TERMINADO - Rojo oscuro
+.status-terminado-snackbar {
+  .mdc-snackbar__surface {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
+    color: #7f1d1d !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+    border-left: 4px solid #b91c1c !important;
+  }
+  
+  .mat-mdc-button {
+    color: #7f1d1d !important;
+    font-weight: 700 !important;
+  }
+}
+
+// DEFAULT - Gris
+.status-default-snackbar {
+  .mdc-snackbar__surface {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%) !important;
+    color: #1e293b !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4) !important;
+    border-left: 4px solid #475569 !important;
+  }
+  
+  .mat-mdc-button {
+    color: #1e293b !important;
+    font-weight: 700 !important;
+  }
+}

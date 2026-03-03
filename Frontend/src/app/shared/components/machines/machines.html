@@ -314,7 +314,6 @@
                             <div class="anilox-info-group">
 
                               <div class="info-row selector-row">
-                                <mat-icon class="info-icon">grid_4x4</mat-icon>
                                 <span class="info-label">Lineatura:</span>
                                 <mat-form-field class="anilox-select" appearance="outline">
                                   <mat-select #lineaturaSelect
@@ -331,7 +330,6 @@
 
 
                               <div class="info-row selector-row">
-                                <mat-icon class="info-icon">grid_on</mat-icon>
                                 <span class="info-label">Volumen:</span>
                                 <mat-form-field class="anilox-select" appearance="outline">
                                   <mat-select #volumenSelect
@@ -374,7 +372,8 @@
                                 <span class="info-label">Kilos:</span>
                                 <mat-form-field class="anilox-select" appearance="outline">
                                   <input matInput type="number" step="0.001" [value]="getSelectedKilos(element, i)"
-                                    (change)="onKilosChange(element, i, $any($event.target).value)" placeholder="0.000">
+                                    (change)="onKilosChange(element, i, $any($event.target).value)" placeholder="0.000"
+                                    class="no-spinner">
                                   <span matSuffix>kg</span>
                                 </mat-form-field>
                               </div>
@@ -452,11 +451,18 @@
                               [class]="'status-' + (element.estado || 'SIN_ASIGNAR').toLowerCase()">
                               <span class="status-text">{{ getEstadoDisplay(element.estado) }}</span>
                             </span>
+                            <!-- Información de última acción -->
+                            <div class="last-action-info" *ngIf="element.lastActionBy || element.lastActionAt">
+                              <span class="action-user">{{ element.lastActionBy || 'Sistema' }}</span>
+                              <span class="action-date" *ngIf="element.lastActionAt">
+                                {{ element.lastActionAt | date:'dd/MM/yyyy HH:mm' }}
+                              </span>
+                            </div>
                           </div>
                           <button mat-icon-button class="status-history-toggle" 
                                   (click)="toggleStatusHistory(element.otSap, $event)"
                                   [class.expanded]="isStatusHistoryExpanded(element.otSap)"
-                                  matTooltip="Ver historial">
+                                  matTooltip="Ver historial completo">
                             <mat-icon>{{ isStatusHistoryExpanded(element.otSap) ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}</mat-icon>
                           </button>
                         </div>

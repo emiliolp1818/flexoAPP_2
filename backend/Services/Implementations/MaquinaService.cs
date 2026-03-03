@@ -127,13 +127,13 @@ namespace flexoAPP.Services
 
             if (estadoUpper == "PREPARANDO" && existing.Estado != "PREPARANDO")
             {
-                existing.PreparandoStartedAt = DateTime.Now;
+                existing.PreparandoStartedAt = DateTime.UtcNow;
             }
 
             TimeSpan? duration = null;
             if (existing.Estado == "PREPARANDO" && (estadoUpper == "LISTO" || estadoUpper == "TERMINADO") && existing.PreparandoStartedAt.HasValue)
             {
-                duration = DateTime.Now - existing.PreparandoStartedAt.Value;
+                duration = DateTime.UtcNow - existing.PreparandoStartedAt.Value;
             }
 
             if (estadoUpper != "PREPARANDO" && estadoUpper != "LISTO")
@@ -154,9 +154,9 @@ namespace flexoAPP.Services
             }
 
             existing.UpdatedBy = userId;
-            existing.UpdatedAt = DateTime.Now;
+            existing.UpdatedAt = DateTime.UtcNow;
             existing.LastActionBy = userName ?? "Sistema";
-            existing.LastActionAt = DateTime.Now;
+            existing.LastActionAt = DateTime.UtcNow;
 
             var updated = await _repository.UpdateAsync(existing);
 
@@ -192,7 +192,7 @@ namespace flexoAPP.Services
                     newState = estadoUpper,
                     observaciones = existing.Observaciones,
                     userName = userName ?? "Sistema",
-                    timestamp = DateTime.Now
+                    timestamp = DateTime.UtcNow
                 });
                 _logger.LogInformation($"✅ Evento SignalR emitido exitosamente");
             }

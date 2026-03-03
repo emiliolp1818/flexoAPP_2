@@ -165,6 +165,7 @@ export class MachinesComponent implements OnInit, OnDestroy {
   expandedColors = signal<Set<string>>(new Set());
   expandedStatusHistory = signal<Set<string>>(new Set());
   statusHistoryTimeout: any = null; // Timeout para cerrar el historial automáticamente
+  colorsTimeout: any = null; // Timeout para cerrar la paleta de colores automáticamente
 
 
   lineaturas = signal<number[]>([]);
@@ -826,18 +827,18 @@ export class MachinesComponent implements OnInit, OnDestroy {
         console.log(`ℹ️ Historial ya cargado (${program?.actionHistory?.length || 0} acciones)`);
       }
 
-      // Configurar auto-cierre después de 60 segundos
+      // Configurar auto-cierre después de 20 segundos
       if (this.statusHistoryTimeout) {
         clearTimeout(this.statusHistoryTimeout);
       }
       
       this.statusHistoryTimeout = setTimeout(() => {
-        console.log(`⏰ Auto-cerrando historial de ${otSap} después de 60 segundos`);
+        console.log(`⏰ Auto-cerrando historial de ${otSap} después de 20 segundos`);
         const currentExpanded = new Set(this.expandedStatusHistory());
         currentExpanded.delete(otSap);
         this.expandedStatusHistory.set(currentExpanded);
         this.statusHistoryTimeout = null;
-      }, 60000); // 60 segundos
+      }, 20000); // 20 segundos
     }
 
     this.expandedStatusHistory.set(expanded);
@@ -1383,6 +1384,12 @@ export class MachinesComponent implements OnInit, OnDestroy {
     if (expanded.has(programId)) {
       expanded.delete(programId);
       console.log(`🎨 Cerrando dropdown de colores para programa: ${programId}`);
+      
+      // Limpiar timeout si existe
+      if (this.colorsTimeout) {
+        clearTimeout(this.colorsTimeout);
+        this.colorsTimeout = null;
+      }
     } else {
 
       expanded.clear();
@@ -1421,6 +1428,19 @@ export class MachinesComponent implements OnInit, OnDestroy {
       } else {
         console.log('⚠️ No se encontró información de diseño en BD, usando datos actuales');
       }
+      
+      // Configurar auto-cierre después de 60 segundos
+      if (this.colorsTimeout) {
+        clearTimeout(this.colorsTimeout);
+      }
+      
+      this.colorsTimeout = setTimeout(() => {
+        console.log(`⏰ Auto-cerrando paleta de colores de ${programId} después de 60 segundos`);
+        const currentExpanded = new Set(this.expandedColors());
+        currentExpanded.delete(programId);
+        this.expandedColors.set(currentExpanded);
+        this.colorsTimeout = null;
+      }, 60000); // 60 segundos
     }
 
 
@@ -1634,11 +1654,11 @@ export class MachinesComponent implements OnInit, OnDestroy {
 
         const statusMessages = {
           'SIN_ASIGNAR': 'Estado asignado - Programa activado',
-          'PREPARANDO': 'Programa en PREPARACIÓN',
+          'PREPARANDO': 'Programa en PREPARACIÓN - Iniciando proceso',
           'LISTO': 'Programa marcado como PREPARADO',
-          'CORRIENDO': 'Programa iniciado - CORRIENDO',
-          'SUSPENDIDO': 'Programa SUSPENDIDO',
-          'TERMINADO': 'Programa TERMINADO exitosamente'
+          'CORRIENDO': 'Programa iniciado - Máquina en producción',
+          'SUSPENDIDO': 'Programa SUSPENDIDO temporalmente',
+          'TERMINADO': 'Programa TERMINADO exitosamente - Producción completada'
         };
 
 
@@ -1661,21 +1681,14 @@ export class MachinesComponent implements OnInit, OnDestroy {
 
           if (preparandoStartedAtFromServer) {
 
-
-
-            const fechaUTC = preparandoStartedAtFromServer.endsWith('Z')
-              ? preparandoStartedAtFromServer
-              : preparandoStartedAtFromServer + 'Z';
-
-            const tiempoInicio = new Date(fechaUTC);
+            // Crear objeto Date directamente - el servidor ahora envía UTC
+            const tiempoInicio = new Date(preparandoStartedAtFromServer);
             const tiempoFin = new Date();
-
 
             const diferenciaMs = tiempoFin.getTime() - tiempoInicio.getTime();
 
             console.log('⏱️ DEBUG - Cálculo de tiempo:', {
               preparandoStartedAtFromServer: preparandoStartedAtFromServer,
-              fechaUTCCorregida: fechaUTC,
               tiempoInicioISO: tiempoInicio.toISOString(),
               tiempoFinISO: tiempoFin.toISOString(),
               tiempoInicioLocal: tiempoInicio.toLocaleString(),
@@ -1683,7 +1696,6 @@ export class MachinesComponent implements OnInit, OnDestroy {
               diferenciaMs: diferenciaMs,
               diferenciaMinutos: diferenciaMs / 1000 / 60
             });
-
 
             const totalSegundos = Math.floor(Math.abs(diferenciaMs) / 1000);
             const horas = Math.floor(totalSegundos / 3600);
@@ -1693,13 +1705,13 @@ export class MachinesComponent implements OnInit, OnDestroy {
 
             if (horas > 0) {
 
-              successMessage = `✅ Programa PREPARADO en ${horas} hora${horas !== 1 ? 's' : ''} y ${minutos} minuto${minutos !== 1 ? 's' : ''}`;
+              successMessage = `Programa PREPARADO en ${horas} hora${horas !== 1 ? 's' : ''} y ${minutos} minuto${minutos !== 1 ? 's' : ''}`;
             } else if (minutos > 0) {
 
-              successMessage = `✅ Programa PREPARADO en ${minutos} minuto${minutos !== 1 ? 's' : ''} y ${segundos} segundo${segundos !== 1 ? 's' : ''}`;
+              successMessage = `Programa PREPARADO en ${minutos} minuto${minutos !== 1 ? 's' : ''} y ${segundos} segundo${segundos !== 1 ? 's' : ''}`;
             } else {
 
-              successMessage = `✅ Programa PREPARADO en ${segundos} segundo${segundos !== 1 ? 's' : ''}`;
+              successMessage = `Programa PREPARADO en ${segundos} segundo${segundos !== 1 ? 's' : ''}`;
             }
 
             console.log('⏱️ Tiempo de preparación calculado:', {
@@ -1715,12 +1727,12 @@ export class MachinesComponent implements OnInit, OnDestroy {
           } else {
             console.warn('⚠️ No se pudo calcular el tiempo: preparandoStartedAt no está disponible en la respuesta del servidor');
             console.warn('⚠️ Respuesta completa del servidor:', response.data);
-            successMessage = '✅ Programa marcado como PREPARADO';
+            successMessage = 'Programa marcado como PREPARADO';
           }
         }
 
 
-        this.snackBar.open(successMessage, 'Cerrar', { duration: 5000 });
+        this.showStatusMessage(newStatus || 'SIN_ASIGNAR', successMessage, 5000);
         console.log('✅ Notificación mostrada al usuario');
 
 
@@ -1932,7 +1944,7 @@ export class MachinesComponent implements OnInit, OnDestroy {
           fecha: new Date().toLocaleString()
         });
 
-        this.snackBar.open('Programa SUSPENDIDO', 'Cerrar', { duration: 3000 });
+        this.showStatusMessage('SUSPENDIDO', `Programa SUSPENDIDO - Motivo: ${this.suspendReason}`, 4000);
         console.log('✅ Notificación mostrada al usuario');
 
         this.closeSuspendDialog();
@@ -2337,13 +2349,33 @@ export class MachinesComponent implements OnInit, OnDestroy {
     return result;
   }
 
+  // Mostrar mensaje personalizado con icono y color según la acción
+  showStatusMessage(status: string, message: string, duration: number = 5000) {
+    const statusConfig: Record<string, { icon: string, panelClass: string }> = {
+      'PREPARANDO': { icon: '⏱️', panelClass: 'status-preparando-snackbar' },
+      'LISTO': { icon: '✅', panelClass: 'status-listo-snackbar' },
+      'CORRIENDO': { icon: '▶️', panelClass: 'status-corriendo-snackbar' },
+      'SUSPENDIDO': { icon: '⏸️', panelClass: 'status-suspendido-snackbar' },
+      'TERMINADO': { icon: '🏁', panelClass: 'status-terminado-snackbar' }
+    };
+
+    const config = statusConfig[status] || { icon: 'ℹ️', panelClass: 'status-default-snackbar' };
+    const fullMessage = `${config.icon} ${message}`;
+
+    this.snackBar.open(fullMessage, 'Cerrar', {
+      duration: duration,
+      panelClass: [config.panelClass, 'animated-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+  }
+
   // Método helper para debugging del historial
   getHistoryCount(program: MachineProgram): number {
     const count = program.actionHistory?.length || 0;
     console.log(`📊 getHistoryCount para ${program.otSap}: ${count} acciones`);
     return count;
   }
-
 
 
 
