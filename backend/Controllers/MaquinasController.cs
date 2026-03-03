@@ -1398,7 +1398,7 @@ namespace backend.Controllers
             _logger.LogInformation($"📊 Procesando máquina {machineNumber}: Hoja tiene {rowCount} filas");
 
 
-            for (int row = 3; row <= rowCount; row++)
+            for (int row = 6; row <= rowCount; row++)
             {
                 try
                 {
@@ -1408,9 +1408,9 @@ namespace backend.Controllers
                     var cliente = GetCellValue(worksheet, row, "D")?.Trim();
 
 
-                    if (row == 3)
+                    if (row == 6)
                     {
-                        _logger.LogDebug($"🔍 Máquina {machineNumber}, Primera fila de datos: OT={otSap}, Articulo={articulo}, Cliente={cliente}");
+                        _logger.LogDebug($"🔍 Máquina {machineNumber}, Primera fila de datos (fila 6): OT={otSap}, Articulo={articulo}, Cliente={cliente}");
                     }
 
 
