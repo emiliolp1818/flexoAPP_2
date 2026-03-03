@@ -2039,10 +2039,10 @@ export class MachinesComponent implements OnInit, OnDestroy {
           archivo: file.name
         });
 
-        // Mensaje minimalista con icono - posicionado arriba del centro
+        // Mensaje ultra moderno y conciso
         const mensajeExito = response.totalErrors > 0
-          ? `✓ ${response.totalCreated} programas · ${response.totalErrors} con errores`
-          : `✓ ${response.totalCreated} programas cargados`;
+          ? `${response.totalCreated} programas cargados · ${response.totalErrors} errores`
+          : `${response.totalCreated} programas cargados exitosamente`;
 
         this.snackBar.open(mensajeExito, '', { 
           duration: 3500,
@@ -2085,11 +2085,9 @@ export class MachinesComponent implements OnInit, OnDestroy {
 
       if (error.status === 401) {
         console.error('🔒 Sesión expirada o no autorizado');
-        console.error('🔑 Token actual:', this.authService.getToken() ? 'existe' : 'no existe');
-        console.error('👤 Usuario actual:', this.authService.getCurrentUser());
 
         this.snackBar.open(
-          '✕ Sesión expirada',
+          'Sesión expirada',
           'Iniciar sesión',
           { 
             duration: 8000,
@@ -2105,23 +2103,23 @@ export class MachinesComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Mensajes de error minimalistas con icono ✕
-      let errorMessage = '✕ Error al cargar archivo';
+      // Mensajes de error ultra concisos
+      let errorMessage = 'Error al cargar archivo';
 
       if (error.status === 400) {
         if (error.error && error.error.message) {
-          errorMessage = `✕ ${error.error.message}`;
+          errorMessage = error.error.message;
         } else {
-          errorMessage = '✕ Formato inválido';
+          errorMessage = 'Formato de archivo inválido';
         }
       } else if (error.status === 413) {
-        errorMessage = '✕ Archivo muy grande';
+        errorMessage = 'Archivo muy grande';
       } else if (error.status === 0) {
-        errorMessage = '✕ Sin conexión';
+        errorMessage = 'Sin conexión al servidor';
       } else if (error.status === 500) {
-        errorMessage = '✕ Error del servidor';
+        errorMessage = 'Error del servidor';
       } else if (error.message) {
-        errorMessage = `✕ ${error.message}`;
+        errorMessage = error.message;
       }
 
       console.error(`❌ ${errorMessage}`, error);
