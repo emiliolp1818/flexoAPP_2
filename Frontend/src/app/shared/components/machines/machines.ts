@@ -1115,16 +1115,20 @@ export class MachinesComponent implements OnInit, OnDestroy {
 
       const promises = this.machineNumbers.map(async (num) => {
         try {
+          // Ruta correcta: api/MachineConfig/{numeroMaquina}
           const response = await firstValueFrom(
-            this.http.get<any>(`${environment.apiUrl}/maquinas/config/${num}`)
+            this.http.get<any>(`${environment.apiUrl}/MachineConfig/${num}`)
           );
-          if (response && response.success) {
-            configsMap.set(num, { cargaMuerta: response.data.cargaMuerta || 0 });
+          if (response) {
+            // El backend devuelve 'carga_muestra', no 'cargaMuerta'
+            const cargaMuestra = response.carga_muestra || 0;
+            configsMap.set(num, { cargaMuerta: cargaMuestra });
+            console.log(`✅ Máquina ${num}: carga muestra = ${cargaMuestra} kg`);
           } else {
             configsMap.set(num, { cargaMuerta: 0 });
           }
         } catch (err) {
-
+          console.warn(`⚠️ No se pudo cargar config para máquina ${num}:`, err);
           configsMap.set(num, { cargaMuerta: 0 });
         }
       });
