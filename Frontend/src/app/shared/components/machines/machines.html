@@ -463,9 +463,14 @@
                         
                         <!-- Historial expandible -->
                         <div class="status-history" *ngIf="isStatusHistoryExpanded(element.otSap)">
+                          <!-- Debug info -->
+                          <div style="font-size: 7px; color: #999; margin-bottom: 2px;">
+                            Historial: {{ element.actionHistory?.length || 0 }} acciones
+                          </div>
+                          
                           <!-- Mostrar historial completo si está disponible -->
                           <div *ngIf="element.actionHistory && element.actionHistory.length > 0; else singleAction">
-                            <div class="history-item" *ngFor="let action of element.actionHistory">
+                            <div class="history-item" *ngFor="let action of element.actionHistory; let i = index">
                               <div class="history-content">
                                 <div class="history-action">{{ action.description }}</div>
                                 <div class="history-user">{{ action.user }}</div>

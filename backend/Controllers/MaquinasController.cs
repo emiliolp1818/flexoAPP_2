@@ -2146,28 +2146,53 @@ namespace backend.Controllers
             {
                 _logger.LogInformation($"📋 Obteniendo historial de acciones para OT SAP: {otSap}");
 
+                // Normalizar OT SAP para búsqueda
+                var normalizedOtSap = otSap.Trim();
+
                 // Buscar actividades relacionadas con este OT SAP
                 var activities = await _context.Activities
+                    .Include(a => a.User) // Incluir la relación con User para obtener el nombre completo
                     .Where(a => a.Module == "MACHINES" && 
-                               (a.Details.Contains(otSap) || a.Description.Contains(otSap)))
+                               (a.Details.Contains(normalizedOtSap) || 
+                                a.Description.Contains(normalizedOtSap) ||
+                                a.Action.Contains("MACHINE")))
                     .OrderByDescending(a => a.Timestamp)
+                    .ToListAsync();
+
+                _logger.LogInformation($"🔍 Total actividades MACHINES encontradas: {activities.Count}");
+
+                // Filtrar manualmente para asegurar que pertenecen a este OT SAP
+                var filteredActivities = activities
+                    .Where(a => a.Details != null && 
+                               (a.Details.Contains($"\"{normalizedOtSap}\"") || 
+                                a.Details.Contains($"otSap\":\"{normalizedOtSap}") ||
+                                a.Description.Contains(normalizedOtSap)))
                     .Select(a => new
                     {
-                        user = a.UserCode ?? "Sistema",
+                        // Obtener el nombre completo del usuario desde la relación
+                        user = a.User != null 
+                            ? $"{a.User.FirstName} {a.User.LastName}".Trim()
+                            : (a.UserCode ?? "Sistema"),
                         action = a.Action,
-                        description = a.Description,
+                        description = a.Description,  // Mantener la descripción completa
                         timestamp = a.Timestamp,
                         details = a.Details
                     })
                     .Take(20)
-                    .ToListAsync();
+                    .ToList();
 
-                _logger.LogInformation($"✅ Encontradas {activities.Count} actividades para OT SAP: {otSap}");
+                _logger.LogInformation($"✅ Encontradas {filteredActivities.Count} actividades para OT SAP: {otSap}");
+                
+                if (filteredActivities.Count > 0)
+                {
+                    _logger.LogInformation($"📝 Primera actividad - Descripción: {filteredActivities[0].description}, Usuario: {filteredActivities[0].user}");
+                }
 
                 return Ok(new
                 {
                     success = true,
-                    data = activities
+                    data = filteredActivities,
+                    count = filteredActivities.Count
                 });
             }
             catch (Exception ex)

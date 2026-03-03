@@ -165,7 +165,7 @@ namespace flexoAPP.Services
             {
                 await _activityLogger.LogDetailedActivityAsync(
                     action: "MACHINE_STATUS_CHANGED",
-                    description: $"Cambio de estado: {oldStatus} → {estadoUpper}",
+                    description: $"{oldStatus} → {estadoUpper}",
                     module: "MACHINES",
                     entityType: "Maquina",
                     entityId: null,

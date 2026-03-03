@@ -164,6 +164,7 @@ export class MachinesComponent implements OnInit, OnDestroy {
   programs = signal<MachineProgram[]>([]);
   expandedColors = signal<Set<string>>(new Set());
   expandedStatusHistory = signal<Set<string>>(new Set());
+  statusHistoryTimeout: any = null; // Timeout para cerrar el historial automáticamente
 
 
   lineaturas = signal<number[]>([]);
@@ -405,6 +406,12 @@ export class MachinesComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     console.log('🧹 Limpiando suscripciones de SignalR...');
     this.signalRSubscriptions.forEach(sub => sub.unsubscribe());
+    
+    // Limpiar timeout del historial si existe
+    if (this.statusHistoryTimeout) {
+      clearTimeout(this.statusHistoryTimeout);
+      this.statusHistoryTimeout = null;
+    }
   }
 
 
@@ -789,17 +796,48 @@ export class MachinesComponent implements OnInit, OnDestroy {
     const expanded = new Set(this.expandedStatusHistory());
 
     if (expanded.has(otSap)) {
+      // Cerrar historial
       expanded.delete(otSap);
       console.log(`📋 Cerrando historial de estado para programa: ${otSap}`);
+      
+      // Limpiar timeout si existe
+      if (this.statusHistoryTimeout) {
+        clearTimeout(this.statusHistoryTimeout);
+        this.statusHistoryTimeout = null;
+      }
     } else {
+      // Abrir historial
       expanded.add(otSap);
       console.log(`📋 Abriendo historial de estado para programa: ${otSap}`);
       
       // Cargar historial si no está cargado
       const program = this.programs().find(p => p.otSap === otSap);
+      console.log(`🔍 Programa encontrado:`, program);
+      console.log(`🔍 Historial actual del programa:`, program?.actionHistory);
+      
       if (program && (!program.actionHistory || program.actionHistory.length === 0)) {
+        console.log(`⏳ Cargando historial desde el servidor...`);
         await this.loadProgramHistory(otSap);
+        
+        // Verificar después de cargar
+        const updatedProgram = this.programs().find(p => p.otSap === otSap);
+        console.log(`✅ Historial después de cargar:`, updatedProgram?.actionHistory);
+      } else {
+        console.log(`ℹ️ Historial ya cargado (${program?.actionHistory?.length || 0} acciones)`);
       }
+
+      // Configurar auto-cierre después de 60 segundos
+      if (this.statusHistoryTimeout) {
+        clearTimeout(this.statusHistoryTimeout);
+      }
+      
+      this.statusHistoryTimeout = setTimeout(() => {
+        console.log(`⏰ Auto-cerrando historial de ${otSap} después de 60 segundos`);
+        const currentExpanded = new Set(this.expandedStatusHistory());
+        currentExpanded.delete(otSap);
+        this.expandedStatusHistory.set(currentExpanded);
+        this.statusHistoryTimeout = null;
+      }, 60000); // 60 segundos
     }
 
     this.expandedStatusHistory.set(expanded);
@@ -812,8 +850,11 @@ export class MachinesComponent implements OnInit, OnDestroy {
         this.http.get<any>(`${environment.apiUrl}/maquinas/${otSap}/history`)
       );
 
+      console.log(`📡 Respuesta del servidor:`, response);
+
       if (response.success && response.data) {
         console.log(`✅ Historial cargado: ${response.data.length} acciones`);
+        console.log(`📋 Datos completos:`, response.data);
         
         // Actualizar el programa con el historial
         const programs = this.programs();
@@ -821,18 +862,28 @@ export class MachinesComponent implements OnInit, OnDestroy {
         
         if (programIndex !== -1) {
           const updatedPrograms = [...programs];
+          const historyData = response.data.map((item: any) => ({
+            user: item.user,
+            action: item.action,
+            description: item.description,
+            timestamp: new Date(item.timestamp)
+          }));
+          
+          console.log(`📊 Historial procesado (${historyData.length} items):`, historyData);
+          
           updatedPrograms[programIndex] = {
             ...updatedPrograms[programIndex],
-            actionHistory: response.data.map((item: any) => ({
-              user: item.user,
-              action: item.action,
-              description: item.description,
-              timestamp: new Date(item.timestamp)
-            }))
+            actionHistory: historyData
           };
           this.programs.set(updatedPrograms);
+          
           console.log(`✅ Historial actualizado para ${otSap}:`, updatedPrograms[programIndex].actionHistory);
+          console.log(`✅ Cantidad de acciones en el programa:`, updatedPrograms[programIndex].actionHistory?.length);
+        } else {
+          console.warn(`⚠️ No se encontró el programa con OT SAP: ${otSap}`);
         }
+      } else {
+        console.warn(`⚠️ Respuesta sin datos o sin éxito:`, response);
       }
     } catch (error) {
       console.error(`❌ Error cargando historial para ${otSap}:`, error);
@@ -2284,6 +2335,13 @@ export class MachinesComponent implements OnInit, OnDestroy {
 
 
     return result;
+  }
+
+  // Método helper para debugging del historial
+  getHistoryCount(program: MachineProgram): number {
+    const count = program.actionHistory?.length || 0;
+    console.log(`📊 getHistoryCount para ${program.otSap}: ${count} acciones`);
+    return count;
   }
 
 
