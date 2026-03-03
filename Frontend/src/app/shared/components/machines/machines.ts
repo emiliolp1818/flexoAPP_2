@@ -2039,13 +2039,17 @@ export class MachinesComponent implements OnInit, OnDestroy {
           archivo: file.name
         });
 
-
-
+        // Mensaje minimalista con icono - posicionado arriba del centro
         const mensajeExito = response.totalErrors > 0
-          ? `✅ Importación completada: ${response.totalCreated} programas creados, ${response.totalErrors} errores en ${response.sheetsProcessed} hojas`
-          : `✅ Importación exitosa: ${response.totalCreated} programas creados desde ${response.sheetsProcessed} hojas`;
+          ? `✓ ${response.totalCreated} programas · ${response.totalErrors} con errores`
+          : `✓ ${response.totalCreated} programas cargados`;
 
-        this.snackBar.open(mensajeExito, 'Cerrar', { duration: 6000 });
+        this.snackBar.open(mensajeExito, '', { 
+          duration: 3500,
+          panelClass: ['success-snackbar-custom'],
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
 
 
 
@@ -2085,11 +2089,15 @@ export class MachinesComponent implements OnInit, OnDestroy {
         console.error('👤 Usuario actual:', this.authService.getCurrentUser());
 
         this.snackBar.open(
-          'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
-          'Ir a Login',
-          { duration: 10000 }
+          '✕ Sesión expirada',
+          'Iniciar sesión',
+          { 
+            duration: 8000,
+            panelClass: ['error-snackbar-custom'],
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          }
         ).onAction().subscribe(() => {
-
           window.location.href = '/login';
         });
 
@@ -2097,54 +2105,33 @@ export class MachinesComponent implements OnInit, OnDestroy {
         return;
       }
 
-
-
-      let errorMessage = 'Error al procesar el archivo';
-      let technicalDetails = '';
+      // Mensajes de error minimalistas con icono ✕
+      let errorMessage = '✕ Error al cargar archivo';
 
       if (error.status === 400) {
-
-        errorMessage = 'Formato de archivo inválido';
-
-
         if (error.error && error.error.message) {
-          technicalDetails = error.error.message;
+          errorMessage = `✕ ${error.error.message}`;
         } else {
-          technicalDetails = 'Verifica que el archivo tenga las columnas correctas y el formato esperado.';
+          errorMessage = '✕ Formato inválido';
         }
       } else if (error.status === 413) {
-
-        errorMessage = 'El archivo es demasiado grande';
-        technicalDetails = 'El tamaño máximo permitido es 500MB.';
+        errorMessage = '✕ Archivo muy grande';
       } else if (error.status === 0) {
-
-        errorMessage = 'Error de conexión';
-        technicalDetails = 'Verifica tu conexión a internet y que el servidor esté disponible.';
+        errorMessage = '✕ Sin conexión';
       } else if (error.status === 500) {
-
-        errorMessage = 'Error interno del servidor';
-        technicalDetails = 'Problema al procesar el archivo en el servidor.';
+        errorMessage = '✕ Error del servidor';
       } else if (error.message) {
-
-        errorMessage = error.message;
-        technicalDetails = 'Revisa el formato del archivo y vuelve a intentar.';
+        errorMessage = `✕ ${error.message}`;
       }
 
+      console.error(`❌ ${errorMessage}`, error);
 
-
-      console.error(`❌ ${errorMessage}`, {
-        detalles: technicalDetails,
-        consejos: [
-          'Usa la plantilla descargable si está disponible',
-          'Verifica que todas las columnas requeridas estén presentes',
-          'El archivo no debe exceder 10MB',
-          'Asegúrate de que el formato sea Excel (.xlsx, .xls) o CSV (.csv)'
-        ]
+      this.snackBar.open(errorMessage, '', { 
+        duration: 4500,
+        panelClass: ['error-snackbar-custom'],
+        horizontalPosition: 'center',
+        verticalPosition: 'top'
       });
-
-
-
-      this.snackBar.open(`${errorMessage}. ${technicalDetails}`, 'Cerrar', { duration: 7000 });
 
     } finally {
 
