@@ -4575,10 +4575,13 @@ tr.expanded-detail-row {
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
       position: relative !important;
       z-index: 1 !important;
+      padding-left: 40px !important; // Espacio para el icono
       
-      // Icono animado
+      // Icono animado - posicionado absolutamente
       &::before {
         content: '✓' !important;
+        position: absolute !important;
+        left: 0 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -4623,10 +4626,14 @@ tr.expanded-detail-row {
       align-items: center !important;
       gap: 12px !important;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+      position: relative !important;
+      padding-left: 40px !important; // Espacio para el icono
       
-      // Icono X animado
+      // Icono X animado - posicionado absolutamente
       &::before {
         content: '✕' !important;
+        position: absolute !important;
+        left: 0 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -4681,9 +4688,14 @@ tr.expanded-detail-row {
       align-items: center !important;
       gap: 12px !important;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+      position: relative !important;
+      padding-left: 40px !important; // Espacio para el icono
       
+      // Icono warning animado - posicionado absolutamente
       &::before {
         content: '⚠' !important;
+        position: absolute !important;
+        left: 0 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
