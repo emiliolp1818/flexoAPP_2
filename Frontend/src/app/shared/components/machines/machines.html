@@ -236,8 +236,7 @@
                         <span>Cliente</span>
                       </div>
                     </th>
-                    <td mat-cell *matCellDef="let element" class="excel-cell client-cell" [matTooltip]="element.cliente"
-                      matTooltipPosition="above">
+                    <td mat-cell *matCellDef="let element" class="excel-cell client-cell">
                       <span class="client-name">{{ element.cliente }}</span>
                     </td>
                   </ng-container>
@@ -250,8 +249,7 @@
                         <span>Referencia</span>
                       </div>
                     </th>
-                    <td mat-cell *matCellDef="let element" class="excel-cell referencia-cell"
-                      [matTooltip]="element.referencia" matTooltipPosition="above">
+                    <td mat-cell *matCellDef="let element" class="excel-cell referencia-cell">
                       <span class="referencia-text">{{ element.referencia }}</span>
                     </td>
                   </ng-container>
@@ -434,7 +432,7 @@
                       </div>
                     </th>
                     <td mat-cell *matCellDef="let element" class="excel-cell sustrato-cell">
-                      <span class="sustrato-text">{{ element.sustrato }}</span>
+                      <span class="sustrato-text" [matTooltip]="element.sustrato" matTooltipPosition="above">{{ element.sustrato }}</span>
                     </td>
                   </ng-container>
 
@@ -448,19 +446,49 @@
                     </th>
                     <td mat-cell *matCellDef="let element" class="excel-cell status-cell">
                       <div class="estado-container">
-                        <div class="status-main">
-                          <span class="status-text-display"
-                            [class]="'status-' + (element.estado || 'SIN_ASIGNAR').toLowerCase()">
-                            <span class="status-text">{{ getEstadoDisplay(element.estado) }}</span>
-                          </span>
+                        <div class="status-main-wrapper">
+                          <div class="status-main">
+                            <span class="status-text-display"
+                              [class]="'status-' + (element.estado || 'SIN_ASIGNAR').toLowerCase()">
+                              <span class="status-text">{{ getEstadoDisplay(element.estado) }}</span>
+                            </span>
+                          </div>
+                          <button mat-icon-button class="status-history-toggle" 
+                                  (click)="toggleStatusHistory(element.otSap, $event)"
+                                  [class.expanded]="isStatusHistoryExpanded(element.otSap)"
+                                  matTooltip="Ver historial">
+                            <mat-icon>{{ isStatusHistoryExpanded(element.otSap) ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}</mat-icon>
+                          </button>
                         </div>
-                        <div class="operario-info">
-                          <small>{{ element.lastActionBy || 'Sistema' }}</small>
-
-                          <small *ngIf="element.lastActionAt" style="display: block; color: #999; font-size: 9px;">
-                            {{ element.lastActionAt | date:'dd/MM/yyyy HH:mm' }}
-                          </small>
+                        
+                        <!-- Historial expandible -->
+                        <div class="status-history" *ngIf="isStatusHistoryExpanded(element.otSap)">
+                          <!-- Mostrar historial completo si está disponible -->
+                          <div *ngIf="element.actionHistory && element.actionHistory.length > 0; else singleAction">
+                            <div class="history-item" *ngFor="let action of element.actionHistory">
+                              <div class="history-content">
+                                <div class="history-action">{{ action.description }}</div>
+                                <div class="history-user">{{ action.user }}</div>
+                                <div class="history-date">
+                                  {{ action.timestamp | date:'dd/MM/yyyy HH:mm' }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <!-- Fallback: mostrar solo última acción si no hay historial -->
+                          <ng-template #singleAction>
+                            <div class="history-item">
+                              <div class="history-content">
+                                <div class="history-action">{{ getEstadoDisplay(element.estado) }}</div>
+                                <div class="history-user">{{ element.lastActionBy || 'Sistema' }}</div>
+                                <div class="history-date" *ngIf="element.lastActionAt">
+                                  {{ element.lastActionAt | date:'dd/MM/yyyy HH:mm' }}
+                                </div>
+                              </div>
+                            </div>
+                          </ng-template>
                         </div>
+                        
                         <div *ngIf="element.estado === 'SUSPENDIDO' && element.observaciones" class="motivo-suspendido">
                           <small>{{ element.observaciones }}</small>
                         </div>

@@ -1154,6 +1154,10 @@ $gray-900: #0f172a;
           vertical-align: middle;
           transition: all 0.2s ease;
           min-height: 40px;
+          word-wrap: break-word;
+          word-break: break-word;
+          white-space: normal;
+          overflow-wrap: break-word;
         }
 
 
@@ -1208,9 +1212,10 @@ $gray-900: #0f172a;
     font-size: 10px;
     display: block;
     text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
   }
 }
 
@@ -1227,9 +1232,10 @@ $gray-900: #0f172a;
     font-size: 10px;
     display: block;
     text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
   }
 }
 
@@ -1241,9 +1247,10 @@ $gray-900: #0f172a;
     color: $gray-700;
     font-weight: 600;
     display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
     font-size: 10px;
   }
 }
@@ -1257,9 +1264,10 @@ $gray-900: #0f172a;
     color: $gray-700;
     font-weight: 500;
     display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
     font-size: 10px;
   }
 }
@@ -1890,6 +1898,7 @@ $gray-900: #0f172a;
     text-overflow: ellipsis;
     text-align: center;
     transition: all 0.2s ease;
+    cursor: help;
 
     &:hover {
       background: linear-gradient(135deg, $gray-200 0%, $gray-300 100%);
@@ -1918,12 +1927,20 @@ $gray-900: #0f172a;
     gap: 4px;
 
     align-items: center;
+    position: relative;
 
-
+    .status-main-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 2px;
+      position: relative;
+    }
 
     .status-main {
 
-      width: 100%;
+      flex: 1;
 
       text-align: center;
 
@@ -1971,7 +1988,114 @@ $gray-900: #0f172a;
 
     }
 
+    .status-history-toggle {
+      width: 16px !important;
+      height: 16px !important;
+      min-width: 16px !important;
+      min-height: 16px !important;
+      padding: 0 !important;
+      border-radius: 3px;
+      background: transparent;
+      transition: all 0.2s ease;
+      opacity: 0.4;
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
 
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        line-height: 14px;
+        color: #64748b;
+      }
+
+      &:hover {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      &.expanded {
+        opacity: 1;
+        background: rgba(59, 130, 246, 0.08);
+        
+        mat-icon {
+          color: #3b82f6;
+        }
+      }
+    }
+
+    .status-history {
+      width: 100%;
+      margin-top: 4px;
+      padding: 4px 6px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      animation: slideDown 0.3s ease-out;
+      max-height: 150px;
+      overflow-y: auto;
+
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(241, 245, 249, 0.8);
+        border-radius: 2px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 2px;
+      }
+
+      .history-item {
+        display: flex;
+        gap: 3px;
+        align-items: flex-start;
+        padding: 3px 4px;
+        margin-bottom: 2px;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+
+        &:hover {
+          background: rgba(59, 130, 246, 0.05);
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .history-content {
+          flex: 1;
+          text-align: left;
+          line-height: 1.1;
+
+          .history-action {
+            font-size: 9px;
+            font-weight: 700;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            margin-bottom: 1px;
+          }
+
+          .history-user {
+            font-size: 8px;
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 1px;
+          }
+
+          .history-date {
+            font-size: 7px;
+            color: #64748b;
+            font-weight: 500;
+          }
+        }
+      }
+    }
 
     .operario-info {
       font-size: 10px;
@@ -2005,6 +2129,17 @@ $gray-900: #0f172a;
 
   }
 
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 

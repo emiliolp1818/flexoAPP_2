@@ -2136,6 +2136,52 @@ namespace backend.Controllers
             return result;
         }
 
+        /// <summary>
+        /// Obtiene el historial de acciones para un programa específico
+        /// </summary>
+        [HttpGet("{otSap}/history")]
+        public async Task<ActionResult<object>> GetProgramHistory(string otSap)
+        {
+            try
+            {
+                _logger.LogInformation($"📋 Obteniendo historial de acciones para OT SAP: {otSap}");
+
+                // Buscar actividades relacionadas con este OT SAP
+                var activities = await _context.Activities
+                    .Where(a => a.Module == "MACHINES" && 
+                               (a.Details.Contains(otSap) || a.Description.Contains(otSap)))
+                    .OrderByDescending(a => a.Timestamp)
+                    .Select(a => new
+                    {
+                        user = a.UserCode ?? "Sistema",
+                        action = a.Action,
+                        description = a.Description,
+                        timestamp = a.Timestamp,
+                        details = a.Details
+                    })
+                    .Take(20)
+                    .ToListAsync();
+
+                _logger.LogInformation($"✅ Encontradas {activities.Count} actividades para OT SAP: {otSap}");
+
+                return Ok(new
+                {
+                    success = true,
+                    data = activities
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error obteniendo historial para OT SAP: {otSap}");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error al obtener historial de acciones",
+                    error = ex.Message
+                });
+            }
+        }
+
     }
 
 

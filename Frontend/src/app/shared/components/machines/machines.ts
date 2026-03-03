@@ -72,6 +72,14 @@ interface MachineProgram {
   messageSender?: string;
   messageRead?: boolean;
   messageReadBy?: string;
+  
+  // Historial de acciones
+  actionHistory?: Array<{
+    user: string;
+    action: string;
+    description: string;
+    timestamp: Date;
+  }>;
 }
 
 interface UserPermissions {
@@ -155,6 +163,7 @@ export class MachinesComponent implements OnInit, OnDestroy {
   selectedMachineNumber = signal<number | null>(null);
   programs = signal<MachineProgram[]>([]);
   expandedColors = signal<Set<string>>(new Set());
+  expandedStatusHistory = signal<Set<string>>(new Set());
 
 
   lineaturas = signal<number[]>([]);
@@ -761,6 +770,73 @@ export class MachinesComponent implements OnInit, OnDestroy {
 
 
     console.log(`🎨 Dropdown de colores cerrado para programa: ${otSap}`);
+  }
+
+  // ===== MÉTODOS PARA HISTORIAL DE ESTADO =====
+  isStatusHistoryExpanded(otSap: string): boolean {
+    if (!otSap) {
+      return false;
+    }
+    const normalizedOtSap = String(otSap).trim();
+    return this.expandedStatusHistory().has(normalizedOtSap);
+  }
+
+  async toggleStatusHistory(otSap: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const expanded = new Set(this.expandedStatusHistory());
+
+    if (expanded.has(otSap)) {
+      expanded.delete(otSap);
+      console.log(`📋 Cerrando historial de estado para programa: ${otSap}`);
+    } else {
+      expanded.add(otSap);
+      console.log(`📋 Abriendo historial de estado para programa: ${otSap}`);
+      
+      // Cargar historial si no está cargado
+      const program = this.programs().find(p => p.otSap === otSap);
+      if (program && (!program.actionHistory || program.actionHistory.length === 0)) {
+        await this.loadProgramHistory(otSap);
+      }
+    }
+
+    this.expandedStatusHistory.set(expanded);
+  }
+
+  async loadProgramHistory(otSap: string) {
+    try {
+      console.log(`📋 Cargando historial para OT SAP: ${otSap}`);
+      const response = await firstValueFrom(
+        this.http.get<any>(`${environment.apiUrl}/maquinas/${otSap}/history`)
+      );
+
+      if (response.success && response.data) {
+        console.log(`✅ Historial cargado: ${response.data.length} acciones`);
+        
+        // Actualizar el programa con el historial
+        const programs = this.programs();
+        const programIndex = programs.findIndex(p => p.otSap === otSap);
+        
+        if (programIndex !== -1) {
+          const updatedPrograms = [...programs];
+          updatedPrograms[programIndex] = {
+            ...updatedPrograms[programIndex],
+            actionHistory: response.data.map((item: any) => ({
+              user: item.user,
+              action: item.action,
+              description: item.description,
+              timestamp: new Date(item.timestamp)
+            }))
+          };
+          this.programs.set(updatedPrograms);
+          console.log(`✅ Historial actualizado para ${otSap}:`, updatedPrograms[programIndex].actionHistory);
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Error cargando historial para ${otSap}:`, error);
+    }
   }
 
 
@@ -2524,7 +2600,8 @@ export class MachinesComponent implements OnInit, OnDestroy {
       kilos: program.kilos,
       sustrato: program.sustrato,
       td: program.td,
-      colores: program.colores
+      colores: program.colores,
+      observaciones: program.observaciones
     });
 
     try {
@@ -2550,7 +2627,8 @@ export class MachinesComponent implements OnInit, OnDestroy {
         .replace(/\$\{program\.kilos\s*\|\|\s*0\}\s*kg/g, this.formatKilosForPrint(program.kilos) + ' kg')
         .replace(/\$\{program\.metros\s*\|\|\s*0\}\s*m/g, (program.metros ? Math.floor(program.metros) : 0) + ' m')
         .replace(/\$\{program\.sustrato\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.sustrato || '')
-        .replace(/\$\{program\.articulo\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.articulo || '');
+        .replace(/\$\{program\.articulo\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.articulo || '')
+        .replace(/\$\{program\.observaciones\s*\|\|\s*[\s\S]*?['"]{2}\}/g, program.observaciones || '');
 
 
 
