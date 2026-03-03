@@ -990,18 +990,20 @@ export class MachinesComponent implements OnInit, OnDestroy {
         const metros = Number(program.metros);
         const anchoMm = Number(program.anchoMm);
 
-        // ✅ CÁLCULO DE KILOS: (Metros * AnchoM * Volumen * Densidad * Eficiencia) + Carga Muerta
+        // ✅ NUEVA FÓRMULA: ((Metros * Ancho * Volumen * Eficiencia) / 1000) * Densidad + Carga Muerta
         const anchoMetros = anchoMm / 1000;
-        const areaM2 = metros * anchoMetros;
 
         const eficiencia = selectedAnilox.factor_eficiencia || 35.00;
         const densidad = selectedAnilox.densidad || 0.885;
         const factorEficiencia = eficiencia / 100;
 
-        const gramos = areaM2 * Number(selectedAnilox.volumen_real) * densidad * factorEficiencia;
-        const kilosBase = gramos / 1000;
+        // Paso 1: (Metros * Ancho * Volumen * Eficiencia) / 1000
+        const kilosSinDensidad = (metros * anchoMetros * Number(selectedAnilox.volumen_real) * factorEficiencia) / 1000;
+        
+        // Paso 2: Multiplicar por Densidad
+        const kilosBase = kilosSinDensidad * densidad;
 
-
+        // Paso 3: Sumar Carga Muerta
         const machineConfig = this.machineConfigs().get(program.machineNumber);
         const cargaMuerta = machineConfig?.cargaMuerta || 0;
 
@@ -1011,13 +1013,15 @@ export class MachinesComponent implements OnInit, OnDestroy {
           metros,
           anchoMm: anchoMm + ' mm',
           anchoMetros: anchoMetros.toFixed(3) + ' m',
-          areaM2: areaM2.toFixed(3) + ' m²',
           volumen: selectedAnilox.volumen_real + ' cm³/m²',
           eficiencia: eficiencia + '%',
+          factorEficiencia: factorEficiencia,
+          paso1_sin_densidad: kilosSinDensidad.toFixed(3) + ' kg',
           densidad: densidad + ' g/cm³',
-          kilosBase: kilosBase.toFixed(3) + ' kg',
+          paso2_kilosBase: kilosBase.toFixed(3) + ' kg',
           cargaMuerta: cargaMuerta + ' kg',
-          RESULTADO: calculatedKilos + ' kg'
+          RESULTADO_FINAL: calculatedKilos + ' kg',
+          formula: '((Metros × Ancho × Volumen × Eficiencia) / 1000) × Densidad + Carga Muerta'
         });
       } else {
         console.warn('⚠️ No se pudo realizar el cálculo automático. Faltan datos:', {
