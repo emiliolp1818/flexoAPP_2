@@ -4525,7 +4525,37 @@ tr.expanded-detail-row {
     &.success-snackbar-custom,
     &.error-snackbar-custom,
     &.warning-snackbar-custom {
-      margin-top: 35vh !important; // Posición vertical más baja (35% desde arriba)
+      margin-top: 35vh !important;
+    }
+  }
+
+  // Estilo para el ícono dentro del snackbar
+  .snackbar-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 50% !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    vertical-align: middle !important;
+    
+    &.success-icon {
+      animation: checkPulse 0.6s ease-out !important;
+    }
+    
+    &.error-icon {
+      font-size: 22px !important;
+      animation: shake 0.5s ease-out !important;
+    }
+    
+    &.warning-icon {
+      animation: bounce 0.6s ease-out !important;
     }
   }
 
@@ -4544,55 +4574,16 @@ tr.expanded-detail-row {
       max-width: 480px !important;
       border: 2px solid rgba(255, 255, 255, 0.25) !important;
       backdrop-filter: blur(12px) !important;
-      position: relative !important;
-      overflow: hidden !important;
-      
-      // Efecto de brillo animado
-      &::before {
-        content: '' !important;
-        position: absolute !important;
-        top: -50% !important;
-        left: -50% !important;
-        width: 200% !important;
-        height: 200% !important;
-        background: linear-gradient(
-          45deg,
-          transparent 30%,
-          rgba(255, 255, 255, 0.2) 50%,
-          transparent 70%
-        ) !important;
-        animation: shine 2s ease-in-out infinite !important;
-      }
+      animation: slideDownFade 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
     }
 
     .mat-mdc-snack-bar-label {
       color: white !important;
       font-weight: 600 !important;
       letter-spacing: 0.5px !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
       display: flex !important;
       align-items: center !important;
-      gap: 12px !important;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-      position: relative !important;
-      z-index: 1 !important;
-      padding-left: 40px !important; // Espacio para el icono
-      
-      // Icono animado - posicionado absolutamente
-      &::before {
-        content: '✓' !important;
-        position: absolute !important;
-        left: 0 !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 28px !important;
-        height: 28px !important;
-        background: rgba(255, 255, 255, 0.25) !important;
-        border-radius: 50% !important;
-        font-size: 18px !important;
-        font-weight: bold !important;
-        animation: checkPulse 0.6s ease-out !important;
-      }
     }
   }
 
@@ -4611,10 +4602,6 @@ tr.expanded-detail-row {
       max-width: 480px !important;
       border: 2px solid rgba(255, 255, 255, 0.25) !important;
       backdrop-filter: blur(12px) !important;
-      position: relative !important;
-      overflow: hidden !important;
-      
-      // Efecto de pulso para errores
       animation: errorPulse 0.5s ease-out !important;
     }
 
@@ -4622,29 +4609,9 @@ tr.expanded-detail-row {
       color: white !important;
       font-weight: 600 !important;
       letter-spacing: 0.5px !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
       display: flex !important;
       align-items: center !important;
-      gap: 12px !important;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-      position: relative !important;
-      padding-left: 40px !important; // Espacio para el icono
-      
-      // Icono X animado - posicionado absolutamente
-      &::before {
-        content: '✕' !important;
-        position: absolute !important;
-        left: 0 !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 28px !important;
-        height: 28px !important;
-        background: rgba(255, 255, 255, 0.25) !important;
-        border-radius: 50% !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
-        animation: shake 0.5s ease-out !important;
-      }
     }
 
     .mat-mdc-button {
@@ -4684,28 +4651,9 @@ tr.expanded-detail-row {
       color: white !important;
       font-weight: 600 !important;
       letter-spacing: 0.5px !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
       display: flex !important;
       align-items: center !important;
-      gap: 12px !important;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-      position: relative !important;
-      padding-left: 40px !important; // Espacio para el icono
-      
-      // Icono warning animado - posicionado absolutamente
-      &::before {
-        content: '⚠' !important;
-        position: absolute !important;
-        left: 0 !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 28px !important;
-        height: 28px !important;
-        background: rgba(255, 255, 255, 0.25) !important;
-        border-radius: 50% !important;
-        font-size: 18px !important;
-        animation: bounce 0.6s ease-out !important;
-      }
     }
   }
 

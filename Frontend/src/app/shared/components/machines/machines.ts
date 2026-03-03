@@ -2039,17 +2039,26 @@ export class MachinesComponent implements OnInit, OnDestroy {
           archivo: file.name
         });
 
-        // Mensaje ultra moderno y conciso
+        // Mensaje ultra moderno y conciso con ícono estilizado
+        const iconoExito = '<span class="snackbar-icon success-icon">✓</span>';
         const mensajeExito = response.totalErrors > 0
-          ? `${response.totalCreated} programas cargados · ${response.totalErrors} errores`
-          : `${response.totalCreated} programas cargados exitosamente`;
+          ? `${iconoExito} ${response.totalCreated} programas cargados · ${response.totalErrors} errores`
+          : `${iconoExito} ${response.totalCreated} programas cargados exitosamente`;
 
-        this.snackBar.open(mensajeExito, '', { 
+        const snackBarRef = this.snackBar.open('', '', { 
           duration: 3500,
           panelClass: ['success-snackbar-custom'],
           horizontalPosition: 'center',
           verticalPosition: 'top'
         });
+        
+        // Inyectar HTML con el ícono estilizado usando setTimeout para asegurar que el DOM esté listo
+        setTimeout(() => {
+          const label = document.querySelector('.success-snackbar-custom .mat-mdc-snack-bar-label');
+          if (label) {
+            label.innerHTML = mensajeExito;
+          }
+        }, 0);
 
 
 
@@ -2103,33 +2112,42 @@ export class MachinesComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Mensajes de error ultra concisos
-      let errorMessage = 'Error al cargar archivo';
+      // Mensajes de error ultra concisos con ícono estilizado
+      const iconoError = '<span class="snackbar-icon error-icon">✕</span>';
+      let errorMessage = `${iconoError} Error al cargar archivo`;
 
       if (error.status === 400) {
         if (error.error && error.error.message) {
-          errorMessage = error.error.message;
+          errorMessage = `${iconoError} ${error.error.message}`;
         } else {
-          errorMessage = 'Formato de archivo inválido';
+          errorMessage = `${iconoError} Formato de archivo inválido`;
         }
       } else if (error.status === 413) {
-        errorMessage = 'Archivo muy grande';
+        errorMessage = `${iconoError} Archivo muy grande`;
       } else if (error.status === 0) {
-        errorMessage = 'Sin conexión al servidor';
+        errorMessage = `${iconoError} Sin conexión al servidor`;
       } else if (error.status === 500) {
-        errorMessage = 'Error del servidor';
+        errorMessage = `${iconoError} Error del servidor`;
       } else if (error.message) {
-        errorMessage = error.message;
+        errorMessage = `${iconoError} ${error.message}`;
       }
 
       console.error(`❌ ${errorMessage}`, error);
 
-      this.snackBar.open(errorMessage, '', { 
+      const snackBarRef = this.snackBar.open('', '', { 
         duration: 4500,
         panelClass: ['error-snackbar-custom'],
         horizontalPosition: 'center',
         verticalPosition: 'top'
       });
+      
+      // Inyectar HTML con el ícono estilizado usando setTimeout para asegurar que el DOM esté listo
+      setTimeout(() => {
+        const label = document.querySelector('.error-snackbar-custom .mat-mdc-snack-bar-label');
+        if (label) {
+          label.innerHTML = errorMessage;
+        }
+      }, 0);
 
     } finally {
 
