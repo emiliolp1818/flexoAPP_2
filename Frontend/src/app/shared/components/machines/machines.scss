@@ -1073,7 +1073,7 @@ $gray-900: #0f172a;
 
         background: white;
 
-        border-collapse: separate;
+        border-collapse: collapse;
 
         border-spacing: 0;
 
@@ -1101,7 +1101,7 @@ $gray-900: #0f172a;
 
           text-transform: uppercase;
 
-          padding: 8px 8px;
+          padding: 6px 6px;
 
           border-bottom: 2px solid $primary-blue;
 
@@ -1146,14 +1146,14 @@ $gray-900: #0f172a;
 
 
         .excel-cell {
-          padding: 8px 6px;
+          padding: 4px 4px;
           border-bottom: 1px solid #e2e8f0;
           border-right: 1px solid #f1f5f9;
           background: white;
           font-size: 10px !important;
           vertical-align: middle;
           transition: all 0.2s ease;
-          min-height: 40px;
+          min-height: 32px;
           word-wrap: break-word;
           word-break: break-word;
           white-space: normal;
@@ -1166,6 +1166,7 @@ $gray-900: #0f172a;
 
           transition: all 0.2s ease;
           position: relative;
+          margin: 0;
 
 
 
@@ -3246,8 +3247,8 @@ tr.expanded-detail-row {
 .info-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: 6px;
+  padding: 2px 6px;
   background: linear-gradient(135deg, $gray-50 0%, $gray-100 100%);
   border-radius: 6px;
   border: 1px solid rgba(226, 232, 240, 0.5);
@@ -3283,7 +3284,7 @@ tr.expanded-detail-row {
   }
 
   &.selector-row {
-    padding: 2px 8px;
+    padding: 1px 6px;
 
     .anilox-select {
       flex: 1;
@@ -4152,15 +4153,15 @@ tr.expanded-detail-row {
 
 .action-buttons {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
   justify-content: center;
   flex-wrap: nowrap;
 
   .action-btn {
-    min-width: 32px;
-    width: 32px;
-    height: 32px;
+    min-width: 28px;
+    width: 28px;
+    height: 28px;
     border-radius: 6px;
     transition: all 0.2s ease;
     border: none !important;
