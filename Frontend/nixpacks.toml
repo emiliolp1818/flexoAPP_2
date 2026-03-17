@@ -1,0 +1,14 @@
+# Configuración Nixpacks - FRONTEND Angular 20
+# Angular 20 requiere: ^20.19.0 || ^22.12.0 || >=24.0.0
+
+[phases.setup]
+# No especificar nixPkgs aquí — Railway debe usar NIXPACKS_NODE_VERSION del env
+
+[phases.install]
+cmds = ["npm install --legacy-peer-deps"]
+
+[phases.build]
+cmds = ["npm run build:railway"]
+
+[start]
+cmd = "npx serve -s dist/flexoapp/browser -l $PORT --no-clipboard"

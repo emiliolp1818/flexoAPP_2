@@ -1,0 +1,110 @@
+<div class="modern-header" *ngIf="currentUser() as user">
+
+    <div class="header-background"></div>
+    <div class="header-pattern"></div>
+
+
+    <div class="header-content">
+
+        <div class="logo-section">
+            <div class="logo-container" (click)="navigateToHome()">
+                <div class="logo-text-container">
+                    <h1 class="logo-text">FlexoApp</h1>
+                    <span class="logo-subtitle">Sistema FLexografico</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="welcome-section">
+            <div class="time-indicator">
+
+                <mat-icon class="time-icon" fontSet="material-icons">{{ getTimeIcon() }}</mat-icon>
+                <span class="time-text">{{ getCurrentTime() }}</span>
+            </div>
+            <div class="welcome-message">
+                <span class="greeting">{{ getTimeBasedGreeting() }}, {{ userFirstName() }}</span>
+                <span class="message">{{ getTimeBasedMessage() }}</span>
+            </div>
+        </div>
+
+
+        <div class="user-section">
+
+            <div class="status-section">
+                <div class="status-indicator" [class.loading]="isLoading()">
+                    <div class="led-indicator" [class.loading]="isLoading()"></div>
+                    <span class="status-text">{{ languageService.translate('common.online') || 'En línea' }}</span>
+                </div>
+                <div class="user-role-badge">
+                    <span class="role-text">{{ getRoleDisplayName(user.role) }}</span>
+                </div>
+            </div>
+
+
+            <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-button">
+
+                <div class="user-avatar">
+
+                    <img *ngIf="hasProfileImage(user)" [src]="getProfileImageUrl(user.profileImage || '')"
+                        [attr.data-original-src]="user.profileImage" [attr.data-user-code]="user.userCode"
+                        [alt]="user.firstName + ' ' + user.lastName" class="profile-image" (load)="onImageLoad($event)"
+                        (loadstart)="onImageLoadStart($event)" (error)="onImageError($event)" loading="lazy"
+                        decoding="async">
+
+                    <div *ngIf="!hasProfileImage(user)" class="default-avatar"
+                        [style.--avatar-color]="getAvatarColor(user.firstName)"
+                        [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
+                        [title]="user.firstName + ' ' + user.lastName + ' (Sin foto de perfil)'">
+                        {{ getInitials(user.firstName, user.lastName) }}
+                    </div>
+                </div>
+            </button>
+
+
+            <mat-menu #userMenu="matMenu" class="user-menu">
+
+                <div class="menu-header">
+                    <div class="menu-user-info">
+
+                        <div class="user-avatar">
+
+                            <img *ngIf="hasProfileImage(user)" [src]="getProfileImageUrl(user.profileImage || '')"
+                                [attr.data-original-src]="user.profileImage" [attr.data-user-code]="user.userCode"
+                                [alt]="user.firstName + ' ' + user.lastName" class="profile-image"
+                                (load)="onImageLoad($event)" (loadstart)="onImageLoadStart($event)"
+                                (error)="onImageError($event)" loading="lazy" decoding="async">
+
+                            <div *ngIf="!hasProfileImage(user)" class="default-avatar"
+                                [style.--avatar-color]="getAvatarColor(user.firstName)"
+                                [style.--avatar-color-dark]="getAvatarColor(user.firstName + 'dark')"
+                                [title]="user.firstName + ' ' + user.lastName + ' (Sin foto de perfil)'">
+                                {{ getInitials(user.firstName, user.lastName) }}
+                            </div>
+                        </div>
+
+                        <div class="menu-user-details">
+                            <span class="menu-user-name">{{ userDisplayName() }}</span>
+                            <span class="menu-user-role">{{ getRoleDisplayName(user.role) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <mat-divider></mat-divider>
+
+
+                <button mat-menu-item (click)="onProfile()">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ languageService.translate('nav.profile') || 'MI PERFIL' }}</span>
+                </button>
+
+                <mat-divider></mat-divider>
+
+
+                <button mat-menu-item (click)="onLogout()">
+                    <mat-icon>logout</mat-icon>
+                    <span>{{ languageService.translate('nav.logout') || 'Cerrar Sesión' }}</span>
+                </button>
+            </mat-menu>
+        </div>
+    </div>

@@ -1,0 +1,44 @@
+# Archivos y carpetas a ignorar en Railway
+
+# Frontend (no lo desplegamos en el backend)
+Frontend/
+frontend/
+
+# Node modules
+node_modules/
+**/node_modules/
+
+# Archivos de desarrollo
+*.log
+*.db
+*.db-shm
+*.db-wal
+
+# Archivos de build locales
+backend/bin/
+backend/obj/
+backend/logs/
+
+# Archivos de configuración local
+appsettings.Development.json
+appsettings.Local.json
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Documentación temporal
+*.md
+!README.md
+
+# Backups locales
+backend/Backups/
+backend/uploads/
+
+# Scripts de base de datos (ya están en la BD)
+backend/Database/Scripts/

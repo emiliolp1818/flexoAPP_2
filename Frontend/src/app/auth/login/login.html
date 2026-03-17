@@ -1,0 +1,127 @@
+<div class="login-container">
+
+  <div class="animated-background">
+    <div class="floating-orb"></div>
+    <div class="floating-orb"></div>
+    <div class="floating-orb"></div>
+  </div>
+
+
+  <div class="company-info-section">
+    <img src="../logo2.3.png" alt="FlexoSpring Logo" class="company-logo-main">
+
+
+    <div class="clock-section">
+      <div class="current-time">{{ currentTime() }}</div>
+      <div class="current-date">{{ currentDate() }}</div>
+    </div>
+
+
+    <div class="mission-section">
+      <h2 class="section-title">
+        <mat-icon>flag</mat-icon>
+        Misión
+      </h2>
+      <p class="section-text">
+        Brindar soluciones sostenibles de empaques flexibles.
+      </p>
+    </div>
+
+
+    <div class="vision-section">
+      <h2 class="section-title">
+        <mat-icon>visibility</mat-icon>
+        Visión
+      </h2>
+      <p class="section-text">
+        Consolidarnos en el 2030 como la compañía líder en soluciones sostenibles de empaques flexibles en Colombia,
+        fortaleciendo nuestra presencia en la región y aportando a la construcción de un planeta mejor.
+      </p>
+    </div>
+  </div>
+
+
+  <div class="login-card">
+
+    <div class="login-form">
+
+      <div class="logo-container">
+        <img src="../usuario.2.0.png" alt="Usuario" class="company-logo">
+        
+      </div>
+
+
+      <div class="form-header">
+        <h2>FlexoApp</h2>
+        <p>Accede a tu cuenta FlexoSpring</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+
+        <div class="error-message" *ngIf="errorMessage()">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+
+
+        <div class="form-field">
+          <mat-form-field appearance="outline">
+            <mat-label>Usuario</mat-label>
+            <input
+              matInput
+              formControlName="userCode"
+              autocomplete="username"
+              placeholder="Ingrese su usuario"
+              type="text"
+              inputmode="text" />
+            <mat-icon matSuffix>person</mat-icon>
+            <mat-error *ngIf="loginForm.get('userCode')?.invalid && loginForm.get('userCode')?.touched">
+              Usuario requerido
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+
+        <div class="form-field">
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña</mat-label>
+            <input
+              matInput
+              [type]="hidePassword() ? 'password' : 'text'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="Ingrese su contraseña" />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+              Contraseña requerida
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Enlace de recuperar contraseña -->
+        <div class="forgot-password-link">
+          <a href="#" (click)="onForgotPassword($event)" class="forgot-link">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+
+        <button
+          mat-raised-button
+          type="submit"
+          class="login-button"
+          [disabled]="loginForm.invalid || isLoading()">
+          <mat-icon *ngIf="isLoading()" class="spinning">refresh</mat-icon>
+          <span>{{ isLoading() ? 'Iniciando...' : 'Iniciar Sesión' }}</span>
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,124 @@
+FLEXOAPP - ESPECIFICACIONES DETALLADAS DEL SISTEMA
+===================================================
+
+Este documento centraliza toda la información técnica, funcional y de infraestructura del proyecto FlexoAPP, un sistema integral de gestión para procesos flexográficos.
+
+ARQUITECTURA GENERAL
+-------------------
+
+El sistema sigue una arquitectura Client-Server moderna con desacoplamiento total entre el Frontend y el Backend.
+
+Tecnologías Core:
+- Frontend: Angular v20+ (Framework SPA).
+- Backend: ASP.NET Core 8.0 (Web API).
+- Base de Datos: MySQL 8.0+ (Relacional).
+- Infraestructura: 
+  * Render: Hosting de API y Frontend.
+  * Railway: Hosting de Base de Datos MySQL.
+
+FRONTEND (ANGULAR)
+------------------
+
+Lenguajes y Herramientas:
+- TypeScript: Lógica de negocio y componentes.
+- HTML5/SCSS: Estructura y diseño premium con animaciones.
+- Angular Material: Componentes de UI (Dialogs, Tables, Tabs, etc.).
+- RxJS: Manejo de flujos de datos asíncronos.
+- Angular Signals: Gestión reactiva de estado (moderno).
+
+Librerías Funcionales (En Uso):
+- @angular/*: Core del framework (Animations, Forms, Router, etc.).
+- @ngrx/store: Gestión de estado global.
+- @ngx-translate/core: Soporte multi-idioma (i18n).
+- chart.js / ng2-charts: Gráficos y estadísticas del sistema.
+- exceljs: Manipulación avanzada de archivos Excel.
+- jspdf / jspdf-autotable: Generación de reportes PDF.
+- mammoth: Conversión de documentos Word a HTML (Previsualización).
+- ngx-toastr: Notificaciones flotantes.
+- rxjs: Programación reactiva.
+- zone.js: Detección de cambios de Angular.
+
+Librerías Identificadas como NO Usadas:
+- m: Identificada en package.json pero sin importaciones en el código.
+- socket.io-client: El sistema utiliza SignalR en su lugar.
+
+BACKEND (ASP.NET CORE)
+----------------------
+
+Lenguajes y Herramientas:
+- C# 12 / .NET 8: Lenguaje principal.
+- Entity Framework Core: ORM para gestión de datos MySQL.
+- LINQ: Consultas de datos eficientes.
+- JWT: Seguridad basada en Tokens.
+
+Librerías Funcionales (En Uso):
+- Pomelo.EntityFrameworkCore.MySql: Proveedor de BD para MySQL.
+- QuestPDF: Generación de reportes PDF de alta calidad.
+- Serilog: Registro estructurado de logs.
+- BCrypt.Net-Next: Hashing seguro de contraseñas.
+- AutoMapper: Mapeo automático entre Entidades y DTOs.
+- MiniProfiler: Monitorización de rendimiento.
+- ClosedXML / EPPlus: Procesamiento de archivos Excel complejos.
+- SignalR: Comunicación en tiempo real (Hubs).
+- Swashbuckle: Documentación interactiva de la API con Swagger.
+
+Librerías Identificadas como NO Usadas:
+- AspNetCore.HealthChecks.SqlServer: El sistema usa MySQL.
+- AspNetCore.HealthChecks.Redis: No se utiliza Redis.
+- Aspose.Cells / Aspose.Words: Librerías de pago (Se prefieren alternativas libres).
+
+FUNCIONALIDADES PRINCIPALES
+---------------------------
+
+1. Seguridad y Autenticación:
+- Sistema de Login basado en JWT.
+- Gestión de Refresh Tokens.
+- Sistema de Permisos Granular: 21 permisos específicos (Usuarios, Módulos, Acciones, Sistema).
+- Roles: Admin, Supervisor, Prealistador, Matizador, Operario, Retornos.
+
+2. Gestión de Diseños Flexográficos:
+- CRUD completo de diseños.
+- Importación masiva desde Excel mediante ExcelJS.
+- Gestión de colores Pantone (hasta 10 colores).
+
+3. Módulo de Máquinas y Operaciones:
+- Control de programación de máquinas.
+- Cálculo Automático de Tinta: Fórmula avanzada que considera metros, ancho, volumen, eficiencia y densidad.
+
+4. Auditoría y Reportes:
+- Activity Logger: Registro automático de acciones críticas.
+- Reportes de auditoría detallados.
+- Exportación a Excel/PDF.
+
+5. Infraestructura y Despliegue:
+- Despliegue continuo en Render y Railway.
+- Compresión de respuestas (Brotli/Gzip).
+- Conexión persistente mediante Connection Pooling.
+
+FÓRMULAS CRÍTICAS
+-----------------
+
+Cálculo de Consumo de Tinta (Kg):
+Kilos = ((Metros * (AnchoMm / 1000)) * Volumen_Anilox * Densidad * (Eficiencia / 100)) / 1000 + Carga_Muerta
+
+ESTRUCTURA DE PROYECTO
+----------------------
+
+flexoAPP/
+├── backend/                # Proyecto ASP.NET Core
+│   ├── Controllers/        # Endpoints de API
+│   ├── Data/               # Contexto y Migraciones
+│   ├── Models/             # Entidades y DTOs
+│   ├── Services/           # Lógica de Negocio
+│   └── uploads/            # Almacenamiento de archivos
+└── Frontend/               # Proyecto Angular
+    ├── src/
+    │   ├── app/
+    │   │   ├── auth/       # Login, Settings, Profile
+    │   │   ├── core/       # Servicios, Guards, Interceptors
+    │   │   └── shared/     # Componentes, Pipes, Models
+    │   └── environments/   # Configuración Render/Local
+    └── package.json        # Dependencias Frontend
+
+---------------------------------------------------
+Ultima actualización: 16 de Febrero, 2026

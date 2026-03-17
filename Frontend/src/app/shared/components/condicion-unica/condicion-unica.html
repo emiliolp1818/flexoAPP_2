@@ -1,0 +1,280 @@
+<!-- ===== CONTENEDOR PRINCIPAL DE CONDICIÓN ÚNICA ===== -->
+<!-- Sistema completo de gestión de Condición Única con layout optimizado -->
+<!-- Contenedor raíz que ocupa toda la ventana (100vw x 100vh) con flexbox vertical -->
+<div class="condicion-container">
+
+
+
+
+  <div class="condicion-header">
+
+    <div class="header-content">
+
+      <div class="header-info">
+
+        <h1 class="page-title">
+
+          <mat-icon>inventory_2</mat-icon>
+
+          Gestión de Condición Única
+        </h1>
+
+        <p class="page-subtitle">
+          Base de datos completa de artículos con ubicación física y organización documental
+        </p>
+      </div>
+
+
+      <div class="header-actions">
+
+        <button mat-raised-button color="primary" (click)="createNew()" class="load-programming-btn"
+          [disabled]="loading()"
+          matTooltip="Crear nuevo registro de Condición Única">
+          <mat-icon>add</mat-icon>
+          Nuevo Registro
+        </button>
+
+
+        <button mat-raised-button color="primary" (click)="triggerFileUpload()" class="load-programming-btn"
+          [disabled]="uploading()" matTooltip="Importar registros desde Excel">
+          <mat-icon>cloud_upload</mat-icon>
+          <span *ngIf="!uploading()">Importar Excel</span>
+          <span *ngIf="uploading()">{{uploadProgress()}}%</span>
+        </button>
+
+
+        <button mat-raised-button color="accent" (click)="exportToExcel()" class="export-btn"
+          matTooltip="Exportar registros a Excel">
+          <mat-icon>download</mat-icon>
+          Exportar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+
+
+
+
+  <div class="search-area">
+
+    <mat-card class="search-card">
+
+      <mat-card-content>
+
+        <div class="search-section">
+
+          <mat-form-field appearance="outline" class="search-field">
+
+            <mat-label>Buscar registros</mat-label>
+
+            <input matInput [(ngModel)]="searchTerm" (input)="onSearch()"
+              placeholder="Buscar por F Artículo, Cliente o Descripción (ej: F204567, ABSORBENTES)">
+
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+
+
+          <button mat-icon-button (click)="clearSearch()" *ngIf="searchTerm()" class="clear-search-btn"
+            matTooltip="Limpiar búsqueda y mostrar todos los registros">
+
+            <mat-icon>clear</mat-icon>
+          </button>
+        </div>
+
+
+        <div class="search-results" *ngIf="searchTerm()">
+
+          <span class="results-count">
+            {{ filteredItems().length }} resultado(s) encontrado(s) para "{{ searchTerm() }}"
+          </span>
+        </div>
+      </mat-card-content>
+
+    </mat-card>
+
+  </div>
+
+
+
+
+
+  <div class="scrollable-table-area">
+
+
+
+
+    <mat-card class="table-card">
+
+
+      <mat-card-header>
+
+        <mat-card-title>
+
+          <mat-icon>table_view</mat-icon>
+
+          Base de Datos de Condición Única
+
+          <span *ngIf="!loading()" style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+            ({{ filteredItems().length }} registros)
+          </span>
+        </mat-card-title>
+      </mat-card-header>
+
+
+
+      <mat-card-content>
+
+
+        <div class="table-container">
+
+
+
+          <table class="excel-table">
+
+            <thead>
+              <tr>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>tag</mat-icon>
+                    <span>F Artículo</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>description</mat-icon>
+                    <span>Descripción</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>shelves</mat-icon>
+                    <span>Estante</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>folder</mat-icon>
+                    <span>Número de Carpeta</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>info</mat-icon>
+                    <span>Estado</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>settings</mat-icon>
+                    <span>Acciones</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+
+
+            <tbody>
+
+              <tr *ngFor="let item of filteredItems()" class="excel-row">
+
+                <td class="excel-cell farticulo-cell">
+                  <span class="farticulo-code">{{ item.fArticulo }}</span>
+                </td>
+
+                <td class="excel-cell referencia-cell">
+                  <span class="referencia-text">{{ item.descripcion }}</span>
+                </td>
+
+                <td class="excel-cell estante-cell">
+                  <span class="estante-text">{{ item.estante }}</span>
+                </td>
+
+                <td class="excel-cell carpeta-cell">
+                  <span class="carpeta-text">{{ item.numeroCarpeta }}</span>
+                </td>
+
+                <td class="excel-cell estado-cell">
+                  <span class="estado-badge" [ngClass]="{
+                    'estado-activo': item.estado === 'ACTIVO',
+                    'estado-inactivo': item.estado === 'INACTIVO',
+                    'estado-revision': item.estado === 'EN REVISIÓN'
+                  }">
+                    {{ item.estado || 'ACTIVO' }}
+                  </span>
+                </td>
+
+                <td class="excel-cell actions-cell">
+                  <div class="action-buttons">
+
+                    <button mat-icon-button color="primary" (click)="editItem(item)"
+                      class="action-btn edit-btn"
+                      matTooltip="Editar registro">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+
+                    <button mat-icon-button (click)="viewDetails(item)"
+                      class="action-btn view-btn"
+                      matTooltip="Ver detalles completos">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+
+                    <button mat-icon-button color="warn" (click)="deleteItem(item)"
+                      class="action-btn delete-btn"
+                      matTooltip="Eliminar registro">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+
+
+
+
+          <div *ngIf="filteredItems().length === 0 && !loading()" class="no-data">
+
+            <mat-icon>inventory_2</mat-icon>
+
+            <p *ngIf="!searchTerm()">No hay registros de Condición Única en la base de datos</p>
+
+            <p *ngIf="searchTerm()">No se encontraron registros que coincidan con "{{ searchTerm() }}"</p>
+
+            <button mat-raised-button color="primary" (click)="createNew()" *ngIf="!searchTerm()">
+
+              <mat-icon>add</mat-icon>
+              Crear Primer Registro
+            </button>
+          </div>
+
+
+
+
+          <div *ngIf="loading()" class="loading-container">
+
+            <mat-icon class="loading-icon">refresh</mat-icon>
+
+            <p>Cargando registros desde la base de datos...</p>
+          </div>
+
+        </div>
+
+      </mat-card-content>
+
+    </mat-card>
+
+  </div>
+
+
+</div>
+<!-- Fin del contenedor principal de Condición Única -->

@@ -1,0 +1,372 @@
+<div class="reports-modern-container">
+  
+  <!-- HEADER MODERNO CON ESTADÍSTICAS -->
+  <div class="modern-header">
+    <div class="header-top">
+      <div class="title-section">
+        <mat-icon class="main-icon">assessment</mat-icon>
+        <div class="title-text">
+          <h1>Auditoría del Sistema</h1>
+          <p>Monitoreo completo de actividades</p>
+        </div>
+      </div>
+      
+      <div class="header-stats" *ngIf="!loading() && filteredActivities().length > 0">
+        <div class="stat-chip">
+          <mat-icon>list_alt</mat-icon>
+          <span>{{ activities().length }} / {{ totalCount() }}</span>
+        </div>
+        <div class="stat-chip">
+          <mat-icon>category</mat-icon>
+          <span>{{ getActiveModulesCount() }} módulos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTROS MODERNOS -->
+    <div class="modern-filters">
+      <form [formGroup]="filterForm" class="filters-grid">
+        
+        <!-- Búsqueda de Usuario -->
+        <div class="filter-group">
+          <mat-form-field appearance="outline" class="modern-field">
+            <mat-label>Usuario</mat-label>
+            <input type="text" matInput [(ngModel)]="userSearchText" [ngModelOptions]="{standalone: true}"
+              (input)="onUserSearch()" 
+              (keydown.enter)="onUserSearchEnter()"
+              placeholder="Buscar por código o nombre" 
+              autocomplete="off">
+            <mat-icon matPrefix>person_search</mat-icon>
+            <button matSuffix mat-icon-button (click)="clearUserSearch()" *ngIf="userSearchText">
+              <mat-icon>close</mat-icon>
+            </button>
+          </mat-form-field>
+          
+          <!-- Sugerencias -->
+          <div class="modern-suggestions" *ngIf="userSearchText && filteredUsers().length > 0 && filteredUsers().length < 8">
+            <div class="suggestion-chip" *ngFor="let u of filteredUsers()" (click)="selectUser(u)">
+              <mat-icon>person</mat-icon>
+              <span class="chip-code">{{ u.userCode }}</span>
+              <span class="chip-name">{{ u.firstName }} {{ u.lastName }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rango de Fechas -->
+        <mat-form-field appearance="outline" class="modern-field">
+          <mat-label>Fecha Inicio</mat-label>
+          <input matInput [matDatepicker]="pickerStart" formControlName="startDate">
+          <mat-icon matPrefix>event</mat-icon>
+          <mat-datepicker-toggle matIconSuffix [for]="pickerStart"></mat-datepicker-toggle>
+          <mat-datepicker #pickerStart></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="modern-field">
+          <mat-label>Fecha Fin</mat-label>
+          <input matInput [matDatepicker]="pickerEnd" formControlName="endDate">
+          <mat-icon matPrefix>event</mat-icon>
+          <mat-datepicker-toggle matIconSuffix [for]="pickerEnd"></mat-datepicker-toggle>
+          <mat-datepicker #pickerEnd></mat-datepicker>
+        </mat-form-field>
+
+        <!-- Botones de Acción -->
+        <div class="filter-actions">
+          <button mat-raised-button color="primary" (click)="loadActivities()" [disabled]="loading()" class="action-btn">
+            <mat-icon>search</mat-icon>
+            Buscar
+          </button>
+          <button mat-stroked-button (click)="clearFilters()" class="action-btn">
+            <mat-icon>clear_all</mat-icon>
+            Limpiar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="modern-content">
+    
+    <!-- LOADING STATE -->
+    <div *ngIf="loading()" class="modern-loading">
+      <mat-spinner diameter="60"></mat-spinner>
+      <p>Cargando actividades...</p>
+    </div>
+
+    <!-- GRID DE MÓDULOS -->
+    <div *ngIf="!loading() && filteredActivities().length > 0" class="modules-grid">
+      
+      <div *ngFor="let module of modules" class="module-card-modern" 
+           [class.has-data]="getModuleCount(module.value) > 0"
+           [class.expanded]="selectedModule() === module.value">
+        
+        <!-- Header del Módulo -->
+        <div class="module-header-modern" (click)="selectModule(selectedModule() === module.value ? null : module.value)">
+          <div class="module-icon-wrapper" [style.background]="getModuleGradient(module.value)">
+            <mat-icon>{{ module.icon }}</mat-icon>
+          </div>
+          
+          <div class="module-info-modern">
+            <h3>{{ module.label }}</h3>
+            <span class="activity-count">{{ getModuleCount(module.value) }} actividades</span>
+          </div>
+
+          <div class="module-actions-modern">
+            <button mat-icon-button (click)="exportModuleToPDF(module.value, $event)"
+                    [disabled]="getModuleCount(module.value) === 0" 
+                    matTooltip="Exportar PDF"
+                    class="export-btn">
+              <mat-icon>picture_as_pdf</mat-icon>
+            </button>
+            <button mat-icon-button (click)="exportModuleToExcel(module.value, $event)"
+                    [disabled]="getModuleCount(module.value) === 0" 
+                    matTooltip="Exportar Excel"
+                    class="export-btn">
+              <mat-icon>table_chart</mat-icon>
+            </button>
+            <mat-icon class="expand-indicator">
+              {{ selectedModule() === module.value ? 'expand_less' : 'expand_more' }}
+            </mat-icon>
+          </div>
+        </div>
+
+        <!-- Contenido del Módulo -->
+        <div class="module-content-modern" *ngIf="selectedModule() === module.value && getModuleCount(module.value) > 0">
+          
+          <!-- MÓDULO MACHINES - Vista Especial -->
+          <div *ngIf="module.value === 'MACHINES'" class="machines-view">
+            <ng-container *ngIf="getMachineStats(getActivitiesByModule(module.value)) as stats">
+              
+              <!-- Estadísticas Destacadas -->
+              <div class="stats-grid-modern">
+                <div class="stat-card">
+                  <mat-icon>assignment_turned_in</mat-icon>
+                  <div class="stat-content">
+                    <span class="stat-value">{{ stats.totalOrders }}</span>
+                    <span class="stat-label">Pedidos</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <mat-icon>schedule</mat-icon>
+                  <div class="stat-content">
+                    <span class="stat-value">{{ formatDuration(stats.totalDuration) }}</span>
+                    <span class="stat-label">Tiempo Total</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <mat-icon>avg_pace</mat-icon>
+                  <div class="stat-content">
+                    <span class="stat-value">{{ formatDuration(stats.avgDuration) }}</span>
+                    <span class="stat-label">Promedio</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <mat-icon>palette</mat-icon>
+                  <div class="stat-content">
+                    <span class="stat-value">{{ stats.avgColores ? (stats.avgColores | number:'1.0-1') : '-' }}</span>
+                    <span class="stat-label">Colores Avg</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de Pedidos -->
+              <div class="orders-modern" *ngIf="stats.orderDetails && stats.orderDetails.length > 0">
+                <h4 class="section-title">
+                  <mat-icon>inventory_2</mat-icon>
+                  Pedidos Completados
+                  <span class="count-badge">{{ getVisibleOrders(stats.orderDetails).length }} / {{ stats.orderDetails.length }}</span>
+                </h4>
+
+                <div class="orders-list-modern">
+                  <div *ngFor="let order of getVisibleOrders(stats.orderDetails); let i = index" class="order-card-modern">
+                    <div class="order-header-modern">
+                      <span class="order-number">#{{ i + 1 }}</span>
+                      <span class="order-date" *ngIf="order.historialEstados?.length">
+                        {{ order.historialEstados[order.historialEstados.length-1].timestamp | date:'dd/MM/yyyy HH:mm' }}
+                      </span>
+                      <span class="order-colors" *ngIf="order.numeroColores">
+                        <mat-icon>palette</mat-icon>
+                        {{ order.numeroColores }}
+                      </span>
+                    </div>
+
+                    <!-- Información Principal del Pedido -->
+                    <div class="order-highlight-info">
+                      <div class="highlight-item articulo">
+                        <mat-icon>inventory_2</mat-icon>
+                        <div class="highlight-content">
+                          <span class="highlight-label">Artículo</span>
+                          <span class="highlight-value">{{ order.articulo }}</span>
+                        </div>
+                      </div>
+                      <div class="highlight-item descripcion">
+                        <mat-icon>description</mat-icon>
+                        <div class="highlight-content">
+                          <span class="highlight-label">Descripción</span>
+                          <span class="highlight-value">{{ order.descripcion }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="order-body-modern">
+                      <div class="order-main-info">
+                        <div class="info-row">
+                          <span class="label">OT SAP:</span>
+                          <span class="value">{{ order.otSap }}</span>
+                        </div>
+                        <div class="info-row">
+                          <span class="label">Máquina:</span>
+                          <span class="value">{{ order.numeroMaquina }}</span>
+                        </div>
+                        <div class="info-row">
+                          <span class="label">Tiempo en LISTO:</span>
+                          <span class="value highlight">{{ formatDuration(order.duration) }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Timeline de Estados -->
+                      <div class="timeline-modern">
+                        <div *ngFor="let estado of order.historialEstados; let i = index" class="timeline-item"
+                             [class.estado-preparando]="estado.estado === 'PREPARANDO'"
+                             [class.estado-listo]="estado.estado === 'LISTO'"
+                             [class.estado-corriendo]="estado.estado === 'CORRIENDO'"
+                             [class.estado-suspendido]="estado.estado === 'SUSPENDIDO'"
+                             [class.estado-terminado]="estado.estado === 'TERMINADO'">
+                          <div class="timeline-marker"></div>
+                          <div class="timeline-content">
+                            <div class="timeline-header">
+                              <span class="estado-badge">{{ estado.estado }}</span>
+                              <span class="timeline-time">{{ estado.timestamp | date:'HH:mm:ss' }}</span>
+                              <span class="timeline-duration" *ngIf="estado.estado === 'LISTO' && estado.duration > 0">
+                                {{ formatDuration(estado.duration) }}
+                              </span>
+                            </div>
+                            <div class="timeline-date-full">
+                              <mat-icon>event</mat-icon>
+                              {{ estado.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}
+                            </div>
+                            <div class="timeline-elapsed" *ngIf="i > 0 && getElapsedTime(order.historialEstados[i-1].timestamp, estado.timestamp) !== '-'">
+                              Transcurrido: {{ getElapsedTime(order.historialEstados[i-1].timestamp, estado.timestamp) }}
+                            </div>
+                            <div class="timeline-user" *ngIf="estado.userCode && estado.userCode !== '-'">
+                              <mat-icon>person</mat-icon>
+                              {{ estado.userCode }} - {{ estado.userName }}
+                            </div>
+                            <div class="timeline-obs" *ngIf="estado.observaciones && estado.observaciones !== '-'">
+                              {{ estado.observaciones }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cargar Más Pedidos -->
+                <button *ngIf="hasMoreOrders(stats.orderDetails)" 
+                        mat-stroked-button 
+                        (click)="loadMoreOrders()" 
+                        class="load-more-modern">
+                  <mat-icon>expand_more</mat-icon>
+                  Cargar más ({{ stats.orderDetails.length - visibleOrdersCount() }} restantes)
+                </button>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- OTROS MÓDULOS - Vista de Tabla -->
+          <div *ngIf="module.value !== 'MACHINES'" class="activities-table-modern">
+            <div class="table-header-modern">
+              <span>{{ getVisibleActivitiesForModule(module.value).length }} / {{ getModuleCount(module.value) }} actividades</span>
+            </div>
+
+            <div class="activities-list-modern">
+              <div *ngFor="let activity of getVisibleActivitiesForModule(module.value)" 
+                   class="activity-item-modern"
+                   [class.expanded]="activity.expanded">
+                
+                <div class="activity-main" (click)="toggleExpanded(activity, $event)">
+                  <div class="activity-time">
+                    <span class="date">{{ activity.timestamp | date:'dd/MM' }}</span>
+                    <span class="time">{{ activity.timestamp | date:'HH:mm' }}</span>
+                  </div>
+
+                  <div class="activity-user">
+                    <mat-icon>person</mat-icon>
+                    <div class="user-info">
+                      <span class="name">{{ activity.user?.fullName || 'Sistema' }}</span>
+                      <span class="code">{{ activity.user?.userCode || activity.userCode || '-' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="activity-action">
+                    <span class="action-badge">{{ activity.action }}</span>
+                  </div>
+
+                  <div class="activity-description">
+                    {{ activity.description }}
+                  </div>
+
+                  <button mat-icon-button class="expand-btn">
+                    <mat-icon>{{ activity.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </button>
+                </div>
+
+                <!-- Detalles Expandidos -->
+                <div class="activity-details-modern" *ngIf="activity.expanded" [@detailExpand]>
+                  <div class="details-grid">
+                    <div class="detail-item">
+                      <mat-icon>schedule</mat-icon>
+                      <span class="label">Fecha Completa:</span>
+                      <span class="value">{{ activity.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="activity.ipAddress">
+                      <mat-icon>computer</mat-icon>
+                      <span class="label">IP:</span>
+                      <span class="value">{{ activity.ipAddress }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="getDuration(activity) !== '-'">
+                      <mat-icon>timer</mat-icon>
+                      <span class="label">Duración:</span>
+                      <span class="value">{{ getDuration(activity) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cargar Más Actividades -->
+            <button *ngIf="hasMoreActivities(module.value)" 
+                    mat-stroked-button 
+                    (click)="loadMoreActivities(module.value)" 
+                    class="load-more-modern">
+              <mat-icon>expand_more</mat-icon>
+              Cargar más ({{ getModuleCount(module.value) - getVisibleActivitiesForModule(module.value).length }} restantes)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARGAR MÁS DEL SERVIDOR -->
+    <div *ngIf="!loading() && hasMoreData() && filteredActivities().length > 0" class="load-server-modern">
+      <button mat-raised-button color="accent" (click)="loadMoreActivitiesFromServer()" [disabled]="loadingMore()">
+        <mat-spinner *ngIf="loadingMore()" diameter="20"></mat-spinner>
+        <mat-icon *ngIf="!loadingMore()">cloud_download</mat-icon>
+        {{ loadingMore() ? 'Cargando...' : 'Cargar más del servidor' }}
+        <span *ngIf="!loadingMore()" class="server-count">({{ totalCount() - activities().length }} disponibles)</span>
+      </button>
+    </div>
+
+    <!-- ESTADO VACÍO -->
+    <div *ngIf="!loading() && filteredActivities().length === 0" class="empty-state-modern">
+      <mat-icon>search_off</mat-icon>
+      <h3>No se encontraron actividades</h3>
+      <p>Intenta ajustar los filtros de búsqueda</p>
+      <button mat-raised-button color="primary" (click)="clearFilters()">
+        <mat-icon>refresh</mat-icon>
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+</div>
