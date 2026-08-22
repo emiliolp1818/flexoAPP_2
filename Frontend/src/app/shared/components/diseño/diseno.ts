@@ -254,8 +254,14 @@ export class DesignComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.stopAutoUpdate();
+    if (this.optimizationInterval) {
+      clearInterval(this.optimizationInterval);
+      this.optimizationInterval = null;
+    }
   }
 
+
+  private optimizationInterval: any = null;
 
   private initializeOptimizations() {
     const memory = this.getMemoryUsage();
@@ -266,7 +272,7 @@ export class DesignComponent implements OnInit, OnDestroy {
     }
 
 
-    setInterval(() => {
+    this.optimizationInterval = setInterval(() => {
       if (this.needsOptimization()) {
         this.optimizePerformance();
       }

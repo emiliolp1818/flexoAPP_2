@@ -67,6 +67,14 @@ export class InformacionComponent implements OnInit, OnDestroy {
 
   private networkCheckInterval: any;
   private backendCheckInterval: any;
+  private onlineHandler = () => {
+    console.log('✅ Evento: Conexión a internet restaurada');
+    this.verifyRealConnection();
+  };
+  private offlineHandler = () => {
+    console.warn('⚠️ Evento: Conexión a internet perdida');
+    this.verifyRealConnection();
+  };
 
 
 
@@ -121,6 +129,8 @@ export class InformacionComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopAutoRefresh();
+    window.removeEventListener('online', this.onlineHandler);
+    window.removeEventListener('offline', this.offlineHandler);
   }
 
 
@@ -241,16 +251,10 @@ export class InformacionComponent implements OnInit, OnDestroy {
 
   private setupNetworkListeners(): void {
 
-    window.addEventListener('online', () => {
-      console.log('✅ Evento: Conexión a internet restaurada');
-      this.verifyRealConnection();
-    });
+    window.addEventListener('online', this.onlineHandler);
 
 
-    window.addEventListener('offline', () => {
-      console.warn('⚠️ Evento: Conexión a internet perdida');
-      this.verifyRealConnection();
-    });
+    window.addEventListener('offline', this.offlineHandler);
 
 
     this.verifyRealConnection();

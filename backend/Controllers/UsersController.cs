@@ -109,7 +109,29 @@ namespace FlexoAPP.API.Controllers
 
                 var updatedUser = await _authService.UpdateUserProfileAsync(id, updateUserDto);
                 if (updatedUser != null)
+                {
+                    // Determinar si es actualización propia (PROFILE) o de otro usuario (SETTINGS)
+                    var currentUserIdClaim = HttpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    var isSelfUpdate = currentUserIdClaim != null && int.TryParse(currentUserIdClaim, out var currentUserId) && currentUserId == id;
+                    var module = isSelfUpdate ? "PROFILE" : "SETTINGS";
+                    var action = isSelfUpdate ? "UPDATE_PROFILE" : "UPDATE_USER";
+                    var description = isSelfUpdate
+                        ? $"Perfil actualizado — Usuario: {updatedUser.UserCode} | Nombre: {updatedUser.FirstName} {updatedUser.LastName}"
+                        : $"Usuario modificado — Código: {userCode} | Nombre: {updatedUser.FirstName} {updatedUser.LastName}";
+
+                    try
+                    {
+                        await _activityLogger.LogActivityAsync(
+                            action,
+                            description,
+                            module,
+                            $"{{\"userId\":{id},\"userCode\":\"{updatedUser.UserCode}\",\"firstName\":\"{updatedUser.FirstName}\",\"lastName\":\"{updatedUser.LastName}\",\"email\":\"{updatedUser.Email}\"}}"
+                        );
+                    }
+                    catch { }
+
                     return Ok(updatedUser);
+                }
 
                 return BadRequest(new { message = "No se pudo actualizar el usuario" });
             }
@@ -269,14 +291,22 @@ namespace FlexoAPP.API.Controllers
                 var updatedUser = await _authService.UpdateUserProfileAsync(id, updateUserDto);
                 if (updatedUser != null)
                 {
+                    // Determinar si es actualización propia (PROFILE) o de otro usuario (SETTINGS)
+                    var currentUserIdClaim = HttpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    var isSelfUpdate = currentUserIdClaim != null && int.TryParse(currentUserIdClaim, out var currentUserId) && currentUserId == id;
+                    var module = isSelfUpdate ? "PROFILE" : "SETTINGS";
+                    var action = isSelfUpdate ? "UPDATE_PROFILE" : "UPDATE_USER";
+                    var description = isSelfUpdate
+                        ? $"Perfil actualizado — Usuario: {updatedUser.UserCode} | Nombre: {updatedUser.FirstName} {updatedUser.LastName}"
+                        : $"Usuario modificado — ID: {id} | Código: {updatedUser.UserCode} | Nombre: {updatedUser.FirstName} {updatedUser.LastName}";
 
                     try
                     {
                         await _activityLogger.LogActivityAsync(
-                            "UPDATE_USER",
-                            $"Actualización de usuario ID: {id}",
-                            "SETTINGS",
-                            $"{{\"userId\":{id},\"userCode\":\"{updatedUser.UserCode}\"}}"
+                            action,
+                            description,
+                            module,
+                            $"{{\"userId\":{id},\"userCode\":\"{updatedUser.UserCode}\",\"firstName\":\"{updatedUser.FirstName}\",\"lastName\":\"{updatedUser.LastName}\",\"email\":\"{updatedUser.Email}\"}}"
                         );
                     }
                     catch (Exception logEx)
@@ -667,7 +697,7 @@ namespace FlexoAPP.API.Controllers
                     {
                         await _activityLogger.LogActivityAsync(
                             "CHANGE_PASSWORD",
-                            "Cambio de contraseña",
+                            $"Contraseña cambiada — Usuario: {user.UserCode}",
                             "PROFILE",
                             $"{{\"userId\":{id},\"userCode\":\"{user.UserCode}\"}}"
                         );

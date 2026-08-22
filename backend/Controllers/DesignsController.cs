@@ -287,7 +287,7 @@ namespace FlexoAPP.API.Controllers
                     await _activityLogger.LogActivityAsync(
                         "VIEW_DESIGNS",
                         "Consulta de catálogo de diseños",
-                        "DESIGN",
+                        "DESIGNS",
                         $"{{\"count\":{designs.Count()}}}"
                     );
                 }
@@ -608,9 +608,9 @@ namespace FlexoAPP.API.Controllers
                 {
                     await _activityLogger.LogActivityAsync(
                         "CREATE_DESIGN",
-                        $"Creación de nuevo diseño: {createDto.ArticleF}",
-                        "DESIGN",
-                        $"{{\"articleF\":\"{createDto.ArticleF}\",\"client\":\"{createDto.Client}\",\"designId\":{design.Id}}}"
+                        $"Nuevo diseño creado — Artículo: {createDto.ArticleF} | Cliente: {createDto.Client} | Sustrato: {createDto.Substrate} | Tipo: {createDto.PrintType} | {createDto.ColorCount} colores",
+                        "DESIGNS",
+                        $"{{\"articleF\":\"{createDto.ArticleF}\",\"client\":\"{createDto.Client}\",\"substrate\":\"{createDto.Substrate}\",\"printType\":\"{createDto.PrintType}\",\"colorCount\":{createDto.ColorCount},\"type\":\"{createDto.Type}\",\"designId\":{design.Id}}}"
                     );
                 }
                 catch (Exception logEx)
@@ -653,9 +653,9 @@ namespace FlexoAPP.API.Controllers
                 {
                     await _activityLogger.LogActivityAsync(
                         "UPDATE_DESIGN",
-                        $"Modificación de diseño ID: {id}",
-                        "DESIGN",
-                        $"{{\"designId\":{id},\"articleF\":\"{design.ArticleF}\"}}"
+                        $"Diseño modificado — Artículo: {design.ArticleF} | Cliente: {design.Client}",
+                        "DESIGNS",
+                        $"{{\"designId\":{id},\"articleF\":\"{design.ArticleF}\",\"client\":\"{design.Client}\",\"substrate\":\"{design.Substrate}\",\"printType\":\"{design.PrintType}\"}}"
                     );
                 }
                 catch (Exception logEx)
@@ -703,8 +703,8 @@ namespace FlexoAPP.API.Controllers
                 {
                     await _activityLogger.LogActivityAsync(
                         "DELETE_DESIGN",
-                        $"Eliminación de diseño ID: {id}",
-                        "DESIGN",
+                        $"Diseño eliminado — ID: {id}",
+                        "DESIGNS",
                         $"{{\"designId\":{id}}}"
                     );
                 }

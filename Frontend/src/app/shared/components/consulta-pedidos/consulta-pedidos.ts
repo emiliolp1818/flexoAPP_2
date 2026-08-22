@@ -118,7 +118,9 @@ export class ConsultaPedidosComponent implements OnInit {
         response.forEach((m: any) => meses.push({ value: m.value, label: m.label, year: m.year }));
         this.mesesDisponibles.set(meses);
       }
-    } catch {}
+    } catch (error) {
+      console.error('Error cargando meses disponibles:', error);
+    }
   }
 
   async cargarLineasTinta() {
@@ -127,7 +129,9 @@ export class ConsultaPedidosComponent implements OnInit {
       if (Array.isArray(lineas)) {
         this.lineasTintaDisponibles.set(lineas.sort());
       }
-    } catch {}
+    } catch (error) {
+      console.error('Error cargando líneas de tinta:', error);
+    }
   }
 
   async cargarDatos() {

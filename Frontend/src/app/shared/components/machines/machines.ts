@@ -657,6 +657,7 @@ export class MachinesComponent implements OnInit, OnDestroy {
             colores: colores,
             kilos: Number(program.kilos || 0),
             metros: program.metros ? Number(program.metros) : undefined,
+            anchoMm: program.anchoMm ? Number(program.anchoMm) : undefined,
             fechaTintaEnMaquina: program.fechaTintaEnMaquina ? parseUtcDate(program.fechaTintaEnMaquina) : new Date(),
             sustrato: program.sustrato || '',
             estado: program.estado || 'SIN_ASIGNAR',

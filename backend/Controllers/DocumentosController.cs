@@ -51,10 +51,7 @@ namespace FlexoAPP.API.Controllers
 
         private readonly IPdfConversionService _pdfConversionService;
 
-
-
-
-
+        private readonly IActivityLoggerService _activityLogger;
 
 
 
@@ -62,7 +59,8 @@ namespace FlexoAPP.API.Controllers
         public DocumentosController(
             ILogger<DocumentosController> logger,
             IConfiguration configuration,
-            IPdfConversionService pdfConversionService)
+            IPdfConversionService pdfConversionService,
+            IActivityLoggerService activityLogger)
         {
 
             _logger = logger;
@@ -70,6 +68,8 @@ namespace FlexoAPP.API.Controllers
             _configuration = configuration;
 
             _pdfConversionService = pdfConversionService;
+
+            _activityLogger = activityLogger;
 
 
             _connectionString = _configuration.GetConnectionString("DefaultConnection")
@@ -382,7 +382,19 @@ namespace FlexoAPP.API.Controllers
                 };
 
 
-
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "CREATE_DOCUMENT",
+                        $"Documento creado — Nombre: {documento.nombre?.ToString() ?? "Sin nombre"} | Categoría: {documento.categoria?.ToString() ?? "otros"} | Tipo: {documento.tipo?.ToString() ?? "Archivo"}",
+                        "DOCUMENTS",
+                        $"{{\"documentoId\":{documentoId},\"nombre\":\"{documento.nombre?.ToString()}\",\"tipo\":\"{documento.tipo?.ToString()}\",\"categoria\":\"{documento.categoria?.ToString()}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de creación de documento");
+                }
 
 
                 return CreatedAtAction(nameof(GetById), new { id = documentoId }, resultado);
@@ -540,6 +552,20 @@ namespace FlexoAPP.API.Controllers
                 };
 
 
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "UPLOAD_DOCUMENT",
+                        $"Archivo subido — Nombre: {nombre ?? file.FileName} | Tipo: {tipo} | Tamaño: {tamanoFormateado} | Categoría: {categoria ?? "otros"}",
+                        "DOCUMENTS",
+                        $"{{\"documentoId\":{documentoId},\"nombre\":\"{nombre ?? file.FileName}\",\"tipo\":\"{tipo}\",\"tamano\":\"{tamanoFormateado}\",\"categoria\":\"{categoria ?? "otros"}\",\"extension\":\"{extension.TrimStart('.')}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de subida de documento");
+                }
+
                 return CreatedAtAction(nameof(GetById), new { id = documentoId }, resultado);
             }
             catch (Exception ex)
@@ -618,6 +644,19 @@ namespace FlexoAPP.API.Controllers
                 _logger.LogDebug($"Document with ID {id} updated successfully");
 
 
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "UPDATE_DOCUMENT",
+                        $"Documento modificado — ID: {id} | Nombre: {documento.nombre?.ToString() ?? "N/A"} | Categoría: {documento.categoria?.ToString() ?? "N/A"}",
+                        "DOCUMENTS",
+                        $"{{\"documentoId\":{id},\"nombre\":\"{documento.nombre?.ToString()}\",\"tipo\":\"{documento.tipo?.ToString()}\",\"categoria\":\"{documento.categoria?.ToString()}\"}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de actualización de documento");
+                }
 
                 return await GetById(id);
             }
@@ -704,6 +743,20 @@ namespace FlexoAPP.API.Controllers
 
                 _logger.LogDebug($"Document with ID {id} deleted successfully");
 
+
+                try
+                {
+                    await _activityLogger.LogActivityAsync(
+                        "DELETE_DOCUMENT",
+                        $"Documento eliminado — ID: {id}",
+                        "DOCUMENTS",
+                        $"{{\"documentoId\":{id}}}"
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogWarning(logEx, "Error registrando actividad de eliminación de documento");
+                }
 
                 return Ok(new { message = "Documento eliminado correctamente" });
             }

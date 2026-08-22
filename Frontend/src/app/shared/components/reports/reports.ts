@@ -117,6 +117,7 @@ export class ReportsComponent implements OnInit {
   loadingMore = signal(false);
 
   userSearchText: string = '';
+  showUserSuggestions: boolean = false;
 
 
   filterForm: FormGroup;
@@ -124,12 +125,12 @@ export class ReportsComponent implements OnInit {
 
   selectedModule = signal<string | null>(null);
 
-  // Paginación progresiva de pedidos MACHINES
-  readonly ORDERS_PAGE_SIZE = 20;
+  // Paginación progresiva de pedidos MACHINES - 50 por página
+  readonly ORDERS_PAGE_SIZE = 50;
   visibleOrdersCount = signal<number>(this.ORDERS_PAGE_SIZE);
 
-  // Paginación progresiva de tabla de actividades (por módulo)
-  readonly ACTIVITIES_PAGE_SIZE = 30;
+  // Paginación progresiva de tabla de actividades (por módulo) - 20 por página
+  readonly ACTIVITIES_PAGE_SIZE = 20;
   private visibleActivitiesCountMap: Map<string, number> = new Map();
 
   private machineStatsCache: any = null;
@@ -418,6 +419,7 @@ export class ReportsComponent implements OnInit {
     // console.log('🧹 Limpiando todos los filtros');
     this.filterForm.reset();
     this.userSearchText = '';
+    this.showUserSuggestions = false;
     this.filteredUsers.set(this.users());
 
 
@@ -437,10 +439,12 @@ export class ReportsComponent implements OnInit {
 
   onUserSearch() {
     const searchTerm = this.userSearchText.toLowerCase().trim();
+    this.showUserSuggestions = true;
 
     if (!searchTerm) {
       this.filteredUsers.set(this.users());
       this.filterForm.patchValue({ userId: null });
+      this.showUserSuggestions = false;
       return;
     }
 
@@ -477,6 +481,7 @@ export class ReportsComponent implements OnInit {
   // Selección explícita de usuario desde un item de la lista sugerida
   selectUser(user: any) {
     this.userSearchText = user.userCode;
+    this.showUserSuggestions = false;
     this.filterForm.patchValue({ userId: user.id });
     this.filteredUsers.set([user]);
     
@@ -539,6 +544,7 @@ export class ReportsComponent implements OnInit {
 
   clearUserSearch() {
     this.userSearchText = '';
+    this.showUserSuggestions = false;
     this.filteredUsers.set(this.users());
     this.filterForm.patchValue({ userId: null });
   }
@@ -546,6 +552,11 @@ export class ReportsComponent implements OnInit {
   getModuleLabel(module: string): string {
     const found = this.modules.find(m => m.value === module);
     return found ? found.label : module;
+  }
+
+  getModuleIcon(module: string): string {
+    const found = this.modules.find(m => m.value === module);
+    return found ? found.icon : 'help';
   }
 
   getActiveModulesCount(): number {
@@ -752,6 +763,62 @@ export class ReportsComponent implements OnInit {
       return JSON.stringify(obj, null, 2);
     } catch {
       return jsonString;
+    }
+  }
+
+  /** Convierte un JSON de detalles en una lista de label/value legibles para el usuario */
+  parseDetailsToItems(jsonString: string): { label: string; value: string }[] {
+    try {
+      const obj = JSON.parse(jsonString);
+      const labelMap: Record<string, string> = {
+        articleF: 'Artículo',
+        client: 'Cliente',
+        substrate: 'Sustrato',
+        printType: 'Impresión',
+        colorCount: 'Colores',
+        type: 'Tipo',
+        designId: 'ID Diseño',
+        documentoId: 'ID Documento',
+        nombre: 'Nombre',
+        tamano: 'Tamaño',
+        categoria: 'Categoría',
+        tipo: 'Tipo',
+        extension: 'Extensión',
+        machineNumber: 'Máquina',
+        otSap: 'OT SAP',
+        estado: 'Estado',
+        newState: 'Nuevo Estado',
+        oldState: 'Estado Anterior',
+        reason: 'Razón',
+        count: 'Cantidad',
+        fileName: 'Archivo',
+        userId: 'ID Usuario',
+        userCode: 'Código Usuario',
+        firstName: 'Nombre',
+        lastName: 'Apellido',
+        email: 'Email',
+        role: 'Rol',
+        module: 'Módulo',
+        action: 'Acción',
+        created: 'Creados',
+        updated: 'Actualizados',
+        deleted: 'Eliminados',
+        description: 'Descripción',
+        configId: 'Config',
+        category: 'Categoría',
+        fieldChanged: 'Campo',
+        hasImage: 'Tiene Imagen',
+        success: 'Exitoso'
+      };
+
+      return Object.entries(obj)
+        .filter(([_, value]) => value !== null && value !== undefined && value !== '')
+        .map(([key, value]) => ({
+          label: labelMap[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim(),
+          value: typeof value === 'object' ? JSON.stringify(value) : String(value)
+        }));
+    } catch {
+      return [{ label: 'Detalles', value: jsonString }];
     }
   }
 
@@ -1035,6 +1102,15 @@ export class ReportsComponent implements OnInit {
 
 
   getModuleCount(module: string): number {
+    if (module === 'MACHINES') {
+      // Para máquinas, mostrar cantidad de pedidos únicos (no actividades individuales)
+      const activities = this.getActivitiesByModule(module);
+      if (activities.length === 0) return 0;
+      const stats = this.getMachineStats(activities);
+      const pedidos = stats?.totalOrders || 0;
+      // Si no hay pedidos pero sí actividades (imports, etc.), mostrar actividades
+      return pedidos > 0 ? pedidos : activities.length;
+    }
     return this.getActivitiesByModule(module).length;
   }
 
