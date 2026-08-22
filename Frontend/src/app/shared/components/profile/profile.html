@@ -1,0 +1,245 @@
+<div class="profile-page">
+
+  <div class="profile-layout" *ngIf="currentUser() as user">
+
+    <!-- Panel izquierdo: Tarjeta de usuario -->
+    <aside class="profile-sidebar">
+      <div class="sidebar-card">
+
+        <!-- Foto de perfil -->
+        <div class="avatar-wrapper">
+          <div class="avatar-frame">
+            <img *ngIf="hasProfileImage()" [src]="getUserProfileImage()"
+                 [attr.data-original-src]="user.profileImage" [attr.data-user-code]="user.userCode"
+                 [alt]="getFullName()" class="avatar-img"
+                 (load)="onImageLoad($event)" (loadstart)="onImageLoadStart($event)"
+                 (error)="onImageError($event)" loading="lazy" decoding="async">
+            <div *ngIf="!hasProfileImage()" class="avatar-placeholder">
+              <mat-icon>person</mat-icon>
+            </div>
+          </div>
+          <button mat-button class="change-photo-btn" (click)="triggerFileInput()">
+            <mat-icon>camera_alt</mat-icon> Cambiar foto
+          </button>
+          <button *ngIf="hasProfileImage()" mat-button class="remove-photo-btn"
+                  (click)="removePhoto()" [disabled]="uploadingPhoto()">
+            <mat-icon>delete_outline</mat-icon> Eliminar foto
+          </button>
+        </div>
+
+        <!-- Info del usuario -->
+        <div class="sidebar-info">
+          <h2 class="sidebar-name">{{ getFullName() }}</h2>
+          <span class="sidebar-role">{{ getRoleDisplayName(user.role || '') }}</span>
+          <div class="sidebar-details">
+            <div class="detail-row">
+              <mat-icon>badge</mat-icon>
+              <span>{{ user.userCode }}</span>
+            </div>
+            <div class="detail-row" *ngIf="user.phone">
+              <mat-icon>phone</mat-icon>
+              <span>{{ user.phone }}</span>
+            </div>
+            <div class="detail-row" *ngIf="user.email">
+              <mat-icon>email</mat-icon>
+              <span>{{ user.email }}</span>
+            </div>
+          </div>
+          <div class="sidebar-status">
+            <div class="status-dot"></div>
+            <span>Activo</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Input oculto para foto -->
+    <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+
+    <!-- Panel derecho: Contenido -->
+    <main class="profile-main">
+
+      <!-- Preview de foto nueva -->
+      <div *ngIf="selectedFile" class="upload-preview-card">
+        <img [src]="profileImagePreview()" alt="Vista previa" class="preview-thumb">
+        <div class="preview-info">
+          <p>¿Guardar esta imagen como foto de perfil?</p>
+          <div class="preview-actions">
+            <button mat-raised-button color="primary" (click)="uploadPhoto()" [disabled]="uploadingPhoto()">
+              <mat-spinner *ngIf="uploadingPhoto()" diameter="16"></mat-spinner>
+              <mat-icon *ngIf="!uploadingPhoto()">save</mat-icon>
+              {{ uploadingPhoto() ? 'Guardando...' : 'Guardar' }}
+            </button>
+            <button mat-stroked-button (click)="cancelPhotoUpload()" [disabled]="uploadingPhoto()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <mat-tab-group (selectedTabChange)="onTabChange($event.index)" class="profile-tabs">
+
+        <!-- Tab 1: Información Personal -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>person</mat-icon>
+            <span>Información</span>
+          </ng-template>
+          <div class="tab-body">
+            <form [formGroup]="profileForm" class="profile-form">
+              <div class="form-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Código de Usuario</mat-label>
+                  <input matInput formControlName="userCode">
+                  <mat-icon matSuffix>badge</mat-icon>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Rol</mat-label>
+                  <input matInput formControlName="role"
+                         [value]="getRoleDisplayName(profileForm.get('role')?.value || '')">
+                  <mat-icon matSuffix>work</mat-icon>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Nombre</mat-label>
+                  <input matInput formControlName="firstName">
+                  <mat-icon matSuffix>person</mat-icon>
+                  <mat-error *ngIf="profileForm.get('firstName')?.hasError('required')">Requerido</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Apellidos</mat-label>
+                  <input matInput formControlName="lastName">
+                  <mat-icon matSuffix>person_outline</mat-icon>
+                  <mat-error *ngIf="profileForm.get('lastName')?.hasError('required')">Requerido</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Teléfono</mat-label>
+                  <input matInput formControlName="phone" placeholder="+57 300 123 4567">
+                  <mat-icon matSuffix>phone</mat-icon>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Email</mat-label>
+                  <input matInput formControlName="email" type="email">
+                  <mat-icon matSuffix>email</mat-icon>
+                  <mat-error *ngIf="profileForm.get('email')?.hasError('email')">Email inválido</mat-error>
+                </mat-form-field>
+              </div>
+              <div class="form-actions">
+                <button mat-raised-button color="primary" (click)="onUpdateProfile()"
+                        [disabled]="profileForm.invalid || loading()">
+                  <mat-spinner *ngIf="loading()" diameter="18"></mat-spinner>
+                  <mat-icon *ngIf="!loading()">save</mat-icon>
+                  {{ loading() ? 'Guardando...' : 'Guardar Cambios' }}
+                </button>
+                <button mat-stroked-button (click)="profileForm.reset(); loadUserProfile()" [disabled]="loading()">
+                  <mat-icon>refresh</mat-icon> Restablecer
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Tab 2: Contraseña -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>lock</mat-icon>
+            <span>Contraseña</span>
+          </ng-template>
+          <div class="tab-body">
+            <form [formGroup]="passwordForm" class="password-form">
+              <div class="security-tip">
+                <mat-icon>info</mat-icon>
+                <span>Mínimo 6 caracteres. Usa letras, números y símbolos.</span>
+              </div>
+              <div class="form-stack">
+                <mat-form-field appearance="outline">
+                  <mat-label>Contraseña Actual</mat-label>
+                  <input matInput [type]="showCurrentPassword() ? 'text' : 'password'" formControlName="currentPassword">
+                  <button mat-icon-button matSuffix type="button" (click)="toggleCurrentPasswordVisibility()">
+                    <mat-icon>{{ showCurrentPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">Requerida</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Nueva Contraseña</mat-label>
+                  <input matInput [type]="showNewPassword() ? 'text' : 'password'" formControlName="newPassword">
+                  <button mat-icon-button matSuffix type="button" (click)="toggleNewPasswordVisibility()">
+                    <mat-icon>{{ showNewPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">Mínimo 6 caracteres</mat-error>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Confirmar Contraseña</mat-label>
+                  <input matInput [type]="showConfirmPassword() ? 'text' : 'password'" formControlName="confirmPassword">
+                  <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPasswordVisibility()">
+                    <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('passwordMismatch')">No coinciden</mat-error>
+                </mat-form-field>
+              </div>
+              <div class="form-actions">
+                <button mat-raised-button color="accent" (click)="onChangePassword()"
+                        [disabled]="passwordForm.invalid || loading()">
+                  <mat-spinner *ngIf="loading()" diameter="18"></mat-spinner>
+                  <mat-icon *ngIf="!loading()">lock_reset</mat-icon>
+                  {{ loading() ? 'Cambiando...' : 'Cambiar Contraseña' }}
+                </button>
+                <button mat-stroked-button (click)="passwordForm.reset()" [disabled]="loading()">
+                  <mat-icon>refresh</mat-icon> Restablecer
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Tab 3: Actividad -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>history</mat-icon>
+            <span>Actividad</span>
+          </ng-template>
+          <div class="tab-body">
+            <div class="activity-toolbar">
+              <h3><mat-icon>timeline</mat-icon> Historial de Actividad</h3>
+              <button mat-stroked-button (click)="refreshActivities()" [disabled]="loading()">
+                <mat-icon>refresh</mat-icon> Actualizar
+              </button>
+            </div>
+
+            <div *ngIf="loading()" class="activity-loading">
+              <mat-spinner diameter="32"></mat-spinner>
+              <span>Cargando actividad...</span>
+            </div>
+
+            <div *ngIf="!loading() && userActions().length > 0" class="activity-list">
+              <div *ngFor="let action of userActions()" class="activity-item">
+                <div class="activity-icon" [class]="'mod-' + action.module.toLowerCase()">
+                  <mat-icon>{{ getActionIcon(action.module) }}</mat-icon>
+                </div>
+                <div class="activity-body">
+                  <div class="activity-top">
+                    <span class="activity-action">{{ action.action }}</span>
+                    <span class="activity-time">{{ formatTimestamp(action.timestamp) }}</span>
+                  </div>
+                  <p class="activity-desc">{{ action.description }}</p>
+                  <div class="activity-tags">
+                    <span class="tag" [class]="'mod-' + action.module.toLowerCase()">{{ action.module }}</span>
+                    <span class="tag expiry" *ngIf="action.isExpiringSoon">
+                      <mat-icon>warning</mat-icon> {{ getDaysRemainingText(action.daysRemaining) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="!loading() && userActions().length === 0" class="activity-empty">
+              <mat-icon>history</mat-icon>
+              <p>Sin actividad reciente</p>
+            </div>
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+{
+  "name": "Save - Subir cambios a rama render",
+  "version": "1.0.0",
+  "description": "Se activa cuando el usuario escribe 'save'. Hace commit de todos los cambios pendientes y los sube a la rama 'render' en Git.",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "actualizacion formato 2 "
+  },
+  "enabled": true,
+  "workspaceFolderName": "flexoAPP_2",
+  "shortName": "save-sol-git-push"
+}

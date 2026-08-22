@@ -1,0 +1,231 @@
+<div class="consulta-container">
+
+  <!-- Header -->
+  <div class="consulta-header">
+    <div class="header-content">
+      <h1 class="page-title"><mat-icon>palette</mat-icon> Consulta de Pantones</h1>
+      <div class="header-actions">
+        <button mat-raised-button color="accent" (click)="exportGeneralExcel()" class="export-btn" [disabled]="loading()">
+          <mat-icon>download</mat-icon> Exportar
+        </button>
+        <button mat-icon-button (click)="refresh()" [disabled]="loading()">
+          <mat-icon [class.spinning]="loading()">refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="scrollable-content">
+
+    <!-- Barra de búsqueda -->
+    <div class="search-bar">
+      <div class="search-inputs">
+        <div class="search-field-wrapper">
+          <mat-icon class="search-icon">search</mat-icon>
+          <input class="search-input" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="Buscar pantone, artículo u OT...">
+          <button class="clear-input" *ngIf="searchTerm()" (click)="searchTerm.set('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="filter-chip" [class.active]="lineaTintaFilter()">
+          <mat-icon class="chip-icon">water_drop</mat-icon>
+          <mat-select class="chip-mat-select" [ngModel]="lineaTintaFilter()" (ngModelChange)="lineaTintaFilter.set($event); buscarPorFechas()" panelClass="filter-panel" placeholder="Todas">
+            <mat-option [value]="null">Todas</mat-option>
+            <mat-option *ngFor="let linea of lineasTintaDisponibles()" [value]="linea">{{ linea }}</mat-option>
+          </mat-select>
+        </div>
+        <div class="filter-chip" [class.active]="mesFilter()">
+          <mat-icon class="chip-icon">calendar_month</mat-icon>
+          <mat-select class="chip-mat-select" [ngModel]="mesFilter()" (ngModelChange)="onMesChange($event)" panelClass="filter-panel" placeholder="Mes...">
+            <mat-option *ngFor="let m of mesesDisponibles()" [value]="m.value">{{ m.label }}</mat-option>
+          </mat-select>
+        </div>
+        <div class="search-field-wrapper date-wrapper">
+          <mat-icon class="search-icon">event</mat-icon>
+          <input class="search-input" [matDatepicker]="pickerDesde" [ngModel]="fechaDesde()" (dateChange)="fechaDesde.set($event.value); buscarPorFechas()" placeholder="Desde...">
+          <mat-datepicker-toggle [for]="pickerDesde" class="date-toggle"></mat-datepicker-toggle>
+          <mat-datepicker #pickerDesde></mat-datepicker>
+        </div>
+        <div class="search-field-wrapper date-wrapper">
+          <mat-icon class="search-icon">event</mat-icon>
+          <input class="search-input" [matDatepicker]="pickerHasta" [ngModel]="fechaHasta()" (dateChange)="fechaHasta.set($event.value); buscarPorFechas()" placeholder="Hasta...">
+          <mat-datepicker-toggle [for]="pickerHasta" class="date-toggle"></mat-datepicker-toggle>
+          <mat-datepicker #pickerHasta></mat-datepicker>
+        </div>
+      </div>
+      <div class="search-actions">
+        <button mat-raised-button color="primary" (click)="buscarPorFechas()" class="search-btn">
+          <mat-icon>filter_list</mat-icon> Buscar
+        </button>
+        <button mat-button (click)="limpiarFiltros()" class="clear-all-btn">
+          <mat-icon>clear_all</mat-icon> Limpiar
+        </button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis-row">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+          <mat-icon>palette</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ totalPantonesUnicos() }}</span>
+          <span class="kpi-label">Pantones únicos</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #059669, #047857);">
+          <mat-icon>assignment_turned_in</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ totalPedidos() }}</span>
+          <span class="kpi-label">Pedidos (Listo + Terminado)</span>
+        </div>
+      </div>
+      <div class="kpi-card" *ngIf="pantonesMes().length > 0">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+          <mat-icon>star</mat-icon>
+        </div>
+        <div class="kpi-info">
+          <div class="top-pantones-mini">
+            <div *ngFor="let p of pantonesMes().slice(0, 5)" class="top-pantone-mini-item">
+              <div class="mini-swatch" [style.background-color]="getPantoneInfo(p.color).hex"></div>
+              <span class="mini-name">{{ p.color }}</span>
+              <span class="mini-count">({{ p.cantidad }})</span>
+            </div>
+          </div>
+          <span class="kpi-label">Top 5 más usados</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Pantones -->
+    <div class="table-section">
+      <div class="table-header-bar">
+        <mat-icon>palette</mat-icon>
+        <span>Pantones — Últimos 3 meses</span>
+        <span class="count-badge" *ngIf="!loading()">{{ filteredPantones().length }} pantones</span>
+      </div>
+
+      <div *ngIf="loading()" class="loading-container">
+        <mat-spinner diameter="36"></mat-spinner>
+        <p>Cargando datos...</p>
+      </div>
+
+      <div *ngIf="!loading()" class="table-container">
+        <table class="unified-table">
+          <thead>
+            <tr>
+              <th class="th-rank">#</th>
+              <th class="th-color">Pantone</th>
+              <th class="th-usos">Usos</th>
+              <th class="th-kilos">Kilos</th>
+              <th class="th-metros">Metros</th>
+              <th class="th-fecha">Fecha</th>
+              <th class="th-estado">Estado</th>
+              <th class="th-linea">Línea</th>
+              <th class="th-articulos">Art.</th>
+              <th class="th-ots">OTs</th>
+              <th class="th-maquinas">Máq.</th>
+              <th class="th-colores">Colores</th>
+              <th class="th-actions">Export</th>
+              <th class="th-expand"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let pantone of filteredPantones(); let i = index">
+              <!-- Fila del pantone -->
+              <tr class="pantone-row" (click)="togglePantone(pantone)" [class.expanded]="isPantoneExpanded(pantone.color)">
+                <td class="td-rank"><span class="pantone-rank-badge">{{ i + 1 }}</span></td>
+                <td class="td-color">
+                  <div class="color-cell">
+                    <div class="pantone-color-swatch" [style.background-color]="getPantoneInfo(pantone.color).hex"></div>
+                    <span class="pantone-name">{{ pantone.color }}</span>
+                  </div>
+                </td>
+                <td class="td-usos"><strong>{{ pantone.cantidad }}</strong></td>
+                <td class="td-kilos"><span class="val-green">{{ pantone.kilos | number:'1.1-1' }}</span></td>
+                <td class="td-metros"><span class="val-blue">{{ pantone.metros | number:'1.0-0' }}</span></td>
+                <td class="td-fecha">{{ pantone.fecha || '—' }}</td>
+                <td class="td-estado">
+                  <span class="estado-badge" [class.listo]="pantone.estado === 'LISTO'" [class.terminado]="pantone.estado === 'TERMINADO' || pantone.estado === 'TERMINADA'">
+                    {{ pantone.estado || '—' }}
+                  </span>
+                </td>
+                <td class="td-linea">{{ pantone.lineaTinta || '—' }}</td>
+                <td class="td-articulos">{{ pantone.articulos.length }}</td>
+                <td class="td-ots">{{ pantone.ots.length }}</td>
+                <td class="td-maquinas">
+                  <span *ngFor="let m of pantone.maquinas.slice(0, 3)" class="machine-mini-badge">M{{ m }}</span>
+                  <span *ngIf="pantone.maquinas.length > 3" class="more-machines">+{{ pantone.maquinas.length - 3 }}</span>
+                  <span *ngIf="!pantone.maquinas || pantone.maquinas.length === 0">—</span>
+                </td>
+                <td class="td-colores-inline">
+                  <div class="color-dots-row">
+                    <div *ngFor="let c of pantone.coloresCompletos" class="pantone-dot" 
+                         [style.background-color]="getPantoneInfo(c).hex" [matTooltip]="c"></div>
+                  </div>
+                </td>
+                <td class="td-actions" (click)="$event.stopPropagation()">
+                  <button class="export-btn-mini excel-btn" (click)="exportPantoneExcel(pantone, $event)" matTooltip="Excel">
+                    <mat-icon>table_chart</mat-icon>
+                  </button>
+                  <button class="export-btn-mini pdf-btn" (click)="exportPantonePdf(pantone, $event)" matTooltip="PDF">
+                    <mat-icon>picture_as_pdf</mat-icon>
+                  </button>
+                </td>
+                <td class="td-expand">
+                  <mat-icon class="expand-arrow">{{ isPantoneExpanded(pantone.color) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </td>
+              </tr>
+              <!-- Detalle de pedidos -->
+              <tr *ngIf="isPantoneExpanded(pantone.color)" class="detail-row">
+                <td [attr.colspan]="14">
+                  <div class="detail-container">
+                    <table class="detail-table" *ngIf="getPedidos(pantone.color).length > 0">
+                      <thead>
+                        <tr>
+                          <th>OT SAP</th>
+                          <th>Artículo</th>
+                          <th>Descripción</th>
+                          <th>Máquina</th>
+                          <th>Kilos</th>
+                          <th>Metros</th>
+                          <th>Línea Tinta</th>
+                          <th>Colores</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let p of getPedidos(pantone.color)">
+                          <td class="ot-col">{{ p.otSap }}</td>
+                          <td class="art-col"><strong>{{ p.articulo }}</strong></td>
+                          <td class="desc-col">{{ p.descripcion || '—' }}</td>
+                          <td class="maq-col"><span class="maquina-chip" *ngIf="p.maquina">M{{ p.maquina }}</span><span *ngIf="!p.maquina">—</span></td>
+                          <td class="num-col val-green">{{ p.kilos | number:'1.1-1' }}</td>
+                          <td class="num-col val-blue">{{ p.metros | number:'1.0-0' }}</td>
+                          <td class="linea-col">{{ p.lineaTinta || '—' }}</td>
+                          <td class="colores-col">
+                            <div class="mini-color-dots">
+                              <div *ngFor="let c of p.colores" class="mini-dot" 
+                                   [style.background-color]="getPantoneInfo(c).hex" [matTooltip]="c"></div>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <div *ngIf="getPedidos(pantone.color).length === 0" class="loading-detail">
+                      <mat-spinner diameter="24"></mat-spinner>
+                      <span>Cargando pedidos...</span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

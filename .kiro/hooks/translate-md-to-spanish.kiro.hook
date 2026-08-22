@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Traducir documentación MD al español",
+  "description": "Monitorea todos los archivos de documentación Markdown (.md). Cuando se crea o edita uno, traduce automáticamente todo el contenido al español para que el usuario pueda entender la documentación.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Se ha modificado un archivo de documentación Markdown. Por favor:\n1. Lee el contenido completo del archivo modificado.\n2. Detecta el idioma actual del texto.\n3. Si el contenido NO está en español, tradúcelo completamente al español, asegurándote de:\n   - Mantener toda la estructura Markdown intacta (encabezados, listas, tablas, bloques de código, enlaces, etc.).\n   - NO traducir el contenido dentro de bloques de código (``` ``` o ` `), nombres de variables, rutas de archivos, comandos de terminal, ni nombres técnicos propios.\n   - Conservar el significado técnico y el contexto original.\n   - Usar un español claro y natural, apropiado para documentación técnica.\n4. Sobrescribe el archivo con el contenido traducido al español.\n5. Si el archivo ya está completamente en español, no hagas ningún cambio."
+  }
+}

@@ -1,0 +1,76 @@
+<!-- Contenedor principal del diálogo con clase para estilos -->
+<div class="duplicate-dialog">
+
+  <!-- ===== HEADER DEL DIÁLOGO ===== -->
+  <!-- Barra superior con gradiente morado, título y botón de cerrar -->
+  <div class="dialog-header">
+    <!-- Sección izquierda: icono circular + título -->
+    <div class="header-left">
+      <!-- Círculo con icono de duplicar -->
+      <div class="icon-circle">
+        <mat-icon>content_copy</mat-icon>
+      </div>
+      <!-- Título del diálogo -->
+      <span class="title">Duplicar</span>
+    </div>
+    <!-- Botón de cerrar -->
+    <button mat-icon-button mat-dialog-close class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- ===== CONTENIDO PRINCIPAL DEL DIÁLOGO ===== -->
+  <!-- Área central con el flujo visual de duplicación -->
+  <div class="dialog-content">
+
+    <!-- ===== BADGE DEL DISEÑO ORIGINAL ===== -->
+    <div class="original-badge">
+      <mat-icon>article</mat-icon>
+      <span>{{ data.originalArticleF }}</span>
+    </div>
+
+    <!-- ===== FLECHA ANIMADA ===== -->
+    <div class="arrow-down">
+      <mat-icon>arrow_downward</mat-icon>
+    </div>
+
+    <!-- ===== CAMPO DE ENTRADA PARA NUEVO CÓDIGO ===== -->
+    <!-- Input donde el usuario ingresa el código del nuevo diseño -->
+    <mat-form-field appearance="outline" class="compact-field">
+      <mat-label>Nuevo código</mat-label>
+      <input
+        matInput
+        [(ngModel)]="newArticleF"
+        (keyup.enter)="onConfirm()"
+        (input)="newArticleF = $any($event.target).value"
+        autofocus>
+      <mat-icon matSuffix color="primary">edit</mat-icon>
+    </mat-form-field>
+
+    <!-- ===== MENSAJE DE ADVERTENCIA ===== -->
+    <!-- Solo se muestra si el nuevo código es igual al original -->
+    <div class="warning-inline" *ngIf="newArticleF && newArticleF.trim() === data.originalArticleF">
+      <mat-icon>error_outline</mat-icon>
+      <span>Debe ser diferente</span>
+    </div>
+  </div>
+
+  <!-- ===== FOOTER CON BOTONES DE ACCIÓN ===== -->
+  <!-- Barra inferior con botones de Cancelar y Duplicar -->
+  <div class="dialog-actions">
+    <!-- Botón Cancelar -->
+    <button mat-button mat-dialog-close class="btn-cancel">
+      Cancelar
+    </button>
+    <!-- Botón Duplicar -->
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="onConfirm()"
+      [disabled]="!canDuplicate()"
+      class="btn-confirm">
+      <mat-icon>check</mat-icon>
+      Duplicar
+    </button>
+  </div>
+</div>

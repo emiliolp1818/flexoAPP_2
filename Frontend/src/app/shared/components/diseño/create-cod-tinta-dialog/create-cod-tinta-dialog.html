@@ -1,0 +1,132 @@
+<h2 mat-dialog-title>
+  <mat-icon>colorize</mat-icon>
+  {{ isEditMode ? 'Editar' : 'Crear' }} Registro de Código de Tintas
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="codTintaForm" class="dialog-form">
+    
+    <!-- Artículo -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Artículo F</mat-label>
+      <input matInput formControlName="articulo" placeholder="Ej: F12345" required>
+      <mat-icon matSuffix *ngIf="!searchingDesign">tag</mat-icon>
+      <mat-spinner matSuffix *ngIf="searchingDesign" diameter="20"></mat-spinner>
+      <mat-error *ngIf="codTintaForm.get('articulo')?.hasError('required')">El artículo es requerido</mat-error>
+      <mat-hint *ngIf="designFound" class="success-hint">
+        <mat-icon>check_circle</mat-icon> Diseño encontrado - Datos cargados automáticamente
+      </mat-hint>
+      <mat-hint *ngIf="designNotFound && !searchingDesign" class="info-hint">
+        <mat-icon>info</mat-icon> Diseño no encontrado - Complete los datos manualmente
+      </mat-hint>
+    </mat-form-field>
+
+    <!-- Descripción -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Descripción</mat-label>
+      <textarea matInput formControlName="descripcion" placeholder="Descripción del diseño" rows="2" required></textarea>
+      <mat-icon matSuffix>description</mat-icon>
+      <mat-error *ngIf="codTintaForm.get('descripcion')?.hasError('required')">La descripción es requerida</mat-error>
+    </mat-form-field>
+
+    <!-- Estante y Carpeta -->
+    <div class="row-fields">
+      <mat-form-field appearance="outline" class="half-field">
+        <mat-label>Estante</mat-label>
+        <input matInput formControlName="estante" placeholder="Ej: E-01">
+        <mat-icon matSuffix>shelves</mat-icon>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="half-field">
+        <mat-label>Carpeta</mat-label>
+        <input matInput formControlName="carpeta" placeholder="Ej: C-001">
+        <mat-icon matSuffix>folder</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Número de colores y Línea de Tinta -->
+    <div class="row-fields">
+      <mat-form-field appearance="outline" class="half-field">
+        <mat-label>Número de Colores</mat-label>
+        <input matInput type="number" formControlName="numColores" min="1" max="12" (change)="updateColoresArray()" required>
+        <mat-icon matSuffix>palette</mat-icon>
+        <mat-error *ngIf="codTintaForm.get('numColores')?.hasError('required')">Requerido</mat-error>
+        <mat-error *ngIf="codTintaForm.get('numColores')?.hasError('min')">Mínimo 1</mat-error>
+        <mat-error *ngIf="codTintaForm.get('numColores')?.hasError('max')">Máximo 12</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="half-field">
+        <mat-label>Línea de Tinta</mat-label>
+        <input matInput formControlName="lineaTinta" placeholder="Ej: Flexo UV, Base Agua"
+               [matAutocomplete]="lineaTintaAuto"
+               (input)="filterLineasTinta($any($event.target).value)">
+        <mat-icon matSuffix>water_drop</mat-icon>
+        <mat-autocomplete #lineaTintaAuto="matAutocomplete">
+          <mat-option *ngFor="let linea of filteredLineasTinta()" [value]="linea">{{ linea }}</mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <!-- Colores dinámicos -->
+    <div class="colores-section" formArrayName="colores">
+      <h3 class="section-title">
+        <mat-icon>palette</mat-icon>
+        Colores del Diseño
+      </h3>
+      
+      <div *ngFor="let color of colores.controls; let i = index" [formGroupName]="i" class="color-row">
+        <div class="color-number">{{ i + 1 }}</div>
+        
+        <mat-form-field appearance="outline" class="color-field">
+          <mat-label>Nombre del Color</mat-label>
+          <input matInput formControlName="nombre" placeholder="Ej: PANTONE 185 C"
+                 [matAutocomplete]="colorAuto"
+                 (input)="searchPantoneColors($any($event.target).value)" required>
+          <mat-icon matSuffix>search</mat-icon>
+          <mat-error>Requerido</mat-error>
+          <mat-autocomplete #colorAuto="matAutocomplete"
+            (optionSelected)="selectPantoneColor(i, $event.option.value)">
+            <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor" class="color-option">
+              <div class="color-option-content">
+                <div class="color-preview" [style.background-color]="pantoneColor.hex"></div>
+                <div class="color-info">
+                  <span class="color-name">{{ pantoneColor.displayName }}</span>
+                  <span class="color-hex">{{ pantoneColor.hex }}</span>
+                </div>
+              </div>
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <div class="color-swatch-preview" 
+             [style.background-color]="getColorHex(i)"
+             [title]="getColorName(i) + ' — ' + getColorHex(i)">
+        </div>
+
+        <mat-form-field appearance="outline" class="small-field">
+          <mat-label>Cód. Tinta</mat-label>
+          <input matInput formControlName="codTinta" placeholder="Código">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="small-field">
+          <mat-label>Cobertura %</mat-label>
+          <input matInput type="number" formControlName="cobertura" min="0" max="100" step="0.01" placeholder="0.00">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="small-field">
+          <mat-label>Cód. Anilox</mat-label>
+          <input matInput formControlName="codAnilox" placeholder="Código">
+        </mat-form-field>
+      </div>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">
+    <mat-icon>close</mat-icon> Cancelar
+  </button>
+  <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!codTintaForm.valid || searchingDesign">
+    <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+    {{ isEditMode ? 'Guardar' : 'Crear' }}
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,669 @@
+using Microsoft.EntityFrameworkCore;
+using FlexoAPP.API.Data.Context;
+using FlexoAPP.API.Models.Entities;
+using FlexoAPP.API.Models.DTOs;
+using FlexoAPP.API.Helpers;
+using System.Text.Json;
+
+namespace FlexoAPP.API.Repositories
+{
+    public class DesignRepository : IDesignRepository
+    {
+        private readonly FlexoAPPDbContext _context;
+
+        public DesignRepository(FlexoAPPDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IEnumerable<Design>> GetAllDesignsAsync()
+        {
+            try
+            {
+
+                return await _context.Designs
+                    .AsNoTracking()
+                    .OrderByDescending(d => d.LastModified)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                // Console.WriteLine($"Error accessing database: {ex.Message}");
+
+                return new List<Design>();
+            }
+        }
+
+        public async Task<int> GetDesignsCountAsync()
+        {
+            try
+            {
+                return await _context.Designs.CountAsync();
+            }
+            catch (Exception ex)
+            {
+                // Console.WriteLine($"Error counting designs: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public async Task<Design?> GetDesignByIdAsync(int id)
+        {
+            return await _context.Designs
+                .FirstOrDefaultAsync(d => d.Id == id);
+        }
+
+        public async Task<Design?> GetDesignByArticleFAsync(string articleF)
+        {
+            return await _context.Designs
+                .FirstOrDefaultAsync(d => d.ArticleF == articleF);
+        }
+
+        public async Task<Design> CreateDesignAsync(Design design)
+        {
+            design.CreatedDate = DateTimeHelper.Now;
+            design.LastModified = DateTimeHelper.Now;
+
+            _context.Designs.Add(design);
+            await _context.SaveChangesAsync();
+
+
+            return await GetDesignByIdAsync(design.Id) ?? design;
+        }
+
+        public async Task<Design> UpdateDesignAsync(Design design)
+        {
+            design.LastModified = DateTimeHelper.Now;
+
+            _context.Entry(design).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+
+            return await GetDesignByIdAsync(design.Id) ?? design;
+        }
+
+        public async Task<bool> DeleteDesignAsync(int id)
+        {
+            var design = await _context.Designs.FindAsync(id);
+            if (design == null)
+                return false;
+
+            _context.Designs.Remove(design);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DesignExistsAsync(int id)
+        {
+            return await _context.Designs.AnyAsync(d => d.Id == id);
+        }
+
+        public async Task<bool> ArticleFExistsAsync(string articleF, int? excludeId = null)
+        {
+            var query = _context.Designs.Where(d => d.ArticleF == articleF);
+
+            if (excludeId.HasValue)
+                query = query.Where(d => d.Id != excludeId.Value);
+
+            return await query.AnyAsync();
+        }
+
+        public async Task<(IEnumerable<Design> designs, int totalCount)> SearchDesignsAsync(DesignSearchDto searchDto)
+        {
+            var query = _context.Designs.Include(d => d.CreatedBy).AsQueryable();
+
+
+            if (!string.IsNullOrEmpty(searchDto.SearchTerm))
+            {
+                var searchTerm = searchDto.SearchTerm.ToLower();
+                query = query.Where(d =>
+                    (d.ArticleF ?? "").ToLower().Contains(searchTerm) ||
+                    (d.Client ?? "").ToLower().Contains(searchTerm) ||
+                    (d.Description ?? "").ToLower().Contains(searchTerm) ||
+                    (d.Substrate ?? "").ToLower().Contains(searchTerm));
+            }
+
+            if (!string.IsNullOrEmpty(searchDto.Status))
+            {
+                query = query.Where(d => d.Status == searchDto.Status);
+            }
+
+            if (!string.IsNullOrEmpty(searchDto.Type))
+            {
+                query = query.Where(d => d.Type == searchDto.Type);
+            }
+
+
+            var totalCount = await query.CountAsync();
+
+
+            query = searchDto.SortBy?.ToLower() switch
+            {
+                "articlef" => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.ArticleF)
+                    : query.OrderByDescending(d => d.ArticleF),
+                "client" => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.Client)
+                    : query.OrderByDescending(d => d.Client),
+                "createddate" => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.CreatedDate)
+                    : query.OrderByDescending(d => d.CreatedDate),
+                "substrate" => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.Substrate)
+                    : query.OrderByDescending(d => d.Substrate),
+                _ => searchDto.SortDirection?.ToLower() == "asc"
+                    ? query.OrderBy(d => d.LastModified)
+                    : query.OrderByDescending(d => d.LastModified)
+            };
+
+
+            var designs = await query
+                .Skip((searchDto.Page - 1) * searchDto.PageSize)
+                .Take(searchDto.PageSize)
+                .ToListAsync();
+
+            return (designs, totalCount);
+        }
+
+        public async Task<DesignStatsDto> GetDesignStatsAsync()
+        {
+            var totalDesigns = await _context.Designs.CountAsync();
+            var activeDesigns = await _context.Designs.CountAsync(d => d.Status == "ACTIVO");
+            var inactiveDesigns = await _context.Designs.CountAsync(d => d.Status == "INACTIVO");
+            var laminaDesigns = await _context.Designs.CountAsync(d => d.Type == "LAMINA");
+            var tubularDesigns = await _context.Designs.CountAsync(d => d.Type == "TUBULAR");
+            var semitubularDesigns = await _context.Designs.CountAsync(d => d.Type == "SEMITUBULAR");
+            var averageColors = totalDesigns > 0
+                ? await _context.Designs.AverageAsync(d => (double)(d.ColorCount ?? 0))
+                : 0;
+
+            return new DesignStatsDto
+            {
+                TotalDesigns = totalDesigns,
+                ActiveDesigns = activeDesigns,
+                InactiveDesigns = inactiveDesigns,
+                LaminaDesigns = laminaDesigns,
+                TubularDesigns = tubularDesigns,
+                SemitubularDesigns = semitubularDesigns,
+                AverageColors = Math.Round(averageColors, 2)
+            };
+        }
+
+        public async Task<IEnumerable<Design>> CreateMultipleDesignsAsync(IEnumerable<Design> designs)
+        {
+            var designList = designs.ToList();
+            var now = DateTimeHelper.Now;
+
+            foreach (var design in designList)
+            {
+                design.CreatedDate = now;
+                design.LastModified = now;
+            }
+
+            _context.Designs.AddRange(designList);
+            await _context.SaveChangesAsync();
+
+            return designList;
+        }
+
+        public async Task<bool> UpdateDesignStatusAsync(int id, string status, int modifiedBy)
+        {
+            var design = await _context.Designs.FindAsync(id);
+            if (design == null)
+                return false;
+
+            design.Status = status;
+            design.LastModified = DateTimeHelper.Now;
+            design.CreatedByUserId = modifiedBy;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<IEnumerable<Design>> GetDesignsByClientAsync(string client)
+        {
+            return await _context.Designs
+                .Include(d => d.CreatedBy)
+                .Where(d => (d.Client ?? "").ToLower().Contains(client.ToLower()))
+                .OrderByDescending(d => d.LastModified)
+                .ToListAsync();
+        }
+
+
+
+        public async Task<IEnumerable<Design>> GetDesignsByTypeAsync(string type)
+        {
+            return await _context.Designs
+                .Include(d => d.CreatedBy)
+                .Where(d => d.Type == type)
+                .OrderByDescending(d => d.LastModified)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Design>> GetRecentDesignsAsync(int count = 10)
+        {
+            return await _context.Designs
+                .Include(d => d.CreatedBy)
+                .OrderByDescending(d => d.LastModified)
+                .Take(count)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<string>> GetUniqueClientsAsync()
+        {
+            return await _context.Designs
+                .Where(d => d.Client != null)
+                .Select(d => d.Client!)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+        }
+
+
+
+        public async Task<IEnumerable<string>> GetUniqueSubstratesAsync()
+        {
+            return await _context.Designs
+                .Where(d => d.Substrate != null)
+                .Select(d => d.Substrate!)
+                .Distinct()
+                .OrderBy(s => s)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Design>> GetTestDesignsAsync()
+        {
+            return await _context.Designs
+                .Where(d => (d.ArticleF ?? "").StartsWith("SIMPLE") || (d.ArticleF ?? "").StartsWith("TEST"))
+                .ToListAsync();
+        }
+
+        public async Task BulkInsertDesignsAsync(IEnumerable<Design> designs)
+        {
+            try
+            {
+                var designsList = designs.ToList();
+
+
+                var idsToCheck = designsList.Where(d => d.Id > 0).Select(d => d.Id).ToList();
+                var existingIds = new HashSet<int>();
+
+                if (idsToCheck.Any())
+                {
+                    existingIds = (await _context.Designs
+                        .Where(d => idsToCheck.Contains(d.Id))
+                        .Select(d => d.Id)
+                        .ToListAsync()).ToHashSet();
+                }
+
+                var designsToInsert = new List<Design>();
+                var designsToUpdate = new List<Design>();
+
+                foreach (var design in designsList)
+                {
+                    if (design.Id > 0 && existingIds.Contains(design.Id))
+                    {
+
+                        designsToUpdate.Add(design);
+                    }
+                    else
+                    {
+
+                        designsToInsert.Add(design);
+                    }
+                }
+
+
+                if (designsToInsert.Any())
+                {
+                    await _context.Designs.AddRangeAsync(designsToInsert);
+                }
+
+
+                foreach (var design in designsToUpdate)
+                {
+                    var existingDesign = await _context.Designs.FindAsync(design.Id);
+                    if (existingDesign != null)
+                    {
+                        _context.Entry(existingDesign).CurrentValues.SetValues(design);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error during bulk insert: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<int> ClearAllDesignsAsync()
+        {
+            try
+            {
+                var allDesigns = await _context.Designs.ToListAsync();
+                var count = allDesigns.Count;
+
+                if (count > 0)
+                {
+                    _context.Designs.RemoveRange(allDesigns);
+                    await _context.SaveChangesAsync();
+                }
+
+                return count;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error clearing all designs: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<int> DeleteDesignsByStatusAsync(string? status)
+        {
+            try
+            {
+                IQueryable<Design> query;
+                
+                if (status == null)
+                {
+                    query = _context.Designs.Where(d => d.Status == null);
+                }
+                else
+                {
+                    var statusUpper = status.ToUpper();
+                    query = _context.Designs.Where(d => d.Status != null && d.Status.ToUpper() == statusUpper);
+                }
+
+                var designsToDelete = await query.ToListAsync();
+                var count = designsToDelete.Count;
+
+                if (count > 0)
+                {
+                    _context.Designs.RemoveRange(designsToDelete);
+                    await _context.SaveChangesAsync();
+                }
+
+                return count;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error deleting designs by status: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<IEnumerable<Design>> GetDesignsByStatusesAsync(string[] statuses)
+        {
+            try
+            {
+                var statusesUpper = statuses.Select(s => s.ToUpper()).ToList();
+                
+                var designs = await _context.Designs
+                    .AsNoTracking()
+                    .Where(d => d.Status != null && statusesUpper.Contains(d.Status.ToUpper()))
+                    .ToListAsync();
+
+                return designs;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting designs by statuses: {ex.Message}", ex);
+            }
+        }
+
+
+
+
+
+
+        public async Task<(IEnumerable<Design> designs, int totalCount)> GetDesignsPaginatedAsync(
+            int page, int pageSize, string? search = null, string? sortBy = "LastModified", string? sortOrder = "desc")
+        {
+            try
+            {
+                var query = _context.Designs
+                    .AsNoTracking()
+                    .AsQueryable();
+
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query = query.Where(d =>
+                        (d.ArticleF ?? string.Empty).Contains(search) ||
+                        (d.Client ?? string.Empty).Contains(search) ||
+                        (d.Description ?? string.Empty).Contains(search) ||
+                        (d.Substrate ?? string.Empty).Contains(search));
+                }
+
+
+                var totalCount = await query.CountAsync();
+
+
+                query = sortBy?.ToLower() switch
+                {
+                    "articlef" => sortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(d => d.ArticleF)
+                        : query.OrderByDescending(d => d.ArticleF),
+                    "client" => sortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(d => d.Client)
+                        : query.OrderByDescending(d => d.Client),
+                    "createddate" => sortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(d => d.CreatedDate)
+                        : query.OrderByDescending(d => d.CreatedDate),
+                    _ => sortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(d => d.LastModified)
+                        : query.OrderByDescending(d => d.LastModified)
+                };
+
+
+                var designs = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return (designs, totalCount);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting paginated designs: {ex.Message}", ex);
+            }
+        }
+
+
+
+
+        public async Task<IEnumerable<Design>> GetDesignsSummaryAsync()
+        {
+            try
+            {
+                return await _context.Designs
+                    .AsNoTracking()
+                    .Select(d => new Design
+                    {
+                        Id = d.Id,
+                        ArticleF = d.ArticleF,
+                        Client = d.Client,
+                        Status = d.Status,
+                        ColorCount = d.ColorCount,
+                        LastModified = d.LastModified
+                    })
+                    .OrderByDescending(d => d.LastModified)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting designs summary: {ex.Message}", ex);
+            }
+        }
+
+
+
+
+        public async Task<IEnumerable<Design>> GetDesignsLazyAsync()
+        {
+            try
+            {
+                return await _context.Designs
+                    .AsNoTracking()
+                    .Select(d => new Design
+                    {
+                        Id = d.Id,
+                        ArticleF = d.ArticleF,
+                        Client = d.Client,
+                        Description = d.Description,
+                        Status = d.Status,
+                        ColorCount = d.ColorCount,
+                        LastModified = d.LastModified,
+                        PrintType = d.PrintType,
+                        Substrate = d.Substrate,
+                        Type = d.Type
+
+                    })
+                    .OrderByDescending(d => d.LastModified)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting lazy designs: {ex.Message}", ex);
+            }
+        }
+
+
+
+
+        public async Task<List<string>> GetDesignColorsAsync(int designId)
+        {
+            try
+            {
+                var design = await _context.Designs
+                    .Where(d => d.Id == designId)
+                    .Select(d => new {
+                        d.Color1, d.Color2, d.Color3, d.Color4, d.Color5,
+                        d.Color6, d.Color7, d.Color8, d.Color9, d.Color10
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (design == null) return new List<string>();
+
+                var colors = new List<string>();
+                if (!string.IsNullOrEmpty(design.Color1)) colors.Add(design.Color1);
+                if (!string.IsNullOrEmpty(design.Color2)) colors.Add(design.Color2);
+                if (!string.IsNullOrEmpty(design.Color3)) colors.Add(design.Color3);
+                if (!string.IsNullOrEmpty(design.Color4)) colors.Add(design.Color4);
+                if (!string.IsNullOrEmpty(design.Color5)) colors.Add(design.Color5);
+                if (!string.IsNullOrEmpty(design.Color6)) colors.Add(design.Color6);
+                if (!string.IsNullOrEmpty(design.Color7)) colors.Add(design.Color7);
+                if (!string.IsNullOrEmpty(design.Color8)) colors.Add(design.Color8);
+                if (!string.IsNullOrEmpty(design.Color9)) colors.Add(design.Color9);
+                if (!string.IsNullOrEmpty(design.Color10)) colors.Add(design.Color10);
+
+                return colors;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting design colors: {ex.Message}", ex);
+            }
+        }
+
+
+
+
+        public async Task<Design?> GetDesignWithDetailsAsync(int designId)
+        {
+            try
+            {
+                return await _context.Designs
+                    .FirstOrDefaultAsync(d => d.Id == designId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting design details: {ex.Message}", ex);
+            }
+        }
+
+
+
+        public async Task<IEnumerable<string>> GetUniqueUsedColorsAsync()
+        {
+            try
+            {
+
+                var c1 = await _context.Designs.Where(d => d.Color1 != null).Select(d => d.Color1!).Distinct().ToListAsync();
+                var c2 = await _context.Designs.Where(d => d.Color2 != null).Select(d => d.Color2!).Distinct().ToListAsync();
+                var c3 = await _context.Designs.Where(d => d.Color3 != null).Select(d => d.Color3!).Distinct().ToListAsync();
+                var c4 = await _context.Designs.Where(d => d.Color4 != null).Select(d => d.Color4!).Distinct().ToListAsync();
+                var c5 = await _context.Designs.Where(d => d.Color5 != null).Select(d => d.Color5!).Distinct().ToListAsync();
+                var c6 = await _context.Designs.Where(d => d.Color6 != null).Select(d => d.Color6!).Distinct().ToListAsync();
+                var c7 = await _context.Designs.Where(d => d.Color7 != null).Select(d => d.Color7!).Distinct().ToListAsync();
+                var c8 = await _context.Designs.Where(d => d.Color8 != null).Select(d => d.Color8!).Distinct().ToListAsync();
+                var c9 = await _context.Designs.Where(d => d.Color9 != null).Select(d => d.Color9!).Distinct().ToListAsync();
+                var c10 = await _context.Designs.Where(d => d.Color10 != null).Select(d => d.Color10!).Distinct().ToListAsync();
+
+
+                var allColors = c1.Concat(c2).Concat(c3).Concat(c4).Concat(c5)
+                                  .Concat(c6).Concat(c7).Concat(c8).Concat(c9).Concat(c10)
+                                  .Where(c => !string.IsNullOrWhiteSpace(c))
+                                  .Select(c => c.Trim().ToUpper())
+                                  .Distinct()
+                                  .OrderBy(c => c)
+                                  .ToList();
+
+                return allColors;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting unique used colors: {ex.Message}", ex);
+            }
+        }
+
+
+
+
+        public async Task<List<string>> GetPantoneColorsByArticleAsync(string articleF)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(articleF))
+                    return new List<string>();
+
+                // Raw SQL: evita problemas EF con columnas `color N` y no lanza 500 si no hay diseño
+                var connectionString = _context.Database.GetConnectionString();
+                await using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                await using var command = connection.CreateCommand();
+                command.CommandText = @"
+                    SELECT `color 1`, `color 2`, `color 3`, `color 4`, `color 5`,
+                           `color 6`, `color 7`, `color 8`, `color 9`, `color 10`
+                    FROM designs
+                    WHERE ArticleF = @ArticleF
+                    LIMIT 1";
+                command.Parameters.AddWithValue("@ArticleF", articleF.Trim());
+
+                var pantoneColors = new List<string>();
+                await using var reader = await command.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                    return pantoneColors;
+
+                for (int i = 0; i < 10; i++)
+                {
+                    if (reader.IsDBNull(i)) continue;
+                    var color = reader.GetString(i)?.Trim();
+                    if (string.IsNullOrWhiteSpace(color)) continue;
+
+                    var upper = color.ToUpperInvariant();
+                    if (upper.StartsWith("P-") || upper.StartsWith("P_"))
+                        pantoneColors.Add(upper.Replace('_', '-'));
+                }
+
+                return pantoneColors;
+            }
+            catch (Exception ex)
+            {
+                // No propagar: reportes/consulta deben degradar a lista vacía
+                Console.WriteLine($"GetPantoneColorsByArticleAsync warning for {articleF}: {ex.Message}");
+                return new List<string>();
+            }
+        }
+    }
+}
+

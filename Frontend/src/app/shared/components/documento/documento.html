@@ -1,0 +1,338 @@
+<!-- ===== CONTENEDOR PRINCIPAL DE DOCUMENTOS ===== -->
+<!-- Sistema de gestión de Documentos con diseño tipo cuadrícula Excel -->
+<!-- Contenedor raíz que ocupa toda la ventana con flexbox vertical -->
+<!-- Clase: documento-container - Define el layout principal del componente -->
+<div class="documento-container">
+
+
+
+
+  <div class="documento-header">
+
+    <div class="header-content">
+
+      <div class="header-info">
+
+
+        <h1 class="page-title">
+
+          <mat-icon>description</mat-icon>
+
+          Gestión de Documentos
+        </h1>
+
+
+        <p class="page-subtitle">
+          Administración centralizada de documentos del sistema FlexoAPP
+        </p>
+      </div>
+
+
+      <div class="header-actions">
+
+
+
+        <button mat-raised-button color="primary" (click)="uploadDocument()"
+          class="load-programming-btn"
+          matTooltip="Subir nuevo documento">
+
+          <mat-icon>upload_file</mat-icon>
+
+          Subir Documento
+        </button>
+
+
+
+        <button mat-raised-button color="accent" (click)="createNewDocument()"
+          class="export-btn"
+          matTooltip="Crear nuevo documento">
+
+          <mat-icon>add</mat-icon>
+
+          Crear Nuevo
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+
+
+  <div class="search-area-compact">
+    <div class="search-container-compact">
+      <div class="search-field-wrapper-uni">
+        <mat-icon class="search-icon-uni">search</mat-icon>
+        <input class="search-input-uni" [value]="searchTerm()" (input)="onSearchChange($event)" placeholder="Buscar documento...">
+        <button class="clear-input-uni" *ngIf="searchTerm()" (click)="searchTerm.set('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="search-field-wrapper-uni select-wrapper-uni">
+        <mat-icon class="search-icon-uni">folder</mat-icon>
+        <mat-select [value]="selectedCategory()" (selectionChange)="onCategoryChange($event.value)" class="select-inline-uni">
+          <mat-option *ngFor="let category of categories" [value]="category.value">{{ category.label }}</mat-option>
+        </mat-select>
+      </div>
+
+      <div class="search-field-wrapper-uni select-wrapper-uni">
+        <mat-icon class="search-icon-uni">toggle_on</mat-icon>
+        <mat-select [value]="selectedStatus()" (selectionChange)="onStatusChange($event.value)" class="select-inline-uni">
+          <mat-option *ngFor="let status of statuses" [value]="status.value">{{ status.label }}</mat-option>
+        </mat-select>
+      </div>
+
+      <span class="results-badge-uni">
+        <mat-icon>description</mat-icon>
+        {{ filteredDocuments().length }} / {{ documents().length }}
+      </span>
+
+      <button mat-icon-button
+        *ngIf="searchTerm() || selectedCategory() !== 'all' || selectedStatus() !== 'all'"
+        (click)="clearFilters()" class="clear-all-uni" matTooltip="Limpiar filtros">
+        <mat-icon>filter_alt_off</mat-icon>
+      </button>
+    </div>
+  </div>
+
+
+
+
+  <div class="grid-area">
+    <mat-card class="grid-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>table_view</mat-icon>
+          Lista de Documentos
+          <span style="font-size: 0.8rem; color: #64748b; margin-left: 12px;">
+            ({{ filteredDocuments().length }} documentos)
+          </span>
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+
+
+        <div *ngIf="filteredDocuments().length > 0" class="table-container">
+          <table class="excel-table">
+
+            <thead>
+              <tr>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>description</mat-icon>
+                    <span>Nombre del Documento</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>category</mat-icon>
+                    <span>Tipo</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>folder</mat-icon>
+                    <span>Categoría</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>notes</mat-icon>
+                    <span>Descripción</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>storage</mat-icon>
+                    <span>Tamaño</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>calendar_today</mat-icon>
+                    <span>Fecha de Creación</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>info</mat-icon>
+                    <span>Estado</span>
+                  </div>
+                </th>
+
+                <th class="excel-header">
+                  <div class="header-content">
+                    <mat-icon>settings</mat-icon>
+                    <span>Acciones</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+
+
+            <tbody>
+
+              <tr *ngFor="let doc of filteredDocuments()" class="excel-row">
+
+                <td class="excel-cell name-cell">
+                  <div class="name-content">
+
+                    <mat-icon>{{ getTypeIcon(doc.tipo) }}</mat-icon>
+
+                    <span class="name-text">{{ doc.nombre }}</span>
+                  </div>
+                </td>
+
+                <td class="excel-cell type-cell">
+                  <span class="type-badge">
+
+                    <mat-icon>{{ getTypeIcon(doc.tipo) }}</mat-icon>
+
+                    {{ doc.tipo }}
+                  </span>
+                </td>
+
+                <td class="excel-cell category-cell">
+                  <span class="category-badge">
+
+                    {{ getCategoryLabel(doc.categoria) }}
+                  </span>
+                </td>
+
+                <td class="excel-cell description-cell">
+
+                  <span class="description-text" [matTooltip]="doc.descripcion || 'Sin descripción'">
+
+                    {{ doc.descripcion || 'Sin descripción' }}
+                  </span>
+                </td>
+
+                <td class="excel-cell size-cell">
+                  <span class="size-text">{{ doc.tamanoFormateado }}</span>
+                </td>
+
+                <td class="excel-cell date-cell">
+
+                  <span class="date-text">{{ doc.fechaCreacion | date:'dd/MM/yyyy' }}</span>
+                </td>
+
+                <td class="excel-cell status-cell">
+
+                  <span class="status-badge"
+                    [ngClass]="{
+                      'status-active': doc.estado === 'active',
+                      'status-draft': doc.estado === 'draft',
+                      'status-archived': doc.estado === 'archived'
+                    }">
+
+                    <mat-icon>{{ getStatusIcon(doc.estado) }}</mat-icon>
+
+                    {{ doc.estado === 'active' ? 'Activo' :
+                       doc.estado === 'draft' ? 'Borrador' : 'Archivado' }}
+                  </span>
+                </td>
+
+                <td class="excel-cell actions-cell">
+
+                  <div class="action-buttons">
+
+
+
+
+                    <button mat-icon-button color="primary" (click)="$event.stopPropagation(); viewDocument(doc)"
+                      class="action-btn view-btn"
+                      matTooltip="Ver documento">
+
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+
+
+
+
+                    <button mat-icon-button (click)="$event.stopPropagation(); printDocument(doc)"
+                      class="action-btn print-btn"
+                      matTooltip="Imprimir documento"
+                      style="color: #7c3aed;">
+
+                      <mat-icon>print</mat-icon>
+                    </button>
+
+
+
+
+                    <button mat-icon-button (click)="$event.stopPropagation(); downloadDocument(doc)"
+                      class="action-btn download-btn"
+                      matTooltip="Descargar documento"
+                      style="color: #10b981;">
+
+                      <mat-icon>download</mat-icon>
+                    </button>
+
+
+
+                    <button mat-icon-button color="primary" (click)="$event.stopPropagation(); editDocument(doc)"
+                      class="action-btn edit-btn"
+                      matTooltip="Editar documento">
+
+                      <mat-icon>edit</mat-icon>
+                    </button>
+
+
+
+
+                    <button mat-icon-button color="warn" (click)="$event.stopPropagation(); deleteDocument(doc)"
+                      class="action-btn delete-btn"
+                      matTooltip="Eliminar documento">
+
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+
+
+        <div *ngIf="filteredDocuments().length === 0" class="no-data">
+
+          <mat-icon *ngIf="searchTerm() || selectedCategory() !== 'all' || selectedStatus() !== 'all'">search_off</mat-icon>
+          <mat-icon *ngIf="!searchTerm() && selectedCategory() === 'all' && selectedStatus() === 'all'">description</mat-icon>
+
+          <p *ngIf="searchTerm() || selectedCategory() !== 'all' || selectedStatus() !== 'all'">
+            No se encontraron documentos con los filtros aplicados
+          </p>
+          <p *ngIf="!searchTerm() && selectedCategory() === 'all' && selectedStatus() === 'all'">
+            No hay documentos disponibles
+          </p>
+
+          <div class="no-data-actions">
+            <button mat-raised-button color="accent"
+              *ngIf="searchTerm() || selectedCategory() !== 'all' || selectedStatus() !== 'all'"
+              (click)="clearFilters()">
+              <mat-icon>filter_alt_off</mat-icon>
+              Limpiar Filtros
+            </button>
+            <button mat-raised-button color="primary" (click)="uploadDocument()">
+              <mat-icon>upload_file</mat-icon>
+              Subir Primer Documento
+            </button>
+          </div>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>
+<!-- Fin del contenedor principal de Documentos -->
+<!-- Cierre del div.documento-container -->

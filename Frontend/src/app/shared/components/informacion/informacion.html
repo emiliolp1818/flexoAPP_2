@@ -1,0 +1,277 @@
+<!-- ===== CONTENEDOR PRINCIPAL DE INFORMACIÓN ===== -->
+<!-- Contenedor raíz que ocupa toda la ventana con diseño tipo cuadrícula -->
+<div class="informacion-container">
+
+
+
+  <div class="informacion-header">
+    <div class="header-content">
+
+      <div class="header-info">
+
+        <h1 class="page-title">
+          <mat-icon>info</mat-icon>
+          Información de la Aplicación
+        </h1>
+
+        <p class="page-subtitle">
+          Detalles técnicos, versión, conexiones de red y licencia del sistema FlexoAPP
+        </p>
+      </div>
+
+
+      <div class="header-actions">
+
+        <button mat-raised-button color="accent" (click)="refreshInfo()"
+          class="export-btn"
+          [disabled]="isLoading()"
+          matTooltip="Actualizar información del sistema">
+          <mat-icon>refresh</mat-icon>
+          Actualizar
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="informacion-content">
+
+
+    @if (isLoading()) {
+      <div class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando información del sistema...</p>
+      </div>
+    }
+
+
+    @if (!isLoading()) {
+
+      <div class="info-grid">
+
+
+
+        <mat-card class="info-card app-info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>apps</mat-icon>
+              Información de la Aplicación
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>label</mat-icon>
+                <span>Nombre:</span>
+              </div>
+              <div class="info-value">{{ appInfo().name }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>new_releases</mat-icon>
+                <span>Versión:</span>
+              </div>
+              <div class="info-value version-badge">v{{ appInfo().version }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>description</mat-icon>
+                <span>Descripción:</span>
+              </div>
+              <div class="info-value">{{ appInfo().description }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>person</mat-icon>
+                <span>Autor:</span>
+              </div>
+              <div class="info-value">{{ appInfo().author }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+
+
+        <mat-card class="info-card network-info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>wifi</mat-icon>
+              Configuración de Red
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>computer</mat-icon>
+                <span>IP Local:</span>
+              </div>
+              <div class="info-value ip-badge">{{ networkInfo().localIP }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>home</mat-icon>
+                <span>Localhost:</span>
+              </div>
+              <div class="info-value">{{ networkInfo().localhost }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>settings_ethernet</mat-icon>
+                <span>Puerto:</span>
+              </div>
+              <div class="info-value port-badge">{{ networkInfo().port }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>link</mat-icon>
+                <span>URL de Acceso:</span>
+              </div>
+              <div class="info-value url-value">{{ networkInfo().fullURL }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>signal_cellular_alt</mat-icon>
+                <span>Estado:</span>
+              </div>
+              <div class="info-value">
+
+                <span class="status-badge" [class.online]="networkInfo().isOnline" [class.offline]="!networkInfo().isOnline">
+                  <mat-icon>{{ networkInfo().isOnline ? 'check_circle' : 'cancel' }}</mat-icon>
+                  {{ networkInfo().isOnline ? 'En Línea' : 'Fuera de Línea' }}
+                </span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+
+
+        <mat-card class="info-card backend-info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>dns</mat-icon>
+              Servidor Backend
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>cloud</mat-icon>
+                <span>URL Backend:</span>
+              </div>
+              <div class="info-value url-value">{{ backendInfo().url }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>settings_input_component</mat-icon>
+                <span>Puerto Backend:</span>
+              </div>
+              <div class="info-value port-badge">{{ backendInfo().port }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>sync</mat-icon>
+                <span>Conexión:</span>
+              </div>
+              <div class="info-value">
+
+                <span class="status-badge" [class.online]="backendInfo().isConnected" [class.offline]="!backendInfo().isConnected">
+                  <mat-icon>{{ backendInfo().isConnected ? 'check_circle' : 'error' }}</mat-icon>
+                  {{ backendInfo().isConnected ? 'Conectado' : 'Desconectado' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>api</mat-icon>
+                <span>Versión API:</span>
+              </div>
+              <div class="info-value version-badge">{{ backendInfo().apiVersion }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+
+
+        <mat-card class="info-card browser-info-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>web</mat-icon>
+              Información del Navegador
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>language</mat-icon>
+                <span>Navegador:</span>
+              </div>
+              <div class="info-value">{{ browserInfo().name }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>info_outline</mat-icon>
+                <span>Versión:</span>
+              </div>
+              <div class="info-value">{{ browserInfo().version }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>devices</mat-icon>
+                <span>Sistema Operativo:</span>
+              </div>
+              <div class="info-value">{{ browserInfo().os }}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                <mat-icon>translate</mat-icon>
+                <span>Idioma:</span>
+              </div>
+              <div class="info-value">{{ browserInfo().language }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+
+
+        <mat-card class="info-card license-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>gavel</mat-icon>
+              Licencia del Software
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+
+            <div class="license-content">
+
+              <pre>{{ licenseText() }}</pre>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+      </div>
+    }
+
+  </div>
+
+</div>
+<!-- Fin del contenedor principal de información -->

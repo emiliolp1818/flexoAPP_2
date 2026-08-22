@@ -1,0 +1,48 @@
+.create-anilox-dialog { width: 600px; max-width: 90vw; }
+
+.dialog-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px; background: linear-gradient(135deg, #10b981, #059669);
+  color: white; border-radius: 16px 16px 0 0;
+  .dialog-title {
+    display: flex; align-items: center; gap: 12px;
+    mat-icon { font-size: 28px; width: 28px; height: 28px; }
+    h2 { margin: 0; font-size: 1.4rem; font-weight: 600; }
+  }
+  .dialog-close-btn {
+    color: white; background: rgba(255,255,255,0.1); border-radius: 50%; transition: all 0.2s;
+    &:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+  }
+}
+
+.dialog-content {
+  padding: 24px; background: #f8fafc; max-height: 60vh; overflow-y: auto;
+}
+
+.anilox-form {
+  .form-row {
+    display: flex; gap: 16px; margin-bottom: 16px;
+    &:last-child { margin-bottom: 0; }
+    .half-width { flex: 1; }
+    @media (max-width: 600px) { flex-direction: column; gap: 12px; .half-width { width: 100%; } }
+  }
+  mat-form-field {
+    ::ng-deep .mat-mdc-text-field-wrapper {
+      background: white; border: 2px solid #e2e8f0; border-radius: 12px; transition: all 0.3s;
+      &:hover { border-color: rgba(16,185,129,0.3); box-shadow: 0 2px 8px rgba(16,185,129,0.1); }
+    }
+    &.mat-focused ::ng-deep .mat-mdc-text-field-wrapper { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,0.15); }
+    mat-icon { color: #10b981; }
+  }
+}
+
+.dialog-footer {
+  display: flex; justify-content: flex-end; gap: 12px; padding: 20px 24px;
+  background: white; border-top: 1px solid #e2e8f0;
+  .cancel-btn { color: #64748b; border: 1px solid #cbd5e1; &:hover { background: #f1f5f9; } }
+  .save-btn {
+    background: #10b981; color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+    &:hover:not(:disabled) { background: #059669; transform: translateY(-1px); }
+    &:disabled { opacity: 0.6; }
+  }
+}

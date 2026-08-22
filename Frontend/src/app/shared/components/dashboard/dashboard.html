@@ -1,0 +1,371 @@
+<app-header></app-header>
+
+<!-- Celebración fullscreen para el #1 -->
+<div class="celebration-overlay place-1" *ngIf="showCelebration() && celebrationPlace() === 1" (click)="closeCelebration()">
+  <div class="celebration-confetti">
+    <span class="cel-p p1"></span><span class="cel-p p2"></span><span class="cel-p p3"></span>
+    <span class="cel-p p4"></span><span class="cel-p p5"></span><span class="cel-p p6"></span>
+    <span class="cel-p p7"></span><span class="cel-p p8"></span><span class="cel-p p9"></span>
+    <span class="cel-p p10"></span><span class="cel-p p11"></span><span class="cel-p p12"></span>
+    <span class="cel-p p13"></span><span class="cel-p p14"></span><span class="cel-p p15"></span>
+    <span class="cel-p p16"></span><span class="cel-p p17"></span><span class="cel-p p18"></span>
+    <span class="cel-p p19"></span><span class="cel-p p20"></span>
+  </div>
+  <div class="celebration-content">
+    <div class="cel-trophy">🏆</div>
+    <h1 class="cel-title">¡Felicidades, {{ celebrationName() }}!</h1>
+    <p class="cel-subtitle">Tienes el mejor tiempo de la semana</p>
+    <p class="cel-tap">Toca para continuar</p>
+  </div>
+  <div class="celebration-fireworks">
+    <span class="cel-fw fw1"></span>
+    <span class="cel-fw fw2"></span>
+    <span class="cel-fw fw3"></span>
+    <span class="cel-fw fw4"></span>
+    <span class="cel-fw fw5"></span>
+  </div>
+</div>
+
+<!-- Celebración fullscreen para el #2 - Confetis plateados -->
+<div class="celebration-overlay place-2" *ngIf="showCelebration() && celebrationPlace() === 2" (click)="closeCelebration()">
+  <div class="celebration-confetti-silver">
+    <span class="cel-s s1"></span><span class="cel-s s2"></span><span class="cel-s s3"></span>
+    <span class="cel-s s4"></span><span class="cel-s s5"></span><span class="cel-s s6"></span>
+    <span class="cel-s s7"></span><span class="cel-s s8"></span><span class="cel-s s9"></span>
+    <span class="cel-s s10"></span><span class="cel-s s11"></span><span class="cel-s s12"></span>
+    <span class="cel-s s13"></span><span class="cel-s s14"></span><span class="cel-s s15"></span>
+    <span class="cel-s s16"></span><span class="cel-s s17"></span><span class="cel-s s18"></span>
+  </div>
+  <div class="celebration-content">
+    <div class="cel-trophy">🥈</div>
+    <h1 class="cel-title cel-silver">¡Gran trabajo, {{ celebrationName() }}!</h1>
+    <p class="cel-subtitle">Segundo mejor tiempo de la semana</p>
+    <p class="cel-tap">Toca para continuar</p>
+  </div>
+</div>
+
+<!-- Celebración fullscreen para el #3 - Estrellas -->
+<div class="celebration-overlay place-3" *ngIf="showCelebration() && celebrationPlace() === 3" (click)="closeCelebration()">
+  <div class="celebration-stars">
+    <span class="cel-star st1">⭐</span><span class="cel-star st2">✨</span><span class="cel-star st3">⭐</span>
+    <span class="cel-star st4">✨</span><span class="cel-star st5">⭐</span><span class="cel-star st6">✨</span>
+    <span class="cel-star st7">⭐</span><span class="cel-star st8">✨</span><span class="cel-star st9">⭐</span>
+    <span class="cel-star st10">✨</span><span class="cel-star st11">⭐</span><span class="cel-star st12">✨</span>
+    <span class="cel-star st13">⭐</span><span class="cel-star st14">✨</span><span class="cel-star st15">⭐</span>
+  </div>
+  <div class="celebration-content">
+    <div class="cel-trophy">🥉</div>
+    <h1 class="cel-title cel-bronze">¡Excelente, {{ celebrationName() }}!</h1>
+    <p class="cel-subtitle">Tercer mejor tiempo de la semana</p>
+    <p class="cel-tap">Toca para continuar</p>
+  </div>
+</div>
+
+<div class="dashboard-container">
+
+  <!-- Fila 1: KPIs -->
+  <div class="kpi-row">
+    <!-- Skeleton KPIs -->
+    <ng-container *ngIf="kpiLoading()">
+      <div class="kpi-card skeleton-card" *ngFor="let _ of [1,2,3]">
+        <div class="skeleton-circle"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line wide"></div>
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+        <div class="skeleton-bars">
+          <div class="skeleton-bar" *ngFor="let _ of [1,2,3,4,5,6,7]"></div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- KPIs reales -->
+    <ng-container *ngIf="!kpiLoading()">
+    <div class="kpi-card kpi-time">
+      <div class="kpi-icon"><mat-icon>schedule</mat-icon></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ getFormattedSetupTime() }}</span>
+        <span class="kpi-label">Tiempo de Prealistamiento</span>
+        <span class="kpi-sub">{{ systemStats().totalSetupChanges }} cambios</span>
+      </div>
+      <div class="mini-bars amber">
+        <div class="mini-col" *ngFor="let b of setupTrendBars()">
+          <span class="mini-val">{{ b.value }}</span>
+          <div class="mini-bar" [style.height.px]="getMiniBarHeight(b.percent)"></div>
+          <span class="mini-day">{{ b.day }}</span>
+          <span class="mini-date">{{ b.date }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-orders">
+      <div class="kpi-icon"><mat-icon>check_circle</mat-icon></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ systemStats().readyOrders }}</span>
+        <span class="kpi-label">Órdenes Listas</span>
+        <span class="kpi-sub">+{{ systemStats().readyToday }} hoy</span>
+      </div>
+      <div class="mini-bars green">
+        <div class="mini-col" *ngFor="let b of readyTrendBars()">
+          <span class="mini-val">{{ b.value }}</span>
+          <div class="mini-bar" [style.height.px]="getMiniBarHeight(b.percent)"></div>
+          <span class="mini-day">{{ b.day }}</span>
+          <span class="mini-date">{{ b.date }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-designs">
+      <div class="kpi-icon"><mat-icon>design_services</mat-icon></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ systemStats().totalDesigns }}</span>
+        <span class="kpi-label">Diseños Totales</span>
+        <span class="kpi-sub">+{{ systemStats().newDesignsThisWeek }} esta semana</span>
+      </div>
+      <div class="mini-bars blue">
+        <div class="mini-col" *ngFor="let b of designsTrendBars()">
+          <span class="mini-val">{{ b.value }}</span>
+          <div class="mini-bar" [style.height.px]="getMiniBarHeight(b.percent)"></div>
+          <span class="mini-day">{{ b.day }}</span>
+          <span class="mini-date">{{ b.date }}</span>
+        </div>
+      </div>
+    </div>
+    </ng-container>
+  </div>
+
+  <!-- Fila 1.5: Producción del Mes -->
+  <div class="production-row">
+    <!-- Skeleton producción -->
+    <ng-container *ngIf="productionLoading()">
+      <div class="production-card skeleton-card" *ngFor="let _ of [1,2,3,4]">
+        <div class="skeleton-circle small"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line wide"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Producción real -->
+    <ng-container *ngIf="!productionLoading()">
+    <div class="production-card kilos">
+      <div class="production-icon"><mat-icon>scale</mat-icon></div>
+      <div class="production-body">
+        <span class="production-value">{{ monthlyProduction().totalKilos | number:'1.0-0' }}</span>
+        <span class="production-unit">kg</span>
+      </div>
+      <span class="production-label">Kilos del Mes</span>
+    </div>
+    <div class="production-card metros">
+      <div class="production-icon"><mat-icon>straighten</mat-icon></div>
+      <div class="production-body">
+        <span class="production-value">{{ monthlyProduction().totalMetros | number:'1.0-0' }}</span>
+        <span class="production-unit">m</span>
+      </div>
+      <span class="production-label">Metros del Mes</span>
+    </div>
+    <div class="production-card pedidos">
+      <div class="production-icon"><mat-icon>check_circle</mat-icon></div>
+      <div class="production-body">
+        <span class="production-value">{{ monthlyProduction().totalPedidos }}</span>
+      </div>
+      <span class="production-label">Terminados</span>
+    </div>
+    <div class="production-card mes">
+      <div class="production-icon"><mat-icon>calendar_month</mat-icon></div>
+      <div class="production-body">
+        <span class="production-month">{{ monthlyProduction().month }}</span>
+      </div>
+      <span class="production-label">Mes</span>
+    </div>
+    </ng-container>
+  </div>
+
+  <!-- Fila 2: Gráficas grandes -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3 class="chart-title"><mat-icon>bar_chart</mat-icon> Eficiencia por Turno (Semana)</h3>
+      <div class="shift-week-chart">
+        <div class="shift-legend" [style.visibility]="shiftData().length > 0 ? 'visible' : 'hidden'">
+          <span class="legend-item t1"><span class="legend-dot"></span>T1 (6-14)</span>
+          <span class="legend-item t2"><span class="legend-dot"></span>T2 (14-22)</span>
+          <span class="legend-item t3"><span class="legend-dot"></span>T3 (22-6)</span>
+        </div>
+        <div class="shift-bars-row">
+          <ng-container *ngIf="shiftData().length > 0">
+            <div class="shift-day-col" *ngFor="let day of shiftData()">
+              <div class="triple-bar">
+                <div class="thin-bar t1" [style.height.px]="day.shifts[0].count * 12 || 3">
+                  <span class="bar-num" *ngIf="day.shifts[0].count > 0">{{ day.shifts[0].count }}</span>
+                </div>
+                <div class="thin-bar t2" [style.height.px]="day.shifts[1].count * 12 || 3">
+                  <span class="bar-num" *ngIf="day.shifts[1].count > 0">{{ day.shifts[1].count }}</span>
+                </div>
+                <div class="thin-bar t3" [style.height.px]="day.shifts[2].count * 12 || 3">
+                  <span class="bar-num" *ngIf="day.shifts[2].count > 0">{{ day.shifts[2].count }}</span>
+                </div>
+              </div>
+              <span class="day-label">{{ day.day.substring(0, 3) }}</span>
+              <span class="day-date-label">{{ day.date }}</span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <div *ngIf="shiftData().length === 0" class="chart-empty">
+        <mat-icon>info</mat-icon> Sin datos de turnos
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3 class="chart-title"><mat-icon>calendar_today</mat-icon> Preparación por Día</h3>
+      <div class="daily-chart">
+        <div class="daily-bars">
+          <ng-container *ngIf="dailyData().length > 0">
+            <div class="daily-col" *ngFor="let day of dailyData()">
+              <div class="daily-bar-wrapper">
+                <span class="daily-count">{{ day.count }}</span>
+                <div class="daily-bar" [style.height.%]="getDailyBarHeight(day.count)"></div>
+              </div>
+              <span class="daily-label">{{ day.dayName }}</span>
+              <span class="daily-date">{{ day.date }}</span>
+            </div>
+          </ng-container>
+        </div>
+        <div *ngIf="dailyData().length === 0" class="chart-empty">
+          <mat-icon>info</mat-icon> Sin datos
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfica Top Pantones del Mes -->
+    <div class="chart-card">
+      <h3 class="chart-title"><mat-icon>palette</mat-icon> Top Pantones del Mes (1 - {{ todayDate() }})</h3>
+      <div class="pantone-chart">
+        <div class="pantone-bars">
+          <ng-container *ngIf="topPantones().length > 0">
+            <div class="pantone-col" *ngFor="let p of topPantones(); let i = index">
+              <div class="pantone-bar-wrapper">
+                <span class="pantone-count">{{ p.count }}</span>
+                <div class="pantone-bar-v"
+                     [style.height.px]="(p.count / topPantones()[0].count) * 160"
+                     [style.background]="getPantoneBarColor(i)">
+                </div>
+              </div>
+              <span class="pantone-name-v">{{ p.name }}</span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <div *ngIf="topPantones().length === 0" class="chart-empty">
+        <mat-icon>info</mat-icon> Sin datos del mes
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila 2.5: Mejor tiempo de la semana -->
+  <div class="ranking-card">
+    <div class="ranking-header">
+      <mat-icon>emoji_events</mat-icon>
+      <h3>Ranking Semanal</h3>
+      <span class="ranking-sub">Tiempo promedio por pantone (menor = mejor)</span>
+    </div>
+    <div class="ranking-list">
+      <!-- Skeletons mientras carga -->
+      <ng-container *ngIf="bestTimeRanking().length === 0">
+        <div class="ranking-skeleton"></div>
+        <div class="ranking-skeleton"></div>
+        <div class="ranking-skeleton"></div>
+      </ng-container>
+      <!-- Datos reales -->
+      <div class="ranking-item" *ngFor="let user of bestTimeRanking(); let i = index"
+           [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">
+
+        <!-- Confeti y fuegos solo en primer lugar -->
+        <div class="confetti-layer" *ngIf="i === 0">
+          <span class="confetti c1"></span><span class="confetti c2"></span>
+          <span class="confetti c3"></span><span class="confetti c4"></span>
+          <span class="confetti c5"></span><span class="confetti c6"></span>
+          <span class="confetti c7"></span><span class="confetti c8"></span>
+          <span class="confetti c9"></span><span class="confetti c10"></span>
+          <span class="confetti c11"></span><span class="confetti c12"></span>
+          <span class="confetti c13"></span><span class="confetti c14"></span>
+          <span class="confetti c15"></span><span class="confetti c16"></span>
+          <span class="confetti c17"></span><span class="confetti c18"></span>
+          <span class="confetti c19"></span><span class="confetti c20"></span>
+        </div>
+        <div class="fireworks-layer" *ngIf="i === 0">
+          <span class="spark s1"></span><span class="spark-trail s1t"></span>
+          <span class="spark s2"></span><span class="spark-trail s2t"></span>
+          <span class="spark s3"></span><span class="spark-trail s3t"></span>
+          <span class="spark s4"></span><span class="spark-trail s4t"></span>
+        </div>
+
+        <!-- Confeti en segundo lugar -->
+        <div class="confetti-layer silver-confetti" *ngIf="i === 1">
+          <span class="confetti c1"></span><span class="confetti c2"></span>
+          <span class="confetti c3"></span><span class="confetti c4"></span>
+          <span class="confetti c5"></span><span class="confetti c6"></span>
+          <span class="confetti c7"></span><span class="confetti c8"></span>
+          <span class="confetti c9"></span><span class="confetti c10"></span>
+          <span class="confetti c11"></span><span class="confetti c12"></span>
+        </div>
+
+        <!-- Estrellas en tercer lugar -->
+        <div class="stars-layer" *ngIf="i === 2">
+          <span class="star st1">✦</span><span class="star st2">✧</span>
+          <span class="star st3">✦</span><span class="star st4">✧</span>
+          <span class="star st5">✦</span><span class="star st6">✧</span>
+          <span class="star st7">✦</span><span class="star st8">✧</span>
+          <span class="star st9">✦</span><span class="star st10">✧</span>
+        </div>
+        <div class="rank-pos">
+          <span *ngIf="i === 0">🥇</span>
+          <span *ngIf="i === 1">🥈</span>
+          <span *ngIf="i === 2">🥉</span>
+          <span *ngIf="i > 2" class="rank-num">{{ i + 1 }}</span>
+        </div>
+        <div class="rank-info">
+          <span class="rank-name">{{ user.userName }}</span>
+          <span class="rank-changes">{{ user.totalChanges || 0 }} pedidos</span>
+        </div>
+        <div class="rank-times">
+          <span class="rank-avg">{{ formatShiftTime(user.avgTimePerPantone || user.totalTime) }}  /  {{ user.totalPantones || 0 }} pantones</span>
+          <span class="rank-best">Total: {{ formatShiftTime(user.totalTime) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila 4: Acciones Rápidas -->
+  <div class="actions-row">
+    <div class="action-btn" (click)="navigateToMachines()">
+      <div class="action-icon machines"><mat-icon>precision_manufacturing</mat-icon></div>
+      <span>Máquinas</span>
+    </div>
+    <div class="action-btn" (click)="navigateToDesign()">
+      <div class="action-icon design"><mat-icon>design_services</mat-icon></div>
+      <span>Diseño</span>
+    </div>
+    <div class="action-btn" (click)="navigateToReports()">
+      <div class="action-icon reports"><mat-icon>assessment</mat-icon></div>
+      <span>Reportes</span>
+    </div>
+    <div class="action-btn" (click)="navigateToDocumento()">
+      <div class="action-icon docs"><mat-icon>folder_open</mat-icon></div>
+      <span>Documentos</span>
+    </div>
+    <div class="action-btn" (click)="navigateToConsultaPedidos()">
+      <div class="action-icon consulta"><mat-icon>search</mat-icon></div>
+      <span>Consulta</span>
+    </div>
+    <div class="action-btn" (click)="navigateToInformacion()">
+      <div class="action-icon info"><mat-icon>info</mat-icon></div>
+      <span>Info</span>
+    </div>
+    <div class="action-btn" *ngIf="canManageSettings()" (click)="navigateToSettings()">
+      <div class="action-icon settings"><mat-icon>settings</mat-icon></div>
+      <span>Config</span>
+    </div>
+  </div>
+
+</div>

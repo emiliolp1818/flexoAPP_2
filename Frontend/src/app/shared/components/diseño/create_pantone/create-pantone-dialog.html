@@ -1,0 +1,124 @@
+<div class="create-pantone-dialog">
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="header-left">
+      <div class="icon-circle">
+        <mat-icon>palette</mat-icon>
+      </div>
+      <span class="title">{{ isEditMode ? 'Editar' : 'Crear' }} Color Pantone</span>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Tabs: Paleta / L*a*b* -->
+  <div class="mode-tabs">
+    <button class="tab-btn" [class.active]="mode === 'picker'" (click)="mode = 'picker'">
+      <mat-icon>color_lens</mat-icon>
+      Paleta de Color
+    </button>
+    <button class="tab-btn" [class.active]="mode === 'lab'" (click)="mode = 'lab'">
+      <mat-icon>science</mat-icon>
+      Valores L*a*b*
+    </button>
+  </div>
+
+  <div class="dialog-content">
+    <!-- Código del color -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Código del Color</mat-label>
+      <input matInput [(ngModel)]="colorCode" placeholder="Ej: 3125, Rojo Especial" required>
+      <mat-icon matSuffix>tag</mat-icon>
+    </mat-form-field>
+
+    <!-- Nombre personalizado -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre (opcional)</mat-label>
+      <input matInput [(ngModel)]="colorName" placeholder="Ej: Pantone 3125 C">
+      <mat-icon matSuffix>label</mat-icon>
+    </mat-form-field>
+
+    <!-- Tipo de color -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Tipo</mat-label>
+      <mat-select [(ngModel)]="colorType">
+        <mat-option value="pantone">Pantone</mat-option>
+        <mat-option value="heptacromia">Heptacromía</mat-option>
+        <mat-option value="laca">Laca</mat-option>
+      </mat-select>
+      <mat-icon matSuffix>category</mat-icon>
+    </mat-form-field>
+
+    <!-- MODO PALETA -->
+    <div class="picker-section" *ngIf="mode === 'picker'">
+      <label class="section-label">Seleccionar Color</label>
+      <div class="color-picker-row">
+        <input type="color" class="color-input-native" [(ngModel)]="selectedHex" (input)="onHexChange()">
+        <mat-form-field appearance="outline" class="hex-field">
+          <mat-label>HEX</mat-label>
+          <input matInput [(ngModel)]="selectedHex" placeholder="#FF0000" (input)="onHexChange()">
+        </mat-form-field>
+      </div>
+      <div class="rgb-row">
+        <mat-form-field appearance="outline" class="rgb-field">
+          <mat-label>R</mat-label>
+          <input matInput type="number" [(ngModel)]="rgbR" min="0" max="255" (input)="onRgbChange()">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="rgb-field">
+          <mat-label>G</mat-label>
+          <input matInput type="number" [(ngModel)]="rgbG" min="0" max="255" (input)="onRgbChange()">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="rgb-field">
+          <mat-label>B</mat-label>
+          <input matInput type="number" [(ngModel)]="rgbB" min="0" max="255" (input)="onRgbChange()">
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- MODO L*a*b* -->
+    <div class="lab-section" *ngIf="mode === 'lab'">
+      <label class="section-label">Valores CIE L*a*b*</label>
+      <div class="lab-row">
+        <mat-form-field appearance="outline" class="lab-field">
+          <mat-label>L* (Luminosidad)</mat-label>
+          <input matInput type="number" [(ngModel)]="labL" min="0" max="100" step="0.1" (input)="onLabChange()">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="lab-field">
+          <mat-label>a* (Rojo-Verde)</mat-label>
+          <input matInput type="number" [(ngModel)]="labA" min="-128" max="127" step="0.1" (input)="onLabChange()">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="lab-field">
+          <mat-label>b* (Amarillo-Azul)</mat-label>
+          <input matInput type="number" [(ngModel)]="labB" min="-128" max="127" step="0.1" (input)="onLabChange()">
+        </mat-form-field>
+      </div>
+      <div class="lab-hex-preview">
+        <span class="label">HEX aproximado:</span>
+        <span class="hex-value">{{ selectedHex }}</span>
+      </div>
+    </div>
+
+    <!-- Preview del color -->
+    <div class="color-preview-section">
+      <div class="preview-swatch" [style.background-color]="selectedHex">
+        <span [style.color]="getContrastColor(selectedHex)">{{ colorCode || 'Preview' }}</span>
+      </div>
+      <div class="preview-info">
+        <span class="preview-name">{{ colorName || ('P ' + colorCode) }}</span>
+        <span class="preview-hex">{{ selectedHex }}</span>
+        <span class="preview-rgb">RGB({{ rgbR }}, {{ rgbG }}, {{ rgbB }})</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="dialog-actions">
+    <button mat-button mat-dialog-close class="btn-cancel">Cancelar</button>
+    <button mat-raised-button color="primary" (click)="onSave()" 
+            [disabled]="!colorCode || !selectedHex" class="btn-confirm">
+      <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+      {{ isEditMode ? 'Guardar' : 'Crear Color' }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "Bloquear Git push automático",
+  "description": "Cuando se edita cualquier archivo de código, recuerda al agente que NO debe hacer commit ni push a Git a menos que el usuario escriba explícitamente \"save sol\".",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.cs",
+      "**/*.html",
+      "**/*.scss",
+      "**/*.json",
+      "**/*.md",
+      "**/*.sql"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Se han detectado cambios en archivos del proyecto. INSTRUCCIÓN IMPORTANTE: NO hagas commit ni push a Git en este momento. Los cambios deben guardarse únicamente de forma local. Solo debes hacer commit y push a la rama \"render\" cuando el usuario escriba explícitamente la frase \"save sol\". Si el usuario no ha escrito esa frase, ignora cualquier acción relacionada con Git y continúa trabajando normalmente."
+  }
+}

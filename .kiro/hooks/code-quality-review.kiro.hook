@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Code Quality Reviewer",
+  "description": "Analyzes modified source files for code smells, design pattern opportunities, and best practices. Generates suggestions for readability, maintainability, and performance improvements.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.cs",
+      "**/*.html",
+      "**/*.scss"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was just saved. Analyze the modified code for potential improvements. Look for:\n- Code smells (duplicated logic, long methods, large classes, magic numbers, etc.)\n- Design pattern opportunities (where a pattern could simplify or clarify the code)\n- Best practices for the language/framework in use (C#/.NET 8 for backend files, TypeScript/Angular 20 for frontend files)\n- Readability issues (unclear naming, missing comments on complex logic, etc.)\n- Maintainability concerns (tight coupling, missing abstractions, etc.)\n- Performance optimizations (unnecessary re-renders, inefficient queries, missing caching, etc.)\n\nPresent your findings as concise, actionable suggestions. Do NOT automatically apply changes — only report what you found and recommend improvements. Preserve all existing functionality."
+  }
+}

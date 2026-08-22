@@ -1,0 +1,831 @@
+
+@use './styles/themes.scss';
+
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$cyan-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+$primary-blue: #2563eb;
+$primary-blue-light: #3b82f6;
+$primary-blue-dark: #1d4ed8;
+$primary-blue-50: #eff6ff;
+$primary-blue-100: #dbeafe;
+$primary-blue-200: #bfdbfe;
+$primary-blue-800: #1e40af;
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  min-height: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  background-color: #f8fafc !important;
+}
+
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  color: #1f2937;
+  overflow-x: hidden;
+  background-color: #f8fafc !important;
+}
+
+
+
+
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+
+
+
+
+app-header {
+  position: relative;
+  z-index: 1001;
+}
+
+.mat-toolbar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: none !important;
+  color: #1f2937;
+}
+
+
+router-outlet + * {
+  margin-top: 70px;
+
+  &.no-header {
+    margin-top: 0;
+  }
+}
+
+
+router-outlet + .informacion-container {
+  margin-top: 0 !important;
+}
+
+
+
+
+
+mat-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+  position: relative;
+  z-index: 2;
+}
+
+
+mat-icon, .mat-icon {
+  font-family: 'Material Icons', 'Material Icons Outlined', 'Material Symbols Outlined', sans-serif !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+.mat-mdc-card-title,
+.mat-mdc-card-subtitle,
+.mat-mdc-card-content {
+  color: #1f2937 !important;
+}
+
+.mat-sidenav-container,
+.mat-sidenav-content {
+  position: relative;
+  z-index: 2;
+}
+
+
+
+
+
+
+body.login-page {
+  overflow: hidden;
+  height: 100vh;
+}
+
+app-login {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+
+
+
+
+
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.error-message {
+  color: #dc2626;
+  background: rgba(254, 226, 226, 0.8);
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #dc2626;
+}
+
+.success-message {
+  color: #059669;
+  background: rgba(209, 250, 229, 0.8);
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #059669;
+}
+
+
+
+
+
+@media (max-width: 768px) {
+  router-outlet + * {
+    margin-top: 56px;
+  }
+
+  mat-card {
+    margin: 8px;
+  }
+
+  // Tables scroll horizontally on small screens
+  .table-container, .anilox-table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  // Dialogs full width on mobile
+  .mat-mdc-dialog-container {
+    max-width: 95vw !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
+  .mat-toolbar {
+    padding: 0 8px;
+  }
+
+  // Full width dialogs on very small screens
+  .mat-mdc-dialog-container {
+    max-width: 100vw !important;
+    margin: 0 !important;
+  }
+}
+
+// Large screens
+@media (min-width: 1920px) {
+  .dashboard-container {
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+}
+
+html, body { min-height: 100%; height: auto; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #f8fafc !important; }
+
+
+
+
+.success-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #10b981 0%, #059669 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), pulse 1.8s ease-in-out 2;
+
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+
+
+.error-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), blink 1.5s ease-in-out 3;
+
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+
+.info-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), shimmer 2s ease-in-out infinite;
+
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+
+.warning-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), glow 2.5s ease-in-out infinite;
+
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mdc-snackbar__label {
+    color: white !important;
+  }
+
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+// Estilos personalizados para mensajes de estado - Diseño minimalista con animación
+.animated-snackbar:not(.success-snackbar) {
+  animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 10px !important;
+  padding: 0 !important;
+  min-width: 320px !important;
+  max-width: 520px !important;
+  overflow: visible !important;
+  
+  &.mat-mdc-snack-bar-container {
+    background-color: transparent !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+    
+    .mdc-snackbar__surface {
+      background-color: transparent !important;
+      padding: 0 !important;
+    }
+  }
+  
+  .mat-mdc-snack-bar-label {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.3px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 0 !important;
+    padding: 10px 18px !important;
+    line-height: 1.4 !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    animation: fadeIn 0.4s ease-out;
+  }
+}
+
+// Estilo del icono con fondo circular
+.status-icon {
+  font-size: 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-radius: 50% !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 
+              0 0 0 2px rgba(255, 255, 255, 0.2) inset !important;
+  animation: iconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.2s;
+  flex-shrink: 0 !important;
+  align-self: flex-start !important;
+  margin-top: 2px !important;
+}
+
+@keyframes slideInUp {
+  0% {
+    transform: translateY(100px) scale(0.9);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(-8px) scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes iconBounce {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// PREPARANDO - Amarillo con degradado negro
+.status-preparando-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), glow 2.5s ease-in-out infinite;
+    
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+  
+  .mat-mdc-snack-bar-label {
+    color: #ffffff !important;
+  }
+}
+
+// LISTO - Verde con degradado negro
+.status-listo-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #10b981 0%, #059669 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), pulse 1.8s ease-in-out 2;
+    
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+  
+  .mat-mdc-snack-bar-label,
+  .mdc-snackbar__label {
+    color: #ffffff !important;
+  }
+  
+  .mat-mdc-button,
+  button {
+    color: #ffffff !important;
+  }
+  
+  * {
+    color: #ffffff !important;
+  }
+}
+
+// DUPLICADO - Ámbar/Dorado con degradado negro
+.status-duplicado-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), glow 2s ease-in-out 2;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4) !important;
+
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+
+  .mat-mdc-snack-bar-label,
+  .mdc-snackbar__label {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
+
+  .mat-mdc-button,
+  button {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
+  * {
+    color: #ffffff !important;
+  }
+}
+
+// CORRIENDO - Azul con degradado negro
+.status-corriendo-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), shimmer 2s ease-in-out infinite;
+    
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+  
+  .mat-mdc-snack-bar-label {
+    color: #ffffff !important;
+  }
+}
+
+// SUSPENDIDO - Naranja con degradado negro
+.status-suspendido-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), blink 1.5s ease-in-out 3;
+    
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+  
+  .mat-mdc-snack-bar-label {
+    color: #ffffff !important;
+  }
+}
+
+// TERMINADO - Rojo con degradado negro
+.status-terminado-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), bounce 0.7s ease-in-out 2;
+    
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+  
+  .mat-mdc-snack-bar-label {
+    color: #ffffff !important;
+  }
+}
+
+// SIN ASIGNAR - Gris con degradado negro
+.status-sin-asignar-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #64748b 0%, #475569 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+  
+  .mat-mdc-snack-bar-label {
+    color: #ffffff !important;
+  }
+}
+
+// DEFAULT
+.status-default-snackbar {
+  &.mat-mdc-snack-bar-container {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 70%, #1f2937 100%) !important;
+    animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    .mdc-snackbar__surface {
+      background: transparent !important;
+    }
+  }
+  
+  .mat-mdc-snack-bar-label {
+    color: #ffffff !important;
+  }
+}
+
+// Animaciones adicionales mejoradas
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 6px 16px rgba(251, 191, 36, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 24px rgba(251, 191, 36, 0.6);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 24px rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  }
+}
+
+
+.mat-mdc-snack-bar-container {
+  border-radius: 10px !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+  animation: slideInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-width: 320px !important;
+  max-width: 520px !important;
+  // Fondo por defecto — los snackbars con panelClass lo sobreescriben
+  background: linear-gradient(135deg, #334155 0%, #1e293b 70%, #0f172a 100%) !important;
+
+  .mdc-snackbar__surface {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
+  .mat-mdc-snack-bar-label {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #ffffff !important;
+    letter-spacing: 0.3px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 10px 18px !important;
+    line-height: 1.4 !important;
+  }
+
+  .mat-mdc-button {
+    font-weight: 600 !important;
+    color: #ffffff !important;
+  }
+}
+
+
+
+// ============================================
+// ESTILOS GLOBALES DE BOTONES UNIFICADOS
+// ============================================
+
+// Estilos para botones con diseño unificado en todos los módulos
+.load-programming-btn,
+.export-btn {
+  height: 44px !important;
+  padding: 0 24px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 8px !important;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+  }
+
+  &:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+  }
+}
+
+// Botón primario (azul) - Para acciones principales
+.load-programming-btn {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+  }
+}
+
+// Botón de exportar/actualizar (verde) - Para acciones secundarias
+.export-btn {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4) !important;
+  }
+}
+
+// Botón circular de refresh
+.refresh-btn {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  background: rgba(37, 99, 235, 0.1) !important;
+  border: 2px solid rgba(37, 99, 235, 0.3) !important;
+  color: #2563eb !important;
+  transition: all 0.3s ease !important;
+
+  mat-icon {
+    font-size: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    transition: transform 0.3s ease !important;
+  }
+
+  &:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.2) !important;
+    border-color: #2563eb !important;
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+
+    mat-icon {
+      transform: rotate(90deg) !important;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    background: rgba(148, 163, 184, 0.1) !important;
+    border-color: rgba(148, 163, 184, 0.3) !important;
+
+    mat-icon {
+      color: #94a3b8 !important;
+    }
+  }
+
+  mat-icon.spinning {
+    animation: spin 1s linear infinite !important;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ===== OCULTAR ELEMENTOS DE ANGULAR MATERIAL ===== */
+/* Ocultar el área táctil de los botones de Material */
+.mat-mdc-button-touch-target {
+  display: none !important;
+}
+
+/* Ocultar el efecto ripple persistente de los botones de Material */
+.mat-mdc-button-persistent-ripple,
+.mdc-button__ripple {
+  display: none !important;
+}
+
+// ===== FILTER PANEL (consulta-pedidos dropdowns) =====
+.filter-panel {
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  margin-top: 4px !important;
+  overflow: hidden !important;
+  min-width: 160px !important;
+
+  .mat-mdc-option {
+    font-size: 0.85rem !important;
+    min-height: 38px !important;
+    padding: 0 16px !important;
+    border-radius: 8px !important;
+    margin: 2px 6px !important;
+    transition: background 0.15s !important;
+    white-space: nowrap !important;
+
+    &:hover {
+      background: #eff6ff !important;
+    }
+
+    &.mdc-list-item--selected {
+      background: linear-gradient(135deg, #dbeafe, #eff6ff) !important;
+      .mdc-list-item__primary-text {
+        color: #2563eb !important;
+        font-weight: 600 !important;
+      }
+    }
+  }
+}
+
+
+// ============================
+// Número de Colores Button - Estilos globales
+// Necesarios porque .mdc-button__label es generado por Angular Material
+// y no es accesible desde el componente con ViewEncapsulation.Emulated
+// ============================
+.numero-colores-btn.mat-mdc-raised-button {
+  .mdc-button__label {
+    display: inline-flex !important;
+    align-items: center !important;
+    color: inherit !important;
+    position: relative !important;
+    z-index: 1 !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    overflow: visible !important;
+  }
+
+  .mat-mdc-button-persistent-ripple,
+  .mat-mdc-button-touch-target,
+  .mat-ripple {
+    z-index: 0 !important;
+  }
+
+  &.active {
+    .mdc-button__label,
+    .mdc-button__label .numero-colores-text {
+      color: white !important;
+    }
+  }
+
+  .numero-colores-text {
+    font-weight: 800 !important;
+    font-size: 10px !important;
+    display: inline-block !important;
+    min-width: 8px !important;
+  }
+}

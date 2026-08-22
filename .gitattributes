@@ -1,0 +1,6 @@
+# Scripts de shell deben usar LF (Linux) nunca CRLF (Windows)
+*.sh text eol=lf
+
+# Dockerfiles y configs también
+Dockerfile text eol=lf
+*.conf text eol=lf

@@ -1,0 +1,48 @@
+<div class="delete-dialog">
+  <!-- Header -->
+  <div class="dialog-header">
+    <div class="header-left">
+      <div class="icon-circle">
+        <mat-icon>delete_outline</mat-icon>
+      </div>
+      <span class="title">{{ data.title || 'Confirmar Eliminación' }}</span>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="dialog-content">
+    <p class="message">{{ data.message || '¿Estás seguro de eliminar este registro?' }}</p>
+
+    <div class="info-card" *ngIf="data.articleF || data.subtitle">
+      <div class="info-item" *ngIf="data.articleF">
+        <mat-icon>article</mat-icon>
+        <span>{{ data.articleF }}</span>
+      </div>
+      <div class="info-item" *ngIf="data.client">
+        <mat-icon>business</mat-icon>
+        <span>{{ data.client }}</span>
+      </div>
+      <div class="info-item" *ngIf="data.subtitle">
+        <mat-icon>info</mat-icon>
+        <span>{{ data.subtitle }}</span>
+      </div>
+    </div>
+
+    <div class="warning-bar">
+      <mat-icon>warning</mat-icon>
+      <span>Esta acción no se puede deshacer</span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="dialog-actions">
+    <button mat-button (click)="onCancel()" class="btn-cancel">{{ data.cancelText || 'Cancelar' }}</button>
+    <button mat-raised-button (click)="onConfirm()" class="btn-delete">
+      <mat-icon>delete</mat-icon>
+      {{ data.confirmText || 'Eliminar' }}
+    </button>
+  </div>
+</div>

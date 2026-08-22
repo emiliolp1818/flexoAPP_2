@@ -1,0 +1,304 @@
+<div class="reports-modern-container">
+  
+  <!-- Header compacto -->
+  <div class="reports-header-compact">
+    <div class="header-content">
+      <h1 class="page-title"><mat-icon>assessment</mat-icon> Auditoría del Sistema</h1>
+      <div class="header-actions">
+        <div class="header-stats" *ngIf="!loading() && filteredActivities().length > 0">
+          <span class="stat-badge"><mat-icon>list_alt</mat-icon> {{ activities().length }} / {{ totalCount() }}</span>
+          <span class="stat-badge"><mat-icon>category</mat-icon> {{ getActiveModulesCount() }} módulos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="reports-scrollable-content">
+
+    <!-- FILTROS MODERNOS -->
+    <div class="search-bar-reports">
+      <form [formGroup]="filterForm" class="search-inputs-reports">
+        
+        <!-- Búsqueda de Usuario -->
+        <div class="filter-group-reports">
+          <div class="search-field-wrapper-reports">
+            <mat-icon class="search-icon-r">person_search</mat-icon>
+            <input class="search-input-r" [(ngModel)]="userSearchText" [ngModelOptions]="{standalone: true}"
+              (input)="onUserSearch()" (keydown.enter)="onUserSearchEnter()"
+              placeholder="Buscar usuario..." autocomplete="off">
+            <button class="clear-input-r" *ngIf="userSearchText" (click)="clearUserSearch()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <div class="suggestions-dropdown" *ngIf="userSearchText && filteredUsers().length > 0 && filteredUsers().length < 8">
+            <div class="suggestion-item" *ngFor="let u of filteredUsers()" (click)="selectUser(u)">
+              <mat-icon>person</mat-icon>
+              <span class="s-code">{{ u.userCode }}</span>
+              <span class="s-name">{{ u.firstName }} {{ u.lastName }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fechas -->
+        <div class="search-field-wrapper-reports date-wrapper-r">
+          <mat-icon class="search-icon-r">event</mat-icon>
+          <input class="search-input-r" [matDatepicker]="pickerStart" formControlName="startDate" placeholder="Desde...">
+          <mat-datepicker-toggle [for]="pickerStart" class="date-toggle-r"></mat-datepicker-toggle>
+          <mat-datepicker #pickerStart></mat-datepicker>
+        </div>
+
+        <div class="search-field-wrapper-reports date-wrapper-r">
+          <mat-icon class="search-icon-r">event</mat-icon>
+          <input class="search-input-r" [matDatepicker]="pickerEnd" formControlName="endDate" placeholder="Hasta...">
+          <mat-datepicker-toggle [for]="pickerEnd" class="date-toggle-r"></mat-datepicker-toggle>
+          <mat-datepicker #pickerEnd></mat-datepicker>
+        </div>
+
+        <!-- Botones -->
+        <div class="search-actions-reports">
+          <button mat-raised-button color="primary" (click)="loadActivities()" [disabled]="loading()" class="search-btn-r">
+            <mat-icon>search</mat-icon> Buscar
+          </button>
+          <button mat-button (click)="clearFilters()" class="clear-btn-r">
+            <mat-icon>clear_all</mat-icon> Limpiar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    
+    <!-- LOADING STATE -->
+    <div *ngIf="loading()" class="modern-loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Cargando actividades...</p>
+    </div>
+
+    <!-- GRID DE MÓDULOS -->
+    <div *ngIf="!loading() && filteredActivities().length > 0" class="modules-grid">
+      
+      <div *ngFor="let module of modules" class="module-card-modern" 
+           [class.has-data]="getModuleCount(module.value) > 0"
+           [class.expanded]="selectedModule() === module.value">
+        
+        <!-- Header del Módulo -->
+        <div class="module-header-modern" (click)="selectModule(selectedModule() === module.value ? null : module.value)">
+          <div class="module-icon-wrapper" [style.background]="getModuleGradient(module.value)">
+            <mat-icon>{{ module.icon }}</mat-icon>
+          </div>
+          
+          <div class="module-info-modern">
+            <h3>{{ module.label }}</h3>
+            <span class="activity-count">{{ getModuleCount(module.value) }} actividades</span>
+          </div>
+
+          <div class="module-actions-modern">
+            <button mat-icon-button (click)="exportModuleToPDF(module.value, $event)"
+                    [disabled]="getModuleCount(module.value) === 0" 
+                    matTooltip="Exportar PDF"
+                    class="export-btn">
+              <mat-icon>picture_as_pdf</mat-icon>
+            </button>
+            <button mat-icon-button (click)="exportModuleToExcel(module.value, $event)"
+                    [disabled]="getModuleCount(module.value) === 0" 
+                    matTooltip="Exportar Excel"
+                    class="export-btn">
+              <mat-icon>table_chart</mat-icon>
+            </button>
+            <mat-icon class="expand-indicator">
+              {{ selectedModule() === module.value ? 'expand_less' : 'expand_more' }}
+            </mat-icon>
+          </div>
+        </div>
+
+        <!-- Contenido del Módulo -->
+        <div class="module-content-modern" *ngIf="selectedModule() === module.value && getModuleCount(module.value) > 0">
+          
+          <!-- MÓDULO MACHINES - Vista Especial -->
+          <div *ngIf="module.value === 'MACHINES'" class="machines-view">
+            <ng-container *ngIf="getMachineStats(getActivitiesByModule(module.value)) as stats">
+
+              <!-- Lista de Pedidos -->
+              <div class="orders-modern" *ngIf="stats.orderDetails && stats.orderDetails.length > 0">
+                <h4 class="section-title">
+                  <mat-icon>inventory_2</mat-icon>
+                  Pedidos Completados ({{ stats.orderDetails.length }})
+                </h4>
+
+                <div class="orders-list-modern">
+                  <div *ngFor="let order of getVisibleOrders(stats.orderDetails); let i = index" class="order-card-modern">
+                    <!-- Header compacto -->
+                    <div class="order-header-modern">
+                      <span class="order-number">#{{ i + 1 }}</span>
+                      <span class="order-articulo">{{ order.articulo }}</span>
+                      <span class="order-maquina">MQ {{ order.numeroMaquina }}</span>
+                      <span class="order-date" *ngIf="order.historialEstados?.length">
+                        {{ order.historialEstados[order.historialEstados.length-1].timestamp | date:'dd/MM HH:mm' }}
+                      </span>
+                      <button mat-icon-button class="delete-activity-btn"
+                              *ngIf="canDeleteActivity()"
+                              (click)="deleteOrderActivities(order); $event.stopPropagation()"
+                              matTooltip="Eliminar pedido del reporte">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+
+                    <!-- Info principal en una línea -->
+                    <div class="order-info-compact">
+                      <span class="info-desc">{{ order.descripcion !== '-' ? order.descripcion : order.articulo }}</span>
+                      <div class="info-badges">
+                        <span class="badge-ot">{{ order.otSap }}</span>
+                        <span class="badge-time" *ngIf="order.duration > 0">⏱ {{ formatDuration(order.duration) }}</span>
+                        <span class="badge-colors" *ngIf="order.numeroColores">🎨 {{ order.numeroColores }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Pantones inline -->
+                    <div class="pantone-inline" *ngIf="order.pantoneColors && order.pantoneColors.length > 0">
+                      <span class="pantone-label">Pantones:</span>
+                      <span *ngFor="let color of order.pantoneColors" class="pantone-tag">{{ color }}</span>
+                    </div>
+
+                    <div class="order-body-modern">
+                      <!-- Timeline compacto -->
+                      <div class="timeline-modern">
+                        <div *ngFor="let estado of order.historialEstados; let i = index" class="timeline-item"
+                             [class.estado-preparando]="estado.estado === 'PREPARANDO'"
+                             [class.estado-listo]="estado.estado === 'LISTO'"
+                             [class.estado-corriendo]="estado.estado === 'CORRIENDO'"
+                             [class.estado-suspendido]="estado.estado === 'SUSPENDIDO'"
+                             [class.estado-terminado]="estado.estado === 'TERMINADO'">
+                          <div class="timeline-marker"></div>
+                          <div class="timeline-content">
+                            <div class="timeline-header">
+                              <span class="estado-badge">{{ estado.estado }}</span>
+                              <span class="timeline-time">{{ estado.timestamp | date:'HH:mm' }}</span>
+                              <span class="timeline-duration" *ngIf="estado.estado === 'LISTO' && estado.duration > 0">
+                                {{ formatDuration(estado.duration) }}
+                              </span>
+                            </div>
+                            <div class="timeline-user" *ngIf="estado.userCode && estado.userCode !== '-'">
+                              👤 {{ estado.userName || estado.userCode }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cargar Más Pedidos -->
+                <button *ngIf="hasMoreOrders(stats.orderDetails)" 
+                        mat-stroked-button 
+                        (click)="loadMoreOrders()" 
+                        class="load-more-modern">
+                  <mat-icon>expand_more</mat-icon>
+                  Cargar más ({{ stats.orderDetails.length - visibleOrdersCount() }} restantes)
+                </button>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- OTROS MÓDULOS - Vista de Tabla -->
+          <div *ngIf="module.value !== 'MACHINES'" class="activities-table-modern">
+            <div class="table-header-modern">
+              <span>{{ getVisibleActivitiesForModule(module.value).length }} / {{ getModuleCount(module.value) }} actividades</span>
+            </div>
+
+            <div class="activities-list-modern">
+              <div *ngFor="let activity of getVisibleActivitiesForModule(module.value)" 
+                   class="activity-item-modern"
+                   [class.expanded]="activity.expanded">
+                
+                <div class="activity-main" (click)="toggleExpanded(activity, $event)">
+                  <div class="activity-time">
+                    <span class="date">{{ activity.timestamp | date:'dd/MM' }}</span>
+                    <span class="time">{{ activity.timestamp | date:'HH:mm' }}</span>
+                  </div>
+
+                  <div class="activity-user">
+                    <mat-icon>person</mat-icon>
+                    <div class="user-info">
+                      <span class="name">{{ activity.user?.fullName || 'Sistema' }}</span>
+                      <span class="code">{{ activity.user?.userCode || activity.userCode || '-' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="activity-action">
+                    <span class="action-badge">{{ activity.action }}</span>
+                  </div>
+
+                  <div class="activity-description">
+                    {{ activity.description }}
+                  </div>
+
+                  <button mat-icon-button class="expand-btn">
+                    <mat-icon>{{ activity.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </button>
+
+                  <button mat-icon-button class="delete-activity-btn" 
+                          *ngIf="canDeleteActivity()"
+                          (click)="deleteActivity(activity); $event.stopPropagation()"
+                          matTooltip="Eliminar actividad">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+
+                <!-- Detalles Expandidos -->
+                <div class="activity-details-modern" *ngIf="activity.expanded" [@detailExpand]>
+                  <div class="details-grid">
+                    <div class="detail-item">
+                      <mat-icon>schedule</mat-icon>
+                      <span class="label">Fecha Completa:</span>
+                      <span class="value">{{ activity.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="activity.ipAddress">
+                      <mat-icon>computer</mat-icon>
+                      <span class="label">IP:</span>
+                      <span class="value">{{ activity.ipAddress }}</span>
+                    </div>
+                    <div class="detail-item" *ngIf="getDuration(activity) !== '-'">
+                      <mat-icon>timer</mat-icon>
+                      <span class="label">Duración:</span>
+                      <span class="value">{{ getDuration(activity) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cargar Más Actividades -->
+            <button *ngIf="hasMoreActivities(module.value)" 
+                    mat-stroked-button 
+                    (click)="loadMoreActivities(module.value)" 
+                    class="load-more-modern">
+              <mat-icon>expand_more</mat-icon>
+              Cargar más ({{ getModuleCount(module.value) - getVisibleActivitiesForModule(module.value).length }} restantes)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARGAR MÁS DEL SERVIDOR -->
+    <div *ngIf="!loading() && hasMoreData() && filteredActivities().length > 0" class="load-server-modern">
+      <button mat-raised-button color="accent" (click)="loadMoreActivitiesFromServer()" [disabled]="loadingMore()">
+        <mat-spinner *ngIf="loadingMore()" diameter="20"></mat-spinner>
+        <mat-icon *ngIf="!loadingMore()">cloud_download</mat-icon>
+        {{ loadingMore() ? 'Cargando...' : 'Cargar más del servidor' }}
+        <span *ngIf="!loadingMore()" class="server-count">({{ totalCount() - activities().length }} disponibles)</span>
+      </button>
+    </div>
+
+    <!-- ESTADO VACÍO -->
+    <div *ngIf="!loading() && filteredActivities().length === 0" class="empty-state-modern">
+      <mat-icon>search_off</mat-icon>
+      <h3>No se encontraron actividades</h3>
+      <p>Intenta ajustar los filtros de búsqueda</p>
+      <button mat-raised-button color="primary" (click)="clearFilters()">
+        <mat-icon>refresh</mat-icon>
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+{
+  "enabled": true,
+  "name": "Update Docs on Source Change",
+  "description": "Watches backend C# files, frontend TypeScript/HTML/SCSS files, and config files. When any source file changes, asks the agent to reflect those changes in the README or any docs folder.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.cs",
+      "**/*.ts",
+      "**/*.html",
+      "**/*.scss",
+      "**/Program.cs",
+      "**/appsettings*.json",
+      "**/angular.json",
+      "**/package.json",
+      "**/*.csproj"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was just edited. Review the change and update the documentation accordingly. Check if there is a README.md at the project root or a /docs folder anywhere in the repository. If the change affects public APIs, features, configuration, setup steps, or any user-facing behavior, update the relevant section in the README or docs file. Keep the documentation concise and accurate."
+  }
+}
