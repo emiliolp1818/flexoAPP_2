@@ -32,10 +32,6 @@ Accede a:
 - Backend API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger
 
-### Credenciales por Defecto
-- **Usuario**: `admin`
-- **Contraseña**: `admin123`
-
 ## 📋 Características
 
 - ✅ Gestión completa de máquinas flexográficas
