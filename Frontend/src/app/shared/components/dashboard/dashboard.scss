@@ -1387,11 +1387,7 @@ body.dark-theme .dashboard-container {
   flex-direction: column;   // las 2 quincenas, una debajo de la otra
   gap: 8px;
   min-height: 0;
-  overflow-y: auto;
-  padding-right: 2px;
-
-  &::-webkit-scrollbar { width: 5px; }
-  &::-webkit-scrollbar-thumb { background: rgba(120,120,128,0.3); border-radius: 6px; }
+  overflow: hidden;
 }
 
 .quincena-block {
