@@ -811,6 +811,8 @@ namespace FlexoAPP.API.Controllers
                 }
 
                 var dayNames = new[] { "Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb" };
+                var monthNames = new[] { "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
 
                 // Dos quincenas: días 1-15 y 16-fin de mes. Cada donut = una quincena.
                 var quincenas = new[]
@@ -854,7 +856,7 @@ namespace FlexoAPP.API.Controllers
 
                 return Ok(new
                 {
-                    month = firstOfMonth.ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-ES")),
+                    month = $"{monthNames[firstOfMonth.Month]} {firstOfMonth.Year}",
                     weeks
                 });
             }
