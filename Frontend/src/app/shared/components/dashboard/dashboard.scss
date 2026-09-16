@@ -1423,34 +1423,80 @@ body.dark-theme .dashboard-container {
   .donut-svg {
     width: 100%;
     height: 100%;
-    .donut-seg { transition: stroke-dasharray 0.6s ease; }
+    overflow: visible;
+
+    .donut-seg {
+      transition: stroke-dasharray 0.6s ease, stroke-width 0.2s ease, opacity 0.2s ease;
+      transform-origin: 21px 21px;
+    }
+    // Segmento resaltado: más grueso y opaco
+    .donut-seg.active {
+      stroke-width: 7;
+      opacity: 1;
+    }
+    // Resto de segmentos atenuados cuando hay uno activo
+    .donut-seg.dimmed {
+      opacity: 0.28;
+    }
   }
 
   .donut-center {
     position: absolute;
-    inset: 0;
+    // Confina el texto al agujero interno del donut (evita que pise el anillo)
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 68%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     pointer-events: none;
+    text-align: center;
+    line-height: 1;
 
+    // Punto de color del día resaltado
+    .donut-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-bottom: 1px;
+      animation: donutDotPop 0.25s ease;
+    }
     .donut-total {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
       color: #1e293b;
       letter-spacing: -0.6px;
       line-height: 1;
+      transition: color 0.2s ease;
+    }
+    // Porcentaje del día sobre el total
+    .donut-pct {
+      font-size: 8px;
+      font-weight: 700;
+      color: #64748b;
+      line-height: 1;
+      margin-top: 1px;
     }
     .donut-total-label {
       font-size: 6px;
       font-weight: 600;
       color: #94a3b8;
       text-transform: uppercase;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.3px;
       margin-top: 1px;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
+}
+
+@keyframes donutDotPop {
+  0% { transform: scale(0.2); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 // Leyenda vertical: días con pedidos
@@ -1470,12 +1516,17 @@ body.dark-theme .dashboard-container {
     gap: 5px;
     font-size: 10px;
     line-height: 1.3;
+    padding: 1px 4px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
 
     .legend-swatch {
       width: 8px;
       height: 8px;
       border-radius: 2px;
       flex-shrink: 0;
+      transition: transform 0.15s ease;
     }
     .legend-day {
       color: #64748b;
@@ -1486,6 +1537,14 @@ body.dark-theme .dashboard-container {
       font-weight: 800;
       color: #1e293b;
       margin-left: auto;
+    }
+
+    &:hover,
+    &.active {
+      background: rgba(0, 113, 227, 0.08);
+      transform: translateX(1px);
+      .legend-day { color: #1e293b; font-weight: 600; }
+      .legend-swatch { transform: scale(1.25); }
     }
   }
 
@@ -1500,9 +1559,17 @@ body.dark-theme .dashboard-container {
 body.dark-theme .quincena-card,
 :host-context(.dark-theme) .quincena-card {
   .donut-total { color: #f5f5f7 !important; }
+  .donut-pct { color: rgba(235,235,245,0.7) !important; }
   .donut-total-label,
   .quincena-range,
   .quincena-legend .legend-day { color: rgba(235,235,245,0.7) !important; }
   .quincena-legend .legend-count { color: #f5f5f7 !important; }
   .donut-track { stroke: rgba(255,255,255,0.12) !important; }
+
+  .quincena-legend .legend-row {
+    &:hover, &.active {
+      background: rgba(10, 132, 255, 0.18) !important;
+      .legend-day { color: #f5f5f7 !important; }
+    }
+  }
 }

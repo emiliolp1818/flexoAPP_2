@@ -35,6 +35,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   shiftData = signal<any[]>([]);
   dailyData = signal<any[]>([]);
   weeklyData = signal<{ week: number; label: string; rangeStart: string; rangeEnd: string; total: number; days: any[] }[]>([]);
+  // Día resaltado en un donut: { week: número de quincena, index: índice del día }
+  hoveredDonut = signal<{ week: number; index: number } | null>(null);
   setupTrendBars = signal<{value: number, percent: number, day: string, date: string}[]>(Array(7).fill({value: 0, percent: 6, day: '', date: ''}));
   readyTrendBars = signal<{value: number, percent: number, day: string, date: string}[]>(Array(7).fill({value: 0, percent: 6, day: '', date: ''}));
   designsTrendBars = signal<{value: number, percent: number, day: string, date: string}[]>(Array(7).fill({value: 0, percent: 6, day: '', date: ''}));
@@ -353,6 +355,43 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return (week?.days || []).map((day, index) => ({
       day, index, color: this.getWeekDayColor(index)
     }));
+  }
+
+  // ── Interacción del donut (hover/selección de un día) ────────
+  setHoveredDay(weekNum: number, index: number): void {
+    this.hoveredDonut.set({ week: weekNum, index });
+  }
+
+  clearHoveredDay(): void {
+    this.hoveredDonut.set(null);
+  }
+
+  isDayHovered(weekNum: number, index: number): boolean {
+    const h = this.hoveredDonut();
+    return !!h && h.week === weekNum && h.index === index;
+  }
+
+  // ¿Hay algún día resaltado en esta quincena?
+  hasHoveredDay(weekNum: number): boolean {
+    const h = this.hoveredDonut();
+    return !!h && h.week === weekNum;
+  }
+
+  // Datos del día resaltado en una quincena (para mostrar en el centro)
+  getHoveredDayInfo(week: { week: number; total: number; days: any[] }):
+    { color: string; count: number; percent: number; dayText: string } | null {
+    const h = this.hoveredDonut();
+    if (!h || h.week !== week.week) return null;
+    const day = week.days[h.index];
+    if (!day) return null;
+    const total = week.days.reduce((s, d) => s + (d.count || 0), 0) || 1;
+    const percent = Math.round((day.count / total) * 100);
+    return {
+      color: this.getWeekDayColor(h.index),
+      count: day.count || 0,
+      percent,
+      dayText: `${day.dayName} ${day.date}`
+    };
   }
 
   // Etiquetas del donut:

@@ -285,30 +285,47 @@
           <div class="quincena-range">{{ week.label }} · {{ week.rangeStart }} - {{ week.rangeEnd }}</div>
 
           <div class="quincena-content">
-            <div class="donut-wrap">
+            <div class="donut-wrap" [class.has-hover]="hasHoveredDay(week.week)">
               <svg class="donut-svg" viewBox="0 0 42 42" aria-hidden="true">
                 <circle class="donut-track" cx="21" cy="21" r="15.9155" fill="none"
-                        stroke="#e2e8f0" stroke-width="9"></circle>
+                        stroke="#e2e8f0" stroke-width="5"></circle>
                 <circle *ngFor="let seg of getDonutSegments(week)"
                         class="donut-seg"
+                        [class.active]="isDayHovered(week.week, seg.index)"
+                        [class.dimmed]="hasHoveredDay(week.week) && !isDayHovered(week.week, seg.index)"
                         cx="21" cy="21" r="15.9155" fill="none"
                         [attr.stroke]="seg.color"
-                        stroke-width="9"
+                        stroke-width="5"
                         [attr.stroke-dasharray]="seg.dash + ' ' + (100 - seg.dash)"
                         [attr.stroke-dashoffset]="seg.offset"
                         stroke-linecap="butt">
                 </circle>
               </svg>
+
+              <!-- Centro: por defecto el total; al resaltar un día, sus datos -->
               <div class="donut-center">
-                <span class="donut-total">{{ week.total }}</span>
-                <span class="donut-total-label">pedidos</span>
+                <ng-container *ngIf="getHoveredDayInfo(week) as info; else totalTpl">
+                  <span class="donut-dot" [style.background]="info.color"></span>
+                  <span class="donut-total" [style.color]="info.color">{{ info.count }}</span>
+                  <span class="donut-pct">{{ info.percent }}%</span>
+                  <span class="donut-total-label">{{ info.dayText }}</span>
+                </ng-container>
+                <ng-template #totalTpl>
+                  <span class="donut-total">{{ week.total }}</span>
+                  <span class="donut-total-label">pedidos</span>
+                </ng-template>
               </div>
             </div>
 
-            <!-- Leyenda vertical: solo días con pedidos -->
+            <!-- Leyenda vertical: solo días con pedidos (interactiva) -->
             <div class="quincena-legend">
               <ng-container *ngFor="let l of getWeekLegendDays(week)">
-                <div class="legend-row" *ngIf="l.day.count > 0">
+                <div class="legend-row"
+                     *ngIf="l.day.count > 0"
+                     [class.active]="isDayHovered(week.week, l.index)"
+                     (mouseenter)="setHoveredDay(week.week, l.index)"
+                     (mouseleave)="clearHoveredDay()"
+                     (click)="setHoveredDay(week.week, l.index)">
                   <span class="legend-swatch" [style.background]="l.color"></span>
                   <span class="legend-day">{{ l.day.dayName }} {{ l.day.date }}</span>
                   <span class="legend-count">{{ l.day.count }}</span>
