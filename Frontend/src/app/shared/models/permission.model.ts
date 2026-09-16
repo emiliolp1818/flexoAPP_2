@@ -35,6 +35,7 @@ export const PERMISSIONS = {
     USERS_CREATE: 'users.create',
     USERS_EDIT: 'users.edit',
     USERS_DELETE: 'users.delete',
+    USERS_RESET_PASSWORD: 'users.reset_password',
 
 
     SYSTEM_CONFIGURE: 'system.configure',

@@ -38,6 +38,13 @@ Endpoints implementados:
 - `DELETE /api/cod-tintas/{id}` - Eliminar registro
 - `GET /api/cod-tintas/search/{articulo}` - Buscar por artículo
 
+> **Orden de resultados de `search/{articulo}`**: los registros se devuelven priorizando
+> (1) coincidencia **exacta** del artículo sobre coincidencias parciales (`Contains`),
+> (2) registros que **contienen datos de tinta** (`codTinta` / `codAnilox` / `cobertura`)
+> sobre registros vacíos auto-creados, y (3) los más recientes como desempate.
+> Esto asegura que el consumidor (el módulo de máquinas usa `records[0]`) reciba el
+> registro con datos reales y evita que un registro vacío recién creado lo "tape".
+
 #### 4. Base de Datos
 - Script: `backend/Database/Scripts/13_CREATE_COD_TINTAS_TABLE.sql`
 - Tabla agregada al script maestro: `00_MASTER_CREATE_ALL_TABLES.sql`
@@ -179,3 +186,92 @@ mysql -u root -p flexoapp < backend/Database/Scripts/13_CREATE_COD_TINTAS_TABLE.
 - ✅ `Frontend/src/app/shared/components/diseño/diseno.scss` (ya existía)
 - ✅ `Frontend/src/app/shared/components/diseño/create-cod-tinta-dialog/create-cod-tinta-dialog.component.ts` (nuevo)
 - ✅ `docs/COD_TINTAS_IMPLEMENTATION.md` (este archivo)
+
+
+---
+
+## Actualización: Panel Inline en Tabla de Diseños
+
+**Fecha:** 2026-09-05
+
+### Cambio
+Se eliminó la pestaña separada de Cod Tintas y se integró el panel de tintas **directamente dentro de la tabla de diseños**, mediante una experiencia de expansión/colapso por fila.
+
+### Nuevas Columnas en la Tabla de Diseños
+
+#### Columna `expand`
+- Botón ícono por fila para expandir/colapsar el panel de tintas.
+- Si el diseño tiene registro en `cod_tintas`: muestra ícono `colorize` con clase `.has-tintas`.
+- Si no tiene registro: muestra ícono `add_circle_outline`.
+- Tooltip dinámico según estado de expansión y existencia de registro.
+
+#### Columna `codTintasSummary`
+Tiene dos vistas:
+
+**Vista colapsada** — resumen compacto:
+- Badge de carpeta (`folder` + valor).
+- Badge de estante (`E: valor`).
+- Contador de colores registrados.
+- Badge de línea de tinta.
+- Si no hay registro: botón "Agregar" para crear uno desde la misma fila (requiere permiso `canCreateDesign`).
+
+**Vista expandida** — panel completo `.cod-tintas-inline-panel`:
+- **Fila de metadatos**: inputs inline editables para `carpeta` y `estante` (se guardan en `blur`), texto de `lineaTinta` (solo lectura).
+- Botón de acción: eliminar registro (`deleteCodTintaRecord`), sujeto a permiso `canDeleteDesign`. La edición es 100% inline (sin ventana emergente), por lo que no hay botón de "editar registro completo".
+- **Grid de colores** (`.tintas-colores-grid`): columnas Color, Cód. Tinta, Cobertura (%), Cód. Anilox. Cada campo es un input editable que dispara actualización en `change`.
+- Punto de color (`.color-preview-dot`) con hex obtenido de `getPantoneColor(nombre).hex`.
+- Mensaje "Sin colores registrados" cuando `colores` está vacío.
+- Si no hay registro al expandir: botón "Crear registro de tintas para {articleF}".
+
+### Métodos Frontend Involucrados
+
+| Método | Descripción |
+|--------|-------------|
+| `toggleDesignRow(design)` | Alterna `design.expanded` |
+| `openCreateCodTintaForDesign(design)` | Abre flujo de creación asociado al diseño |
+| `updateCodTintaOnDesign(design)` | Guarda cambios de `carpeta`/`estante` en blur |
+| `updateCodTintaOnDesignColor(design, i, value)` | Actualiza `codTinta` de un color |
+| `updateCoberturaOnDesignColor(design, i, value)` | Actualiza `cobertura` de un color |
+| `updateCodAniloxOnDesignColor(design, i, value)` | Actualiza `codAnilox` de un color |
+| `deleteCodTintaRecord(id)` | Elimina el registro con confirmación |
+| `getPantoneColor(nombre)` | Resuelve el hex del color pantone para el preview |
+
+### Control de Permisos
+- Edición de campos: requiere `userPermissions().canEditDesign`.
+- Creación de registro: requiere `userPermissions().canCreateDesign`.
+- Eliminación: requiere `userPermissions().canDeleteDesign`.
+
+### Clases SCSS del Panel Inline (`diseno.scss`)
+
+Añadidas al final del archivo bajo el bloque `// ===== ESTILOS: COD TINTAS INLINE EN TABLA DE DISEÑOS =====`.
+
+| Clase / Selector | Descripción |
+|---|---|
+| `.expand-header` / `.expand-cell` | Columna de 36px para el botón de expansión |
+| `.expand-btn-design` | Botón 30×30 px; `.has-tintas` cambia el ícono a azul `#2563eb` |
+| `.cod-tintas-summary-cell` | Celda de resumen (min 180px, max 420px) |
+| `.tintas-compact-summary` | Contenedor flex-wrap con badges colapsados |
+| `.carpeta-badge` | Badge azul (`#eff6ff`) para la carpeta |
+| `.colores-count-badge` | Badge verde (`#f0fdf4`) para el contador de colores |
+| `.estante-badge` / `.linea-tinta-badge` | Badges neutros (`#f1f5f9`) para estante y línea de tinta |
+| `.create-tintas-inline-btn` | Botón "Agregar" compacto (height 26px, texto 11px) |
+| `.cod-tintas-inline-panel` | Panel expandido (fondo `#f8fafc`, borde redondeado 8px); modificador `.no-record-panel` para estado vacío (borde punteado) |
+| `.tintas-meta-row` | Fila flex con los campos editables de carpeta/estante/línea |
+| `.meta-field` | Campo individual con `label` (9px uppercase) e `.inline-edit-input` (height 26px) |
+| `.meta-actions` | Contenedor de botones de acción (edit/delete) al extremo derecho |
+| `.tintas-colores-grid` | Grid de colores: 4 columnas (`1fr 100px 80px 100px`) |
+| `.colores-grid-header` | Encabezado del grid (9px, uppercase, borde inferior) |
+| `.color-grid-row` | Fila del grid; hover con borde `#e2e8f0` y fondo `#fafbff` |
+| `.color-preview-dot` | Círculo 14×14px con el hex del pantone del color |
+| `.styled-input` | Input compacto 24px para código de tinta, cobertura y anilox |
+| `.cobertura-input-wrapper` | Wrapper flex para el input de cobertura con sufijo `%` |
+| `.no-colores-msg` | Mensaje vacío cuando el registro no tiene colores |
+
+**Patrones de uso:**
+- Los inputs `.inline-edit-input` y `.styled-input` tienen variante `[readonly]` con fondo `#f8fafc` cuando los permisos de edición no están activos.
+- El botón `.expand-btn-design.has-tintas` se aplica dinámicamente cuando el diseño ya tiene un `CodTintaRecord` asociado.
+
+### Archivos Modificados
+- `Frontend/src/app/shared/components/diseño/diseno.html` — nuevas columnas `expand` y `codTintasSummary` en la tabla de diseños.
+- `Frontend/src/app/shared/components/diseño/diseno.ts` — métodos de soporte para interacción inline (a implementar/verificar si no existen aún).
+- `Frontend/src/app/shared/components/diseño/diseno.scss` — clases del panel inline agregadas (ver tabla anterior).

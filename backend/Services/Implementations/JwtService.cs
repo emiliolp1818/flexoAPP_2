@@ -16,13 +16,19 @@ namespace FlexoAPP.API.Services
             _configuration = configuration;
         }
 
-        public string GenerateToken(User user)
+        public string GenerateToken(User user, int? expiryMinutesOverride = null)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
+            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                            ?? jwtSettings["SecretKey"]
+                            ?? throw new InvalidOperationException("JWT SecretKey not configured");
+            if (secretKey.StartsWith("${") || secretKey.Contains("JWT_SECRET_KEY"))
+                throw new InvalidOperationException("JWT SecretKey no resuelta: define la variable de entorno JWT_SECRET_KEY");
             var issuer = jwtSettings["Issuer"] ?? "FlexoAPP";
             var audience = jwtSettings["Audience"] ?? "FlexoAPP-Users";
-            var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
+            // Permite emitir un token de vida corta (p.ej. 10 min) cuando el acceso
+            // se concede con la contraseña temporal.
+            var expiryMinutes = expiryMinutesOverride ?? int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -62,7 +68,11 @@ namespace FlexoAPP.API.Services
             try
             {
                 var jwtSettings = _configuration.GetSection("JwtSettings");
-                var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
+                var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                            ?? jwtSettings["SecretKey"]
+                            ?? throw new InvalidOperationException("JWT SecretKey not configured");
+            if (secretKey.StartsWith("${") || secretKey.Contains("JWT_SECRET_KEY"))
+                throw new InvalidOperationException("JWT SecretKey no resuelta: define la variable de entorno JWT_SECRET_KEY");
                 var issuer = jwtSettings["Issuer"] ?? "FlexoAPP";
                 var audience = jwtSettings["Audience"] ?? "FlexoAPP-Users";
 

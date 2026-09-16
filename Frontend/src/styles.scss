@@ -30,14 +30,21 @@ html, body {
   height: auto;
   margin: 0;
   padding: 0;
-  background-color: #f8fafc !important;
 }
 
 body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
-  color: #1f2937;
   overflow-x: hidden;
-  background-color: #f8fafc !important;
+}
+
+// Fondo/texto base SOLO en tema claro. En tema oscuro lo maneja themes.scss.
+:root,
+body:not(.theme-dark):not([data-theme="dark"]) {
+  background-color: #f8fafc;
+  color: #1f2937;
+}
+body:not(.theme-dark):not([data-theme="dark"]) {
+  background-color: #f8fafc;
 }
 
 
@@ -61,9 +68,11 @@ app-header {
 }
 
 .mat-toolbar {
-  background: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(10px);
   border-bottom: none !important;
+}
+body:not(.theme-dark):not([data-theme="dark"]) .mat-toolbar {
+  background: rgba(255, 255, 255, 0.95) !important;
   color: #1f2937;
 }
 
@@ -86,13 +95,15 @@ router-outlet + .informacion-container {
 
 
 mat-card {
-  background: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  color: #1f2937;
   position: relative;
   z-index: 2;
+}
+body:not(.theme-dark):not([data-theme="dark"]) mat-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1f2937;
 }
 
 
@@ -108,10 +119,12 @@ mat-icon, .mat-icon {
   -webkit-font-smoothing: antialiased;
 }
 
-.mat-mdc-card-title,
-.mat-mdc-card-subtitle,
-.mat-mdc-card-content {
-  color: #1f2937 !important;
+body:not(.theme-dark):not([data-theme="dark"]) {
+  .mat-mdc-card-title,
+  .mat-mdc-card-subtitle,
+  .mat-mdc-card-content {
+    color: #1f2937 !important;
+  }
 }
 
 .mat-sidenav-container,
@@ -218,7 +231,8 @@ app-login {
 }
 
 html, body { min-height: 100%; height: auto; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #f8fafc !important; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body:not(.theme-dark):not([data-theme="dark"]) { background-color: #f8fafc; }
 
 
 
@@ -827,5 +841,110 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-
     font-size: 10px !important;
     display: inline-block !important;
     min-width: 8px !important;
+  }
+}
+
+// ============================================================
+//  Diálogo Apple — panel del overlay CDK (.rounded-dialog)
+//  Usado por el diálogo de Crear/Editar Color Pantone.
+//  Debe ir en global porque el overlay se renderiza fuera
+//  del componente (no lo alcanza el ::ng-deep del componente).
+// ============================================================
+.rounded-dialog .mat-mdc-dialog-surface {
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.22),
+              0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+// ============================================================
+//  Autocomplete Apple (.ap-autocomplete-panel)
+//  Panel del overlay CDK usado por los autocompletes del módulo
+//  de Diseño (Línea de Tinta, Colores Pantone). Se define global
+//  porque el panel se renderiza fuera del componente.
+// ============================================================
+$ap-ac-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
+
+.ap-autocomplete-panel.mat-mdc-autocomplete-panel {
+  border-radius: 16px !important;
+  padding: 6px !important;
+  margin-top: 6px !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16),
+              0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden auto !important;
+
+  // Cada opción
+  .mat-mdc-option {
+    font-family: $ap-ac-font !important;
+    font-size: 0.92rem !important;
+    font-weight: 400 !important;
+    color: #1d1d1f !important;
+    letter-spacing: -0.2px !important;
+    min-height: 40px !important;
+    border-radius: 10px !important;
+    margin: 2px 0 !important;
+    padding: 0 12px !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+
+    .mdc-list-item__primary-text {
+      font-family: $ap-ac-font !important;
+      color: inherit !important;
+    }
+
+    // Hover / activo por teclado
+    &:hover,
+    &.mat-mdc-option-active {
+      background: rgba(0, 113, 227, 0.1) !important;
+      color: #0071e3 !important;
+      .mdc-list-item__primary-text { color: #0071e3 !important; }
+    }
+
+    // Seleccionada
+    &.mdc-list-item--selected {
+      background: rgba(0, 113, 227, 0.14) !important;
+      .mdc-list-item__primary-text { color: #0071e3 !important; font-weight: 500 !important; }
+    }
+  }
+}
+
+// ============================================================
+//  Snackbar de contraseña temporal (reset de usuario)
+//  Layout ordenado: ícono + bloque de texto + botón "Copiar".
+//  Se ensancha y anula el gap del layout animado base para que
+//  el mensaje no se corte ni se desorganice.
+// ============================================================
+.temp-password-snackbar.mat-mdc-snack-bar-container {
+  min-width: 420px !important;
+  max-width: 640px !important;
+
+  .mat-mdc-snack-bar-label {
+    // El contenido interno ya maneja su propio flex/columna
+    display: block !important;
+    gap: 0 !important;
+    padding: 12px 16px !important;
+  }
+
+  .mdc-snackbar__surface {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  // Botón "Copiar" que no se comprima ni se pegue al texto
+  .mat-mdc-snack-bar-actions {
+    flex-shrink: 0 !important;
+    padding-right: 8px !important;
+  }
+  .mat-mdc-snack-bar-action.mdc-button {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(255, 255, 255, 0.55) !important;
+    border-radius: 9px !important;
+    padding: 0 12px !important;
   }
 }

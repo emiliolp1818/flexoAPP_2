@@ -11,6 +11,7 @@ namespace FlexoAPP.API.Models
         public const string USERS_CREATE = "users.create";
         public const string USERS_EDIT = "users.edit";
         public const string USERS_DELETE = "users.delete";
+        public const string USERS_RESET_PASSWORD = "users.reset_password";
 
 
         public const string SYSTEM_CONFIGURE = "system.configure";

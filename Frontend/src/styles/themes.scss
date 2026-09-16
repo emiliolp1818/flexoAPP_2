@@ -409,3 +409,271 @@ body {
 .mat-ripple {
   transition: none !important;
 }
+
+// ============================================================
+// CAPA GLOBAL DE TEMA OSCURO — TODOS LOS MÓDULOS
+// ------------------------------------------------------------
+// Los componentes usan colores claros hardcodeados en sus .scss
+// (fondos #ffffff / #f1f5f9 / #f8fafc / $gray-50, textos #1e293b /
+// #64748b / #94a3b8), por lo que el tema oscuro global no los
+// alcanzaba. Este bloque remapea esas superficies y textos a
+// equivalentes oscuros SOLO cuando el body está en modo oscuro.
+//
+// Se ataca por patrones repetidos (contenedores raíz, headers,
+// tarjetas/superficies, tablas estilo Excel y textos) para cubrir
+// dashboard, machines, diseño, reports, documento, consulta,
+// informacion y profile sin tocar cada componente.
+//
+// NOTA: settings tiene su propio bloque dark en settings.scss y
+// login mantiene su fondo Apple claro por diseño (pantalla completa).
+// ============================================================
+
+body.theme-dark,
+body[data-theme="dark"] {
+
+  // ── Paleta oscura (equivalente Apple dark) ────────────────
+  $dk-bg:          #14161a;                      // fondo base de página
+  $dk-bg-2:        #1c1f24;                       // fondo secundario
+  $dk-surface:     #22262d;                       // tarjeta / superficie
+  $dk-surface-2:   #2a2f37;                        // superficie elevada / header
+  $dk-surface-3:   #31363f;                        // hover
+  $dk-input:       #1a1d22;                        // inputs
+  $dk-text:        #e6e8ec;                        // texto principal
+  $dk-text-2:      #a8adb7;                        // texto secundario
+  $dk-text-3:      #7c828d;                        // texto terciario
+  $dk-hairline:    rgba(255, 255, 255, 0.10);      // bordes finos
+  $dk-hairline-2:  rgba(255, 255, 255, 0.06);      // bordes muy sutiles
+  $dk-blue:        #0a84ff;                         // azul de sistema (dark)
+
+  // ── Contenedores raíz de página ───────────────────────────
+  .dashboard-container,
+  .machines-container,
+  .design-container,
+  .reports-container,
+  .documento-container,
+  .consulta-container,
+  .informacion-container,
+  .profile-page {
+    background: $dk-bg !important;
+    color: $dk-text;
+  }
+
+  // ── Headers de módulo (glass claro → glass oscuro) ────────
+  .machines-header,
+  .documento-header,
+  .reports-header,
+  .consulta-header,
+  .informacion-header,
+  .design-header,
+  .dashboard-header {
+    background: rgba(34, 38, 45, 0.92) !important;
+    border-color: $dk-hairline !important;
+    color: $dk-text;
+  }
+
+  // ── Superficies / tarjetas repetidas ──────────────────────
+  .kpi-card,
+  .production-card,
+  .chart-card,
+  .ranking-card,
+  .sidebar-card,
+  .profile-tabs,
+  .reports-sidebar,
+  .table-container,
+  .anilox-table-container,
+  .dialog-container,
+  .stat-card,
+  .info-card,
+  .metric-card,
+  .summary-card {
+    background: $dk-surface !important;
+    border-color: $dk-hairline !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+    color: $dk-text;
+  }
+
+  // ── Tablas estilo Excel (machines, users, etc.) ───────────
+  .excel-table,
+  .excel-table-container,
+  .data-table {
+    background: $dk-surface !important;
+    color: $dk-text;
+  }
+
+  .excel-header,
+  .table-header,
+  thead {
+    background: $dk-surface-2 !important;
+    border-bottom: 1px solid $dk-hairline !important;
+    .header-content,
+    th { color: $dk-text-2 !important; }
+  }
+
+  .excel-row,
+  tbody tr {
+    border-bottom: 1px solid $dk-hairline-2 !important;
+    &:hover { background: $dk-surface-3 !important; }
+  }
+
+  .excel-cell,
+  td {
+    color: $dk-text !important;
+    border-bottom-color: $dk-hairline-2 !important;
+  }
+
+  // Tarjetas de máquina de la barra superior (fondo claro fijo)
+  .excel-machine-card {
+    background: $dk-surface-2 !important;
+    border-top-color: $dk-hairline !important;
+    color: $dk-text;
+    .machine-number,
+    .machine-name { color: $dk-text !important; }
+  }
+
+  // ── Textos hardcodeados comunes (mapeo por color) ─────────
+  // Principal
+  [style*="color: #1e293b"],
+  [style*="color:#1e293b"] { color: $dk-text !important; }
+
+  h1, h2, h3, h4, h5, h6 { color: $dk-text; }
+
+  // Clases de texto repetidas entre módulos
+  .kpi-value, .production-value, .production-month,
+  .rank-name, .rank-avg,
+  .daily-count, .pantone-count,
+  .section-title, .card-title, .page-title,
+  .stat-value, .metric-value, .summary-value,
+  .cell-primary, .primary-text, .title-text {
+    color: $dk-text !important;
+  }
+
+  .kpi-label, .production-unit, .rank-changes,
+  .daily-label, .section-text, .card-subtitle, .page-subtitle,
+  .stat-label, .metric-label, .summary-label,
+  .cell-secondary, .secondary-text, .subtitle-text,
+  .contact-text, .last-login {
+    color: $dk-text-2 !important;
+  }
+
+  .production-label, .mini-day, .mini-val, .daily-date,
+  .pantone-name-v, .rank-best, .hint-text, .muted-text,
+  .cell-tertiary, .tertiary-text, .placeholder-text {
+    color: $dk-text-3 !important;
+  }
+
+  .mini-date { color: $dk-text-3 !important; }
+
+  // ── Sidebars / navegación lateral ─────────────────────────
+  .reports-sidebar,
+  .sidebar,
+  .side-nav {
+    background: $dk-bg-2 !important;
+    border-color: $dk-hairline !important;
+    .nav-item,
+    .sidebar-item { color: $dk-text-2 !important; }
+    .nav-item.active,
+    .sidebar-item.active { color: $dk-blue !important; background: rgba(10, 132, 255, 0.14) !important; }
+  }
+
+  // ── Inputs / campos de formulario (fuera de Material) ─────
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    background: $dk-input;
+    color: $dk-text;
+    border-color: $dk-hairline;
+    &::placeholder { color: $dk-text-3; }
+  }
+
+  // ── Contenedores de carga ─────────────────────────────────
+  .loading-container,
+  .loading-spinner,
+  .empty-state {
+    background: transparent !important;
+    color: $dk-text-2 !important;
+  }
+
+  // ── Bloques genéricos de estado (styles.scss) ─────────────
+  .error-message {
+    background: rgba(239, 68, 68, 0.14) !important;
+    color: #ff6b6b !important;
+    border-left-color: #ef4444 !important;
+  }
+  .success-message {
+    background: rgba(16, 185, 129, 0.14) !important;
+    color: #4ade80 !important;
+    border-left-color: #10b981 !important;
+  }
+
+  // ── Divisores / bordes sueltos ────────────────────────────
+  hr { border-color: $dk-hairline !important; }
+
+  // ── Material form-field / select / input (MDC) ────────────
+  // Cubre los campos LINEATURA / VOLUMEN / KILOS de máquinas y
+  // cualquier mat-select/mat-input que quedaba con texto invisible.
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      background: $dk-input !important;
+    }
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: $dk-hairline !important;
+    }
+    input.mat-mdc-input-element,
+    input {
+      color: $dk-text !important;
+      caret-color: $dk-blue !important;
+      &::placeholder { color: $dk-text-3 !important; }
+    }
+    .mat-mdc-select-value-text,
+    .mat-mdc-select-value,
+    .mat-mdc-select-min-line { color: $dk-text !important; }
+    .mat-mdc-select-placeholder { color: $dk-text-3 !important; }
+    .mat-mdc-select-arrow,
+    .mat-mdc-select-arrow svg { color: $dk-text-2 !important; fill: $dk-text-2 !important; }
+    .mat-mdc-form-field-icon-suffix,
+    .mat-mdc-form-field-icon-prefix,
+    [matSuffix], [matPrefix] { color: $dk-text-2 !important; }
+    .mdc-floating-label,
+    .mat-mdc-floating-label { color: $dk-text-2 !important; }
+  }
+
+  // Panel desplegable del mat-select (overlay CDK) — se renderiza
+  // fuera del componente; el .mat-mdc-select-panel de themes.scss
+  // ya usa var(--card-bg), pero aseguramos texto legible.
+  .mat-mdc-select-panel .mat-mdc-option .mdc-list-item__primary-text {
+    color: $dk-text !important;
+  }
+
+  // Paneles de overlay personalizados (dropdowns de consulta y
+  // autocompletes de diseño) que en styles.scss tienen fondo claro.
+  .filter-panel {
+    background: $dk-surface-2 !important;
+    border-color: $dk-hairline !important;
+    .mat-mdc-option {
+      color: $dk-text !important;
+      .mdc-list-item__primary-text { color: $dk-text !important; }
+      &:hover { background: $dk-surface-3 !important; }
+      &.mdc-list-item--selected {
+        background: rgba(10, 132, 255, 0.18) !important;
+        .mdc-list-item__primary-text { color: $dk-blue !important; }
+      }
+    }
+  }
+
+  .ap-autocomplete-panel.mat-mdc-autocomplete-panel {
+    background: rgba(34, 38, 45, 0.95) !important;
+    border-color: $dk-hairline !important;
+    .mat-mdc-option {
+      color: $dk-text !important;
+      .mdc-list-item__primary-text { color: $dk-text !important; }
+      &:hover,
+      &.mat-mdc-option-active {
+        background: rgba(10, 132, 255, 0.18) !important;
+        color: $dk-blue !important;
+        .mdc-list-item__primary-text { color: $dk-blue !important; }
+      }
+    }
+  }
+}

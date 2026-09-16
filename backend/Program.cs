@@ -322,6 +322,9 @@ try
     var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
                    ?? jwtSettings["SecretKey"]
                    ?? throw new InvalidOperationException("JWT SecretKey is required");
+    // Si quedó el placeholder sin resolver, exigir la variable de entorno.
+    if (secretKey.StartsWith("${") || secretKey.Contains("JWT_SECRET_KEY"))
+        throw new InvalidOperationException("JWT SecretKey no resuelta: define la variable de entorno JWT_SECRET_KEY en Railway");
 
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
@@ -601,6 +604,10 @@ try
                     await AddColumnIfNotExists("anilox", "factor_eficiencia", "DECIMAL(5,2) NULL DEFAULT 35");
                     await AddColumnIfNotExists("anilox", "densidad", "DECIMAL(6,4) NULL DEFAULT 0.885");
 
+                    // users — contraseña temporal (reset con validez de 10 min)
+                    await AddColumnIfNotExists("users", "TempPassword", "VARCHAR(255) NULL AFTER Password");
+                    await AddColumnIfNotExists("users", "TempPasswordExpiresAt", "DATETIME(6) NULL AFTER TempPassword");
+
                     // ===== ACTIVITIES: COLUMNAS DE LOG DETALLADO =====
                     // CRÍTICO: Si estas columnas faltan, el INSERT de actividades de máquinas falla en silencio
                     // (ActivityLoggerService captura la excepción) y los gráficos del dashboard quedan vacíos.
@@ -703,6 +710,7 @@ try
                             ("users.create", "Crear usuarios", "users", "Permite crear nuevos usuarios"),
                             ("users.edit", "Editar usuarios", "users", "Permite modificar usuarios"),
                             ("users.delete", "Eliminar usuarios", "users", "Permite eliminar usuarios"),
+                            ("users.reset_password", "Restablecer contraseña", "users", "Permite generar una contraseña temporal para restablecer el acceso de un usuario"),
                             ("system.configure", "Configurar sistema", "system", "Permite modificar configuraciones"),
                             ("permissions.manage", "Gestión de permisos", "system", "Permite administrar permisos"),
                             ("settings.change", "Cambiar ajustes", "system", "Permite modificar ajustes"),

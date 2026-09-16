@@ -421,9 +421,12 @@ namespace FlexoAPP.API.Controllers
         {
             try
             {
+                // Coincidencia exacta primero (evita que un artículo "similar" o un
+                // registro vacío recién creado se cuele). Si no hay exacta, se cae a Contains.
+                var articuloTrim = (articulo ?? string.Empty).Trim();
+
                 var records = await _context.Set<CodTinta>()
-                    .Where(c => c.Articulo.Contains(articulo))
-                    .OrderByDescending(c => c.CreatedAt)
+                    .Where(c => c.Articulo == articuloTrim || c.Articulo.Contains(articuloTrim))
                     .ToListAsync();
 
                 var response = records.Select(r => new CodTintaResponseDto
@@ -439,7 +442,21 @@ namespace FlexoAPP.API.Controllers
                     UpdatedAt = r.UpdatedAt,
                     CreatedBy = r.CreatedBy,
                     UpdatedBy = r.UpdatedBy
-                }).ToList();
+                })
+                // Prioridad de ordenamiento (el frontend usa records[0]):
+                //   1. Coincidencia EXACTA del artículo por encima de coincidencias parciales.
+                //   2. Registros que SÍ contienen datos de tinta (codTinta / codAnilox / cobertura)
+                //      por encima de registros vacíos auto-creados.
+                //   3. Más recientes primero como desempate.
+                // Esto corrige que un registro vacío recién creado "tapara" al histórico
+                // con datos, dejando sin código de tinta/anilox al módulo de máquinas.
+                .OrderByDescending(r => string.Equals(r.Articulo?.Trim(), articuloTrim, StringComparison.OrdinalIgnoreCase))
+                .ThenByDescending(r => (r.Colores ?? new()).Any(c =>
+                    !string.IsNullOrWhiteSpace(c.CodTinta) ||
+                    !string.IsNullOrWhiteSpace(c.CodAnilox) ||
+                    (c.Cobertura.HasValue && c.Cobertura.Value > 0)))
+                .ThenByDescending(r => r.CreatedAt)
+                .ToList();
 
                 return Ok(new { success = true, data = response });
             }

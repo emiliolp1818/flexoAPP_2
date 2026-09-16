@@ -125,7 +125,8 @@ export class PermissionsService {
                     { code: PERMISSIONS.USERS_VIEW, name: 'Ver usuarios', category: 'users', description: 'Permite ver la lista de usuarios del sistema', isGranted: false },
                     { code: PERMISSIONS.USERS_CREATE, name: 'Crear usuarios', category: 'users', description: 'Permite crear nuevos usuarios', isGranted: false },
                     { code: PERMISSIONS.USERS_EDIT, name: 'Editar usuarios', category: 'users', description: 'Permite modificar información de usuarios existentes', isGranted: false },
-                    { code: PERMISSIONS.USERS_DELETE, name: 'Eliminar usuarios', category: 'users', description: 'Permite eliminar usuarios del sistema', isGranted: false }
+                    { code: PERMISSIONS.USERS_DELETE, name: 'Eliminar usuarios', category: 'users', description: 'Permite eliminar usuarios del sistema', isGranted: false },
+                    { code: PERMISSIONS.USERS_RESET_PASSWORD, name: 'Restablecer contraseña', category: 'users', description: 'Permite generar una contraseña temporal para restablecer el acceso de un usuario', isGranted: false }
                 ]
             },
             {

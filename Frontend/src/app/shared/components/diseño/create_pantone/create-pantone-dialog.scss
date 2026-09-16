@@ -1,50 +1,93 @@
+// ============================================================
+//  CREAR / EDITAR COLOR PANTONE — Apple Design System
+//  Tipografía SF Pro, azul de sistema #0071e3, glassmorphism,
+//  bordes hairline y radios Apple (14px / 22px).
+//  Unificado con el resto del módulo de Diseño y el Login.
+// ============================================================
+
+// --- Tokens Apple ---
+$ap-blue:        #0071e3;
+$ap-blue-hover:  #0077ed;
+$ap-blue-active: #006edb;
+$ap-text-1:      #1d1d1f;   // texto principal
+$ap-text-2:      #6e6e73;   // texto secundario
+$ap-text-3:      #86868b;   // texto terciario / placeholders
+$ap-hairline:    rgba(0, 0, 0, 0.08);
+$ap-red:         #ff3b30;
+$ap-green:       #34c759;
+$ap-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+          'Helvetica Neue', 'Inter', system-ui, sans-serif;
+
 .create-pantone-dialog {
-  width: 420px;
+  width: 440px;
   max-width: 95vw;
+  font-family: $ap-font;
+  -webkit-font-smoothing: antialiased;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 22px;
+  overflow: hidden;
+  color: $ap-text-1;
 }
 
+// ---------- Header ----------
 .dialog-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  color: white;
-  border-radius: 20px 20px 0 0;
+  padding: 20px 22px 16px;
+  background: transparent;
+  color: $ap-text-1;
+  border-bottom: 1px solid $ap-hairline;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .icon-circle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  background: rgba(0, 113, 227, 0.12);
+  border: 1px solid rgba(0, 113, 227, 0.18);
+  border-radius: 12px;
+  color: $ap-blue;
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
 }
 
-.title { font-size: 1rem; font-weight: 600; }
+.title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: $ap-text-1;
+}
 
 .close-btn {
-  color: white;
-  width: 32px;
-  height: 32px;
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
-  &:hover { background: rgba(255, 255, 255, 0.15); }
+  color: $ap-text-3;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  transition: background 0.2s ease, color 0.2s ease;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  &:hover { background: rgba(0, 0, 0, 0.05); color: $ap-text-1; }
 }
 
-// Tabs
+// ---------- Tabs (segmented control estilo iOS) ----------
 .mode-tabs {
   display: flex;
-  border-bottom: 2px solid #e2e8f0;
+  gap: 4px;
+  margin: 16px 22px 0;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  border: none;
 }
 
 .tab-btn {
@@ -53,148 +96,373 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 10px;
+  padding: 8px 10px;
   border: none;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 0.85rem;
+  background: transparent;
+  color: $ap-text-2;
+  font-family: $ap-font;
+  font-size: 0.86rem;
   font-weight: 500;
+  letter-spacing: -0.2px;
+  border-radius: 9px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  mat-icon { font-size: 17px; width: 17px; height: 17px; }
 
   &.active {
-    background: white;
-    color: #7c3aed;
-    border-bottom: 2px solid #7c3aed;
-    margin-bottom: -2px;
+    background: rgba(255, 255, 255, 0.95);
+    color: $ap-blue;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
-  &:hover:not(.active) { background: #f1f5f9; }
+  &:hover:not(.active) { color: $ap-text-1; }
 }
 
+// ---------- Contenido ----------
 .dialog-content {
-  padding: 16px 20px;
+  padding: 16px 22px 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 60vh;
+  gap: 6px;
+  max-height: 62vh;
   overflow-y: auto;
 }
 
 .full-width { width: 100%; }
 
 .section-label {
-  font-size: 0.8rem;
+  display: block;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: #475569;
-  margin-bottom: 4px;
+  color: $ap-text-2;
+  letter-spacing: -0.1px;
+  text-transform: uppercase;
+  margin: 4px 0 8px;
 }
 
-// Picker
+// Bloque agrupado (picker / lab) con leve fondo para organizar
+.picker-section,
+.lab-section {
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.025);
+  border: 1px solid $ap-hairline;
+  border-radius: 16px;
+  margin-top: 2px;
+}
+
+// ---------- Picker ----------
 .color-picker-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .color-input-native {
-  width: 60px;
-  height: 48px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
+  width: 52px;
+  height: 46px;
+  border: 1px solid $ap-hairline;
+  border-radius: 14px;
   cursor: pointer;
-  padding: 2px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  flex-shrink: 0;
 
-  &::-webkit-color-swatch-wrapper { padding: 2px; }
-  &::-webkit-color-swatch { border: none; border-radius: 6px; }
+  &::-webkit-color-swatch-wrapper { padding: 0; }
+  &::-webkit-color-swatch { border: none; border-radius: 10px; }
+  &:hover {
+    border-color: rgba(0, 0, 0, 0.16);
+    transform: scale(1.03);
+  }
 }
 
 .hex-field { flex: 1; }
 
 .rgb-row, .lab-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
-.rgb-field, .lab-field { flex: 1; }
+.rgb-field, .lab-field { min-width: 0; }
 
-// Lab
+// ---------- Lab ----------
 .lab-hex-preview {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  background: #f1f5f9;
-  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
   margin-top: 4px;
 
-  .label { font-size: 0.8rem; color: #64748b; }
-  .hex-value { font-size: 0.85rem; font-weight: 600; color: #1e293b; font-family: monospace; }
+  .label { font-size: 0.82rem; color: $ap-text-2; }
+  .hex-value {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: $ap-text-1;
+    font-family: 'SF Mono', ui-monospace, monospace;
+  }
 }
 
-// Preview
+// ---------- Preview ----------
 .color-preview-section {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  margin-top: 4px;
+  gap: 14px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid $ap-hairline;
+  border-radius: 16px;
+  margin-top: 6px;
 }
 
 .preview-swatch {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 700;
-  border: 2px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
 }
 
 .preview-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 
-  .preview-name { font-size: 0.9rem; font-weight: 600; color: #1e293b; }
-  .preview-hex { font-size: 0.8rem; color: #7c3aed; font-family: monospace; font-weight: 500; }
-  .preview-rgb { font-size: 0.75rem; color: #94a3b8; }
+  .preview-name { font-size: 0.95rem; font-weight: 600; color: $ap-text-1; letter-spacing: -0.2px; }
+  .preview-hex {
+    font-size: 0.82rem;
+    color: $ap-blue;
+    font-family: 'SF Mono', ui-monospace, monospace;
+    font-weight: 500;
+  }
+  .preview-rgb { font-size: 0.78rem; color: $ap-text-3; }
 }
 
-// Actions
+// ---------- Actions ----------
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 12px 20px;
-  border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
-  border-radius: 0 0 20px 20px;
+  padding: 16px 22px;
+  border-top: 1px solid $ap-hairline;
+  background: transparent;
 }
 
-.btn-cancel { color: #64748b; font-size: 0.9rem; }
-.btn-cancel:hover { background: #f1f5f9; }
+.btn-cancel {
+  color: $ap-text-2;
+  font-family: $ap-font;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  border-radius: 12px;
+  &:hover { background: rgba(0, 0, 0, 0.05); }
+}
 
 .btn-confirm {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
-  color: white !important;
-  font-size: 0.9rem;
+  background: $ap-blue !important;
+  color: #ffffff !important;
+  font-family: $ap-font;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  border-radius: 12px !important;
+  padding: 0 18px !important;
+  height: 42px;
+  box-shadow: 0 4px 14px rgba(0, 113, 227, 0.3) !important;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; }
+  mat-icon { font-size: 17px; width: 17px; height: 17px; margin-right: 4px; }
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%) !important;
-    transform: translateY(-1px);
+    background: $ap-blue-hover !important;
+    transform: scale(1.01);
+    box-shadow: 0 6px 18px rgba(0, 113, 227, 0.4) !important;
   }
 
-  &:disabled { opacity: 0.5; }
+  &:active:not(:disabled) {
+    background: $ap-blue-active !important;
+    transform: scale(0.99);
+  }
+
+  &:disabled {
+    background: rgba(0, 0, 0, 0.16) !important;
+    box-shadow: none !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
 }
+
+// ============================================================
+//  Campos Material (MDC) estilo iOS — requiere ::ng-deep para
+//  penetrar la encapsulación de Angular Material.
+// ============================================================
+:host ::ng-deep {
+
+  .create-pantone-dialog {
+
+    // Contenedor del form-field tipo outline -> lo tratamos como "filled" Apple
+    .mat-mdc-form-field {
+      width: 100%;
+      font-family: $ap-font;
+    }
+
+    .mat-mdc-text-field-wrapper {
+      border-radius: 14px !important;
+      background: rgba(255, 255, 255, 0.7) !important;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    // Ocultar el notch/outline nativo y usar un borde hairline propio
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: $ap-hairline !important;
+      border-width: 1px !important;
+    }
+
+    // Hover
+    .mat-mdc-form-field:hover .mdc-notched-outline__leading,
+    .mat-mdc-form-field:hover .mdc-notched-outline__notch,
+    .mat-mdc-form-field:hover .mdc-notched-outline__trailing {
+      border-color: rgba(0, 0, 0, 0.16) !important;
+    }
+
+    // Focus → azul de sistema
+    .mat-mdc-form-field.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $ap-blue !important;
+        border-width: 1.5px !important;
+      }
+      .mat-mdc-text-field-wrapper {
+        background: rgba(255, 255, 255, 0.95) !important;
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15);
+      }
+    }
+
+    // Label flotante — comportamiento estándar (arriba-izquierda al flotar).
+    // NO se centra en reposo para evitar que se solape con el placeholder.
+    .mdc-floating-label,
+    .mat-mdc-floating-label {
+      font-family: $ap-font !important;
+      font-size: 0.96rem !important;
+      font-weight: 400 !important;
+      color: $ap-text-3 !important;
+      letter-spacing: -0.2px;
+    }
+    .mat-mdc-form-field.mat-focused .mdc-floating-label {
+      color: $ap-blue !important;
+    }
+
+    // Input — texto justificado a la izquierda (campos de texto).
+    // Los campos numéricos (R/G/B, L*a*b*, HEX) se centran más abajo.
+    .mat-mdc-input-element,
+    .mat-mdc-form-field input,
+    .mat-mdc-select-value-text {
+      font-family: $ap-font !important;
+      font-size: 0.98rem !important;
+      font-weight: 400 !important;
+      color: $ap-text-1 !important;
+      caret-color: $ap-blue !important;
+      letter-spacing: -0.2px;
+      text-align: left !important;
+    }
+
+    // Placeholder (texto de ejemplo) a la izquierda y en color terciario.
+    // Solo visible cuando el campo tiene foco -> así NO se solapa con la
+    // etiqueta en reposo (Material muestra label + placeholder a la vez).
+    .mat-mdc-input-element::placeholder,
+    .mat-mdc-form-field input::placeholder {
+      text-align: left !important;
+      color: $ap-text-3 !important;
+      opacity: 0 !important;
+      transition: opacity 0.15s ease;
+    }
+    .mat-mdc-form-field.mat-focused .mat-mdc-input-element::placeholder,
+    .mat-mdc-form-field.mat-focused input::placeholder {
+      opacity: 1 !important;
+    }
+
+    // Valor del select a la izquierda
+    .mat-mdc-select-value { text-align: left !important; }
+
+    // Íconos suffix
+    .mat-mdc-form-field-icon-suffix mat-icon,
+    .mat-mdc-select-arrow {
+      color: $ap-text-3 !important;
+    }
+
+    // Altura de línea compacta con contenido centrado verticalmente
+    .mat-mdc-form-field-infix {
+      min-height: 46px !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      width: auto !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+
+    // Centrar verticalmente la etiqueta en reposo (evita que quede muy abajo)
+    .mdc-text-field--outlined .mdc-floating-label:not(.mdc-floating-label--float-above) {
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+    }
+
+    // Reducir el espacio inferior del subscript (mensajes/hint)
+    .mat-mdc-form-field-subscript-wrapper {
+      height: 0 !important;
+      min-height: 0 !important;
+    }
+
+    // Padding horizontal más ajustado dentro del campo
+    .mat-mdc-text-field-wrapper {
+      padding-left: 14px !important;
+      padding-right: 12px !important;
+    }
+
+    // Quitar el subrayado inferior residual del filled
+    .mdc-line-ripple { display: none !important; }
+
+    // -------- Campos numéricos compactos: R/G/B y L*a*b* --------
+    // Texto centrado para un look más limpio y organizado.
+    .rgb-field, .lab-field, .hex-field {
+      .mat-mdc-form-field-infix { min-height: 42px !important; }
+
+      input.mat-mdc-input-element {
+        text-align: center !important;
+        font-weight: 500 !important;
+      }
+      input::placeholder { text-align: center !important; }
+
+      // Ocultar spinners nativos de los number inputs
+      input[type='number'] {
+        -moz-appearance: textfield;
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+      }
+    }
+
+    // El código HEX en monospace y centrado
+    .hex-field input.mat-mdc-input-element {
+      font-family: 'SF Mono', ui-monospace, monospace !important;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// NOTA: El estilo del panel/overlay CDK (.rounded-dialog) se define de forma
+// global en src/styles.scss porque el overlay se renderiza fuera del componente.

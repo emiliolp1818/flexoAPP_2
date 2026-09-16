@@ -586,25 +586,18 @@ namespace FlexoAPP.API.Controllers
                     return NotFound(new { message = "Usuario no encontrado" });
                 }
 
+                // Genera una contraseña TEMPORAL válida por 30 minutos SIN invalidar
+                // la contraseña original (el usuario puede seguir usando la suya).
+                const int expiryMinutes = 30;
+                var temporaryPassword = await _authService.ResetTempPasswordAsync(id, expiryMinutes);
 
-                var temporaryPassword = GenerateTemporaryPassword();
-
-
-                var updateDto = new UpdateUserDto
+                if (temporaryPassword != null)
                 {
-                    Password = temporaryPassword
-                };
-
-                var updatedUser = await _authService.UpdateUserProfileAsync(id, updateDto);
-                if (updatedUser != null)
-                {
-
-                    // Console.WriteLine($"Nueva contraseña temporal para {user.UserCode}: {temporaryPassword}");
-
                     return Ok(new {
-                        message = "Contraseña restablecida exitosamente",
+                        message = "Contraseña temporal generada exitosamente",
                         temporaryPassword = temporaryPassword,
-                        user = updatedUser
+                        expiresInMinutes = expiryMinutes,
+                        user = user
                     });
                 }
 

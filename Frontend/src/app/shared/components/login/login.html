@@ -1,4 +1,5 @@
 <div class="login-container">
+<div class="login-container">
 
   <!-- Líneas diagonales de fondo (empresarial, solo CSS) -->
   <div class="login-bg-lines" aria-hidden="true"></div>
@@ -62,7 +63,9 @@
               formControlName="userCode"
               autocomplete="username"
               type="text"
-              inputmode="text" />
+              inputmode="text"
+              placeholder="Ingresa tu usuario"
+              aria-label="Usuario" />
             <mat-icon matSuffix class="field-suffix-icon">person</mat-icon>
             <mat-error *ngIf="loginForm.get('userCode')?.invalid && loginForm.get('userCode')?.touched">
               Usuario requerido
@@ -78,7 +81,9 @@
               matInput
               [type]="hidePassword() ? 'password' : 'text'"
               formControlName="password"
-              autocomplete="current-password" />
+              autocomplete="current-password"
+              placeholder="Ingresa tu contraseña"
+              aria-label="Contraseña" />
             <button
               mat-icon-button
               matSuffix

@@ -159,6 +159,27 @@ Después de seguir estos pasos, deberías ver:
 - **Contador:** Muestra "Mostrando X-Y de Z registros"
 - **Diseño:** Idéntico al módulo de Diseño
 
+## Caché de Cod Tintas (Rendimiento)
+
+Para enriquecer los diseños, el frontend necesita el mapa completo de `cod_tintas`
+(`articulo` → registro). Antes, cada cambio de página (siguiente / anterior / tamaño)
+volvía a descargar toda la tabla `cod_tintas`, repitiendo la misma consulta a la BD y
+ralentizando la navegación.
+
+Ahora ese mapa se cachea en memoria en el componente (`diseno.ts`):
+
+- **TTL:** 5 minutos (`CODTINTAS_CACHE_TTL_MS`). Mientras la caché esté vigente, la
+  navegación entre páginas solo re-enriquece los diseños en memoria, sin llamada HTTP.
+- **De-duplicación:** si ya hay una carga en curso, las llamadas concurrentes reutilizan
+  la misma promesa (`codTintasLoadInFlight`) en lugar de disparar peticiones duplicadas.
+- **Invalidación:** tras crear, actualizar o eliminar un `cod_tintas` se llama a
+  `invalidateCodTintasCache()`, forzando una recarga fresca en la próxima consulta para
+  reflejar el cambio.
+
+Esto solo afecta el enriquecimiento de diseños con datos de `cod_tintas`; la paginación
+de la pestaña "Cod Tintas" sigue consultando el endpoint `/api/cod-tintas/paginated`
+normalmente.
+
 ## Troubleshooting
 
 ### Error 400 persiste

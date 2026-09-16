@@ -18,6 +18,12 @@ namespace FlexoAPP.API.Models.DTOs
         public string RefreshToken { get; set; } = string.Empty;
         public UserDto User { get; set; } = new();
         public DateTime ExpiresAt { get; set; }
+
+        // True cuando el acceso se concedió con la contraseña TEMPORAL. En ese
+        // caso la sesión es corta (10 min) y el frontend debe forzar el cambio
+        // de contraseña.
+        public bool IsTemporaryPassword { get; set; }
+        public bool MustChangePassword { get; set; }
     }
 
     public class RefreshTokenDto

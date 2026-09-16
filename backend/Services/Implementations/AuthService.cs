@@ -41,26 +41,69 @@ namespace FlexoAPP.API.Services
 
             // Console.WriteLine($"AuthService: User found - ID: {user.Id}, Active: {user.IsActive}, Role: {user.Role}");
 
-            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
+            // 1) ¿Coincide con la contraseña real (permanente)?
+            var matchesReal = BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password);
+
+            // 2) ¿Coincide con la contraseña TEMPORAL y sigue vigente?
+            var tempIsValid = !string.IsNullOrEmpty(user.TempPassword)
+                && user.TempPasswordExpiresAt.HasValue
+                && user.TempPasswordExpiresAt.Value > DateTimeHelper.Now;
+            var matchesTemp = tempIsValid
+                && BCrypt.Net.BCrypt.Verify(loginDto.Password, user.TempPassword!);
+
+            if (!matchesReal && !matchesTemp)
             {
-                // Console.WriteLine($"AuthService: Password verification failed for user: {loginDto.UserCode}");
+                // Si coincide con una temporal EXPIRADA, la limpiamos para higiene.
+                if (!string.IsNullOrEmpty(user.TempPassword)
+                    && user.TempPasswordExpiresAt.HasValue
+                    && user.TempPasswordExpiresAt.Value <= DateTimeHelper.Now
+                    && BCrypt.Net.BCrypt.Verify(loginDto.Password, user.TempPassword))
+                {
+                    user.TempPassword = null;
+                    user.TempPasswordExpiresAt = null;
+                    await _userRepository.UpdateAsync(user);
+                }
                 return null;
             }
 
-            // Console.WriteLine($"AuthService: Password verified successfully for user: {loginDto.UserCode}");
+            // Si entró con la contraseña real, cualquier temporal pendiente queda
+            // obsoleta y se limpia.
+            if (matchesReal && !string.IsNullOrEmpty(user.TempPassword))
+            {
+                user.TempPassword = null;
+                user.TempPasswordExpiresAt = null;
+                await _userRepository.UpdateAsync(user);
+            }
 
             var ipAddress = GetIpAddress();
-            var token = _jwtService.GenerateToken(user);
 
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
+            var normalExpiry = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
+
+            // Si el acceso fue con la temporal → token corto (10 min) y flag de
+            // cambio obligatorio de contraseña.
+            var isTemporaryAccess = matchesTemp && !matchesReal;
+            int effectiveExpiry;
+            if (isTemporaryAccess)
+            {
+                var remaining = (int)Math.Ceiling((user.TempPasswordExpiresAt!.Value - DateTimeHelper.Now).TotalMinutes);
+                effectiveExpiry = Math.Max(1, Math.Min(30, remaining));
+            }
+            else
+            {
+                effectiveExpiry = normalExpiry;
+            }
+
+            var token = _jwtService.GenerateToken(user, isTemporaryAccess ? effectiveExpiry : (int?)null);
 
             return new LoginResponseDto
             {
                 Token = token,
                 RefreshToken = string.Empty,
                 User = MapToUserDto(user),
-                ExpiresAt = DateTimeHelper.Now.AddMinutes(expiryMinutes)
+                ExpiresAt = DateTimeHelper.Now.AddMinutes(effectiveExpiry),
+                IsTemporaryPassword = isTemporaryAccess,
+                MustChangePassword = isTemporaryAccess
             };
         }
 
@@ -180,15 +223,59 @@ namespace FlexoAPP.API.Services
             if (user == null) return false;
 
 
-            if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.Password))
+            // Se acepta como "contraseña actual" tanto la contraseña real como la
+            // temporal vigente (para que el usuario que entró con la temporal pueda
+            // fijar su nueva contraseña).
+            var matchesReal = BCrypt.Net.BCrypt.Verify(currentPassword, user.Password);
+            var matchesTemp = !string.IsNullOrEmpty(user.TempPassword)
+                && user.TempPasswordExpiresAt.HasValue
+                && user.TempPasswordExpiresAt.Value > DateTimeHelper.Now
+                && BCrypt.Net.BCrypt.Verify(currentPassword, user.TempPassword);
+
+            if (!matchesReal && !matchesTemp)
                 return false;
 
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            // Al fijar una nueva contraseña, la temporal deja de tener sentido.
+            user.TempPassword = null;
+            user.TempPasswordExpiresAt = null;
             user.UpdatedAt = DateTimeHelper.Now;
 
             await _userRepository.UpdateAsync(user);
             return true;
+        }
+
+        public async Task<string?> ResetTempPasswordAsync(int userId, int expiryMinutes = 30)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return null;
+
+            // Generar contraseña temporal segura (RandomNumberGenerator)
+            var tempPassword = GenerateSecureTempPassword(8);
+
+            // Guardar SOLO la temporal (hasheada) con expiración. La contraseña
+            // original NO se modifica: sigue siendo válida.
+            user.TempPassword = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+            user.TempPasswordExpiresAt = DateTimeHelper.Now.AddMinutes(expiryMinutes);
+            user.UpdatedAt = DateTimeHelper.Now;
+
+            await _userRepository.UpdateAsync(user);
+            return tempPassword;
+        }
+
+        private static string GenerateSecureTempPassword(int length)
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+            var bytes = new byte[length];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            rng.GetBytes(bytes);
+            var result = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = chars[bytes[i] % chars.Length];
+            }
+            return new string(result);
         }
 
         public async Task<List<UserDto>> GetAllUsersAsync()

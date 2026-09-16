@@ -203,28 +203,19 @@ $header-blue-900: #1e3a8a;
       }
     }
 
+    // Botón primario: sombra azul de sistema
     .create-design-btn {
-      box-shadow: 0 3px 10px rgba(59, 130, 246, 0.25);
+      box-shadow: 0 3px 10px rgba(0, 113, 227, 0.25);
 
       &:hover {
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.35);
       }
     }
 
-    .bulk-upload-btn {
-      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.25);
-
-      &:hover {
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
-      }
-    }
-
+    // Botones secundarios: sin sombra de color (estándar azul claro)
+    .bulk-upload-btn,
     .export-btn {
-      box-shadow: 0 3px 10px rgba(245, 158, 11, 0.25);
-
-      &:hover {
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
-      }
+      box-shadow: none;
     }
 
     .refresh-btn {
@@ -317,7 +308,7 @@ $header-blue-900: #1e3a8a;
     background: white;
     border-radius: 24px;
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
-    max-width: 950px;
+    max-width: 1150px;
     width: 100%;
     max-height: 90vh;
     display: flex;
@@ -507,47 +498,48 @@ $header-blue-900: #1e3a8a;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 20px;
-      padding: 20px 28px;
+      gap: 16px;
+      padding: 14px 28px;
       background: white;
       border-top: 1px solid $gray-200;
       flex-shrink: 0;
       border-radius: 0 0 20px 20px;
 
       .footer-info {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         color: $gray-500;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
 
         mat-icon {
-          font-size: 18px;
-          width: 18px;
-          height: 18px;
+          font-size: 15px;
+          width: 15px;
+          height: 15px;
           color: $gray-400;
         }
 
         .req-star {
           color: #ef4444;
           font-weight: 800;
-          font-size: 1rem;
+          font-size: 0.95rem;
         }
       }
 
       .footer-actions {
         display: flex;
-        gap: 12px;
+        gap: 10px;
       }
 
       .cancel-btn {
         color: $gray-600;
         border: 1px solid $gray-300;
         transition: all 0.2s ease;
-        height: 44px;
-        padding: 0 20px;
-        border-radius: 10px;
+        height: 36px;
+        padding: 0 16px;
+        border-radius: 8px;
         font-weight: 600;
+        font-size: 13px;
 
         &:hover {
           background: $gray-100;
@@ -562,10 +554,11 @@ $header-blue-900: #1e3a8a;
         color: white;
         box-shadow: 0 4px 12px rgba($success-emerald, 0.3);
         transition: all 0.2s ease;
-        height: 44px;
-        padding: 0 24px;
-        border-radius: 10px;
+        height: 36px;
+        padding: 0 20px;
+        border-radius: 8px;
         font-weight: 600;
+        font-size: 13px;
 
         &:hover:not(:disabled) {
           background: #059669;
@@ -954,6 +947,76 @@ $header-blue-900: #1e3a8a;
   display: flex;
   flex-direction: column;
   gap: 0;
+
+  // ── Mat-form-field compacto (alineado con ct-input: 28px) ─────────
+  ::ng-deep {
+    .mat-mdc-form-field {
+      // Quitar espacio inferior del subscript (hints/errors compactan el campo)
+      .mat-mdc-form-field-subscript-wrapper {
+        height: auto;
+        min-height: 16px;
+        padding: 0 4px;
+
+        .mat-mdc-form-field-hint-wrapper,
+        .mat-mdc-form-field-error-wrapper {
+          padding: 0;
+        }
+
+        .mat-mdc-form-field-hint,
+        mat-error {
+          font-size: 10px;
+          line-height: 1.3;
+        }
+      }
+
+      // Reducir altura del wrapper al mínimo compacto
+      .mat-mdc-text-field-wrapper {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .mat-mdc-form-field-flex {
+        height: 40px;
+        align-items: center;
+      }
+
+      .mat-mdc-form-field-infix {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        min-height: unset !important;
+      }
+
+      // Etiqueta flotante más pequeña
+      .mat-mdc-floating-label {
+        font-size: 13px;
+      }
+
+      // Input y select internos
+      input.mat-mdc-input-element,
+      .mat-mdc-select-trigger {
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      // Textarea (descripción) — mantiene varias líneas pero fuente compacta
+      textarea.mat-mdc-input-element {
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.5;
+        padding-top: 4px;
+      }
+
+      // Iconos prefix/suffix más pequeños
+      .mat-mdc-form-field-icon-prefix mat-icon,
+      .mat-mdc-form-field-icon-suffix mat-icon {
+        font-size: 16px !important;
+        width: 16px !important;
+        height: 16px !important;
+        padding: 0 4px;
+      }
+    }
+  }
 }
 
 // ── Sección general con encabezado ──────────────────────────────────
@@ -978,24 +1041,24 @@ $header-blue-900: #1e3a8a;
   .section-header {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 20px;
+    gap: 12px;
+    padding: 10px 20px;
     border-bottom: 1px solid $gray-100;
     background: rgba($gray-50, 0.7);
 
     .section-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
 
       mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+        font-size: 17px;
+        width: 17px;
+        height: 17px;
         color: white;
       }
 
@@ -1019,7 +1082,7 @@ $header-blue-900: #1e3a8a;
     .section-info {
       .section-title {
         margin: 0;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         font-weight: 700;
         color: $gray-800;
         line-height: 1.2;
@@ -1027,8 +1090,8 @@ $header-blue-900: #1e3a8a;
       }
 
       .section-desc {
-        margin: 2px 0 0 0;
-        font-size: 0.78rem;
+        margin: 1px 0 0 0;
+        font-size: 0.72rem;
         color: $gray-500;
         font-weight: 500;
       }
@@ -1039,8 +1102,8 @@ $header-blue-900: #1e3a8a;
   .fields-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px 16px;
-    padding: 16px 20px;
+    gap: 8px 14px;
+    padding: 10px 20px 12px 20px;
 
     .field-half {
       grid-column: span 1;
@@ -1166,114 +1229,196 @@ $header-blue-900: #1e3a8a;
     }
   }
 
-  .color-selectors {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  // ── TABLA COMPACTA DE COLORES (editor de diseño) ──────────────────
+  .color-table {
+    width: 100%;
+    border: 1px solid $gray-200;
+    border-radius: 8px;
+    overflow: hidden;
 
-    .color-selector {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 14px;
-      background: white;
-      border-radius: 10px;
-      border: 1px solid $gray-200;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    // Columnas: # | pantone | swatch | línea tinta | cobertura | anilox | acciones
+    $ct-cols: 26px 1fr 34px 1fr 1fr 1fr 60px;
 
-      &:hover {
-        border-color: rgba($primary-blue, 0.3);
-        box-shadow: 0 2px 8px rgba($primary-blue, 0.08);
-      }
+    // Mixin interno: grid compartido
+    %ct-grid {
+      display: grid;
+      grid-template-columns: $ct-cols;
+      align-items: center;
+      gap: 0 6px;
+    }
 
-      .color-number-badge {
-        width: 26px;
-        height: 26px;
-        min-width: 26px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, $primary-blue-100, $primary-blue-200);
-        color: $primary-blue-700;
-        font-size: 0.75rem;
+    // ── Header ──────────────────────────────────────────────────────
+    .color-table-header {
+      @extend %ct-grid;
+      padding: 5px 10px;
+      background: $gray-50;
+      border-bottom: 1px solid $gray-200;
+
+      span {
+        font-size: 9px;
         font-weight: 700;
+        color: $gray-400;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+      }
+    }
+
+    // ── Fila de color ────────────────────────────────────────────────
+    .color-table-row {
+      @extend %ct-grid;
+      padding: 4px 10px;
+      min-height: 40px;
+      background: white;
+      border-bottom: 1px solid $gray-100;
+      transition: background 0.15s;
+
+      &:last-child { border-bottom: none; }
+
+      &:hover { background: #fafbff; }
+
+      // — badge número —
+      .ct-num {
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
-        line-height: 1;
-        margin-top: 8px;
+
+        .color-num-badge {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, $primary-blue-100, $primary-blue-200);
+          color: $primary-blue-700;
+          font-size: 10px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
       }
 
-      .color-field {
-        flex: 1;
+      // — autocomplete pantone —
+      .ct-color {
         min-width: 0;
+        display: flex;
+        align-items: center;
+
+        .ct-pantone-input {
+          // hereda .ct-input, sobreescritura de fondo para destacarlo del resto
+          background: white;
+        }
       }
 
-      .color-swatch-preview {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        border-radius: 8px;
-        border: 2px solid rgba(255, 255, 255, 0.9);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      // — swatch cuadrado de color —
+      .ct-swatch {
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-        margin-top: 4px;
 
-        &.empty-swatch {
-          background: $gray-100 !important;
-          border: 2px dashed $gray-300;
+        .color-swatch-preview {
+          width: 28px;
+          height: 28px;
+          min-width: 28px;
+          border-radius: 6px;
+          border: 2px solid rgba(255, 255, 255, 0.9);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: default;
+          transition: all 0.2s;
+
+          &.clickable { cursor: pointer; }
+          &.clickable:hover { transform: scale(1.1); }
 
           .empty-icon {
-            font-size: 18px !important;
-            width: 18px !important;
-            height: 18px !important;
+            font-size: 14px !important;
+            width: 14px !important;
+            height: 14px !important;
             color: $gray-400;
           }
         }
+      }
 
-        &.clickable {
-          cursor: pointer;
-          
-          &:hover {
-            border-color: #7c3aed;
-            background: rgba(124, 58, 237, 0.08) !important;
-            transform: scale(1.08);
+      // — inputs de cod tintas (línea tinta / cobertura / anilox) —
+      .ct-tinta,
+      .ct-cob,
+      .ct-anilox {
+        display: flex;
+        align-items: center;
+      }
 
-            .empty-icon { color: #7c3aed; }
-          }
+      .ct-input {
+        height: 28px;
+        width: 100%;
+        border: 1px solid $gray-200;
+        border-radius: 5px;
+        padding: 0 7px;
+        font-size: 11px;
+        font-weight: 500;
+        color: $gray-800;
+        background: $gray-50;
+        transition: border-color 0.15s, background 0.15s;
+
+        &:focus {
+          outline: none;
+          border-color: $primary-blue;
+          background: white;
+          box-shadow: 0 0 0 2px rgba($primary-blue, 0.1);
+        }
+
+        &.ct-input-num {
+          // quitar flechas
+          &::-webkit-inner-spin-button,
+          &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+          -moz-appearance: textfield;
         }
       }
 
-      .color-action-buttons {
+      .ct-cob-wrap {
         display: flex;
-        gap: 2px;
-        flex-shrink: 0;
-        margin-top: 4px;
+        align-items: center;
+        gap: 3px;
+        width: 100%;
+
+        .ct-input { flex: 1; }
+
+        .ct-pct {
+          font-size: 11px;
+          font-weight: 600;
+          color: $gray-500;
+          flex-shrink: 0;
+        }
+      }
+
+      // — celda vacía (sin codTintaRecord) —
+      .ct-empty {
+        font-size: 11px;
+        color: $gray-300;
+      }
+
+      // — botones de acción —
+      .ct-acc {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0;
       }
 
       .edit-color-btn {
-        flex-shrink: 0;
-        color: #2563eb;
-        width: 30px;
-        height: 30px;
-        
-        mat-icon { font-size: 18px; width: 18px; height: 18px; }
-        
-        &:hover { color: #1d4ed8; background: rgba(37, 99, 235, 0.08); }
+        color: $primary-blue;
+        width: 28px;
+        height: 28px;
+        mat-icon { font-size: 16px; width: 16px; height: 16px; }
+        &:hover { color: $primary-blue-dark; background: rgba($primary-blue, 0.08); }
       }
 
       .delete-color-btn {
-        flex-shrink: 0;
         color: #dc2626;
-        width: 30px;
-        height: 30px;
-        
-        mat-icon { font-size: 18px; width: 18px; height: 18px; }
-        
+        width: 28px;
+        height: 28px;
+        mat-icon { font-size: 16px; width: 16px; height: 16px; }
         &:hover { color: #b91c1c; background: rgba(220, 38, 38, 0.08); }
       }
     }
@@ -1898,6 +2043,7 @@ $header-blue-900: #1e3a8a;
     overflow: hidden;
     text-overflow: ellipsis;
     word-wrap: break-word;
+    text-align: center;
   }
 }
 
@@ -5117,5 +5263,1846 @@ $header-blue-900: #1e3a8a;
   mat-card-content,
   .mat-mdc-card-content {
     padding-top: 6px !important;
+  }
+}
+
+
+// ===== ESTILOS: COD TINTAS INLINE EN TABLA DE DISEÑOS =====
+
+// Columna expand — botón pequeño
+.expand-header {
+  width: 36px;
+  min-width: 36px;
+  padding: 0 4px !important;
+  text-align: center;
+
+  .mat-icon { font-size: 16px; color: #64748b; }
+}
+
+.expand-cell {
+  width: 36px;
+  min-width: 36px;
+  padding: 0 !important;
+  text-align: center;
+}
+
+.expand-btn-design {
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+
+  .mat-icon { font-size: 18px !important; color: #94a3b8; transition: color 0.2s; }
+
+  &.has-tintas .mat-icon { color: #2563eb; }
+
+  &:hover .mat-icon { color: #1d4ed8; }
+}
+
+// Columna cod_tintas resumen
+.cod-tintas-summary-cell {
+  min-width: 180px;
+  max-width: 420px;
+  vertical-align: middle;
+  padding: 6px 8px !important;
+}
+
+// Vista colapsada — badges compactos
+.tintas-compact-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+
+  .carpeta-badge,
+  .estante-badge,
+  .colores-count-badge,
+  .linea-tinta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+
+    .badge-icon { font-size: 11px; width: 11px; height: 11px; color: #64748b; }
+  }
+
+  .carpeta-badge { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+  .colores-count-badge { background: #f0fdf4; border-color: #bbf7d0; color: #16a34a; }
+}
+
+.create-tintas-inline-btn {
+  font-size: 11px !important;
+  height: 26px !important;
+  line-height: 26px !important;
+  padding: 0 8px !important;
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+
+  .mat-icon { font-size: 14px !important; width: 14px; height: 14px; margin-right: 2px; }
+}
+
+// Panel expandido inline
+.cod-tintas-inline-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 10px 12px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &.no-record-panel {
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: #fafbff;
+    border-color: #bfdbfe;
+    border-style: dashed;
+  }
+
+  .create-tintas-full-btn {
+    font-size: 12px !important;
+    .mat-icon { font-size: 16px; }
+  }
+}
+
+// Fila de metadatos: carpeta / estante / línea tinta
+.tintas-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+
+  .meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 90px;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 9px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+
+      .field-icon { font-size: 11px; width: 11px; height: 11px; }
+    }
+
+    .inline-edit-input {
+      height: 26px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 0 6px;
+      font-size: 11px;
+      color: #1e293b;
+      background: white;
+      transition: border-color 0.15s;
+      width: 100%;
+
+      &:focus { outline: none; border-color: #2563eb; }
+      &[readonly] { background: #f8fafc; color: #64748b; cursor: default; }
+    }
+
+    .linea-tinta-text {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      padding: 4px 0;
+    }
+  }
+
+  .meta-actions {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+    align-items: flex-end;
+
+    .action-btn {
+      width: 26px !important;
+      height: 26px !important;
+      line-height: 26px !important;
+
+      .mat-icon { font-size: 14px !important; }
+    }
+
+    .edit-btn .mat-icon { color: #2563eb; }
+    .delete-btn .mat-icon { color: #ef4444; }
+  }
+}
+
+// Grilla de colores — headers + filas
+.tintas-colores-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  .colores-grid-header {
+    display: grid;
+    grid-template-columns: 1fr 100px 80px 100px;
+    gap: 4px;
+    padding: 2px 4px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 2px;
+  }
+
+  .color-grid-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 80px 100px;
+    gap: 4px;
+    align-items: center;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid #f1f5f9;
+
+    &:hover { border-color: #e2e8f0; background: #fafbff; }
+
+    .color-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #1e293b;
+      overflow: hidden;
+
+      .color-preview-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 1px solid rgba(0,0,0,0.12);
+      }
+
+      span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    }
+
+    .styled-input {
+      height: 24px;
+      border: 1px solid #e2e8f0;
+      border-radius: 3px;
+      padding: 0 5px;
+      font-size: 10px;
+      color: #1e293b;
+      background: white;
+      width: 100%;
+      transition: border-color 0.15s;
+
+      &:focus { outline: none; border-color: #2563eb; }
+      &[readonly] { background: #f8fafc; color: #64748b; cursor: default; }
+    }
+
+    .cobertura-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+
+      .styled-input { flex: 1; }
+      .input-suffix { font-size: 10px; color: #64748b; flex-shrink: 0; }
+    }
+  }
+}
+
+.no-colores-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+  padding: 6px;
+
+  .mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+
+// ============================================================
+//  APPLE DESIGN SYSTEM OVERRIDES — diseño module
+//  SF Pro · Glassmorphism · Hairlines · Azul sistema #0071e3
+//  Aplica encima del tema base sin romper funcionalidad
+// ============================================================
+
+$ap-blue:        #0071e3;
+$ap-blue-hover:  #0077ed;
+$ap-blue-dark:   #006edb;
+$ap-green:       #34c759;
+$ap-red:         #ff3b30;
+$ap-amber:       #ff9f0a;
+$ap-text:        #1d1d1f;
+$ap-text-2:      #6e6e73;
+$ap-text-3:      #86868b;
+$ap-hairline:    rgba(0, 0, 0, 0.08);
+$ap-bg:          #f5f5f7;
+$ap-surface:     rgba(255, 255, 255, 0.72);
+$ap-font:        -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
+
+// ── Fondo general ────────────────────────────────────────────
+:host {
+  background: linear-gradient(160deg, #eaf1ff 0%, #dfe9ff 30%, #e9e4ff 65%, #e6f0ff 100%) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+.design-container {
+  background: transparent !important;
+  font-family: $ap-font !important;
+}
+
+// Blobs desenfocados tipo login
+.design-container::before {
+  content: '';
+  position: fixed;
+  width: 480px;
+  height: 480px;
+  top: -120px;
+  left: -100px;
+  background: radial-gradient(circle at 30% 30%, #a5c8ff 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+  animation: apDesignBlob1 22s ease-in-out infinite;
+}
+
+.design-container::after {
+  content: '';
+  position: fixed;
+  width: 420px;
+  height: 420px;
+  bottom: -120px;
+  right: -80px;
+  background: radial-gradient(circle at 60% 40%, #c9b8ff 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
+  animation: apDesignBlob2 28s ease-in-out infinite;
+}
+
+@keyframes apDesignBlob1 {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(40px, 28px); }
+}
+@keyframes apDesignBlob2 {
+  0%, 100% { transform: translate(0, 0); }
+  50%       { transform: translate(-34px, -26px); }
+}
+
+// ── Header ────────────────────────────────────────────────────
+.design-header {
+  background: rgba(255, 255, 255, 0.68) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+
+  &::before {
+    background: $ap-blue !important;
+    border-radius: 18px 18px 0 0 !important;
+    height: 3px !important;
+  }
+
+  .page-title {
+    font-family: $ap-font !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    color: $ap-text !important;
+    letter-spacing: -0.3px !important;
+    mat-icon { color: $ap-blue !important; }
+  }
+
+  .page-subtitle {
+    font-family: $ap-font !important;
+    color: $ap-text-2 !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+// ── Barra de búsqueda ────────────────────────────────────────
+.search-field-wrapper-d {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border: 1px solid $ap-hairline !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease !important;
+
+  &:focus-within {
+    border-color: $ap-blue !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.14) !important;
+  }
+
+  .search-icon-d { color: $ap-text-3 !important; }
+
+  .search-input-d {
+    font-family: $ap-font !important;
+    color: $ap-text !important;
+    font-size: 0.85rem !important;
+    &::placeholder { color: $ap-text-3 !important; }
+  }
+}
+
+// ── Botones de cabecera ──────────────────────────────────────
+.header-actions-inline {
+  .create-design-btn,
+  .bulk-upload-btn,
+  .export-btn {
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    border-radius: 10px !important;
+    letter-spacing: -0.2px !important;
+    transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+
+    &:hover:not(:disabled) { transform: translateY(-1px) !important; }
+    &:active:not(:disabled) { transform: translateY(0) scale(0.98) !important; }
+  }
+
+  // Botón primario (azul de sistema, texto e ícono blancos)
+  .create-design-btn {
+    background: $ap-blue !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(0, 113, 227, 0.3) !important;
+    .mdc-button__label, span, mat-icon { color: #ffffff !important; }
+    &:hover:not(:disabled) {
+      background: $ap-blue-hover !important;
+      color: #ffffff !important;
+      box-shadow: 0 6px 18px rgba(0, 113, 227, 0.38) !important;
+    }
+    &:disabled {
+      background: rgba(0, 0, 0, 0.16) !important;
+      box-shadow: none !important;
+      .mdc-button__label, span, mat-icon { color: rgba(255, 255, 255, 0.85) !important; }
+    }
+  }
+
+  // Botones secundarios (fondo azul claro, contorno y texto/ícono en azul de sistema)
+  .bulk-upload-btn,
+  .export-btn {
+    background: rgba(0, 113, 227, 0.08) !important;
+    color: $ap-blue !important;
+    border: 1px solid rgba(0, 113, 227, 0.2) !important;
+    box-shadow: none !important;
+    .mdc-button__label, span, mat-icon { color: $ap-blue !important; }
+    &:hover:not(:disabled) {
+      background: rgba(0, 113, 227, 0.14) !important;
+      border-color: rgba(0, 113, 227, 0.3) !important;
+    }
+    &:disabled {
+      background: rgba(0, 0, 0, 0.04) !important;
+      border-color: rgba(0, 0, 0, 0.08) !important;
+      .mdc-button__label, span, mat-icon { color: rgba(0, 0, 0, 0.3) !important; }
+    }
+  }
+
+  .refresh-btn {
+    background: rgba(0, 113, 227, 0.08) !important;
+    border: 1px solid rgba(0, 113, 227, 0.2) !important;
+    border-radius: 50% !important;
+    color: $ap-blue !important;
+    &:hover:not(:disabled) {
+      background: rgba(0, 113, 227, 0.15) !important;
+      border-color: $ap-blue !important;
+    }
+  }
+}
+
+// ── Table card ───────────────────────────────────────────────
+.table-card {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+
+  &::before {
+    background: $ap-blue !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+
+  mat-card-header {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border-bottom: 1px solid $ap-hairline !important;
+    backdrop-filter: blur(10px) !important;
+  }
+}
+
+// ── Header de tabla (sticky) ─────────────────────────────────
+.mat-mdc-header-row,
+.mat-mdc-header-cell {
+  background: rgba(248, 250, 252, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  font-family: $ap-font !important;
+  font-weight: 600 !important;
+  font-size: 9px !important;
+  letter-spacing: 0.6px !important;
+  color: $ap-text-2 !important;
+  border-bottom: 1px solid $ap-hairline !important;
+
+  &::after { display: none !important; }
+  &:hover {
+    background: rgba(240, 245, 255, 0.9) !important;
+    color: $ap-blue !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  mat-icon { color: $ap-blue !important; }
+}
+
+// ── Filas de tabla ───────────────────────────────────────────
+.mat-mdc-row {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  font-family: $ap-font !important;
+  transition: background 0.15s ease !important;
+
+  &:nth-child(even) {
+    background: rgba(255, 255, 255, 0.3) !important;
+  }
+
+  &:hover {
+    background: rgba(0, 113, 227, 0.05) !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .mat-mdc-cell {
+    font-family: $ap-font !important;
+    color: $ap-text !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.04) !important;
+  }
+}
+
+// ── Celdas ───────────────────────────────────────────────────
+.excel-cell {
+  font-family: $ap-font !important;
+  color: $ap-text !important;
+}
+
+.article-cell .article-code {
+  background: rgba(0, 113, 227, 0.08) !important;
+  border: 1px solid rgba(0, 113, 227, 0.18) !important;
+  color: $ap-blue !important;
+  border-radius: 5px !important;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace !important;
+  font-weight: 600 !important;
+}
+
+.client-cell .client-name {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid $ap-hairline !important;
+  color: $ap-text !important;
+  border-radius: 5px !important;
+  font-family: $ap-font !important;
+  &:hover { background: rgba(0, 113, 227, 0.07) !important; color: $ap-blue !important; }
+}
+
+.status-cell {
+  .status-text {
+    font-family: $ap-font !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+  }
+}
+
+// Botones de acción de fila
+.actions-cell .action-buttons .action-btn {
+  border-radius: 8px !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  &:hover { transform: translateY(-1px) !important; }
+  &:active { transform: translateY(0) scale(0.96) !important; }
+
+  &.edit-btn {
+    background: rgba(0, 113, 227, 0.08) !important;
+    border: 1px solid rgba(0, 113, 227, 0.2) !important;
+    color: $ap-blue !important;
+    &:hover { background: rgba(0, 113, 227, 0.16) !important; border-color: $ap-blue !important; box-shadow: 0 3px 10px rgba(0, 113, 227, 0.2) !important; }
+  }
+  &.duplicate-btn {
+    background: rgba(52, 199, 89, 0.08) !important;
+    border: 1px solid rgba(52, 199, 89, 0.2) !important;
+    color: darken(#34c759, 15%) !important;
+    &:hover { background: rgba(52, 199, 89, 0.16) !important; box-shadow: 0 3px 10px rgba(52, 199, 89, 0.2) !important; }
+  }
+  &.delete-btn {
+    background: rgba(255, 59, 48, 0.08) !important;
+    border: 1px solid rgba(255, 59, 48, 0.2) !important;
+    color: $ap-red !important;
+    &:hover { background: rgba(255, 59, 48, 0.16) !important; box-shadow: 0 3px 10px rgba(255, 59, 48, 0.2) !important; }
+  }
+}
+
+// ── Paginación ───────────────────────────────────────────────
+.pagination-controls {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(20px) !important;
+  border-top: 1px solid $ap-hairline !important;
+  font-family: $ap-font !important;
+
+  .pagination-info { font-family: $ap-font !important; color: $ap-text-3 !important; b { color: $ap-blue !important; } }
+
+  .nav-btn {
+    font-family: $ap-font !important;
+    border-color: $ap-hairline !important;
+    color: $ap-text-2 !important;
+    border-radius: 6px !important;
+    &:hover:not(:disabled) {
+      background: rgba(0, 113, 227, 0.07) !important;
+      color: $ap-blue !important;
+      border-color: rgba(0, 113, 227, 0.3) !important;
+    }
+    &.prev-btn { border-radius: 8px 0 0 8px !important; }
+    &.next-btn { border-radius: 0 8px 8px 0 !important; }
+  }
+
+  .current-page-indicator {
+    background: rgba(0, 113, 227, 0.05) !important;
+    border-color: $ap-hairline !important;
+    font-family: $ap-font !important;
+    span { color: $ap-blue !important; }
+  }
+}
+
+// ── Tabs ────────────────────────────────────────────────────
+.design-tabs {
+  ::ng-deep {
+    .mat-mdc-tab-labels {
+      background: rgba(255, 255, 255, 0.5) !important;
+      backdrop-filter: blur(20px) !important;
+      border-bottom: 1px solid $ap-hairline !important;
+    }
+
+    .mat-mdc-tab {
+      font-family: $ap-font !important;
+
+      .tab-label { font-family: $ap-font !important; font-weight: 500 !important; letter-spacing: -0.2px !important; }
+
+      &.mdc-tab--active {
+        .tab-icon, .tab-label { color: $ap-blue !important; }
+      }
+
+      .mdc-tab-indicator__content--underline {
+        border-color: $ap-blue !important;
+        border-width: 2px !important;
+      }
+    }
+  }
+}
+
+// ── Diálogos crear/editar ─────────────────────────────────────
+.dialog-overlay {
+  background: rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+
+  .dialog-container {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(40px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+    border-radius: 28px !important;
+    border: 1px solid rgba(255, 255, 255, 0.7) !important;
+    box-shadow:
+      0 40px 80px rgba(0, 0, 0, 0.18),
+      0 8px 24px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+
+    .dialog-header {
+      border-radius: 24px 24px 0 0 !important;
+      padding: 20px 28px !important;
+
+      &.create-header {
+        background: linear-gradient(135deg, #30c05e 0%, #34c759 60%, #5bd374 100%) !important;
+      }
+      &.edit-header {
+        background: linear-gradient(135deg, #005ec4 0%, #0071e3 60%, #2189ff 100%) !important;
+      }
+
+      .dialog-header-text h2 {
+        font-family: $ap-font !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.4px !important;
+      }
+      .dialog-subtitle { font-family: $ap-font !important; }
+
+      .dialog-icon-wrapper {
+        border-radius: 14px !important;
+        background: rgba(255, 255, 255, 0.22) !important;
+      }
+
+      .dialog-close-btn {
+        border-radius: 50% !important;
+        &:hover { background: rgba(255, 255, 255, 0.25) !important; }
+      }
+    }
+
+    .dialog-content {
+      background: rgba(248, 250, 252, 0.7) !important;
+      backdrop-filter: blur(10px) !important;
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 113, 227, 0.4) !important;
+        border-radius: 5px !important;
+      }
+    }
+
+    .dialog-footer {
+      background: rgba(255, 255, 255, 0.75) !important;
+      backdrop-filter: blur(20px) !important;
+      border-top: 1px solid $ap-hairline !important;
+      border-radius: 0 0 24px 24px !important;
+
+      .cancel-btn {
+        font-family: $ap-font !important;
+        font-weight: 400 !important;
+        border: 1px solid $ap-hairline !important;
+        border-radius: 10px !important;
+        color: $ap-text-2 !important;
+        &:hover { background: rgba(0, 0, 0, 0.04) !important; }
+      }
+
+      .save-btn {
+        font-family: $ap-font !important;
+        font-weight: 500 !important;
+        border-radius: 10px !important;
+      }
+    }
+  }
+}
+
+// ── Secciones del formulario ─────────────────────────────────
+.form-section {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid $ap-hairline !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+
+  .section-header {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+
+    .section-info .section-title {
+      font-family: $ap-font !important;
+      font-weight: 600 !important;
+      color: $ap-text !important;
+      letter-spacing: -0.2px !important;
+    }
+    .section-info .section-desc {
+      font-family: $ap-font !important;
+      color: $ap-text-2 !important;
+    }
+  }
+}
+
+.colors-form-section {
+  background: rgba(255, 249, 252, 0.8) !important;
+  border-color: rgba(0, 113, 227, 0.1) !important;
+}
+
+.status-form-section {
+  background: rgba(255, 251, 235, 0.8) !important;
+  border-color: rgba(255, 159, 10, 0.15) !important;
+}
+
+// ── Inputs del formulario (mat-form-field) ───────────────────
+// Altura estándar: 52px para todos los campos (outline)
+.design-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  // Grid de campos estandarizado
+  .fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    padding: 14px 20px 16px;
+    align-items: start;
+
+    .field-half  { grid-column: span 1; }
+    .field-full  { grid-column: span 2; }
+
+    // En mobile una columna
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+      .field-half, .field-full { grid-column: span 1; }
+    }
+  }
+
+  // Todos los mat-form-field del formulario
+  mat-form-field {
+    width: 100% !important;
+  }
+
+  ::ng-deep {
+    // ── Wrapper del campo ──────────────────────────────────────
+    .mat-mdc-form-field {
+      width: 100% !important;
+    }
+
+    // Quitar ripple y borde inferior del outline
+    .mat-mdc-text-field-wrapper {
+      background: rgba(255, 255, 255, 0.78) !important;
+      border: 1.5px solid rgba(0, 0, 0, 0.1) !important;
+      border-radius: 12px !important;
+      box-shadow: none !important;
+      padding: 0 14px !important;
+      min-height: 52px !important;
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+
+      &:hover {
+        border-color: rgba(0, 0, 0, 0.2) !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+      }
+    }
+
+    // Ocultar el contorno MDC nativo (usamos border del wrapper)
+    .mdc-notched-outline,
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border: none !important;
+      display: none !important;
+    }
+
+    // Focus ring Apple
+    .mat-mdc-form-field.mat-focused .mat-mdc-text-field-wrapper {
+      border-color: $ap-blue !important;
+      background: rgba(255, 255, 255, 0.98) !important;
+      box-shadow: 0 0 0 3.5px rgba(0, 113, 227, 0.15) !important;
+    }
+
+    // Flex interior uniforme
+    .mat-mdc-form-field-flex {
+      min-height: 52px !important;
+      align-items: center !important;
+      padding: 0 !important;
+    }
+
+    // Espacio interior del infix
+    .mat-mdc-form-field-infix {
+      padding-top: 20px !important;
+      padding-bottom: 6px !important;
+      min-height: 52px !important;
+      display: flex !important;
+      align-items: center !important;
+      border-top: none !important;
+    }
+
+    // Label flotante
+    .mdc-floating-label,
+    .mat-mdc-floating-label {
+      font-family: $ap-font !important;
+      font-size: 0.9rem !important;
+      font-weight: 400 !important;
+      color: $ap-text-2 !important;
+      top: 26px !important;
+      left: 0 !important;
+      transform-origin: left top !important;
+    }
+
+    // Label cuando flota (campo activo/con valor)
+    .mat-mdc-form-field:not(.mat-form-field-no-animations) .mdc-floating-label--float-above,
+    .mdc-floating-label--float-above {
+      transform: translateY(-16px) scale(0.75) !important;
+      color: $ap-text-3 !important;
+    }
+
+    // Label en foco
+    .mat-mdc-form-field.mat-focused .mdc-floating-label--float-above {
+      color: $ap-blue !important;
+    }
+
+    // Input y select
+    input.mat-mdc-input-element,
+    .mat-mdc-select-trigger {
+      font-family: $ap-font !important;
+      font-size: 0.95rem !important;
+      font-weight: 400 !important;
+      color: $ap-text !important;
+      caret-color: $ap-blue !important;
+      line-height: 1.4 !important;
+    }
+
+    // Textarea
+    textarea.mat-mdc-input-element {
+      font-family: $ap-font !important;
+      font-size: 0.9rem !important;
+      font-weight: 400 !important;
+      color: $ap-text !important;
+      padding-top: 4px !important;
+      line-height: 1.5 !important;
+      resize: vertical !important;
+      min-height: 56px !important;
+    }
+
+    // Íconos prefix
+    .mat-mdc-form-field-icon-prefix mat-icon {
+      font-size: 17px !important;
+      width: 17px !important;
+      height: 17px !important;
+      color: $ap-text-3 !important;
+      padding-right: 6px !important;
+    }
+
+    // Íconos suffix (required badge y lock)
+    .mat-mdc-form-field-icon-suffix {
+      display: flex;
+      align-items: center;
+      padding-left: 6px !important;
+    }
+
+    // Hint text
+    .mat-mdc-form-field-hint {
+      font-family: $ap-font !important;
+      font-size: 0.75rem !important;
+      color: $ap-text-3 !important;
+    }
+
+    // Error text
+    .mat-mdc-form-field-error {
+      font-family: $ap-font !important;
+      font-size: 0.75rem !important;
+      color: $ap-red !important;
+    }
+
+    // Subscript wrapper (hints/errors) — altura compacta
+    .mat-mdc-form-field-subscript-wrapper {
+      min-height: 16px !important;
+      padding: 2px 4px 0 !important;
+    }
+
+    // Campo readonly — fondo diferenciado
+    .readonly-field .mat-mdc-text-field-wrapper {
+      background: rgba(0, 0, 0, 0.03) !important;
+      border-color: rgba(0, 0, 0, 0.06) !important;
+      cursor: not-allowed !important;
+
+      input { color: $ap-text-2 !important; cursor: not-allowed !important; }
+    }
+
+    // Select flecha
+    .mat-mdc-select-arrow svg {
+      fill: $ap-text-3 !important;
+    }
+
+    // Autocompletado sin fondo negro
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 100px rgba(255, 255, 255, 0.95) inset !important;
+      -webkit-text-fill-color: $ap-text !important;
+      transition: background-color 9999s ease-in-out 0s;
+    }
+  }
+
+  // Required badge (asterisco rojo)
+  .required-badge {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: $ap-red !important;
+    line-height: 1 !important;
+  }
+
+  // Lock icon en campo readonly
+  .lock-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    color: $ap-text-3 !important;
+  }
+
+  // Color selector row (sección colores — crear diseño)
+  .color-selector {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 14px !important;
+    background: rgba(255, 255, 255, 0.65) !important;
+    border: 1px solid rgba(0, 0, 0, 0.07) !important;
+    border-radius: 12px !important;
+    margin-bottom: 6px !important;
+
+    .color-number-badge {
+      width: 24px !important;
+      height: 24px !important;
+      min-width: 24px !important;
+      border-radius: 50% !important;
+      background: $ap-blue !important;
+      color: white !important;
+      font-family: $ap-font !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .color-field { flex: 1 !important; min-width: 0 !important; }
+
+    .color-swatch-preview {
+      width: 34px !important;
+      height: 34px !important;
+      min-width: 34px !important;
+      border-radius: 8px !important;
+      border: 2px solid rgba(255, 255, 255, 0.9) !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+    }
+  }
+}
+
+// ── Inputs nativos CT ────────────────────────────────────────
+// Igualados a la altura estándar del formulario Apple (52px campo = 38px input)
+.ct-input {
+  font-family: $ap-font !important;
+  height: 38px !important;
+  font-size: 0.88rem !important;
+  font-weight: 400 !important;
+  border: 1.5px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: $ap-text !important;
+  padding: 0 10px !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease !important;
+
+  &::placeholder { color: $ap-text-3 !important; font-size: 0.82rem !important; }
+
+  &:hover {
+    border-color: rgba(0, 0, 0, 0.2) !important;
+    background: rgba(255, 255, 255, 0.92) !important;
+  }
+
+  &:focus {
+    outline: none !important;
+    border-color: $ap-blue !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: 0 0 0 3.5px rgba(0, 113, 227, 0.15) !important;
+  }
+}
+
+// Fila de color — altura igualada al resto del formulario
+.color-table-row {
+  min-height: 52px !important;
+  padding: 6px 14px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  transition: background 0.15s ease !important;
+
+  &:last-child { border-bottom: none !important; }
+  &:hover { background: rgba(0, 113, 227, 0.03) !important; }
+
+  // badge número de color
+  .color-num-badge {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    background: $ap-blue !important;
+    color: white !important;
+    font-family: $ap-font !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+  }
+
+  // Swatch de color
+  .color-swatch-preview {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    border-radius: 8px !important;
+    border: 2px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14) !important;
+  }
+
+  // Wrap cobertura con %
+  .ct-cob-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+
+    .ct-input { flex: 1 !important; }
+
+    .ct-pct {
+      font-family: $ap-font !important;
+      font-size: 0.82rem !important;
+      font-weight: 500 !important;
+      color: $ap-text-3 !important;
+      flex-shrink: 0 !important;
+    }
+  }
+
+  // Botones editar/eliminar color
+  .edit-color-btn {
+    color: $ap-blue !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    &:hover { background: rgba(0, 113, 227, 0.1) !important; }
+    mat-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; }
+  }
+
+  .delete-color-btn {
+    color: $ap-red !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    &:hover { background: rgba(255, 59, 48, 0.1) !important; }
+    mat-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; }
+  }
+
+  // Botón crear color Pantone (cuando el color no existe)
+  .create-color-btn {
+    color: #8b5cf6 !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    background: rgba(139, 92, 246, 0.1) !important;
+    &:hover { background: rgba(139, 92, 246, 0.2) !important; }
+    &:disabled { opacity: 0.4 !important; }
+    mat-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; }
+  }
+}
+
+// Header de la tabla de colores
+.color-table-header {
+  padding: 6px 14px !important;
+  background: rgba(248, 250, 252, 0.85) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07) !important;
+  border-radius: 10px 10px 0 0 !important;
+
+  span {
+    font-family: $ap-font !important;
+    font-size: 9px !important;
+    font-weight: 600 !important;
+    color: $ap-text-3 !important;
+    letter-spacing: 0.6px !important;
+    text-transform: uppercase !important;
+  }
+}
+
+// Contenedor de la tabla de colores
+.color-table {
+  border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(8px) !important;
+  width: fit-content !important;   // No se expande más allá de sus columnas
+  min-width: 100% !important;      // Pero respeta el ancho del contenedor padre
+}
+
+// ── Estado selector ──────────────────────────────────────────
+.status-selector-group .status-option-btn {
+  font-family: $ap-font !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  border: 1px solid $ap-hairline !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  transition: all 0.2s ease !important;
+
+  &.active-activo {
+    border-color: $ap-green !important;
+    background: rgba(52, 199, 89, 0.07) !important;
+    color: darken(#34c759, 20%) !important;
+    box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.12) !important;
+  }
+
+  &.active-inactivo {
+    border-color: $ap-red !important;
+    background: rgba(255, 59, 48, 0.07) !important;
+    color: darken(#ff3b30, 15%) !important;
+    box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.12) !important;
+  }
+}
+
+// ── Sidebar Anilox ───────────────────────────────────────────
+.design-container .anilox-sidebar,
+.anilox-sidebar {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) !important;
+  border-right: 1px solid $ap-hairline !important;
+  box-shadow: none !important;
+
+  .sidebar-header {
+    background: $ap-blue !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    h3 { font-family: $ap-font !important; font-weight: 500 !important; color: #ffffff !important; }
+    mat-icon { color: #ffffff !important; }
+  }
+
+  .machine-btn {
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    border: 1px solid $ap-hairline !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-radius: 10px !important;
+    color: $ap-text !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+      background: rgba(0, 113, 227, 0.07) !important;
+      border-color: rgba(0, 113, 227, 0.25) !important;
+      transform: none !important;
+      color: $ap-blue !important;
+      box-shadow: none !important;
+    }
+
+    &.active {
+      background: $ap-blue !important;
+      border-color: $ap-blue-dark !important;
+      color: white !important;
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3) !important;
+    }
+  }
+}
+
+// ── Anilox main area ─────────────────────────────────────────
+.design-container .anilox-main-area,
+.anilox-main-area {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.design-container .anilox-header,
+.anilox-header {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-bottom: 1px solid $ap-hairline !important;
+  box-shadow: none !important;
+
+  .header-title {
+    h2 { font-family: $ap-font !important; font-weight: 600 !important; color: $ap-text !important; }
+    mat-icon { color: $ap-blue !important; }
+  }
+
+  .create-anilox-btn {
+    background: $ap-blue !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.28) !important;
+    // Forzar texto e ícono blancos (el tema MDC los dejaba azul sobre azul)
+    .mdc-button__label, span, mat-icon { color: #ffffff !important; }
+    &:hover { background: $ap-blue-hover !important; color: #ffffff !important; box-shadow: 0 6px 16px rgba(0, 113, 227, 0.36) !important; }
+    &:disabled {
+      background: rgba(0, 0, 0, 0.16) !important;
+      box-shadow: none !important;
+      .mdc-button__label, span, mat-icon { color: rgba(255, 255, 255, 0.85) !important; }
+    }
+  }
+
+  .import-excel-btn {
+    background: rgba(0, 113, 227, 0.08) !important;
+    color: $ap-blue !important;
+    border: 1px solid rgba(0, 113, 227, 0.2) !important;
+    border-radius: 10px !important;
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    // Texto e ícono en azul de sistema (legibles sobre fondo claro)
+    .mdc-button__label, span, mat-icon { color: $ap-blue !important; }
+    &:hover {
+      background: rgba(0, 113, 227, 0.14) !important;
+      border-color: rgba(0, 113, 227, 0.3) !important;
+    }
+  }
+}
+
+// ── Tabla Anilox ─────────────────────────────────────────────
+// Scoped bajo .design-container para ganar especificidad sobre las
+// reglas base antiguas (gradientes) del mismo archivo.
+.design-container .anilox-table,
+.anilox-table {
+  background: rgba(255, 255, 255, 0.55) !important;
+
+  .anilox-header-cell {
+    background: rgba(248, 250, 252, 0.9) !important;
+    font-family: $ap-font !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    color: $ap-text-2 !important;
+    border-bottom: 1px solid $ap-hairline !important;
+    border-right: none !important;
+    text-transform: uppercase !important;
+
+    .header-content mat-icon { color: $ap-blue !important; }
+    .header-content span { font-weight: 600 !important; font-family: $ap-font !important; }
+  }
+
+  .anilox-cell {
+    font-family: $ap-font !important;
+    color: $ap-text !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    border-right: none !important;
+  }
+
+  .anilox-row {
+    transition: background 0.15s ease !important;
+    &:hover {
+      background-color: rgba(0, 113, 227, 0.05) !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+  }
+
+  .anilox-row:hover {
+    background: rgba(0, 113, 227, 0.04) !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .codigo-badge {
+    background: $ap-blue !important;
+    border-radius: 5px !important;
+    font-family: $ap-font !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 6px rgba(0, 113, 227, 0.25) !important;
+  }
+
+  .maquina-badge {
+    background: $ap-green !important;
+    border-radius: 5px !important;
+    font-family: $ap-font !important;
+    font-weight: 600 !important;
+  }
+
+  .actions-cell .action-buttons .action-btn {
+    border-radius: 8px !important;
+
+    // El icono debe ser siempre visible sobre el fondo del botón
+    mat-icon,
+    .mat-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    &.edit-btn {
+      background: rgba(0, 113, 227, 0.08) !important;
+      border: 1px solid rgba(0, 113, 227, 0.2) !important;
+      color: $ap-blue !important;
+      mat-icon, .mat-icon { color: $ap-blue !important; }
+      &:hover {
+        background: rgba(0, 113, 227, 0.16) !important;
+        border-color: $ap-blue !important;
+        box-shadow: 0 3px 10px rgba(0, 113, 227, 0.2) !important;
+      }
+    }
+    &.delete-btn {
+      background: rgba(255, 59, 48, 0.08) !important;
+      border: 1px solid rgba(255, 59, 48, 0.2) !important;
+      color: $ap-red !important;
+      mat-icon, .mat-icon { color: $ap-red !important; }
+      &:hover {
+        background: rgba(255, 59, 48, 0.16) !important;
+        box-shadow: 0 3px 10px rgba(255, 59, 48, 0.2) !important;
+      }
+    }
+  }
+
+  // Valores numéricos de las celdas — tipografía Apple con tabular-nums
+  .bcm-value,
+  .lineatura-value,
+  .volumen-value,
+  .factor-value,
+  .densidad-value {
+    font-family: $ap-font !important;
+    font-weight: 600 !important;
+    color: $ap-text !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: -0.2px !important;
+  }
+
+  // Variantes de marca — chips Apple sutiles (sin gradientes fuertes)
+  .marca-badge {
+    letter-spacing: -0.2px !important;
+    &.apex   { background: rgba(0, 113, 227, 0.12) !important; color: $ap-blue !important; }
+    &.zecher { background: rgba(52, 199, 89, 0.14) !important; color: #248a3d !important; }
+    &.harper { background: rgba(255, 159, 10, 0.16) !important; color: #a86200 !important; }
+  }
+}
+
+// ── Refinamientos Apple restantes del tab Anilox ─────────────
+.anilox-sidebar {
+  .sidebar-header mat-icon { color: #ffffff !important; }
+
+  // Botón "Todas"
+  .machine-btn.all-machines {
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    border: 1px solid $ap-hairline !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    color: $ap-text !important;
+    border-radius: 10px !important;
+    &:hover {
+      background: rgba(0, 113, 227, 0.07) !important;
+      border-color: rgba(0, 113, 227, 0.25) !important;
+      color: $ap-blue !important;
+    }
+    &.active {
+      background: $ap-blue !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3) !important;
+    }
+  }
+
+  // Campo "Carga" (carga muestra) — estilo iOS filled compacto
+  .carga-muestra-input {
+    font-family: $ap-font !important;
+
+    .mat-mdc-text-field-wrapper {
+      border-radius: 10px !important;
+      background: rgba(255, 255, 255, 0.75) !important;
+    }
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: $ap-hairline !important;
+    }
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $ap-blue !important;
+        border-width: 1.5px !important;
+      }
+    }
+    .carga-input {
+      font-family: $ap-font !important;
+      font-weight: 500 !important;
+      color: $ap-text !important;
+      text-align: center !important;
+      caret-color: $ap-blue !important;
+    }
+    .mat-mdc-form-field-subscript-wrapper { display: none !important; }
+  }
+}
+
+// Badge "N registros" en el header del inventario
+.anilox-header .header-title .record-count {
+  font-family: $ap-font !important;
+  font-weight: 500 !important;
+  color: $ap-blue !important;
+  background: rgba(0, 113, 227, 0.08) !important;
+  border: 1px solid rgba(0, 113, 227, 0.15) !important;
+  border-radius: 8px !important;
+  letter-spacing: -0.2px !important;
+}
+
+// Botón "Importar Excel" — secundario Apple (contorno azul)
+.anilox-header .import-excel-btn {
+  background: rgba(0, 113, 227, 0.08) !important;
+  color: $ap-blue !important;
+  border: 1px solid rgba(0, 113, 227, 0.2) !important;
+  box-shadow: none !important;
+  &:hover {
+    background: rgba(0, 113, 227, 0.14) !important;
+    border-color: rgba(0, 113, 227, 0.3) !important;
+  }
+}
+
+// ── No data / loading ────────────────────────────────────────
+.no-data, .no-anilox-data {
+  mat-icon { color: rgba(0, 113, 227, 0.25) !important; }
+  p { font-family: $ap-font !important; color: $ap-text-2 !important; }
+  button {
+    background: $ap-blue !important;
+    border-radius: 12px !important;
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    box-shadow: 0 4px 14px rgba(0, 113, 227, 0.3) !important;
+  }
+}
+
+.loading-container {
+  p { font-family: $ap-font !important; color: $ap-text-2 !important; }
+  .loading-icon { color: $ap-blue !important; }
+}
+
+// ── results badge ────────────────────────────────────────────
+.search-results-inline .results-count {
+  background: rgba(0, 113, 227, 0.08) !important;
+  border: 1px solid rgba(0, 113, 227, 0.15) !important;
+  color: $ap-blue !important;
+  font-family: $ap-font !important;
+  border-radius: 8px !important;
+}
+
+// ── Animación de entrada del diálogo ─────────────────────────
+@keyframes apDialogPop {
+  0%   { opacity: 0; transform: scale(0.88) translateY(24px); }
+  70%  { transform: scale(1.01) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.dialog-container {
+  animation: apDialogPop 0.42s cubic-bezier(0.28, 0.11, 0.32, 1) forwards !important;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Subgrupos dentro de una sección unificada del formulario
+// (ej: "Identificación y Especificaciones Técnicas")
+// Permiten agrupar campos bajo un mini-encabezado dentro de la
+// misma tarjeta .form-section, sin crear una tarjeta nueva.
+// ─────────────────────────────────────────────────────────────
+.form-section {
+  .subsection-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 20px 2px 20px;
+    color: #1d1d1f;
+    font-family: $ap-font;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+    text-transform: uppercase;
+    opacity: 0.85;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #0071e3;
+    }
+  }
+
+  .subsection-divider {
+    height: 1px;
+    margin: 10px 20px 2px 20px;
+    background: linear-gradient(90deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.08) 15%,
+      rgba(0, 0, 0, 0.08) 85%,
+      rgba(0, 0, 0, 0) 100%);
+  }
+}
+
+
+// ── Metadatos de tintas en una sola fila (Carpeta / Estante / Línea) ──
+.tintas-meta-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 20px 4px;
+
+  .meta-field-line {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  // En pantallas estrechas, apilar
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    .meta-field-line { flex: 1 1 45%; }
+  }
+}
+
+
+// ── Tabla de colores del formulario editar: acciones junto al swatch ──
+// 6 columnas (sin columna de acciones final). El swatch se ensancha
+// para alojar el cuadro de color + botones editar/eliminar.
+.color-table-header--edit,
+.color-table-row--edit {
+  grid-template-columns: 26px 1fr 96px 1fr 1fr 1fr !important;
+}
+
+.color-table-row--edit {
+  align-items: center !important;
+
+  .ct-swatch {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    align-self: center !important;
+    height: 100% !important;
+    gap: 4px !important;
+
+    .ct-swatch-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+
+      .edit-color-btn,
+      .delete-color-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        padding: 0 !important;
+        line-height: 28px !important;
+        border-radius: 8px !important;
+
+        // Centrar el contenido interno del mat-icon-button (MDC)
+        .mat-mdc-button-touch-target {
+          width: 28px !important;
+          height: 28px !important;
+        }
+
+        .mat-mdc-button-persistent-ripple,
+        .mat-mdc-focus-indicator {
+          border-radius: 8px !important;
+        }
+
+        .mat-mdc-button-touch-target,
+        .mat-mdc-button-persistent-ripple {
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
+        }
+
+        mat-icon {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          margin: 0 !important;
+          line-height: 15px !important;
+          font-size: 15px !important;
+          width: 15px !important;
+          height: 15px !important;
+        }
+      }
+
+      .edit-color-btn {
+        color: #0071e3 !important;
+        &:hover { background: rgba(0, 113, 227, 0.1) !important; }
+      }
+
+      .delete-color-btn {
+        color: #ff3b30 !important;
+        &:hover { background: rgba(255, 59, 48, 0.1) !important; }
+      }
+
+      // Botón crear color Pantone (cuando el color no existe)
+      .create-color-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        padding: 0 !important;
+        line-height: 28px !important;
+        border-radius: 8px !important;
+        color: #8b5cf6 !important;
+        background: rgba(139, 92, 246, 0.1) !important;
+        &:hover { background: rgba(139, 92, 246, 0.2) !important; }
+        &:disabled { opacity: 0.4 !important; }
+
+        .mat-mdc-button-touch-target { width: 28px !important; height: 28px !important; }
+        .mat-mdc-button-persistent-ripple,
+        .mat-mdc-focus-indicator { border-radius: 8px !important; }
+        .mat-mdc-button-touch-target,
+        .mat-mdc-button-persistent-ripple {
+          top: 50% !important;
+          left: 50% !important;
+          transform: translate(-50%, -50%) !important;
+        }
+
+        mat-icon {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          margin: 0 !important;
+          line-height: 17px !important;
+          font-size: 17px !important;
+          width: 17px !important;
+          height: 17px !important;
+        }
+      }
+    }
+  }
+}
+
+
+// ============================================================
+//  APPLE · FORMULARIO COMPACTO (crear / editar diseño)
+//  Reduce alturas, gaps y paddings para ahorrar espacio
+//  manteniendo el estilo Apple. Aplica dentro del overlay.
+// ============================================================
+.dialog-overlay {
+
+  // Contenido del diálogo más ajustado
+  .dialog-content { padding: 16px 18px !important; }
+
+  // Tarjetas de sección más pegadas entre sí
+  .form-section {
+    margin-bottom: 8px !important;
+    border-radius: 14px !important;
+
+    &:last-child { margin-bottom: 0 !important; }
+
+    // Cabecera de sección compacta
+    .section-header {
+      padding: 7px 16px !important;
+      gap: 9px !important;
+
+      .section-icon {
+        width: 26px !important;
+        height: 26px !important;
+        border-radius: 7px !important;
+        mat-icon { font-size: 15px !important; width: 15px !important; height: 15px !important; }
+      }
+
+      .section-info {
+        .section-title { font-size: 0.82rem !important; line-height: 1.15 !important; }
+        .section-desc  { font-size: 0.68rem !important; margin-top: 0 !important; }
+      }
+    }
+  }
+
+  .design-form {
+    gap: 8px !important;
+
+    // Grid de campos: menos separación vertical/horizontal y menos padding
+    .fields-grid {
+      gap: 4px 12px !important;
+      padding: 8px 16px 10px !important;
+    }
+
+    ::ng-deep {
+      // Altura de campo 52 → 44px
+      .mat-mdc-text-field-wrapper {
+        min-height: 44px !important;
+        padding: 0 12px !important;
+        border-radius: 10px !important;
+      }
+
+      .mat-mdc-form-field-flex   { min-height: 44px !important; }
+
+      .mat-mdc-form-field-infix {
+        // Padding balanceado (antes 13/3) para que el texto quede centrado
+        // verticalmente y no pegado abajo dentro del campo.
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+        min-height: 44px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+      }
+
+      // Label alineado al centro vertical del campo
+      .mdc-floating-label,
+      .mat-mdc-floating-label {
+        font-size: 0.85rem !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+      }
+      // Al flotar, sube al borde superior del campo
+      .mdc-floating-label--float-above {
+        top: 50% !important;
+        transform: translateY(-24px) scale(0.75) !important;
+      }
+
+      // Input compacto, texto justificado a la izquierda y centrado vertical
+      input.mat-mdc-input-element,
+      textarea.mat-mdc-input-element,
+      .mat-mdc-select-trigger {
+        font-size: 0.9rem !important;
+        line-height: 1.2 !important;
+        text-align: left !important;
+      }
+
+      // Textarea alineada arriba (multilínea)
+      .mat-mdc-form-field-type-mat-input:has(textarea) .mat-mdc-form-field-infix {
+        justify-content: flex-start !important;
+      }
+
+      // Textarea más baja
+      textarea.mat-mdc-input-element {
+        min-height: 44px !important;
+        font-size: 0.85rem !important;
+      }
+
+      // Subscript (hint/error) casi sin altura hasta que aparece
+      .mat-mdc-form-field-subscript-wrapper {
+        min-height: 0 !important;
+        padding: 0 4px !important;
+      }
+      .mat-mdc-form-field-hint,
+      .mat-mdc-form-field-error {
+        font-size: 0.68rem !important;
+      }
+
+      // Íconos prefix un pelín más chicos
+      .mat-mdc-form-field-icon-prefix mat-icon {
+        font-size: 16px !important;
+        width: 16px !important;
+        height: 16px !important;
+        padding-right: 5px !important;
+      }
+    }
+  }
+
+  // Fila de metadatos (carpeta/estante/línea) compacta
+  .tintas-meta-line {
+    gap: 10px !important;
+    padding: 8px 16px 2px !important;
+  }
+
+  // Tabla de colores compacta
+  .colors-panel { padding: 0 16px 10px !important; }
+
+  .color-table-header,
+  .color-table-header--edit { padding: 5px 12px !important; }
+
+  .color-table-row,
+  .color-table-row--edit {
+    min-height: 42px !important;
+    padding: 4px 12px !important;
+  }
+
+  .ct-input {
+    height: 34px !important;
+    border-radius: 9px !important;
+    font-size: 0.85rem !important;
+  }
+
+  // Selector de estado compacto
+  .status-selector-group {
+    padding: 8px 16px 10px !important;
+    .status-option-btn { padding: 8px 14px !important; }
+  }
+
+  // Subsecciones (si quedaran) sin espacio extra
+  .subsection-label { margin: 4px 20px 2px !important; font-size: 0.7rem !important; }
+  .subsection-divider { margin: 6px 20px 2px !important; }
+
+  // Footer más ajustado
+  .dialog-footer { padding: 10px 18px !important; }
+}
+
+
+// ── Fila de 3 columnas (Tipo Impresión / Ancho / N.º Colores) ──
+.dialog-overlay .design-form .fields-grid--triple {
+  grid-template-columns: 1fr 1fr 1fr !important;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr !important;
   }
 }

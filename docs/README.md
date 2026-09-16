@@ -157,6 +157,11 @@ npm run lint                   # Linter
 - Gestión de anilox
 - Condiciones únicas
 - Documentos adjuntos
+- Campos de Cod Tintas por color (Cód. Tinta, Cobertura %, Cód. Anilox) editables inline en el editor de diseños
+- Creación automática y transparente del registro de tintas al editar un diseño sin registro asociado: se genera un color por cada Pantone del diseño para que las columnas Cód. Tinta / Cobertura / Cód. Anilox siempre aparezcan junto a cada color (requiere permiso de creación de diseños)
+- Sincronización del registro de tintas al cambiar el número de colores en la edición de un diseño: al aumentar o reducir el número de colores se agregan o quitan filas de la tabla de tintas para que coincida con los colores seleccionados, conservando los datos (Cód. Tinta / Cobertura / Cód. Anilox) de los colores que permanecen; los cambios se persisten en el backend cuando el registro ya existe
+- Interfaz del módulo con estilo Apple Design System: tipografía SF Pro, glassmorphism (blur/saturación), líneas finas (hairlines) y azul de sistema `#0071e3` como acento único. El estilo cubre también el tab de Anilox: sidebar de máquinas (botón "Todas"), campo "Carga" (input filled iOS), badge de "N registros", botón "Crear Anilox" (primario azul de sistema con texto e ícono en blanco) y botón "Importar Excel" (secundario con fondo azul claro, contorno y texto/ícono en azul de sistema), valores numéricos de celdas con `tabular-nums`, chips de marca (Apex, Zecher, Harper) y la propia tabla de anilox (fondo glassmorphism translúcido, encabezados en mayúsculas con íconos en azul de sistema y líneas finas, filas con hover azul sutil sin transform ni sombra)
+- Botones de la barra de herramientas del tab de Diseños con el mismo estilo Apple: "Crear Diseño" (`.create-design-btn`) como botón primario azul de sistema con texto e ícono en blanco, e "Importar Excel" (`.bulk-upload-btn`) y "Exportar" (`.export-btn`) como botones secundarios con fondo azul claro, contorno y texto/ícono en azul de sistema; todos con estado `:disabled` atenuado coherente con el sistema
 
 ### Reportes
 - Reportes por máquina

@@ -90,7 +90,8 @@ El sistema sigue una arquitectura **Client-Server** moderna con desacoplamiento 
 ### **2. Gestión de Diseños Flexográficos**
 - CRUD completo de diseños.
 - Importación masiva desde Excel mediante `ExcelJS`.
-- Gestión de colores Pantone por diseño (hasta 10 colores).
+- Selección del número de colores por diseño mediante el campo **Número de Colores** (mínimo 1, máximo 12).
+- Gestión de colores Pantone por diseño (hasta 12 colores).
 - Previsualización de imágenes de perfil y diseños.
 
 ### **3. Módulo de Máquinas y Operaciones**

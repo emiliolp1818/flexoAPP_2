@@ -42,6 +42,9 @@ mysql -u root -p flexoapp < backend/Database/Scripts/10_CREATE_CONDICIONUNICA_TA
 mysql -u root -p flexoapp < backend/Database/Scripts/11_CREATE_MACHINE_CONFIG_TABLE.sql
 mysql -u root -p flexoapp < backend/Database/Scripts/12_CREATE_MAQUINAS_BACKUP_TABLE.sql
 mysql -u root -p flexoapp < backend/Database/Scripts/CREATE_PERMISSIONS_TABLES.sql
+
+# Migración: contraseña temporal para reset en la tabla users
+mysql -u root -p flexoapp < backend/Database/Scripts/19_ADD_TEMP_PASSWORD_TO_USERS.sql
 ```
 
 ### 4. Verificar Instalación
@@ -152,10 +155,18 @@ CREATE TABLE users (
     Role VARCHAR(20) NOT NULL,
     IsActive BOOLEAN DEFAULT TRUE,
     ProfilePhotoUrl VARCHAR(500),
+    -- Contraseña temporal para reset (la contraseña original sigue siendo válida)
+    TempPassword VARCHAR(255) NULL,              -- hash BCrypt de la contraseña temporal
+    TempPasswordExpiresAt DATETIME(6) NULL,      -- expiración de la temporal (validez ~30 min)
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 ```
+
+> **Nota**: Las columnas `TempPassword` y `TempPasswordExpiresAt` habilitan el reset con
+> contraseña temporal (válida por unos 30 minutos). El backend las crea automáticamente al
+> iniciar si no existen (ver `Program.cs`), o puedes aplicarlas con el script
+> `19_ADD_TEMP_PASSWORD_TO_USERS.sql`.
 
 ### Tabla: maquinas
 ```sql

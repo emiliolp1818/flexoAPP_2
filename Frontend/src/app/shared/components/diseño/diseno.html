@@ -138,7 +138,163 @@
 
               <table mat-table [dataSource]="filteredDesigns()" class="excel-table designs-table-modern">
 
+                <!-- Columna: Resumen de Cod Tintas + Panel Expandible -->
+                <ng-container matColumnDef="codTintasSummary">
+                  <th mat-header-cell *matHeaderCellDef class="excel-header">
+                    <div class="header-content">
+                      <mat-icon>palette</mat-icon>
+                      <span>Tintas / Carpeta</span>
+                    </div>
+                  </th>
+                  <td mat-cell *matCellDef="let design" class="excel-cell cod-tintas-summary-cell">
 
+                    <!-- Vista colapsada: resumen compacto -->
+                    <ng-container *ngIf="!design.expanded">
+                      <ng-container *ngIf="design.codTintaRecord; else noTintasCompact">
+                        <div class="tintas-compact-summary">
+                          <span class="carpeta-badge" *ngIf="design.codTintaRecord.carpeta">
+                            <mat-icon class="badge-icon">folder</mat-icon>{{ design.codTintaRecord.carpeta }}
+                          </span>
+                          <span class="estante-badge" *ngIf="design.codTintaRecord.estante">
+                            E:{{ design.codTintaRecord.estante }}
+                          </span>
+                          <span class="colores-count-badge">
+                            <mat-icon class="badge-icon">palette</mat-icon>
+                            {{ design.codTintaRecord.colores?.length || 0 }}
+                          </span>
+                          <span class="linea-tinta-badge" *ngIf="design.codTintaRecord.lineaTinta">
+                            {{ design.codTintaRecord.lineaTinta }}
+                          </span>
+                        </div>
+                      </ng-container>
+                      <ng-template #noTintasCompact>
+                        <button
+                          mat-stroked-button
+                          class="create-tintas-inline-btn"
+                          (click)="openCreateCodTintaForDesign(design)"
+                          [disabled]="!userPermissions().canCreateDesign"
+                          matTooltip="Agregar datos de tintas a este diseño">
+                          <mat-icon>add</mat-icon>
+                          Agregar
+                        </button>
+                      </ng-template>
+                    </ng-container>
+
+                    <!-- Vista expandida: panel completo de tintas -->
+                    <div class="cod-tintas-inline-panel" *ngIf="design.expanded && design.codTintaRecord">
+
+                      <!-- Fila de metadatos: carpeta, estante, línea de tinta -->
+                      <div class="tintas-meta-row">
+                        <div class="meta-field">
+                          <label><mat-icon class="field-icon">folder</mat-icon>Carpeta</label>
+                          <input
+                            class="inline-edit-input"
+                            [(ngModel)]="design.codTintaRecord!.carpeta"
+                            placeholder="—"
+                            (blur)="updateCodTintaOnDesign(design)"
+                            [readonly]="!userPermissions().canEditDesign">
+                        </div>
+                        <div class="meta-field">
+                          <label><mat-icon class="field-icon">shelves</mat-icon>Estante</label>
+                          <input
+                            class="inline-edit-input"
+                            [(ngModel)]="design.codTintaRecord!.estante"
+                            placeholder="—"
+                            (blur)="updateCodTintaOnDesign(design)"
+                            [readonly]="!userPermissions().canEditDesign">
+                        </div>
+                        <div class="meta-field">
+                          <label><mat-icon class="field-icon">format_paint</mat-icon>Línea Tinta</label>
+                          <input
+                            class="inline-edit-input"
+                            [(ngModel)]="design.codTintaRecord!.lineaTinta"
+                            placeholder="—"
+                            [matAutocomplete]="lineaTintaAutoInline"
+                            (input)="filterLineasTinta($any($event.target).value)"
+                            (blur)="updateCodTintaOnDesign(design)"
+                            [readonly]="!userPermissions().canEditDesign">
+                          <mat-autocomplete #lineaTintaAutoInline="matAutocomplete" class="ap-autocomplete-panel">
+                            <mat-option *ngFor="let linea of filteredLineasTinta()" [value]="linea">{{ linea }}</mat-option>
+                          </mat-autocomplete>
+                        </div>
+                        <div class="meta-actions">
+                          <button
+                            mat-icon-button
+                            class="action-btn delete-btn"
+                            matTooltip="Eliminar registro de tintas"
+                            [disabled]="!userPermissions().canDeleteDesign"
+                            (click)="deleteCodTintaRecord(design.codTintaRecord!.id)">
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Tabla de colores -->
+                      <div class="tintas-colores-grid" *ngIf="design.codTintaRecord!.colores?.length">
+                        <div class="colores-grid-header">
+                          <span>Color</span>
+                          <span>Cód. Tinta</span>
+                          <span>Cobertura</span>
+                          <span>Cód. Anilox</span>
+                        </div>
+                        <div
+                          class="color-grid-row"
+                          *ngFor="let color of design.codTintaRecord!.colores; let i = index">
+                          <div class="color-name-cell">
+                            <div
+                              class="color-preview-dot"
+                              [style.background-color]="getPantoneColor(color.nombre).hex">
+                            </div>
+                            <span>{{ i + 1 }}. {{ color.nombre }}</span>
+                          </div>
+                          <input
+                            class="styled-input"
+                            placeholder="Código tinta"
+                            [(ngModel)]="color.codTinta"
+                            (change)="updateCodTintaOnDesignColor(design, i, color.codTinta)"
+                            [readonly]="!userPermissions().canEditDesign">
+                          <div class="cobertura-input-wrapper">
+                            <input
+                              class="styled-input"
+                              type="number"
+                              step="0.01" min="0" max="100"
+                              placeholder="0.00"
+                              [(ngModel)]="color.cobertura"
+                              (change)="updateCoberturaOnDesignColor(design, i, color.cobertura)"
+                              [readonly]="!userPermissions().canEditDesign">
+                            <span class="input-suffix">%</span>
+                          </div>
+                          <input
+                            class="styled-input"
+                            placeholder="Código anilox"
+                            [(ngModel)]="color.codAnilox"
+                            (change)="updateCodAniloxOnDesignColor(design, i, color.codAnilox)"
+                            [readonly]="!userPermissions().canEditDesign">
+                        </div>
+                      </div>
+
+                      <!-- Sin colores registrados -->
+                      <div class="no-colores-msg" *ngIf="!design.codTintaRecord!.colores?.length">
+                        <mat-icon>palette</mat-icon>
+                        <span>Sin colores registrados</span>
+                      </div>
+                    </div>
+
+                    <!-- Expandido pero sin registro: crear desde aquí -->
+                    <div class="cod-tintas-inline-panel no-record-panel" *ngIf="design.expanded && !design.codTintaRecord">
+                      <button
+                        mat-raised-button
+                        color="primary"
+                        class="create-tintas-full-btn"
+                        (click)="openCreateCodTintaForDesign(design)"
+                        [disabled]="!userPermissions().canCreateDesign">
+                        <mat-icon>add</mat-icon>
+                        Crear registro de tintas para {{ design.articleF }}
+                      </button>
+                    </div>
+
+                  </td>
+                </ng-container>
 
                 <ng-container matColumnDef="articleF">
                   <th mat-header-cell *matHeaderCellDef class="excel-header">
@@ -389,404 +545,6 @@
 
       </div>
 
-
-    </mat-tab>
-
-    <!-- ===== PESTAÑA COD TINTAS ===== -->
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <div class="tab-label-container">
-          <mat-icon class="tab-icon">colorize</mat-icon>
-          <span class="tab-label">Cod Tintas</span>
-        </div>
-      </ng-template>
-
-      <div class="cod-tintas-tab-content">
-        
-        <!-- Header con búsqueda y acciones (fuera del card para pegarlo a las pestañas) -->
-        <div class="cod-tintas-header">
-          <div class="header-with-search">
-            
-            <!-- Título y resultados de búsqueda -->
-            <div class="title-section">
-              <div class="title-with-icon">
-                <mat-icon>colorize</mat-icon>
-                <span class="title-text">Códigos de Tintas por Diseño</span>
-                <span *ngIf="!loadingCodTintas()" class="record-count">
-                  ({{ filteredCodTintasData().length }} registros)
-                </span>
-              </div>
-
-              <div class="search-results-inline" *ngIf="codTintasSearchTerm()">
-                <span class="results-count">
-                  {{ filteredCodTintasData().length }} resultado(s) para "{{ codTintasSearchTerm() }}"
-                </span>
-              </div>
-            </div>
-
-            <!-- Búsqueda y acciones -->
-            <div class="search-and-actions-section">
-
-              <div class="search-section-inline">
-                <div class="search-field-wrapper-d">
-                  <mat-icon class="search-icon-d">search</mat-icon>
-                  <input class="search-input-d" placeholder="Buscar artículo..."
-                    [value]="codTintasSearchTerm()"
-                    (input)="searchCodTintasByArticulo($any($event.target).value)">
-                  <button class="clear-input-d" *ngIf="codTintasSearchTerm()" (click)="searchCodTintasByArticulo('')">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </div>
-              </div>
-
-              <div class="header-actions-inline">
-              <button 
-                mat-raised-button 
-                color="primary"
-                class="create-design-btn" 
-                matTooltip="Crear nuevo registro de código de tintas"
-                [disabled]="!userPermissions().canCreateDesign"
-                (click)="openCreateCodTintaDialog()">
-                <mat-icon>add</mat-icon>
-                Crear
-              </button>
-
-              <button 
-                mat-raised-button 
-                color="accent"
-                class="bulk-upload-btn" 
-                matTooltip="Importar códigos de tintas desde Excel"
-                [disabled]="!userPermissions().canBulkUpload"
-                (click)="codTintasFileInput.click()">
-                <mat-icon>cloud_upload</mat-icon>
-                Importar
-              </button>
-              <input 
-                #codTintasFileInput 
-                type="file" 
-                accept=".xlsx,.xls" 
-                style="display: none;"
-                (change)="importCodTintasFromExcel($event)">
-
-              <button 
-                mat-raised-button 
-                color="warn"
-                class="export-btn" 
-                matTooltip="Exportar códigos de tintas a Excel"
-                (click)="exportCodTintasToExcel()"
-                [disabled]="filteredCodTintasData().length === 0 || !hasExportPermission()">
-                <mat-icon>download</mat-icon>
-                Exportar
-              </button>
-
-              <button 
-                mat-icon-button 
-                class="refresh-btn" 
-                matTooltip="Actualizar lista de códigos de tintas"
-                (click)="loadCodTintas()"
-                [disabled]="loadingCodTintas()">
-                <mat-icon [class.spinning]="loadingCodTintas()">refresh</mat-icon>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-        <div class="scrollable-table-area">
-          <mat-card class="table-card">
-
-            <!-- Tabla de Cod Tintas -->
-            <div class="table-container">
-              <table mat-table [dataSource]="filteredCodTintasData()" class="designs-table">
-
-                <!-- Columna: Expandir/Colapsar -->
-                <ng-container matColumnDef="expand">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header expand-header">
-                    <mat-icon>palette</mat-icon>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell expand-cell">
-                    <button 
-                      mat-icon-button 
-                      (click)="toggleCodTintaRow(element)"
-                      class="expand-button">
-                      <mat-icon>{{ element.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
-                    </button>
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Artículo -->
-                <ng-container matColumnDef="articulo">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>tag</mat-icon>
-                      <span>Artículo</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell">
-                    <span class="articulo-text">{{ element.articulo }}</span>
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Descripción -->
-                <ng-container matColumnDef="descripcion">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>description</mat-icon>
-                      <span>Descripción</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell">
-                    <span class="descripcion-text">{{ element.descripcion }}</span>
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Carpeta -->
-                <ng-container matColumnDef="carpeta">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>folder</mat-icon>
-                      <span>Carpeta</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell">
-                    <input class="inline-edit-input" [(ngModel)]="element.carpeta"
-                           placeholder="—" (blur)="updateCodTintaRecord(element)"
-                           [readonly]="!userPermissions().canEditDesign">
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Estante -->
-                <ng-container matColumnDef="estante">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>shelves</mat-icon>
-                      <span>Estante</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell">
-                    <input class="inline-edit-input" [(ngModel)]="element.estante"
-                           placeholder="—" (blur)="updateCodTintaRecord(element)"
-                           [readonly]="!userPermissions().canEditDesign">
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Colores (compacta cuando colapsada, completa cuando expandida) -->
-                <ng-container matColumnDef="colores">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>palette</mat-icon>
-                      <span>Colores</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell colores-cell" [class.collapsed]="!element.expanded">
-                    <!-- Vista expandida: muestra miniaturas + nombres -->
-                    <div class="colores-container" *ngIf="element.expanded">
-                      <div class="color-item" *ngFor="let color of element.colores; let i = index">
-                        <div 
-                          class="color-preview" 
-                          [style.background-color]="getPantoneColor(color.nombre).hex"
-                          [matTooltip]="color.nombre">
-                        </div>
-                        <span class="color-number">{{ i + 1 }}.</span>
-                        <span class="color-name">{{ color.nombre }}</span>
-                      </div>
-                    </div>
-                    <!-- Vista colapsada: solo paleta con número de colores -->
-                    <div class="colores-compact" *ngIf="!element.expanded">
-                      <mat-icon class="palette-icon">palette</mat-icon>
-                      <span class="color-count">{{ element.colores.length }} {{ element.colores.length === 1 ? 'color' : 'colores' }}</span>
-                    </div>
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Línea de Tinta -->
-                <ng-container matColumnDef="lineaTinta">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>format_paint</mat-icon>
-                      <span>Línea Tinta</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell">
-                    <span class="linea-tinta-text">{{ element.lineaTinta || '—' }}</span>
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Cod Tintas (solo visible cuando expandido) -->
-                <ng-container matColumnDef="codTintas">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>code</mat-icon>
-                      <span>Cód. Tintas</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell cod-tintas-cell" [class.collapsed]="!element.expanded">
-                    <div class="cod-tintas-container" *ngIf="element.expanded">
-                      <div class="cod-tinta-item" *ngFor="let color of element.colores; let i = index">
-                        <input 
-                          class="styled-input cod-tinta-styled-input"
-                          placeholder="Código de tinta" 
-                          [(ngModel)]="color.codTinta"
-                          (change)="updateCodTinta(element, i, color.codTinta)">
-                      </div>
-                    </div>
-                    <div class="collapsed-placeholder" *ngIf="!element.expanded">
-                      <mat-icon>more_horiz</mat-icon>
-                    </div>
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Cobertura (solo visible cuando expandido) -->
-                <ng-container matColumnDef="cobertura">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>percent</mat-icon>
-                      <span>Cobertura</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell cobertura-cell" [class.collapsed]="!element.expanded">
-                    <div class="cobertura-container" *ngIf="element.expanded">
-                      <div class="cobertura-item" *ngFor="let color of element.colores; let i = index">
-                        <div class="cobertura-input-wrapper">
-                          <input 
-                            class="styled-input cobertura-styled-input"
-                            type="number" 
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            placeholder="0.00" 
-                            [(ngModel)]="color.cobertura"
-                            (change)="updateCobertura(element, i, color.cobertura)">
-                          <span class="input-suffix">%</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="collapsed-placeholder" *ngIf="!element.expanded">
-                      <mat-icon>more_horiz</mat-icon>
-                    </div>
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Cod Anilox (solo visible cuando expandido) -->
-                <ng-container matColumnDef="codAnilox">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header">
-                    <div class="header-content">
-                      <mat-icon>grid_on</mat-icon>
-                      <span>Cód. Anilox</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell cod-anilox-cell" [class.collapsed]="!element.expanded">
-                    <div class="cod-anilox-container" *ngIf="element.expanded">
-                      <div class="cod-anilox-item" *ngFor="let color of element.colores; let i = index">
-                        <input 
-                          class="styled-input cod-anilox-styled-input"
-                          placeholder="Código anilox" 
-                          [(ngModel)]="color.codAnilox"
-                          (change)="updateCodAnilox(element, i, color.codAnilox)">
-                      </div>
-                    </div>
-                    <div class="collapsed-placeholder" *ngIf="!element.expanded">
-                      <mat-icon>more_horiz</mat-icon>
-                    </div>
-                  </td>
-                </ng-container>
-
-                <!-- Columna: Acciones -->
-                <ng-container matColumnDef="acciones">
-                  <th mat-header-cell *matHeaderCellDef class="excel-header actions-header">
-                    <div class="header-content">
-                      <mat-icon>settings</mat-icon>
-                      <span>Acciones</span>
-                    </div>
-                  </th>
-                  <td mat-cell *matCellDef="let element" class="excel-cell actions-cell">
-                    <div class="action-buttons">
-                      <button 
-                        mat-mini-fab
-                        class="action-btn edit-btn"
-                        matTooltip="Editar registro"
-                        [disabled]="!userPermissions().canEditDesign"
-                        (click)="editCodTintaRecord(element)">
-                        <mat-icon>edit</mat-icon>
-                      </button>
-                      <button 
-                        mat-mini-fab
-                        class="action-btn duplicate-btn"
-                        matTooltip="Duplicar registro"
-                        [disabled]="!userPermissions().canCreateDesign"
-                        (click)="duplicateCodTintaRecord(element)">
-                        <mat-icon>content_copy</mat-icon>
-                      </button>
-                      <button 
-                        mat-mini-fab
-                        class="action-btn delete-btn"
-                        matTooltip="Eliminar registro"
-                        [disabled]="!userPermissions().canDeleteDesign"
-                        (click)="deleteCodTintaRecord(element.id)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    </div>
-                  </td>
-                </ng-container>
-
-                <!-- Definir las columnas a mostrar -->
-                <tr mat-header-row *matHeaderRowDef="codTintasColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: codTintasColumns;"></tr>
-
-              </table>
-
-              <!-- Mensaje cuando no hay datos -->
-              <div class="no-data-message" *ngIf="filteredCodTintasData().length === 0">
-                <mat-icon>colorize</mat-icon>
-                <p>No hay registros de códigos de tintas</p>
-                <p class="subtitle">Crea un nuevo registro para comenzar</p>
-              </div>
-
-            </div>
-
-            <!-- Controles de paginación para Cod Tintas -->
-            <div class="pagination-controls" *ngIf="filteredCodTintasData().length > 0">
-
-              <div class="pagination-info">
-                Mostrando <b>{{ (codTintasCurrentPage() - 1) * codTintasPageSize() + 1 }} - {{ Math.min(codTintasCurrentPage() * codTintasPageSize(),
-                  codTintasTotalRecords())
-                  }}</b> de <b>{{ codTintasTotalRecords() }}</b> registros
-              </div>
-
-
-              <div class="pagination-actions">
-                <button (click)="codTintasPreviousPage()" [disabled]="codTintasCurrentPage() === 1 || loadingCodTintas()" mat-ripple
-                  class="nav-btn prev-btn">
-                  <mat-icon>chevron_left</mat-icon>
-                  Anterior
-                </button>
-
-                <div class="current-page-indicator">
-                  Página <span>{{ codTintasCurrentPage() }}</span>
-                </div>
-
-                <button (click)="codTintasNextPage()" [disabled]="!codTintasHasMoreData() || loadingCodTintas()" mat-ripple
-                  class="nav-btn next-btn">
-                  Siguiente
-                  <mat-icon>chevron_right</mat-icon>
-                </button>
-              </div>
-
-
-              <div class="page-size-container">
-                <mat-form-field appearance="outline" class="page-size-select mini-select">
-                  <mat-select [ngModel]="codTintasPageSize()" (selectionChange)="codTintasOnPageSizeChange($event.value)">
-                    <mat-option [value]="25">25 / pág</mat-option>
-                    <mat-option [value]="50">50 / pág</mat-option>
-                    <mat-option [value]="100">100 / pág</mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </div>
-            </div>
-
-          </mat-card>
-        </div>
-      </div>
 
     </mat-tab>
 
@@ -1056,7 +814,7 @@
             </div>
             <div class="section-info">
               <h3 class="section-title">Identificación</h3>
-              <p class="section-desc">Datos principales del diseño</p>
+              <p class="section-desc">Datos principales, material, dimensiones y tipo de impresión</p>
             </div>
           </div>
 
@@ -1066,6 +824,7 @@
               <input matInput formControlName="articleF" placeholder="Ej: F204567">
               <mat-icon matPrefix class="field-icon">tag</mat-icon>
               <span matSuffix class="required-badge">*</span>
+              <mat-hint>Código único del artículo (empieza con F). Ej: F204567</mat-hint>
               <mat-error *ngIf="createDesignForm.get('articleF')?.hasError('required')">
                 El artículo F es requerido
               </mat-error>
@@ -1091,22 +850,7 @@
                 La descripción es requerida
               </mat-error>
             </mat-form-field>
-          </div>
-        </div>
 
-        <!-- SECCIÓN 2: Especificaciones Técnicas -->
-        <div class="form-section">
-          <div class="section-header">
-            <div class="section-icon technical-icon">
-              <mat-icon>settings</mat-icon>
-            </div>
-            <div class="section-info">
-              <h3 class="section-title">Especificaciones Técnicas</h3>
-              <p class="section-desc">Material, dimensiones y tipo de impresión</p>
-            </div>
-          </div>
-
-          <div class="fields-grid">
             <mat-form-field appearance="outline" class="field-half">
               <mat-label>Sustrato</mat-label>
               <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
@@ -1156,6 +900,14 @@
                 El ancho debe ser mayor a 0
               </mat-error>
             </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-half">
+              <mat-label>Número de Colores</mat-label>
+              <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateColors()">
+              <mat-icon matPrefix class="field-icon">format_list_numbered</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+              <mat-hint>Mínimo 1, máximo 12 colores</mat-hint>
+            </mat-form-field>
           </div>
         </div>
 
@@ -1171,16 +923,6 @@
             </div>
           </div>
 
-          <div class="fields-grid">
-            <mat-form-field appearance="outline" class="field-half">
-              <mat-label>Número de Colores</mat-label>
-              <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateColors()">
-              <mat-icon matPrefix class="field-icon">format_list_numbered</mat-icon>
-              <span matSuffix class="required-badge">*</span>
-              <mat-hint>Mínimo 1, máximo 12 colores</mat-hint>
-            </mat-form-field>
-          </div>
-
           <!-- Panel de colores expandible -->
           <div class="colors-panel" *ngIf="createDesignForm.get('colorCount')?.value > 0">
             <div class="color-selectors">
@@ -1194,7 +936,7 @@
                     placeholder="Ej: 209, Black, Cyan">
                   <mat-icon matSuffix>search</mat-icon>
 
-                  <mat-autocomplete #colorAuto="matAutocomplete" [displayWith]="displayPantoneColor"
+                  <mat-autocomplete #colorAuto="matAutocomplete" [displayWith]="displayPantoneColor" class="ap-autocomplete-panel"
                     (optionSelected)="selectPantoneColor(i, $event.option.value)">
                     <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
                       class="color-option">
@@ -1206,36 +948,32 @@
                         </div>
                       </div>
                     </mat-option>
-                    <mat-option *ngIf="availablePantoneColors().length === 0" (click)="openCreatePantoneDialog(i)" class="create-color-option">
-                      <div class="color-option-content">
-                        <mat-icon class="create-icon">add_circle</mat-icon>
-                        <div class="color-info">
-                          <span class="color-name create-label">Crear color nuevo</span>
-                          <span class="color-hex">No se encontró el color buscado</span>
-                        </div>
-                      </div>
-                    </mat-option>
                   </mat-autocomplete>
                 </mat-form-field>
 
                 <div class="color-swatch-preview" 
                   [style.background-color]="color?.hex && color?.hex !== '#cccccc' ? color.hex : '#e2e8f0'"
                   [class.empty-swatch]="!color?.hex || color?.hex === '#cccccc'"
-                  [class.clickable]="!color?.hex || color?.hex === '#cccccc'"
-                  [matTooltip]="!color?.hex || color?.hex === '#cccccc' ? 'Crear color' : color.displayName"
-                  (click)="(!color?.hex || color?.hex === '#cccccc') && openCreatePantoneDialog(i)">
-                  <mat-icon *ngIf="!color?.hex || color?.hex === '#cccccc'" class="empty-icon">add</mat-icon>
+                  [matTooltip]="!color?.hex || color?.hex === '#cccccc' ? 'Sin color' : color.displayName">
                 </div>
 
-                <div class="color-action-buttons" *ngIf="color?.id">
-                  <button mat-icon-button class="edit-color-btn" matTooltip="Editar color"
-                    (click)="editPantoneColor(i)" type="button">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button mat-icon-button class="delete-color-btn" matTooltip="Eliminar color"
-                    (click)="deletePantoneColor(i)" type="button">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                <div class="color-action-buttons">
+                  <ng-container *ngIf="color?.id; else createColorNew">
+                    <button mat-icon-button class="edit-color-btn" matTooltip="Editar color"
+                      (click)="editPantoneColor(i)" type="button">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button class="delete-color-btn" matTooltip="Eliminar color"
+                      (click)="deletePantoneColor(i)" type="button">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </ng-container>
+                  <ng-template #createColorNew>
+                    <button mat-icon-button class="create-color-btn" matTooltip="Crear color Pantone"
+                      (click)="openCreatePantoneDialog(i)" type="button">
+                      <mat-icon>add</mat-icon>
+                    </button>
+                  </ng-template>
                 </div>
               </div>
             </div>
@@ -1331,7 +1069,7 @@
             </div>
             <div class="section-info">
               <h3 class="section-title">Identificación</h3>
-              <p class="section-desc">Datos principales del diseño</p>
+              <p class="section-desc">Datos principales, material, dimensiones y tipo de impresión</p>
             </div>
           </div>
 
@@ -1349,6 +1087,7 @@
               <input matInput formControlName="client" placeholder="Ej: ABSORBENTES S.A.">
               <mat-icon matPrefix class="field-icon">business</mat-icon>
               <span matSuffix class="required-badge">*</span>
+              <mat-hint>Nombre de la empresa o cliente dueño del diseño</mat-hint>
               <mat-error *ngIf="editDesignForm.get('client')?.hasError('required')">
                 El cliente es requerido
               </mat-error>
@@ -1360,31 +1099,18 @@
                 placeholder="Descripción detallada del diseño flexográfico"></textarea>
               <mat-icon matPrefix class="field-icon">description</mat-icon>
               <span matSuffix class="required-badge">*</span>
+              <mat-hint>Detalle del arte/producto: nombre, presentación o referencia</mat-hint>
               <mat-error *ngIf="editDesignForm.get('description')?.hasError('required')">
                 La descripción es requerida
               </mat-error>
             </mat-form-field>
-          </div>
-        </div>
 
-        <!-- SECCIÓN 2: Especificaciones Técnicas -->
-        <div class="form-section">
-          <div class="section-header">
-            <div class="section-icon technical-icon">
-              <mat-icon>settings</mat-icon>
-            </div>
-            <div class="section-info">
-              <h3 class="section-title">Especificaciones Técnicas</h3>
-              <p class="section-desc">Material, dimensiones y tipo de impresión</p>
-            </div>
-          </div>
-
-          <div class="fields-grid">
             <mat-form-field appearance="outline" class="field-half">
               <mat-label>Sustrato</mat-label>
               <input matInput formControlName="substrate" placeholder="Ej: BOPP, PE, PET">
               <mat-icon matPrefix class="field-icon">layers</mat-icon>
               <span matSuffix class="required-badge">*</span>
+              <mat-hint>Material base donde se imprime. Ej: BOPP, PE, PET, papel</mat-hint>
               <mat-error *ngIf="editDesignForm.get('substrate')?.hasError('required')">
                 El sustrato es requerido
               </mat-error>
@@ -1408,9 +1134,14 @@
               </mat-select>
               <mat-icon matPrefix class="field-icon">category</mat-icon>
               <span matSuffix class="required-badge">*</span>
+              <mat-hint>Forma del material: lámina plana, tubular o semitubular</mat-hint>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="field-half">
+          </div>
+
+          <!-- Fila de 3 columnas: Tipo de Impresión / Ancho / Número de Colores -->
+          <div class="fields-grid fields-grid--triple">
+            <mat-form-field appearance="outline">
               <mat-label>Tipo de Impresión</mat-label>
               <mat-select formControlName="printType">
                 <mat-option value="CARA">CARA</mat-option>
@@ -1420,102 +1151,208 @@
               <span matSuffix class="required-badge">*</span>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="field-half">
+            <mat-form-field appearance="outline">
               <mat-label>Ancho (mm)</mat-label>
               <input matInput type="number" formControlName="anchoMm" placeholder="Ej: 350" min="1">
               <mat-icon matPrefix class="field-icon">straighten</mat-icon>
-              <mat-hint>Opcional — Ancho del sustrato en milímetros</mat-hint>
               <mat-error *ngIf="editDesignForm.get('anchoMm')?.hasError('min')">
                 El ancho debe ser mayor a 0
               </mat-error>
             </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Número de Colores</mat-label>
+              <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateEditColors()">
+              <mat-icon matPrefix class="field-icon">format_list_numbered</mat-icon>
+              <span matSuffix class="required-badge">*</span>
+            </mat-form-field>
           </div>
         </div>
 
-        <!-- SECCIÓN 3: Colores Pantone -->
+        <!-- SECCIÓN 3+4 UNIFICADA: Colores y Datos de Tintas -->
         <div class="form-section colors-form-section">
           <div class="section-header">
             <div class="section-icon colors-icon">
               <mat-icon>palette</mat-icon>
             </div>
             <div class="section-info">
-              <h3 class="section-title">Colores Pantone</h3>
-              <p class="section-desc">Definición de la paleta cromática del diseño</p>
+              <h3 class="section-title">Colores y Datos de Tintas</h3>
+              <p class="section-desc">Paleta cromática, carpeta, estante y códigos de tinta por color</p>
             </div>
           </div>
 
-          <div class="fields-grid">
-            <mat-form-field appearance="outline" class="field-half">
-              <mat-label>Número de Colores</mat-label>
-              <input matInput type="number" formControlName="colorCount" min="1" max="12" (change)="updateEditColors()">
-              <mat-icon matPrefix class="field-icon">format_list_numbered</mat-icon>
-              <span matSuffix class="required-badge">*</span>
-              <mat-hint>Mínimo 1, máximo 12 colores</mat-hint>
-            </mat-form-field>
-          </div>
+          <!-- Preparando el registro de tintas (creación automática en curso) -->
+          <ng-container *ngIf="!editingDesign()?.codTintaRecord">
+            <div class="fields-grid">
+              <p class="field-full" style="color:#86868b; font-size:0.85rem; padding: 8px 0; margin:0; display:flex; align-items:center; gap:8px;">
+                <mat-spinner diameter="18"></mat-spinner>
+                Preparando los datos de tintas para estos colores…
+              </p>
+            </div>
+          </ng-container>
 
-          <!-- Panel de colores expandible -->
-          <div class="colors-panel" *ngIf="editDesignForm.get('colorCount')?.value > 0">
-            <div class="color-selectors">
-              <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
-                <div class="color-number-badge">{{ i + 1 }}</div>
+          <!-- Con registro: campos editables -->
+          <ng-container *ngIf="editingDesign()?.codTintaRecord as tintaRec">
 
-                <mat-form-field appearance="outline" class="color-field">
-                  <mat-label>Color {{ i + 1 }}</mat-label>
-                  <input matInput [value]="color?.displayName || ''" (input)="searchPantoneColors($any($event.target).value)"
-                    (blur)="updateColorManual(i, $any($event.target).value)" [matAutocomplete]="colorAutoEdit"
-                    placeholder="Ej: 209, Black, Magenta">
-                  <mat-icon matSuffix>search</mat-icon>
+            <!-- Metadatos: carpeta / estante / línea tinta — en una sola fila -->
+            <div class="tintas-meta-line">
 
-                  <mat-autocomplete #colorAutoEdit="matAutocomplete" [displayWith]="displayPantoneColor"
-                    (optionSelected)="selectPantoneColor(i, $event.option.value)">
-                    <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
-                      class="color-option">
-                      <div class="color-option-content">
-                        <div class="color-preview" [style.background-color]="pantoneColor.hex"></div>
-                        <div class="color-info">
-                          <span class="color-name">{{ pantoneColor.displayName }}</span>
-                          <span class="color-hex">{{ pantoneColor.hex }}</span>
-                        </div>
-                      </div>
-                    </mat-option>
-                    <mat-option *ngIf="availablePantoneColors().length === 0" (click)="openCreatePantoneDialog(i)" class="create-color-option">
-                      <div class="color-option-content">
-                        <mat-icon class="create-icon">add_circle</mat-icon>
-                        <div class="color-info">
-                          <span class="color-name create-label">Crear color nuevo</span>
-                          <span class="color-hex">No se encontró el color buscado</span>
-                        </div>
-                      </div>
-                    </mat-option>
-                  </mat-autocomplete>
-                </mat-form-field>
+              <mat-form-field appearance="outline" class="meta-field-line">
+                <mat-label>Carpeta</mat-label>
+                <input matInput
+                  [(ngModel)]="tintaRec.carpeta"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="—"
+                  (blur)="updateCodTintaOnDesign(editingDesign()!)"
+                  [readonly]="!userPermissions().canEditDesign">
+                <mat-icon matPrefix class="field-icon">folder</mat-icon>
+              </mat-form-field>
 
-                <div class="color-swatch-preview" 
-                  [style.background-color]="color?.hex && color?.hex !== '#cccccc' ? color.hex : '#e2e8f0'"
-                  [class.empty-swatch]="!color?.hex || color?.hex === '#cccccc'"
-                  [class.clickable]="!color?.hex || color?.hex === '#cccccc'"
-                  [matTooltip]="!color?.hex || color?.hex === '#cccccc' ? 'Crear color' : color.displayName"
-                  (click)="(!color?.hex || color?.hex === '#cccccc') && openCreatePantoneDialog(i)">
-                  <mat-icon *ngIf="!color?.hex || color?.hex === '#cccccc'" class="empty-icon">add</mat-icon>
+              <mat-form-field appearance="outline" class="meta-field-line">
+                <mat-label>Estante</mat-label>
+                <input matInput
+                  [(ngModel)]="tintaRec.estante"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="—"
+                  (blur)="updateCodTintaOnDesign(editingDesign()!)"
+                  [readonly]="!userPermissions().canEditDesign">
+                <mat-icon matPrefix class="field-icon">shelves</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="meta-field-line">
+                <mat-label>Línea de Tinta</mat-label>
+                <input matInput
+                  [(ngModel)]="tintaRec.lineaTinta"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Ej: Flexo UV, Base Agua"
+                  [matAutocomplete]="lineaTintaAutoEdit"
+                  (input)="filterLineasTinta($any($event.target).value)"
+                  (blur)="updateCodTintaOnDesign(editingDesign()!)"
+                  [readonly]="!userPermissions().canEditDesign">
+                <mat-icon matPrefix class="field-icon">format_paint</mat-icon>
+                <mat-autocomplete #lineaTintaAutoEdit="matAutocomplete" class="ap-autocomplete-panel">
+                  <mat-option *ngFor="let linea of filteredLineasTinta()" [value]="linea">{{ linea }}</mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+            </div>
+
+            <!-- Grid de colores con codTinta / cobertura / codAnilox -->
+            <div class="colors-panel" *ngIf="tintaRec.colores?.length">
+              <div class="color-table">
+
+                <div class="color-table-header color-table-header--edit">
+                  <span class="cth-num">#</span>
+                  <span class="cth-color">Color Pantone</span>
+                  <span class="cth-swatch"></span>
+                  <span class="cth-tinta">Cód. Tinta</span>
+                  <span class="cth-cob">Cobertura</span>
+                  <span class="cth-anilox">Cód. Anilox</span>
                 </div>
 
-                <div class="color-action-buttons" *ngIf="color?.id">
-                  <button mat-icon-button class="edit-color-btn" matTooltip="Editar color"
-                    (click)="editPantoneColor(i)" type="button">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button mat-icon-button class="delete-color-btn" matTooltip="Eliminar color"
-                    (click)="deletePantoneColor(i)" type="button">
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                <div *ngFor="let tintaColor of tintaRec.colores; let i = index" class="color-table-row color-table-row--edit">
+
+                  <div class="ct-num">
+                    <span class="color-num-badge">{{ i + 1 }}</span>
+                  </div>
+
+                  <!-- Color Pantone editable (autocomplete unificado) -->
+                  <div class="ct-color">
+                    <input class="ct-input ct-pantone-input"
+                      [value]="selectedColors()[i]?.displayName || tintaColor.nombre || ''"
+                      (input)="searchPantoneColors($any($event.target).value)"
+                      (blur)="updateColorManual(i, $any($event.target).value)"
+                      [matAutocomplete]="colorAutoEdit"
+                      [readonly]="!userPermissions().canEditDesign"
+                      placeholder="209, Black, Magenta…">
+                    <mat-autocomplete #colorAutoEdit="matAutocomplete" [displayWith]="displayPantoneColor" class="ap-autocomplete-panel"
+                      (optionSelected)="selectPantoneColor(i, $event.option.value)">
+                      <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor" class="color-option">
+                        <div class="color-option-content">
+                          <div class="color-preview" [style.background-color]="pantoneColor.hex"></div>
+                          <div class="color-info">
+                            <span class="color-name">{{ pantoneColor.displayName }}</span>
+                            <span class="color-hex">{{ pantoneColor.hex }}</span>
+                          </div>
+                        </div>
+                      </mat-option>
+                    </mat-autocomplete>
+                  </div>
+
+                  <!-- Swatch + acciones del color Pantone (juntos) -->
+                  <div class="ct-swatch">
+                    <div class="color-swatch-preview"
+                      [style.background-color]="getColorSwatchHex(i, tintaColor.nombre)"
+                      [matTooltip]="selectedColors()[i]?.displayName || tintaColor.nombre">
+                    </div>
+                    <div class="ct-swatch-actions">
+                      <ng-container *ngIf="selectedColors()[i]?.id; else createColorEdit">
+                        <button mat-icon-button class="edit-color-btn" matTooltip="Editar color"
+                          (click)="editPantoneColor(i)" type="button">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button class="delete-color-btn" matTooltip="Eliminar color"
+                          (click)="deletePantoneColor(i)" type="button">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </ng-container>
+                      <ng-template #createColorEdit>
+                        <button mat-icon-button class="create-color-btn" matTooltip="Crear color Pantone"
+                          [disabled]="!userPermissions().canEditDesign"
+                          (click)="openCreatePantoneDialog(i)" type="button">
+                          <mat-icon>add</mat-icon>
+                        </button>
+                      </ng-template>
+                    </div>
+                  </div>
+
+                  <!-- Cód. Tinta -->
+                  <div class="ct-tinta">
+                    <input class="ct-input"
+                      [(ngModel)]="tintaColor.codTinta"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="—"
+                      [readonly]="!userPermissions().canEditDesign"
+                      (change)="updateCodTintaOnDesignColor(editingDesign()!, i, $any($event.target).value)">
+                  </div>
+
+                  <!-- Cobertura -->
+                  <div class="ct-cob">
+                    <div class="ct-cob-wrap">
+                      <input class="ct-input ct-input-num"
+                        type="number" step="0.01" min="0" max="100"
+                        [(ngModel)]="tintaColor.cobertura"
+                        [ngModelOptions]="{standalone: true}"
+                        placeholder="0.00"
+                        [readonly]="!userPermissions().canEditDesign"
+                        (change)="updateCoberturaOnDesignColor(editingDesign()!, i, $any($event.target).value ? +$any($event.target).value : null)">
+                      <span class="ct-pct">%</span>
+                    </div>
+                  </div>
+
+                  <!-- Cód. Anilox -->
+                  <div class="ct-anilox">
+                    <input class="ct-input"
+                      [(ngModel)]="tintaColor.codAnilox"
+                      [ngModelOptions]="{standalone: true}"
+                      placeholder="—"
+                      [readonly]="!userPermissions().canEditDesign"
+                      (change)="updateCodAniloxOnDesignColor(editingDesign()!, i, $any($event.target).value)">
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+
+            <!-- Sin colores en el registro -->
+            <div *ngIf="!tintaRec.colores?.length" class="fields-grid">
+              <p class="field-full" style="color:#86868b; font-size:0.85rem; padding: 4px 0 8px; margin:0;">
+                Sin colores registrados en este registro de tintas.
+              </p>
+            </div>
+
+          </ng-container>
         </div>
 
-        <!-- SECCIÓN 4: Estado -->
+        <!-- SECCIÓN 5: Estado -->
         <div class="form-section status-form-section">
           <div class="section-header">
             <div class="section-icon status-icon">

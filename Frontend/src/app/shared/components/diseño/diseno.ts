@@ -13,7 +13,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MAT_AUTOCOMPLETE_SCROLL_STRATEGY } from '@angular/material/autocomplete';
+import { Overlay } from '@angular/cdk/overlay';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../../core/services/auth.service';
@@ -56,6 +57,11 @@ interface FlexographicDesign {
   status: 'ACTIVO' | 'INACTIVO';
   createdDate?: Date;
   lastModified?: Date;
+
+  // Datos de cod_tintas enlazados por articleF ↔ articulo
+  codTintaRecord?: CodTintaRecord;
+  // Control de UI para expandir/colapsar la fila
+  expanded?: boolean;
 }
 
 interface UserPermissions {
@@ -114,8 +120,17 @@ interface CodTintaRecord {
     FormsModule
   ],
   templateUrl: './diseno.html',
-  styleUrls: ['./diseno.scss']
-
+  styleUrls: ['./diseno.scss'],
+  providers: [
+    // Al hacer scroll dentro del formulario/diálogo, el panel de autocomplete
+    // quedaba "flotando" desubicado. Con la estrategia `close` el panel se cierra
+    // automáticamente al hacer scroll, evitando que se despegue del input.
+    {
+      provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY,
+      useFactory: (overlay: Overlay) => () => overlay.scrollStrategies.close(),
+      deps: [Overlay]
+    }
+  ]
 })
 export class DesignComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
@@ -171,7 +186,7 @@ export class DesignComponent implements OnInit, OnDestroy {
 
   displayedColumns: string[] = [
     'articleF', 'client', 'description', 'substrate', 'type', 'anchoMm',
-    'printType', 'colors', 'status', 'actions'
+    'printType', 'colors', 'codTintasSummary', 'status', 'actions'
   ];
 
 
@@ -201,6 +216,27 @@ export class DesignComponent implements OnInit, OnDestroy {
   codTintasSearchTerm = signal<string>('');
   codTintasColumns: string[] = ['expand', 'articulo', 'descripcion', 'estante', 'carpeta', 'colores', 'lineaTinta', 'codTintas', 'cobertura', 'codAnilox', 'acciones'];
   loadingCodTintas = signal<boolean>(false);
+
+  // ===== LÍNEAS DE TINTA (autocompletado) =====
+  // Lista de líneas de tinta distintas ya registradas (viene de GET /cod-tintas/lineas-tinta).
+  // Alimenta el desplegable del campo "Línea de Tinta" en la edición inline de diseños,
+  // igual que en el diálogo de creación. Cada línea nueva que se guarde aparecerá aquí
+  // tras refrescar la lista.
+  allLineasTinta: string[] = [];
+  filteredLineasTinta = signal<string[]>([]);
+
+  // Mapa interno: articulo.toUpperCase() → CodTintaRecord (para enriquecer diseños rápido)
+  private codTintasMap = new Map<string, CodTintaRecord>();
+
+  // ===== CACHÉ DE COD_TINTAS =====
+  // Evita re-descargar TODA la tabla cod_tintas en cada cambio de página.
+  // Antes: cada navegación (siguiente/anterior/tamaño) volvía a pedir GET /cod-tintas,
+  // trayendo la misma información una y otra vez desde la BD → lento.
+  // Ahora: se cachea en memoria con TTL y solo se refresca si expira o tras una
+  // mutación (crear / actualizar / eliminar cod_tintas).
+  private codTintasCacheLoadedAt = 0;
+  private readonly CODTINTAS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+  private codTintasLoadInFlight: Promise<void> | null = null;
   
   // Paginación para Cod Tintas
   codTintasCurrentPage = signal<number>(1);
@@ -249,7 +285,26 @@ export class DesignComponent implements OnInit, OnDestroy {
     this.initializeAniloxData();
     this.loadMachineConfigs();
     this.loadDesigns();
-    this.loadCodTintas(); // Cargar datos de Cod Tintas
+    this.loadLineasTinta();
+    // cod_tintas se carga automáticamente al enriquecer los diseños en loadDesigns()
+  }
+
+  /**
+   * Carga las líneas de tinta distintas ya registradas para el autocompletado
+   * del campo "Línea de Tinta" en la edición inline de diseños.
+   */
+  loadLineasTinta() {
+    this.http.get<string[]>(`${environment.apiUrl}/cod-tintas/lineas-tinta`).subscribe({
+      next: (lineas) => { this.allLineasTinta = lineas || []; this.filteredLineasTinta.set(this.allLineasTinta); },
+      error: () => { this.allLineasTinta = []; this.filteredLineasTinta.set([]); }
+    });
+  }
+
+  /** Filtra las opciones del desplegable de líneas de tinta según lo que se escribe. */
+  filterLineasTinta(searchTerm: string) {
+    if (!searchTerm || !searchTerm.trim()) { this.filteredLineasTinta.set(this.allLineasTinta); return; }
+    const term = searchTerm.trim().toLowerCase();
+    this.filteredLineasTinta.set(this.allLineasTinta.filter(l => l.toLowerCase().includes(term)));
   }
 
   ngOnDestroy() {
@@ -422,6 +477,9 @@ export class DesignComponent implements OnInit, OnDestroy {
         this.totalRecords.set(response.totalCount);
         this.hasMoreData.set(response.page < response.totalPages);
 
+        // Enriquecer diseños con datos de cod_tintas
+        await this.loadAllCodTintasAndEnrich();
+
         // Snackbar de éxito con icono animado
         const mensajeConIcono = `<span class="status-icon">✓</span>Importación completada: ${response.totalCount} diseños en total`;
         const snackBarRef = this.snackBar.open('', 'Cerrar', {
@@ -556,6 +614,9 @@ export class DesignComponent implements OnInit, OnDestroy {
           this.currentPage.set(nextPage);
           this.hasMoreData.set(adaptedResponse.hasMore);
 
+          // Enriquecer los nuevos diseños incorporados
+          this.enrichDesignsWithCodTintas();
+
           console.log(`✅ Página ${nextPage} cargada: +${adaptedResponse.items.length} diseños (Total: ${newDesigns.length})`);
         } else {
           this.hasMoreData.set(false);
@@ -642,6 +703,9 @@ export class DesignComponent implements OnInit, OnDestroy {
         this.filteredDesigns.set(processedDesigns);
         this.totalRecords.set(response.totalCount);
         this.hasMoreData.set(page < response.totalPages);
+
+        // Enriquecer diseños con datos de cod_tintas
+        await this.loadAllCodTintasAndEnrich();
 
         // Snackbar de éxito con icono animado
         const mensajeConIcono = `<span class="status-icon">✓</span>Página ${page} cargada`;
@@ -739,6 +803,9 @@ export class DesignComponent implements OnInit, OnDestroy {
         this.filteredDesigns.set(processedDesigns);
         this.totalRecords.set(response.totalCount);
         this.hasMoreData.set(response.page < response.totalPages);
+
+        // Enriquecer diseños con datos de cod_tintas
+        await this.loadAllCodTintasAndEnrich();
 
         this.snackBar.open(
           `${processedDesigns.length} diseños cargados`,
@@ -1057,6 +1124,25 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     const colorCodes = currentColors.map(c => c.displayName);
     const form = this.showEditForm() ? this.editDesignForm : this.createDesignForm;
     form.get('colors')?.setValue(colorCodes, { emitEvent: false });
+
+    // Sincronizar el nombre del color en el registro de tintas (tabla unificada)
+    this.syncColorNombreToTinta(index, pantoneColor.displayName);
+  }
+
+  /**
+   * Sincroniza el nombre de un color con el registro de tintas del diseño en edición.
+   * Se usa en la tabla unificada de Colores + Datos de Tintas: al cambiar el color
+   * Pantone se actualiza el `nombre` en codTintaRecord.colores y se persiste.
+   */
+  private syncColorNombreToTinta(index: number, nombre: string) {
+    const design = this.editingDesign();
+    const record = design?.codTintaRecord;
+    if (!record?.colores || !record.colores[index]) return;
+    if (record.colores[index].nombre === nombre) return;
+    record.colores[index].nombre = nombre;
+    if (record.id) {
+      this.updateCodTintaRecord(record);
+    }
   }
 
 
@@ -1072,6 +1158,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     const colorCodes = currentColors.map(c => c.displayName);
     const form = this.showEditForm() ? this.editDesignForm : this.createDesignForm;
     form.get('colors')?.setValue(colorCodes);
+
+    // Sincronizar el nombre del color en el registro de tintas (tabla unificada)
+    this.syncColorNombreToTinta(colorIndex, color.displayName);
   }
 
   displayPantoneColor(color: PantoneColor | string): string {
@@ -2102,6 +2191,18 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
 
+  /**
+   * Resuelve el color (hex) del swatch en la tabla unificada de tintas.
+   * Prioriza el color Pantone seleccionado (selectedColors) y cae al nombre
+   * almacenado en el registro de tintas si aún no hay selección para ese índice.
+   */
+  getColorSwatchHex(index: number, nombre: string): string {
+    const selected = this.selectedColors()[index];
+    const hex = selected?.hex || this.getPantoneColor(nombre).hex;
+    return hex && hex !== '#cccccc' ? hex : '#e2e8f0';
+  }
+
+
   getPantoneColor(colorName: string): PantoneColor {
     if (!colorName) {
 
@@ -2206,6 +2307,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
 
     this.showEditForm.set(true);
+
+    // Opción A: garantizar que exista el registro de tintas para mostrar
+    // siempre las columnas Cód. Tinta / Cobertura / Cód. Anilox junto a cada Pantone.
+    this.ensureCodTintaRecord(design);
   }
 
 
@@ -2347,6 +2452,63 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
     const colorCodes = newSelectedColors.map(color => color.displayName);
     this.editDesignForm.patchValue({ colors: colorCodes });
+
+    // Sincronizar también el registro de tintas (tabla unificada de colores).
+    // La tabla de la edición se renderiza desde codTintaRecord.colores, por lo que
+    // si no ajustamos su longitud NO aparecen/desaparecen filas al cambiar el
+    // número de colores. Conservamos los datos (codTinta/cobertura/codAnilox) de
+    // los colores que permanecen.
+    this.syncTintaColoresToCount(colorCount, newSelectedColors);
+  }
+
+  /**
+   * Ajusta la longitud del array `colores` del registro de tintas del diseño en
+   * edición para que coincida con el número de colores seleccionado, y persiste
+   * el cambio en el backend. Mantiene los datos existentes de cada color.
+   */
+  private syncTintaColoresToCount(colorCount: number, selected: PantoneColor[]) {
+    const design = this.editingDesign();
+    const record = design?.codTintaRecord;
+    if (!record) return;
+
+    if (!Array.isArray(record.colores)) {
+      record.colores = [];
+    }
+
+    let changed = false;
+
+    // Crecer: agregar colores nuevos vacíos usando el nombre del color seleccionado
+    while (record.colores.length < colorCount) {
+      const idx = record.colores.length;
+      const nombre = selected[idx]?.displayName || '';
+      record.colores.push({ nombre, codTinta: '', cobertura: null, codAnilox: '' });
+      changed = true;
+    }
+
+    // Encoger: quitar los colores sobrantes del final
+    while (record.colores.length > colorCount) {
+      record.colores.pop();
+      changed = true;
+    }
+
+    // Mantener el nombre de cada fila alineado con el color seleccionado
+    for (let i = 0; i < colorCount; i++) {
+      const nombre = selected[i]?.displayName;
+      if (nombre && record.colores[i] && record.colores[i].nombre !== nombre) {
+        record.colores[i].nombre = nombre;
+        changed = true;
+      }
+    }
+
+    if (!changed) return;
+
+    // Refrescar la señal para que el *ngFor de la tabla re-renderice las filas
+    this.editingDesign.set({ ...design!, codTintaRecord: { ...record, colores: [...record.colores] } });
+
+    // Persistir si el registro ya existe en backend
+    if (record.id) {
+      this.updateCodTintaRecord(this.editingDesign()!.codTintaRecord!);
+    }
   }
 
 
@@ -3199,6 +3361,273 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   // ===== MÉTODOS PARA COD TINTAS =====
 
   /**
+   * Carga todos los registros de cod_tintas y construye el mapa
+   * articulo.toUpperCase() → CodTintaRecord. Luego enriquece los diseños en memoria.
+   *
+   * OPTIMIZACIÓN: usa una caché en memoria con TTL. Si la caché sigue vigente
+   * (y no se fuerza refresco) NO se vuelve a pedir la tabla completa a la BD;
+   * solo se re-enriquecen los diseños con el mapa ya cargado. Esto evita traer
+   * la misma información una y otra vez al navegar entre páginas.
+   *
+   * @param forceRefresh  true para ignorar la caché y volver a leer de la BD
+   *                      (usar tras crear/actualizar/eliminar cod_tintas).
+   */
+  async loadAllCodTintasAndEnrich(forceRefresh: boolean = false) {
+    const cacheIsFresh =
+      this.codTintasMap.size > 0 &&
+      (Date.now() - this.codTintasCacheLoadedAt) < this.CODTINTAS_CACHE_TTL_MS;
+
+    // Caché vigente → solo re-enriquecer, sin llamada HTTP.
+    if (!forceRefresh && cacheIsFresh) {
+      this.enrichDesignsWithCodTintas();
+      return;
+    }
+
+    // Evitar peticiones duplicadas en paralelo: reutilizar la que esté en curso.
+    if (!forceRefresh && this.codTintasLoadInFlight) {
+      await this.codTintasLoadInFlight;
+      this.enrichDesignsWithCodTintas();
+      return;
+    }
+
+    const loadPromise = (async () => {
+      try {
+        const response = await this.http.get<any>(`${environment.apiUrl}/cod-tintas`).toPromise();
+        const records: CodTintaRecord[] = response?.data || response || [];
+
+        // Rebuildir el mapa
+        this.codTintasMap.clear();
+        records.forEach(r => this.codTintasMap.set(r.articulo.toUpperCase(), r));
+
+        // Actualizar señal legacy (para el tab separado mientras aún exista)
+        this.codTintasData.set(records);
+        this.filteredCodTintasData.set(records);
+        this.codTintasTotalRecords.set(records.length);
+
+        // Marcar la caché como recién cargada
+        this.codTintasCacheLoadedAt = Date.now();
+
+        // Enriquecer los diseños ya cargados en memoria
+        this.enrichDesignsWithCodTintas();
+      } catch (err) {
+        console.error('❌ Error cargando cod_tintas para enriquecimiento:', err);
+      }
+    })();
+
+    this.codTintasLoadInFlight = loadPromise;
+    try {
+      await loadPromise;
+    } finally {
+      this.codTintasLoadInFlight = null;
+    }
+  }
+
+  /**
+   * Invalida la caché de cod_tintas para forzar una relectura desde la BD
+   * en la próxima carga. Llamar tras crear / actualizar / eliminar registros.
+   */
+  private invalidateCodTintasCache() {
+    this.codTintasCacheLoadedAt = 0;
+  }
+
+  /**
+   * Recorre los diseños en memoria y les asigna su CodTintaRecord correspondiente.
+   * Llama a set() sobre las señales para forzar la detección de cambios.
+   */
+  private enrichDesignsWithCodTintas() {
+    const enriched = this.allDesigns().map(d => ({
+      ...d,
+      codTintaRecord: this.codTintasMap.get(d.articleF.toUpperCase()) ?? undefined
+    }));
+    this.allDesigns.set(enriched);
+    // Replicar en filteredDesigns manteniendo el estado expanded
+    const enrichedFiltered = this.filteredDesigns().map(d => ({
+      ...d,
+      codTintaRecord: this.codTintasMap.get(d.articleF.toUpperCase()) ?? undefined
+    }));
+    this.filteredDesigns.set(enrichedFiltered);
+  }
+
+  /**
+   * Toggle de expand/collapse para la fila de un diseño
+   */
+  toggleDesignRow(design: FlexographicDesign) {
+    const current = this.filteredDesigns();
+    const updated = current.map(d =>
+      d.articleF === design.articleF ? { ...d, expanded: !d.expanded } : d
+    );
+    this.filteredDesigns.set(updated);
+    // Sincronizar también en allDesigns
+    const all = this.allDesigns().map(d =>
+      d.articleF === design.articleF ? { ...d, expanded: !d.expanded } : d
+    );
+    this.allDesigns.set(all);
+  }
+
+  /**
+   * Guarda cambios de carpeta/estante/lineaTinta del codTintaRecord embebido en un diseño
+   */
+  async updateCodTintaOnDesign(design: FlexographicDesign) {
+    if (!design.codTintaRecord?.id) return;
+    await this.updateCodTintaRecord(design.codTintaRecord);
+
+    // Si la línea de tinta escrita es nueva, agregarla al desplegable para que
+    // quede disponible en futuras ediciones (mismo comportamiento del diálogo de creación).
+    const linea = (design.codTintaRecord.lineaTinta || '').trim();
+    if (linea && !this.allLineasTinta.some(l => l.toLowerCase() === linea.toLowerCase())) {
+      this.allLineasTinta = [...this.allLineasTinta, linea].sort((a, b) => a.localeCompare(b));
+      this.filteredLineasTinta.set(this.allLineasTinta);
+    }
+  }
+
+  /**
+   * Actualiza el código de tinta de un color dentro del codTintaRecord de un diseño
+   */
+  async updateCodTintaOnDesignColor(design: FlexographicDesign, colorIndex: number, value: string) {
+    if (!design.codTintaRecord) return;
+    await this.updateCodTinta(design.codTintaRecord, colorIndex, value);
+  }
+
+  /**
+   * Actualiza el código de anilox de un color dentro del codTintaRecord de un diseño
+   */
+  async updateCodAniloxOnDesignColor(design: FlexographicDesign, colorIndex: number, value: string) {
+    if (!design.codTintaRecord) return;
+    await this.updateCodAnilox(design.codTintaRecord, colorIndex, value);
+  }
+
+  /**
+   * Actualiza la cobertura de un color dentro del codTintaRecord de un diseño
+   */
+  async updateCoberturaOnDesignColor(design: FlexographicDesign, colorIndex: number, value: number | null) {
+    if (!design.codTintaRecord) return;
+    if (value === null) return;
+    await this.updateCobertura(design.codTintaRecord, colorIndex, value);
+  }
+
+  /**
+   * Garantiza que el diseño en edición tenga un registro de tintas asociado.
+   * Si no existe, lo crea automáticamente (transparente para el usuario) con
+   * un color por cada Pantone del diseño, de modo que las columnas
+   * Cód. Tinta / Cobertura / Cód. Anilox siempre aparezcan al lado de cada color.
+   */
+  private async ensureCodTintaRecord(design: FlexographicDesign): Promise<void> {
+    // Ya tiene registro asociado → nada que hacer
+    if (design.codTintaRecord?.id) return;
+
+    // Reintentar enlazar desde el mapa por si ya existe en backend
+    const existing = this.codTintasMap.get(design.articleF.toUpperCase());
+    if (existing?.id) {
+      design.codTintaRecord = existing;
+      return;
+    }
+
+    // Sin permiso para crear → no forzamos la creación
+    if (!this.userPermissions().canCreateDesign) return;
+
+    // No hay colores en el diseño → no se puede construir el registro
+    if (!design.colors || design.colors.length === 0) return;
+
+    // Re-verificar contra el backend antes de crear: el mapa en memoria puede
+    // estar desactualizado. Si ya existe un registro para este artículo NO se
+    // crea uno nuevo vacío (evita duplicados vacíos que "tapan" al que tiene
+    // datos de tinta/anilox y rompen la impresión en el módulo de máquinas).
+    try {
+      const searchResp = await this.http
+        .get<any>(`${environment.apiUrl}/cod-tintas/search/${encodeURIComponent(design.articleF)}`)
+        .toPromise();
+      const found: CodTintaRecord[] = searchResp?.data || searchResp || [];
+      const match = (found || []).find(
+        r => r.articulo?.trim().toUpperCase() === design.articleF.trim().toUpperCase()
+      );
+      if (match?.id) {
+        design.codTintaRecord = match;
+        this.codTintasMap.set(design.articleF.toUpperCase(), match);
+        if (this.editingDesign()?.articleF === design.articleF) {
+          this.editingDesign.set({ ...design });
+        }
+        return;
+      }
+    } catch {
+      // Si la verificación falla, se continúa con la creación como fallback.
+    }
+
+    try {
+      const colores: ColorTinta[] = design.colors.map(colorName => ({
+        nombre: colorName,
+        codTinta: '',
+        cobertura: null,
+        codAnilox: ''
+      }));
+
+      const newRecord: CodTintaRecord = {
+        articulo: design.articleF,
+        descripcion: design.description,
+        carpeta: '',
+        estante: '',
+        lineaTinta: '',
+        colores
+      };
+
+      const response = await fetch(`${environment.apiUrl}/cod-tintas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.authService.getToken()}`
+        },
+        body: JSON.stringify(newRecord)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const created: CodTintaRecord = data?.data || data;
+
+      // Enlazar el registro creado con el diseño en edición y actualizar caches
+      design.codTintaRecord = created;
+      if (created?.articulo) {
+        this.codTintasMap.set(created.articulo.toUpperCase(), created);
+      }
+
+      // Refrescar la señal para que el template re-renderice con el registro nuevo
+      if (this.editingDesign()?.articleF === design.articleF) {
+        this.editingDesign.set({ ...design });
+      }
+    } catch (error) {
+      console.error('❌ Error creando automáticamente el registro de tintas:', error);
+    }
+  }
+
+  /**
+   * Abre el diálogo de creación de CodTinta pre-rellenado con el artículo del diseño
+   */
+  openCreateCodTintaForDesign(design: FlexographicDesign) {
+    import('./create-cod-tinta-dialog/create-cod-tinta-dialog').then(m => {
+      const dialogRef = this.dialog.open(m.CreateCodTintaDialogComponent, {
+        width: '800px',
+        maxHeight: '90vh',
+        disableClose: false,
+        data: {
+          articulo: design.articleF,
+          descripcion: design.description,
+          colores: design.colors.map(c => ({ nombre: c, codTinta: '', cobertura: null, codAnilox: '' }))
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(async (result) => {
+        if (result) {
+          await this.createCodTintaRecordComplete(result);
+          // Recargar el mapa y re-enriquecer (forzar por ser un registro nuevo)
+          await this.loadAllCodTintasAndEnrich(true);
+        }
+      });
+    });
+  }
+
+  /**
    * Abrir diálogo para crear nuevo registro de Cod Tintas
    */
   openCreateCodTintaDialog() {
@@ -3370,6 +3799,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       const data = await response.json();
       console.log('✅ Registro de Cod Tintas creado:', data);
 
+      // Invalidar caché: hay un registro nuevo que debe reflejarse.
+      this.invalidateCodTintasCache();
+
       // Recargar datos
       await this.loadCodTintas();
 
@@ -3525,6 +3957,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       const data = await response.json();
       console.log('✅ Registro de Cod Tintas creado:', data);
 
+      // Invalidar caché: hay un registro nuevo que debe reflejarse.
+      this.invalidateCodTintasCache();
+
       // Recargar datos
       await this.loadCodTintas();
 
@@ -3581,9 +4016,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       clearTimeout(this.codTintasUpdateTimers.get(recordId));
     }
 
-    // Si ya hay una actualización en progreso, esperar
+    // Si ya hay una actualización EN PROGRESO (PUT en vuelo), NO descartamos el
+    // cambio: reprogramamos para que se guarde en cuanto termine. Antes se hacía
+    // `return` y el cambio se perdía silenciosamente (p.ej. el código de tinta de
+    // "P 186" no llegaba a persistir → máquinas lo imprimía vacío).
     if (this.codTintasUpdatePending.get(recordId)) {
-      console.log('⏳ Actualización en progreso para registro', recordId, '- esperando...');
+      const retryTimer = setTimeout(() => this.updateCodTintaRecord(record), 300);
+      this.codTintasUpdateTimers.set(recordId, retryTimer);
       return;
     }
 
@@ -3637,7 +4076,13 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
           currentData[index] = updatedRecord;
           this.codTintasData.set([...currentData]);
           this.filteredCodTintasData.set([...currentData]);
-          
+
+          // Mantener la caché (mapa por artículo) sincronizada en memoria para
+          // que siga siendo válida sin necesidad de volver a leer de la BD.
+          if (updatedRecord.articulo) {
+            this.codTintasMap.set(updatedRecord.articulo.toUpperCase(), updatedRecord);
+          }
+
           console.log('✅ Registro actualizado en la lista local');
         }
 
@@ -3713,6 +4158,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       }
 
       console.log('✅ Registro eliminado');
+
+      // Invalidar caché: se eliminó un registro.
+      this.invalidateCodTintasCache();
 
       // Recargar datos
       await this.loadCodTintas();
@@ -3809,6 +4257,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         throw new Error(err.message || `Error HTTP: ${response.status}`);
       }
 
+      // Invalidar caché: se creó un registro duplicado.
+      this.invalidateCodTintasCache();
+
       // Recargar datos silenciosamente (sin snackbar)
       await this.reloadCodTintasSilent();
 
@@ -3864,39 +4315,10 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   /**
    * Editar un registro de Cod Tintas
    */
-  editCodTintaRecord(record: CodTintaRecord) {
-    if (!this.userPermissions().canEditDesign) {
-      this.snackBar.open('No tienes permiso para editar registros de cod tintas', 'Cerrar', { duration: 3000 });
-      return;
-    }
-    import('./create-cod-tinta-dialog/create-cod-tinta-dialog').then(m => {
-      const dialogRef = this.dialog.open(m.CreateCodTintaDialogComponent, {
-        width: '800px',
-        maxHeight: '90vh',
-        disableClose: false,
-        data: {
-          mode: 'edit',
-          record: { ...record }
-        }
-      });
-
-      dialogRef.afterClosed().subscribe(async (result) => {
-        if (result) {
-          // Actualizar el registro con los nuevos datos
-          const updatedRecord = {
-            ...record,
-            articulo: result.articulo,
-            descripcion: result.descripcion,
-            estante: result.estante,
-            carpeta: result.carpeta,
-            lineaTinta: result.lineaTinta,
-            colores: result.colores
-          };
-          await this.updateCodTintaRecord(updatedRecord);
-        }
-      });
-    });
-  }
+  // NOTA: La edición del registro de Cod Tintas ahora es 100% inline dentro del
+  // propio formulario/panel del diseño (carpeta, estante, línea de tinta y colores).
+  // Se eliminó el diálogo emergente `CreateCodTintaDialogComponent` en modo 'edit'
+  // para unificar toda la edición en un solo formulario.
 
   /**
    * Actualizar código de tinta para un color específico

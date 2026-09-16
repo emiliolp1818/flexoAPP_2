@@ -41,6 +41,24 @@ namespace FlexoAPP.API.Models.Entities
 
 
 
+        // Contraseña temporal (hash BCrypt) generada al restablecer. Permite el
+        // acceso durante una ventana corta (10 min) SIN invalidar la contraseña
+        // original, que sigue siendo válida.
+        [Column("TempPassword")]
+        [StringLength(255)]
+        public string? TempPassword { get; set; }
+
+
+
+
+        // Momento de expiración de la contraseña temporal (UTC). Pasada esta
+        // fecha la temporal deja de ser válida.
+        [Column("TempPasswordExpiresAt")]
+        public DateTime? TempPasswordExpiresAt { get; set; }
+
+
+
+
 
         [Column("FirstName")]
         [StringLength(50)]

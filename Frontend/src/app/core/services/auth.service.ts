@@ -36,6 +36,10 @@ export interface LoginResponse {
   expiresAt: string;
   success?: boolean;
   message?: string;
+  // True cuando el acceso fue con la contraseña TEMPORAL (sesión corta de ~10 min).
+  isTemporaryPassword?: boolean;
+  // True cuando el usuario debe cambiar su contraseña inmediatamente.
+  mustChangePassword?: boolean;
 }
 
 @Injectable({
@@ -74,23 +78,17 @@ export class AuthService {
     }
 
     const currentUrl = urls[urlIndex];
-    console.log(`🔄 Intentando conexión con: ${currentUrl}`);
 
     return this.http.post<LoginResponse>(`${currentUrl}/auth/login`, credentials).pipe(
       tap(response => {
-        console.log(`✅ Conexión exitosa con: ${currentUrl}`);
         if (response.token && response.user) {
           this.setSession(response.token, response.user);
         }
       }),
       catchError(error => {
-        console.warn(`⚠️ Error con ${currentUrl}:`, error.message || error);
-
-
         if (error.status === 0 || error.name === 'TimeoutError') {
           return this.tryLoginWithFallback(credentials, urlIndex + 1);
         }
-
 
         return throwError(() => error);
       })

@@ -30,6 +30,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 
 
 
+import { ActivatedRoute } from '@angular/router';
 import { AuthService, User } from '../../../core/services/auth.service';
 
 
@@ -117,10 +118,14 @@ export class ProfileComponent implements OnInit {
 
 
 
+  // Aviso de contraseña temporal (login con temporal → cambio obligatorio)
+  mustChangePassword = signal<boolean>(false);
+
   constructor(
     private authService: AuthService,
     private snackBar: MatSnackBar,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private route: ActivatedRoute
   ) {
 
 
@@ -154,8 +159,18 @@ export class ProfileComponent implements OnInit {
       this.cleanExpiredActivities();
     }, 60 * 60 * 1000);
 
-
-
+    // Si el usuario entró con una contraseña TEMPORAL, mostrar aviso para que
+    // cambie su contraseña de inmediato (la sesión es de ~10 min).
+    this.route.queryParams.subscribe(params => {
+      if (params['mustChangePassword'] === '1' || params['temp'] === '1') {
+        this.mustChangePassword.set(true);
+        this.snackBar.open(
+          'Ingresaste con una contraseña temporal (válida 30 min). Cambia tu contraseña ahora: usa la temporal como "Contraseña actual".',
+          'Entendido',
+          { duration: 12000, panelClass: ['status-preparando-snackbar', 'animated-snackbar'], horizontalPosition: 'center', verticalPosition: 'bottom' }
+        );
+      }
+    });
   }
 
 

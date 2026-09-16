@@ -1,10 +1,44 @@
 # Rediseño del Módulo de Configuraciones ⚙️
 
+> **Actualización de diseño (Apple / filas laterales)** — El tab "Ajustes" fue refinado a un estilo Apple con glassmorphism marcado y un layout de **filas laterales**. Este cambio reemplaza varios detalles descritos más abajo. Ver la sección [Diseño Actual](#-diseño-actual-apple--filas-laterales) para el estado vigente.
+
 ## 📋 Resumen de Cambios
 
 Se ha rediseñado completamente el módulo de configuraciones (tab "Ajustes") para hacerlo más atractivo, moderno, intuitivo y bien estructurado, manteniendo la paleta de colores consistente con FlexoApp.
 
 **Actualización:** Se han agregado 17 nuevas configuraciones organizadas en 6 categorías para un control total del sistema.
+
+---
+
+## 🍎 Diseño Actual (Apple / Filas Laterales)
+
+El tab "Ajustes" (scoped a `.config-tab-content`) usa actualmente un estilo Apple con glassmorphism pronunciado y un layout de columnas laterales. Los detalles vigentes:
+
+### Grid de categorías (`.config-grid-compact`)
+- Una categoría por fila completa: `grid-template-columns: 1fr`, `gap: 16px`.
+- Cada tarjeta de categoría (`.config-category-compact`) tiene:
+  - `border-radius: 22px`, fondo glass `linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.62))`, `backdrop-filter: blur(30px) saturate(180%)`.
+  - Franja de acento azul superior de `3px` (`&::before`, gradiente `$ap-blue → #4aa3ff`).
+  - Hover: `translateY(-3px)` + sombra más marcada.
+
+### Header de categoría (`.config-category-header-compact`)
+- Ícono en chip de `36×36px`, `border-radius: 11px`, gradiente azul `$ap-blue → #4aa3ff`, ícono blanco.
+- Nombre (`.category-name-compact`): `15px`, peso 600. Contador (`.category-count-compact`): pill azul.
+
+### Items en filas laterales (`.config-items-grid-compact`)
+- Grid responsivo: `repeat(auto-fill, minmax(300px, 1fr))`, `gap: 10px`, `padding: 14px`.
+- Cada item (`.config-card-compact`) es una **celda auto-contenida en columna** (info arriba, control abajo): `flex-direction: column`, `border-radius: 16px`, borde hairline, fondo `rgba(255,255,255,0.55)`.
+- Hover del item: `translateY(-2px)`, borde azul y sombra sutil.
+
+### Controles
+- Toggle ON/OFF (`.config-toggle-btn-compact`): pill de `72px` mínimo, estilo control segmentado iOS; activo con gradiente azul.
+- Campos texto/número/select (`.config-input-compact`, `.config-select-compact`): ocupan el ancho completo de la celda (`width: 100%`), estilo iOS con `border-radius: 12px`.
+
+### Paleta (variables Apple)
+- Acento azul: `$ap-blue` (con `$ap-blue-hover`) y `#4aa3ff` para gradientes.
+- Texto: `$ap-text`, `$ap-text-2`, `$ap-text-3`; bordes hairline: `$ap-hairline`; tipografía `$ap-font`.
+
+> Las secciones siguientes describen el rediseño previo (paleta `#2563eb`, grid de 2 columnas, items horizontales con hover `translateX`). Se conservan como historial; el layout vigente es el descrito arriba.
 
 ---
 
