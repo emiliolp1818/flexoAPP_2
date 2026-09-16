@@ -333,8 +333,11 @@
 // ===== Fila 2: Gráficas =====
 .charts-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  // 4 columnas iguales: Eficiencia por Turno | Preparación/día | Quincenal (donuts) | Pantones
+  // Las 3 de la derecha quedan simétricas; Eficiencia por Turno mantiene su ancho (1fr).
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
+  align-items: start;
 }
 
 .chart-card {
@@ -449,6 +452,60 @@
     }
   }
 
+  // Contenedor relativo para superponer la línea de tendencia
+  .shift-plot {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  // Capa que aloja SVG + puntos, alineada a la zona de barras (excluye labels)
+  .shift-trend-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 26px; // altura aprox de day-label + day-date-label
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .shift-trend {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+
+    .shift-trend-line {
+      stroke: #6366f1;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.25));
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: dailyTrendDraw 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+    }
+    .shift-trend-area { animation: dailyTrendFade 0.9s ease 0.4s both; }
+  }
+
+  .shift-trend-dot {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    margin-left: -3.5px;
+    margin-top: -3.5px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #6366f1;
+    box-shadow: 0 1px 4px rgba(99, 102, 241, 0.35);
+    z-index: 3;
+    animation: dailyDotPop 0.3s ease both;
+  }
+
   .shift-bars-row {
     display: flex;
     align-items: flex-end;
@@ -456,6 +513,8 @@
     gap: 2px;
     flex: 1;
     min-height: 60px;
+    position: relative;
+    z-index: 1;
   }  .shift-day-col {
     flex: 1;
     display: flex;
@@ -513,7 +572,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 4px;
+  gap: 2px;
   min-height: 60px;
 }
 
@@ -540,8 +599,8 @@
   }
 
   .pantone-bar-v {
-    width: 70%;
-    max-width: 36px;
+    width: 100%;
+    max-width: 22px;
     border-radius: 4px 4px 0 0;
     min-height: 4px;
     transition: height 0.5s ease;
@@ -563,8 +622,78 @@
 // Daily chart
 .daily-chart { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
+// Contenedor con posición relativa para superponer la línea de tendencia
+.daily-plot {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+// Capa que aloja SVG + puntos, alineada a la zona de barras (excluye labels)
+.daily-trend-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 30px; // altura aprox de label + fecha
+  pointer-events: none;
+  z-index: 2;
+}
+
+// SVG de la línea analítica
+.daily-trend {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+
+  .daily-trend-line {
+    stroke: #2563eb;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.25));
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: dailyTrendDraw 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  .daily-trend-area { animation: dailyTrendFade 0.9s ease 0.4s both; }
+}
+
+// Puntos sobre la línea (posición relativa a .daily-trend-layer)
+.daily-trend-dot {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #2563eb;
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.35);
+  z-index: 3;
+  animation: dailyDotPop 0.3s ease both;
+}
+
+@keyframes dailyTrendDraw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes dailyTrendFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dailyDotPop {
+  0% { opacity: 0; transform: scale(0.3); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .daily-bars {
-  flex: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; min-height: 60px;
+  flex: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 2px; min-height: 60px;
+  position: relative;
+  z-index: 1;
 }
 
 .daily-col {
@@ -572,7 +701,7 @@
   .daily-bar-wrapper { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
   .daily-count { font-size: 11px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
   .daily-bar {
-    width: 70%; max-width: 40px; background: linear-gradient(180deg, #3b82f6, #2563eb);
+    width: 100%; max-width: 22px; background: linear-gradient(180deg, #3b82f6, #2563eb);
     border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.6s ease;
   }
   .daily-label { font-size: 11px; color: #64748b; font-weight: 500; margin-top: 6px; text-transform: capitalize; }
@@ -1084,4 +1213,278 @@
   &:nth-child(5) { height: 28px; }
   &:nth-child(6) { height: 18px; }
   &:nth-child(7) { height: 30px; }
+}
+
+// ============================================================
+//  APPLE DESIGN — Refinamiento visual del Dashboard
+//  Capa de override coherente con Login y Configuraciones.
+//  Respeta las reglas irrompibles del dashboard:
+//   - overflow: hidden en .kpi-card se mantiene
+//   - padding-bottom del contenedor se mantiene
+//   - alturas fijas de .chart-card se mantienen
+//   - barras KPI siguen usando height.px
+// ============================================================
+
+$dash-ap-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
+$dash-ap-text:   #1d1d1f;
+$dash-ap-text-2: #6e6e73;
+$dash-ap-text-3: #86868b;
+$dash-ap-blue:   #0071e3;
+$dash-ap-hairline: rgba(0, 0, 0, 0.08);
+
+.dashboard-container {
+  font-family: $dash-ap-font !important;
+  // Fondo suave tipo macOS Big Sur (gradiente difuso)
+  background: linear-gradient(160deg, #eef2f9 0%, #e6edf8 45%, #ece7f8 100%) !important;
+
+  // Tipografía general
+  h1, h2, h3, h4, p, span, button, a { font-family: $dash-ap-font; }
+
+  // ── Tarjetas base (glass hairline Apple) ──────────────────
+  .kpi-card,
+  .production-card,
+  .chart-card,
+  .ranking-card {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border: 1px solid $dash-ap-hairline !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  // KPI cards: mantener overflow hidden (regla irrompible) y acento sutil
+  .kpi-card {
+    overflow: hidden !important;
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.24s ease !important;
+    &:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08) !important; }
+
+    .kpi-value { font-weight: 700 !important; letter-spacing: -0.5px !important; color: $dash-ap-text !important; }
+    .kpi-label { font-weight: 500 !important; color: $dash-ap-text-2 !important; letter-spacing: -0.1px !important; }
+
+    // Íconos redondeados suaves
+    .kpi-icon { border-radius: 12px !important; }
+  }
+
+  // Production cards
+  .production-card {
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.24s ease !important;
+    &:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.07) !important; }
+    .production-value { font-weight: 700 !important; letter-spacing: -0.5px !important; color: $dash-ap-text !important; }
+    .production-unit,
+    .production-label { color: $dash-ap-text-2 !important; font-weight: 500 !important; }
+    .production-month { color: $dash-ap-text !important; font-weight: 600 !important; }
+  }
+
+  // Chart cards (mantener height fija)
+  .chart-card {
+    .chart-title {
+      font-weight: 600 !important;
+      letter-spacing: -0.2px !important;
+      color: $dash-ap-text !important;
+      mat-icon { color: $dash-ap-blue !important; }
+    }
+  }
+
+  // Ranking card
+  .ranking-card {
+    .ranking-header h3 { font-weight: 600 !important; letter-spacing: -0.2px !important; color: $dash-ap-text !important; }
+    .ranking-sub { color: $dash-ap-text-3 !important; }
+  }
+
+  // ── Botones de acción — estilo Apple (tarjetas glass con tinte pastel) ──
+  .action-btn {
+    border-radius: 18px !important;
+    border: 1px solid rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+
+    // Neutraliza el brillo radial del estilo previo
+    &::before { display: none !important; }
+
+    span {
+      color: $dash-ap-text !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.2px !important;
+      text-shadow: none !important;
+    }
+
+    &:hover {
+      transform: translateY(-4px) scale(1.02) !important;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1) !important;
+    }
+    &:active { transform: translateY(0) scale(0.99) !important; }
+
+    // Ícono: chip translúcido con el color del botón
+    .action-icon {
+      border-radius: 14px !important;
+      background: rgba(255, 255, 255, 0.55) !important;
+      border: 1px solid rgba(255, 255, 255, 0.7) !important;
+      backdrop-filter: blur(6px);
+      box-shadow: none !important;
+      mat-icon { filter: none !important; }
+    }
+    &:hover .action-icon mat-icon { transform: scale(1.1) !important; }
+
+    // Tintes pastel Apple por botón + color del ícono
+    &:nth-child(1) { background: linear-gradient(160deg, #fef3c7, #fde68a) !important; .action-icon mat-icon { color: #b45309 !important; } }
+    &:nth-child(2) { background: linear-gradient(160deg, #dbeafe, #bfdbfe) !important; .action-icon mat-icon { color: #1d4ed8 !important; } }
+    &:nth-child(3) { background: linear-gradient(160deg, #d1fae5, #a7f3d0) !important; .action-icon mat-icon { color: #047857 !important; } }
+    &:nth-child(4) { background: linear-gradient(160deg, #fce7f3, #fbcfe8) !important; .action-icon mat-icon { color: #be185d !important; } }
+    &:nth-child(5) { background: linear-gradient(160deg, #ede9fe, #ddd6fe) !important; .action-icon mat-icon { color: #6d28d9 !important; } }
+    &:nth-child(6) { background: linear-gradient(160deg, #cffafe, #a5f3fc) !important; .action-icon mat-icon { color: #0e7490 !important; } }
+    &:nth-child(7) { background: linear-gradient(160deg, #e2e8f0, #cbd5e1) !important; .action-icon mat-icon { color: #334155 !important; } }
+    &:nth-child(8) { background: linear-gradient(160deg, #e2e8f0, #cbd5e1) !important; .action-icon mat-icon { color: #334155 !important; } }
+  }
+}
+
+// ── Modo oscuro — coherente con Configuraciones/Login ────────
+:host-context(body.dark-theme) .dashboard-container,
+:host-context(.dark-theme) .dashboard-container,
+body.dark-theme .dashboard-container {
+  $dd-surface: rgba(44, 44, 46, 0.72);
+  $dd-hairline: rgba(255, 255, 255, 0.12);
+  $dd-text: #f5f5f7;
+  $dd-text-2: rgba(235, 235, 245, 0.6);
+  $dd-blue: #0a84ff;
+
+  background: linear-gradient(160deg, #1c1c1e 0%, #161618 55%, #1a1820 100%) !important;
+
+  .kpi-card,
+  .production-card,
+  .chart-card,
+  .ranking-card,
+  .action-btn {
+    background: $dd-surface !important;
+    border: 1px solid $dd-hairline !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .kpi-value, .production-value, .production-month,
+  .chart-title, .ranking-header h3, .action-btn span { color: $dd-text !important; }
+  .chart-title mat-icon { color: $dd-blue !important; }
+
+  .kpi-label, .production-unit, .production-label, .ranking-sub { color: $dd-text-2 !important; }
+
+  .action-btn .action-icon {
+    background: rgba(10, 132, 255, 0.18) !important;
+    border-color: rgba(10, 132, 255, 0.3) !important;
+    mat-icon { color: $dd-blue !important; }
+  }
+}
+
+// ============================================================
+//  Preparación por Semana — Donuts (Apple Design)
+// ============================================================
+// Preparación Quincenal — una tarjeta con 2 donuts lado a lado
+.quincena-card {
+  overflow: visible !important;
+
+  .chart-title { flex-shrink: 0; }
+}
+
+.quincena-row {
+  flex: 1;
+  display: flex;
+  flex-direction: column;   // los 2 donuts, uno debajo del otro
+  align-items: center;
+  justify-content: space-around;
+  gap: 4px;
+  min-height: 0;
+}
+
+.quincena-donut {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;      // rango + donut en la misma fila para aprovechar ancho
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  .quincena-range {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: -0.1px;
+    width: 62px;
+    text-align: right;
+  }
+}
+
+.donut-wrap {
+  position: relative;
+  flex-shrink: 0;
+  // Tamaño acotado para que los 2 donuts quepan apilados dentro de la tarjeta
+  width: 120px;
+  height: 120px;
+  max-width: 100%;
+
+  .donut-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+
+    .donut-seg { transition: stroke-dasharray 0.6s ease; }
+
+    // Nombre del día: radial sobre la banda de color (texto blanco)
+    .donut-day-label {
+      font-size: 2.3px;         // unidades del viewBox
+      font-weight: 700;
+      fill: #ffffff;
+      paint-order: stroke;
+      stroke: rgba(0, 0, 0, 0.22);
+      stroke-width: 0.3px;
+      letter-spacing: -0.05px;
+    }
+    // Conteo por fuera del anillo (color del día)
+    .donut-count-label {
+      font-size: 3.2px;
+      font-weight: 800;
+      letter-spacing: -0.1px;
+    }
+  }
+
+  .donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+
+    .donut-total {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1e293b;
+      letter-spacing: -0.8px;
+      line-height: 1;
+    }
+    .donut-total-label {
+      font-size: 7px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 1px;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .quincena-donut .donut-wrap { max-height: 220px; }
+}
+
+// Modo oscuro
+body.dark-theme .quincena-card,
+:host-context(.dark-theme) .quincena-card {
+  .donut-total { color: #f5f5f7 !important; }
+  .donut-total-label,
+  .quincena-range { color: rgba(235,235,245,0.6) !important; }
+  .donut-track { stroke: rgba(255,255,255,0.12) !important; }
 }

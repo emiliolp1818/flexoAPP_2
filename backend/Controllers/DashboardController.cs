@@ -288,7 +288,7 @@ namespace FlexoAPP.API.Controllers
 
                 var top = pantoneCount
                     .OrderByDescending(kv => kv.Value)
-                    .Take(8)
+                    .Take(10)
                     .Select(kv => new { name = kv.Key, count = kv.Value })
                     .ToList();
 
@@ -761,6 +761,105 @@ namespace FlexoAPP.API.Controllers
             catch (Exception ex)
             {
                 // Console.WriteLine($"❌ Error en daily-preparation: {ex.Message}\n{ex.StackTrace}");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Preparación por semana del mes actual: agrupa los días del mes en semanas
+        /// calendario (Lunes a Domingo). Cada semana incluye el total del período y el
+        /// conteo por día (pedidos que quedaron LISTO). Se devuelven las primeras 3 semanas.
+        /// </summary>
+        [HttpGet("weekly-preparation")]
+        public async Task<IActionResult> GetWeeklyPreparation()
+        {
+            try
+            {
+                var today = DateTimeHelper.Today;
+                var firstOfMonth = new DateTime(today.Year, today.Month, 1);
+                var daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+                var monthStart = firstOfMonth;
+                var monthEndExclusive = firstOfMonth.AddMonths(1);
+
+                // Conteo LISTO por fecha (todo el mes) con SQL raw
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new MySqlConnector.MySqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT DATE(Timestamp) as dia, COUNT(*) as total
+                    FROM Activities
+                    WHERE Module = 'MACHINES'
+                      AND Action = 'MACHINE_STATUS_CHANGED'
+                      AND Description LIKE '%LISTO%'
+                      AND Timestamp >= @monthStart
+                      AND Timestamp < @monthEnd
+                    GROUP BY DATE(Timestamp)";
+                cmd.Parameters.AddWithValue("@monthStart", monthStart);
+                cmd.Parameters.AddWithValue("@monthEnd", monthEndExclusive);
+
+                var countsByDate = new Dictionary<DateTime, int>();
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var dia = reader.GetDateTime("dia");
+                        var total = reader.GetInt32("total");
+                        countsByDate[dia.Date] = total;
+                    }
+                }
+
+                var dayNames = new[] { "Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb" };
+
+                // Dos quincenas: días 1-15 y 16-fin de mes. Cada donut = una quincena.
+                var quincenas = new[]
+                {
+                    new { num = 1, start = 1, end = 15 },
+                    new { num = 2, start = 16, end = daysInMonth }
+                };
+
+                var weeks = new List<object>();
+
+                foreach (var q in quincenas)
+                {
+                    var periodStart = new DateTime(today.Year, today.Month, q.start);
+                    var periodEnd = new DateTime(today.Year, today.Month, Math.Min(q.end, daysInMonth));
+
+                    var periodDays = new List<object>();
+                    int periodTotal = 0;
+                    for (var d = periodStart; d <= periodEnd; d = d.AddDays(1))
+                    {
+                        countsByDate.TryGetValue(d.Date, out int count);
+                        periodTotal += count;
+                        periodDays.Add(new
+                        {
+                            date = d.ToString("dd/MM"),
+                            day = d.Day,
+                            dayName = dayNames[(int)d.DayOfWeek],
+                            count
+                        });
+                    }
+
+                    weeks.Add(new
+                    {
+                        week = q.num,
+                        label = $"Quincena {q.num}",
+                        rangeStart = periodStart.ToString("dd/MM"),
+                        rangeEnd = periodEnd.ToString("dd/MM"),
+                        total = periodTotal,
+                        days = periodDays
+                    });
+                }
+
+                return Ok(new
+                {
+                    month = firstOfMonth.ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-ES")),
+                    weeks
+                });
+            }
+            catch (Exception ex)
+            {
                 return StatusCode(500, new { error = ex.Message });
             }
         }

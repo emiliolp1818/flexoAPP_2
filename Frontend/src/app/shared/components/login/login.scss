@@ -1,12 +1,21 @@
+// ============================================================
+//  LOGIN — Apple Design System
+//  Tipografía SF Pro, glassmorphism limpio, azul sistema #0071e3
+// ============================================================
 
-$primary: #4f8ef7;
-$primary-dark: #2563eb;
-$accent: #a78bfa;
-$accent2: #34d399;
-$clay-pink: #f9a8d4;
-$clay-bg: #e0eaff;
+$apple-blue: #0071e3;
+$apple-blue-hover: #0077ed;
+$apple-blue-active: #006edb;
+$text-primary: #1d1d1f;
+$text-secondary: #6e6e73;
+$text-tertiary: #86868b;
+$hairline: rgba(0, 0, 0, 0.08);
 
-// ===== FONDO =====
+// Stack tipográfico de Apple (SF Pro cuando está disponible)
+$sf-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+  'Helvetica Neue', 'Inter', system-ui, sans-serif;
+
+// ===== FONDO ===============================================
 .login-container {
   position: fixed;
   top: 0;
@@ -15,363 +24,517 @@ $clay-bg: #e0eaff;
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background: linear-gradient(135deg,
-    #1e3a8a 0%,
-    #1d4ed8 15%,
-    #2563eb 30%,
-    #3b82f6 45%,
-    #60a5fa 60%,
-    #2563eb 75%,
-    #1d4ed8 90%,
-    #1e3a8a 100%);
-  background-size: 400% 400%;
-  animation: waveFlow 18s ease-in-out infinite;
+  font-family: $sf-font;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  // Gradiente suave, difuso, tipo fondo de macOS Big Sur
+  background: linear-gradient(160deg,
+    #eaf1ff 0%,
+    #dfeaff 22%,
+    #e9e4ff 48%,
+    #f0eaff 68%,
+    #e6f0ff 100%);
+  background-size: 200% 200%;
+  animation: appleGradient 24s ease-in-out infinite;
+
+  // Halos de color muy suaves (blobs desenfocados)
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.55;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  &::before {
+    width: 520px;
+    height: 520px;
+    top: -140px;
+    left: -120px;
+    background: radial-gradient(circle at 30% 30%, #a5c8ff 0%, transparent 70%);
+    animation: floatBlob1 20s ease-in-out infinite;
+  }
+
+  &::after {
+    width: 460px;
+    height: 460px;
+    bottom: -160px;
+    right: -100px;
+    background: radial-gradient(circle at 60% 40%, #c9b8ff 0%, transparent 70%);
+    animation: floatBlob2 26s ease-in-out infinite;
+  }
 }
 
-@keyframes waveFlow {
-  0% {
-    background-position: 0% 0%;
-  }
-  25% {
-    background-position: 100% 0%;
-  }
-  50% {
-    background-position: 100% 100%;
-  }
-  75% {
-    background-position: 0% 100%;
-  }
-  100% {
-    background-position: 0% 0%;
+// Capa de líneas diagonales animadas (empresarial / precisión)
+.login-bg-lines {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+
+  // Líneas diagonales con SVG inline en background-image
+  background-image:
+    repeating-linear-gradient(
+      -55deg,
+      transparent,
+      transparent 48px,
+      rgba(100, 130, 220, 0.055) 48px,
+      rgba(100, 130, 220, 0.055) 49px
+    );
+  background-size: 200% 200%;
+  animation: bgLinesScroll 32s linear infinite;
+
+  // Segunda capa de líneas más finas en ángulo inverso
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        35deg,
+        transparent,
+        transparent 72px,
+        rgba(140, 100, 220, 0.035) 72px,
+        rgba(140, 100, 220, 0.035) 73px
+      );
+    background-size: 200% 200%;
+    animation: bgLinesScrollReverse 48s linear infinite;
   }
 }
 
-// ===== SECCIÓN EMPRESA (izquierda) =====
+@keyframes appleGradient {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+@keyframes clockColorSweep {
+  0%   { background-position: 150% center; }
+  50%  { background-position: -50% center; }
+  100% { background-position: 150% center; }
+}
+
+@keyframes titleShimmer {
+  0%   { background-position: 150% center; }
+  50%  { background-position: -50% center; }
+  100% { background-position: 150% center; }
+}
+
+@keyframes floatBlob1 {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(40px, 30px); }
+}
+
+@keyframes floatBlob2 {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-36px, -28px); }
+}
+
+@keyframes bgLinesScroll {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+@keyframes bgLinesScrollReverse {
+  0%   { background-position: 100% 0%; }
+  100% { background-position: 0% 100%; }
+}
+
+// ===== SECCIÓN EMPRESA (izquierda) =========================
 .company-info-section {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 88px 80px 60px;
-  color: #000000;
+  padding: 80px 72px 60px;
+  color: $text-primary;
   position: relative;
   z-index: 2;
 
   .company-logo-main {
-    width: 82%;
+    width: 74%;
     height: auto;
-    margin-bottom: 24px;
-    border-radius: 24px;
-    filter: drop-shadow(0 8px 24px rgba(79,142,247,0.25));
-    transition: transform 0.3s ease;
-    &:hover { transform: scale(1.03); }
+    margin-bottom: 28px;
+    border-radius: 22px;
+    filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.12));
+    transition: transform 0.4s cubic-bezier(0.28, 0.11, 0.32, 1);
+    &:hover { transform: scale(1.02); }
   }
 
   .clock-section {
-    margin-bottom: 28px;
-    padding: 22px 36px;
-    background: rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(10px);
-    border-radius: 28px;
-    border: 1.5px solid rgba(255, 255, 255, 0.45);
-    box-shadow:
-      0 14px 40px rgba(30, 58, 138, 0.22),
-      0 5px 14px rgba(79, 142, 247, 0.16),
-      inset 0 -3px 10px rgba(0, 0, 0, 0.02),
-      inset 0 3px 10px rgba(255, 255, 255, 0.35);
-    text-align: center;
-    min-width: 340px;
+    // Widget glassmorphism estilo centro de notificaciones (macOS/iOS)
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    padding: 20px 26px;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: left;
 
     .current-time {
-      font-size: 4rem;
-      font-weight: 900;
-      font-family: 'SF Mono', 'Monaco', monospace;
-      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 5rem;
+      font-weight: 500;
+      font-family: $sf-font;
+      letter-spacing: -3px;
+      margin-bottom: 6px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum';
+      // Destello azul empresarial que barre el texto
+      background: linear-gradient(
+        90deg,
+        #1d1d1f 0%,
+        #1d1d1f 25%,
+        #0071e3 45%,
+        #60a5fa 50%,
+        #0071e3 55%,
+        #1d1d1f 75%,
+        #1d1d1f 100%
+      );
+      background-size: 200% auto;
       background-clip: text;
-      letter-spacing: 3px;
-      margin-bottom: 8px;
-      line-height: 1.1;
-      filter: drop-shadow(0 2px 0 rgba(255,255,255,0.55))
-              drop-shadow(0 4px 6px rgba(30, 58, 138, 0.32));
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      animation: clockColorSweep 8s ease-in-out infinite;
     }
 
     .current-date {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: #1e293b;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: $apple-blue;
       text-transform: capitalize;
-      text-shadow:
-        0 1px 0 rgba(255,255,255,0.65),
-        0 2px 3px rgba(0,0,0,0.12);
+      letter-spacing: -0.2px;
+      opacity: 0.85;
     }
   }
 
   .mission-section, .vision-section {
-    margin-bottom: 22px;
-    padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.24);
-    backdrop-filter: blur(8px);
-    border-radius: 24px;
-    border: 1.5px solid rgba(255, 255, 255, 0.42);
-    box-shadow:
-      0 10px 30px rgba(30, 58, 138, 0.18),
-      0 4px 12px rgba(79, 142, 247, 0.14),
-      inset 0 -3px 10px rgba(0, 0, 0, 0.02),
-      inset 0 3px 10px rgba(255, 255, 255, 0.32);
+    margin-bottom: 26px;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
 
     .section-title {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 1.3rem;
-      font-weight: 800;
+      font-size: 1.25rem;
+      font-weight: 600;
       margin: 0 0 8px;
-      color: #0f172a;
-      text-shadow:
-        0 1px 0 rgba(255,255,255,0.6),
-        0 2px 4px rgba(0,0,0,0.1);
+      color: $text-primary;
+      letter-spacing: -0.4px;
 
       mat-icon {
-        font-size: 24px;
-        width: 24px;
-        height: 24px;
-        color: $primary-dark;
-        filter: drop-shadow(0 2px 3px rgba(37,99,235,0.45));
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+        color: $apple-blue;
       }
     }
 
     .section-text {
-      font-size: 1rem;
-      line-height: 1.6;
-      color: #1e293b;
-      font-weight: 600;
+      font-size: 1.02rem;
+      line-height: 1.55;
+      color: $text-secondary;
+      font-weight: 400;
       margin: 0;
-      padding-left: 34px;
-      text-shadow:
-        0 1px 0 rgba(255,255,255,0.5),
-        0 1px 2px rgba(0,0,0,0.1);
+      padding-left: 32px;
+      letter-spacing: -0.2px;
     }
   }
 }
 
-// ===== TARJETA DE LOGIN (derecha) =====
+// ===== TARJETA DE LOGIN (derecha) ==========================
 .login-card {
-  flex: 0 0 440px;
+  flex: 0 0 480px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px 30px;
+  padding: 40px 36px;
   position: relative;
   z-index: 2;
 }
 
 .login-form {
   width: 100%;
-  max-width: 380px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(30px);
-  border-radius: 36px;
-  padding: 36px 36px 32px;
-  border: 3px solid rgba(255, 255, 255, 0.9);
+  max-width: 400px;
+  min-height: 620px;              // ← tarjeta más alta
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 28px;
+  padding: 48px 40px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow:
-    0 20px 60px rgba(79, 142, 247, 0.2),
-    0 8px 24px rgba(167, 139, 250, 0.15),
-    inset 0 -6px 20px rgba(0, 0, 0, 0.04),
-    inset 0 6px 20px rgba(255, 255, 255, 0.8);
-  animation: cardAppear 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    0 30px 80px rgba(0, 0, 0, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  animation: cardAppear 0.8s cubic-bezier(0.28, 0.11, 0.32, 1) forwards;
 
   .form-header {
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 40px;
 
     .app-title {
-      margin: 0 0 8px;
-      line-height: 1.1;
+      margin: 0 0 10px;
+      line-height: 1.05;
     }
 
     .app-title-text {
       display: inline-block;
-      font-size: 2.35rem;
-      font-weight: 900;
-      letter-spacing: 0.6px;
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: -1.2px;
+      // Shimmer azul empresarial → azul claro → negro → repite
       background: linear-gradient(
-        105deg,
-        #1d4ed8 0%,
-        #2563eb 18%,
-        #6366f1 36%,
-        #c4b5fd 46%,
-        #ffffff 50%,
-        #93c5fd 54%,
-        #6366f1 66%,
-        #2563eb 82%,
-        #1d4ed8 100%
+        90deg,
+        #1d1d1f 0%,
+        #1d1d1f 20%,
+        #0071e3 38%,
+        #60a5fa 50%,
+        #0071e3 62%,
+        #1d1d1f 80%,
+        #1d1d1f 100%
       );
-      background-size: 220% 100%;
-      -webkit-background-clip: text;
+      background-size: 200% auto;
       background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
       -webkit-text-fill-color: transparent;
-      animation: flexoTitleShine 3.2s ease-in-out infinite;
-      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.22));
+      animation: titleShimmer 8s ease-in-out infinite;
     }
 
     p {
-      color: #64748b;
+      color: $text-secondary;
       margin: 0;
-      font-size: 0.98rem;
-      font-weight: 500;
+      font-size: 1.05rem;
+      font-weight: 400;
+      letter-spacing: -0.2px;
     }
   }
 
   form {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
   }
 }
 
 @keyframes cardAppear {
-  0%   { opacity: 0; transform: translateY(40px) scale(0.88); }
+  0%   { opacity: 0; transform: translateY(28px) scale(0.96); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes flexoTitleShine {
-  0%   { background-position: 120% center; }
-  100% { background-position: -20% center; }
-}
-
-// ===== FILA: RECORDARME (checkbox VERDE) + OLVIDÉ CONTRASEÑA =====
+// ===== FILA: RECORDARME + OLVIDÉ CONTRASEÑA ================
 .options-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 0 4px;
+  margin: 4px 0 2px;
   padding: 0 2px;
   flex-wrap: nowrap;
   width: 100%;
 }
 
 .options-row .forgot-link {
-  color: $primary-dark;
-  font-size: 0.8rem;
-  font-weight: 600;
+  color: $apple-blue;
+  font-size: 0.9rem;
+  font-weight: 400;
   text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
   transition: color 0.2s ease;
-  &:hover { color: $accent; text-decoration: underline; }
+  letter-spacing: -0.2px;
+  &:hover { text-decoration: underline; }
 }
 
-// Checkbox verde: variables MDC en el host + respaldo con ::ng-deep
+// ===== ADQUIRIR LICENCIA + CONTACTO =======================
+.license-row {
+  width: 100%;
+  margin: 2px 0 0;
+}
+
+.license-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-secondary;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  padding: 4px 2px;
+  transition: color 0.2s ease;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $apple-blue;
+  }
+
+  .chevron {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $text-tertiary;
+    transition: color 0.2s ease;
+  }
+
+  &:hover,
+  &.open {
+    color: $apple-blue;
+    .chevron { color: $apple-blue; }
+  }
+}
+
+.license-contact-panel {
+  margin-top: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid $hairline;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: licenseSlide 0.28s cubic-bezier(0.28, 0.11, 0.32, 1);
+
+  .license-contact-intro {
+    margin: 0 0 10px;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: $text-secondary;
+    letter-spacing: -0.1px;
+    line-height: 1.4;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: $text-primary;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+    transition: background 0.15s ease;
+
+    & + .contact-item { margin-top: 4px; }
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: $apple-blue;
+      flex-shrink: 0;
+    }
+
+    &:hover { background: rgba(0, 113, 227, 0.08); }
+  }
+}
+
+@keyframes licenseSlide {
+  0% { opacity: 0; transform: translateY(-6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+// Checkbox azul sistema (Apple)
 .remember-checkbox {
   flex-shrink: 0;
-  --mdc-checkbox-selected-icon-color: #22c55e;
-  --mdc-checkbox-selected-focus-icon-color: #16a34a;
-  --mdc-checkbox-selected-hover-icon-color: #16a34a;
-  --mdc-checkbox-selected-pressed-icon-color: #15803d;
-  --mdc-checkbox-selected-focus-state-layer-color: rgba(34, 197, 94, 0.16);
-  --mdc-checkbox-selected-hover-state-layer-color: rgba(34, 197, 94, 0.1);
-  --mdc-checkbox-selected-pressed-state-layer-color: rgba(34, 197, 94, 0.18);
-  --mdc-checkbox-unselected-hover-icon-color: #22c55e;
-  --mdc-checkbox-unselected-focus-icon-color: #22c55e;
-
-  &.mat-mdc-checkbox-checked {
-    ::ng-deep .mdc-form-field > label {
-      color: #15803d !important;
-      font-weight: 700;
-    }
-  }
+  --mdc-checkbox-selected-icon-color: #{$apple-blue};
+  --mdc-checkbox-selected-focus-icon-color: #{$apple-blue};
+  --mdc-checkbox-selected-hover-icon-color: #{$apple-blue};
+  --mdc-checkbox-selected-pressed-icon-color: #{$apple-blue-active};
+  --mdc-checkbox-selected-focus-state-layer-color: rgba(0, 113, 227, 0.14);
+  --mdc-checkbox-selected-hover-state-layer-color: rgba(0, 113, 227, 0.1);
+  --mdc-checkbox-selected-pressed-state-layer-color: rgba(0, 113, 227, 0.16);
+  --mdc-checkbox-unselected-hover-icon-color: #{$apple-blue};
+  --mdc-checkbox-unselected-focus-icon-color: #{$apple-blue};
 
   ::ng-deep {
     .mdc-form-field {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
 
     .mdc-form-field > label {
-      color: #0f172a;
-      font-size: 0.88rem;
-      font-weight: 600;
+      color: $text-secondary;
+      font-size: 0.9rem;
+      font-weight: 400;
       cursor: pointer;
       user-select: none;
-      padding-left: 0;
+      letter-spacing: -0.2px;
     }
 
     .mdc-checkbox__background {
-      border: 2px solid #94a3b8 !important;
+      border: 1.5px solid #c7c7cc !important;
       border-radius: 6px !important;
-      background-color: rgba(255, 255, 255, 0.95) !important;
-      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      background-color: rgba(255, 255, 255, 0.9) !important;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
-    .mdc-checkbox__native-control:checked:not(:disabled) ~ .mdc-checkbox__background,
-    .mdc-checkbox__native-control:indeterminate:not(:disabled) ~ .mdc-checkbox__background {
-      background-color: #22c55e !important;
-      border-color: #16a34a !important;
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.22);
-    }
-
-    .mdc-checkbox__native-control:focus:checked:not(:disabled) ~ .mdc-checkbox__background {
-      background-color: #16a34a !important;
-      border-color: #15803d !important;
+    .mdc-checkbox__native-control:checked:not(:disabled) ~ .mdc-checkbox__background {
+      background-color: $apple-blue !important;
+      border-color: $apple-blue !important;
     }
 
     .mdc-checkbox__checkmark-path {
       stroke: #ffffff !important;
     }
 
-    .mdc-checkbox__mixedmark {
-      background-color: #ffffff !important;
-    }
-
-    .mat-mdc-checkbox:hover:not(.mat-mdc-checkbox-disabled) .mdc-checkbox__background {
-      border-color: #22c55e !important;
-    }
-
-    .mat-mdc-checkbox:hover:not(.mat-mdc-checkbox-disabled)
-      .mdc-checkbox__native-control:not(:checked) ~ .mdc-checkbox__background {
-      background-color: rgba(220, 252, 231, 0.85) !important;
-    }
-
     .mat-ripple-element {
-      background-color: rgba(34, 197, 94, 0.28) !important;
+      background-color: rgba(0, 113, 227, 0.22) !important;
     }
   }
 }
 
-// ===== CAMPOS USUARIO / CONTRASEÑA =====
+// ===== CAMPOS USUARIO / CONTRASEÑA (estilo iOS) ============
 .form-field {
   position: relative;
 
   ::ng-deep {
     .login-field.mat-mdc-form-field {
       width: 100%;
-      --mdc-filled-text-field-container-color: rgba(255, 255, 255, 0.92);
+      --mdc-filled-text-field-container-color: rgba(255, 255, 255, 0.7);
       --mdc-filled-text-field-focus-active-indicator-color: transparent;
       --mdc-filled-text-field-active-indicator-color: transparent;
       --mdc-filled-text-field-hover-active-indicator-color: transparent;
-      --mdc-filled-text-field-label-text-color: #64748b;
-      --mdc-filled-text-field-focus-label-text-color: #2563eb;
-      --mdc-filled-text-field-input-text-color: #0f172a;
-      --mat-form-field-container-height: 56px;
+      --mdc-filled-text-field-label-text-color: #{$text-tertiary};
+      --mdc-filled-text-field-focus-label-text-color: #{$apple-blue};
+      --mdc-filled-text-field-input-text-color: #{$text-primary};
+      --mat-form-field-container-height: 58px;
       --mat-form-field-container-vertical-padding: 12px;
     }
 
     .login-field .mat-mdc-text-field-wrapper {
-      border-radius: 18px !important;
-      border: 2px solid rgba(255, 255, 255, 0.95) !important;
-      background: rgba(255, 255, 255, 0.92) !important;
-      box-shadow:
-        0 4px 14px rgba(79, 142, 247, 0.1),
-        inset 0 2px 6px rgba(255, 255, 255, 0.85),
-        inset 0 -2px 6px rgba(0, 0, 0, 0.03) !important;
-      padding: 0 12px 0 16px !important;
-      transition: border-color 0.22s ease, box-shadow 0.22s ease;
+      border-radius: 14px !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      background: rgba(255, 255, 255, 0.7) !important;
+      box-shadow: none !important;
+      padding: 0 14px 0 16px !important;
+      transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
       overflow: hidden;
     }
 
@@ -387,90 +550,86 @@ $clay-bg: #e0eaff;
 
     .login-field .mat-mdc-form-field-flex {
       align-items: center;
-      min-height: 52px;
+      min-height: 54px;
     }
 
     .login-field .mat-mdc-form-field-infix {
       padding-top: 22px !important;
       padding-bottom: 8px !important;
-      min-height: 52px;
+      min-height: 54px;
       display: flex;
       align-items: center;
     }
 
-    // Label pequeño DENTRO del campo (parte superior interna)
+    // Label pequeño DENTRO del campo
     .login-field .mdc-floating-label {
       left: 0 !important;
       top: 18px !important;
       transform-origin: left top !important;
-      font-size: 0.95rem !important;
-      font-weight: 600 !important;
-      letter-spacing: 0.01em;
-      color: #64748b !important;
+      font-size: 0.98rem !important;
+      font-weight: 400 !important;
+      letter-spacing: -0.2px;
+      color: $text-tertiary !important;
     }
 
     .login-field.mat-form-field-should-float .mdc-floating-label,
     .login-field.mat-focused .mdc-floating-label {
-      transform: translateY(-8px) scale(0.78) !important;
-      color: #2563eb !important;
+      transform: translateY(-9px) scale(0.75) !important;
+      color: $apple-blue !important;
     }
 
     .login-field .mdc-text-field__input {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #0f172a;
+      font-size: 1rem;
+      font-weight: 400;
+      color: $text-primary;
       padding: 0 !important;
       height: 24px;
       line-height: 24px;
-      caret-color: #2563eb;
+      caret-color: $apple-blue;
+      letter-spacing: -0.2px;
 
       &:-webkit-autofill,
       &:-webkit-autofill:hover,
       &:-webkit-autofill:focus,
       &:-webkit-autofill:active {
-        -webkit-box-shadow: 0 0 0 100px rgba(255, 255, 255, 0.95) inset !important;
-        box-shadow: 0 0 0 100px rgba(255, 255, 255, 0.95) inset !important;
-        -webkit-text-fill-color: #0f172a !important;
+        -webkit-box-shadow: 0 0 0 100px rgba(255, 255, 255, 0.92) inset !important;
+        box-shadow: 0 0 0 100px rgba(255, 255, 255, 0.92) inset !important;
+        -webkit-text-fill-color: #{$text-primary} !important;
         transition: background-color 9999s ease-in-out 0s;
       }
     }
 
     .login-field:hover .mat-mdc-text-field-wrapper {
-      border-color: rgba(167, 139, 250, 0.55) !important;
-      box-shadow:
-        0 6px 18px rgba(79, 142, 247, 0.14),
-        inset 0 2px 6px rgba(255, 255, 255, 0.9) !important;
+      border-color: rgba(0, 0, 0, 0.16) !important;
+      background: rgba(255, 255, 255, 0.82) !important;
     }
 
     .login-field.mat-focused .mat-mdc-text-field-wrapper {
-      border-color: rgba(37, 99, 235, 0.65) !important;
-      box-shadow:
-        0 0 0 3px rgba(59, 130, 246, 0.15),
-        0 6px 20px rgba(79, 142, 247, 0.18),
-        inset 0 2px 6px rgba(255, 255, 255, 0.92) !important;
+      border-color: $apple-blue !important;
+      background: rgba(255, 255, 255, 0.95) !important;
+      box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.15) !important;
     }
 
-    // Iconos suffix centrados y nítidos
+    // Iconos suffix
     .login-field .mat-mdc-form-field-icon-suffix {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       align-self: center;
       padding: 0 2px 0 6px;
-      color: #64748b;
+      color: $text-tertiary;
     }
 
     .login-field .field-suffix-icon {
-      font-size: 22px !important;
-      width: 22px !important;
-      height: 22px !important;
-      line-height: 22px !important;
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+      line-height: 20px !important;
       display: inline-flex !important;
       align-items: center;
       justify-content: center;
-      color: #64748b;
+      color: $text-tertiary;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
     .login-field .field-suffix-btn {
@@ -481,8 +640,8 @@ $clay-bg: #e0eaff;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      border-radius: 10px;
-      color: #64748b;
+      border-radius: 50%;
+      color: $text-tertiary;
 
       .mat-mdc-button-touch-target {
         width: 36px !important;
@@ -490,46 +649,44 @@ $clay-bg: #e0eaff;
       }
 
       &:hover {
-        color: $primary-dark;
-        background: rgba(79, 142, 247, 0.1);
+        color: $apple-blue;
+        background: rgba(0, 113, 227, 0.08);
       }
     }
 
     .login-field.mat-focused .field-suffix-icon {
-      color: $primary-dark;
+      color: $apple-blue;
     }
 
-    // Mensajes de error alineados
     .login-field .mat-mdc-form-field-subscript-wrapper {
       margin-top: 4px;
       padding: 0 4px;
     }
 
     .login-field .mat-mdc-form-field-error {
-      font-size: 0.78rem;
-      font-weight: 600;
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: #ff3b30;   // rojo sistema de Apple
     }
   }
 }
 
-// ===== ERROR =====
+// ===== MENSAJE DE ERROR ====================================
 .error-message {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   padding: 14px 18px;
-  background: rgba(255, 220, 220, 0.7);
-  border: 2px solid rgba(255, 180, 180, 0.6);
-  border-radius: 22px;
-  color: #dc2626;
-  font-size: 13px;
-  font-weight: 600;
+  background: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.22);
+  border-radius: 14px;
+  color: #d70015;
+  font-size: 0.9rem;
+  font-weight: 400;
   line-height: 1.4;
   word-wrap: break-word;
   white-space: normal;
-  box-shadow:
-    0 4px 14px rgba(220, 38, 38, 0.12),
-    inset 0 2px 6px rgba(255,255,255,0.5);
+  letter-spacing: -0.2px;
   animation: errorSlide 0.3s ease-out;
 
   mat-icon {
@@ -539,6 +696,7 @@ $clay-bg: #e0eaff;
     min-width: 20px;
     flex-shrink: 0;
     margin-top: 1px;
+    color: #ff3b30;
   }
 
   span {
@@ -552,51 +710,36 @@ $clay-bg: #e0eaff;
   100% { opacity: 1; transform: translateY(0); }
 }
 
-// ===== LINK OLVIDÉ CONTRASEÑA (ahora dentro de .options-row; elimino bloque duplicado) =====
-// (el estilo está en .options-row .forgot-link más arriba)
-
-// ===== BOTÓN estilo LUNARA: texto izq | personita + puerta der =====
+// ===== BOTÓN (Apple) =======================================
 .login-button {
   width: 100%;
-  height: 56px;
-  background: linear-gradient(135deg, #7c93f5 0%, #9aacff 55%, #8b9cf7 100%) !important;
-  color: #0f172a !important;
-  border: 2px solid rgba(255, 255, 255, 0.55) !important;
-  border-radius: 16px !important;
-  font-size: 15px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.3px;
-  transition: background 0.4s ease, box-shadow 0.3s ease, transform 0.28s ease;
-  box-shadow:
-    0 10px 26px rgba(79, 142, 247, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  height: 52px;
+  margin-top: 8px;
+  background: $apple-blue !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 14px !important;
+  font-size: 1.02rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.2px;
+  font-family: $sf-font;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.18s ease;
+  box-shadow: 0 4px 14px rgba(0, 113, 227, 0.3);
   position: relative;
-  overflow: hidden;
-  padding: 0 !important;
 
   ::ng-deep .mdc-button__label {
     width: 100%;
-    padding: 0 12px 0 18px;
-  }
-
-  .btn-inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 92px;
+    display: flex;
     align-items: center;
-    width: 100%;
-    height: 100%;
-    column-gap: 6px;
+    justify-content: center;
   }
 
   .btn-label {
     display: inline-flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 8px;
-    z-index: 2;
-    text-align: left;
-    min-width: 0;
-    color: #0f172a;
+    color: #ffffff;
 
     & > span {
       white-space: nowrap;
@@ -605,152 +748,30 @@ $clay-bg: #e0eaff;
     }
 
     .check-icon {
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
       flex-shrink: 0;
       color: #fff;
     }
   }
 
-  .btn-scene {
-    position: relative;
-    width: 92px;
-    height: 44px;
-    justify-self: end;
-    flex-shrink: 0;
-    pointer-events: none;
-  }
-
-  // Personita minimalista (estilo referencia LUNARA)
-  .stick-person {
-    position: absolute;
-    left: 4px;
-    top: 50%;
-    width: 18px;
-    height: 34px;
-    transform: translate(0, -50%);
-    transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
-    z-index: 2;
-
-    .stick-head {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #111827;
-      box-shadow: inset -1px -1px 0 rgba(255, 255, 255, 0.15);
-    }
-
-    .stick-neck {
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 2px;
-      height: 2px;
-      background: #111827;
-    }
-
-    .stick-torso {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 2.5px;
-      height: 12px;
-      border-radius: 2px;
-      background: #111827;
-    }
-
-    .stick-arm {
-      position: absolute;
-      top: 11px;
-      width: 2px;
-      height: 9px;
-      border-radius: 2px;
-      background: #111827;
-      transform-origin: top center;
-    }
-    .arm-left  { left: 2px; transform: rotate(18deg); }
-    .arm-right { right: 2px; transform: rotate(-12deg); }
-
-    .stick-leg {
-      position: absolute;
-      bottom: 2px;
-      width: 2px;
-      height: 11px;
-      border-radius: 2px;
-      background: #111827;
-      transform-origin: top center;
-    }
-    .leg-left  { left: 6px; transform: rotate(8deg); }
-    .leg-right { right: 6px; transform: rotate(-8deg); }
-  }
-
-  // Puerta azul compacta (referencia LUNARA)
-  .lunara-door {
-    position: absolute;
-    right: 2px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 22px;
-    height: 36px;
-    z-index: 1;
-
-    .door-frame {
-      position: absolute;
-      inset: 0;
-      border: 2px solid rgba(255, 255, 255, 0.85);
-      border-bottom: none;
-      border-radius: 8px 8px 0 0;
-      background: rgba(30, 58, 138, 0.25);
-    }
-
-    .door-panel {
-      position: absolute;
-      left: 2px;
-      right: 2px;
-      top: 2px;
-      bottom: 0;
-      border-radius: 6px 6px 0 0;
-      background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 45%, #2563eb 100%);
-      transform-origin: left center;
-      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.35),
-        inset -2px 0 0 rgba(0, 0, 0, 0.08);
-    }
-
-    .door-knob {
-      position: absolute;
-      top: 54%;
-      right: 4px;
-      width: 3px;
-      height: 3px;
-      border-radius: 50%;
-      background: #fde68a;
-      z-index: 2;
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
-    }
-  }
-
   &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow:
-      0 14px 32px rgba(79, 142, 247, 0.38),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+    background: $apple-blue-hover !important;
+    transform: scale(1.01);
+    box-shadow: 0 6px 20px rgba(0, 113, 227, 0.38);
+  }
+
+  &:active:not(:disabled) {
+    background: $apple-blue-active !important;
+    transform: scale(0.99);
   }
 
   &:disabled:not(.btn-granted) {
-    background: linear-gradient(135deg, #cbd5e1, #e2e8f0) !important;
+    background: rgba(0, 0, 0, 0.16) !important;
     box-shadow: none !important;
-    border-color: transparent !important;
     cursor: not-allowed;
-    .btn-label { color: #64748b; }
+    .btn-label { color: rgba(255, 255, 255, 0.85); }
   }
 
   .spinning {
@@ -758,110 +779,27 @@ $clay-bg: #e0eaff;
     flex-shrink: 0;
   }
 
-  &.btn-walking {
-    .stick-person {
-      transform: translate(52px, -50%);
-      animation: walkCycle 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    }
-    .stick-person .arm-left  { animation: armSwing 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate; }
-    .stick-person .arm-right { animation: armSwing 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate-reverse; }
-    .stick-person .leg-left  { animation: legSwing 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate; }
-    .stick-person .leg-right { animation: legSwing 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate-reverse; }
-    .stick-person .stick-torso { animation: torsoSway 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-    .stick-person .stick-head { animation: headBob 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-  }
-
   &.btn-granted {
-    background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%) !important;
-    border-color: rgba(255, 255, 255, 0.65) !important;
+    background: #34c759 !important;   // verde sistema de Apple
     color: #fff !important;
+    box-shadow: 0 6px 20px rgba(52, 199, 89, 0.4);
     animation: grantedPulse 0.8s ease-out;
 
-    .btn-inner { grid-template-columns: 1fr; justify-items: center; }
     .btn-label {
-      justify-content: center;
       color: #fff;
       animation: grantedFadeIn 0.55s ease-out 0.15s both;
-    }
-    .btn-scene {
-      position: absolute;
-      right: 14px;
-      opacity: 0.45;
-    }
-    .lunara-door .door-panel {
-      transform: perspective(400px) rotateY(-72deg);
-    }
-    .stick-person {
-      transform: translate(58px, -50%) scale(0.75);
-      opacity: 0;
     }
   }
 
   &.btn-denied {
-    animation: deniedFlash 0.55s ease;
-    .stick-person {
-      transform: translate(52px, -50%);
-      animation: deniedShake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-    }
-    .stick-person .arm-left,
-    .stick-person .arm-right,
-    .stick-person .leg-left,
-    .stick-person .leg-right {
-      animation: none;
-    }
+    animation: deniedShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   }
 }
 
-// ======= KEYFRAMES =======
-
-@keyframes walkCycle {
-  0%   { transform: translate(0, 0); }
-  8%   { transform: translate(4px, -1px); }
-  16%  { transform: translate(10px, 0); }
-  25%  { transform: translate(18px, 1px); }
-  33%  { transform: translate(26px, 0); }
-  41%  { transform: translate(34px, -1px); }
-  50%  { transform: translate(42px, 0); }
-  58%  { transform: translate(50px, 1px); }
-  66%  { transform: translate(58px, 0); }
-  75%  { transform: translate(66px, -1px); }
-  83%  { transform: translate(74px, 0); }
-  91%  { transform: translate(82px, 1px); }
-  100% { transform: translate(90px, 0); }
-}
-
-@keyframes armSwing {
-  0%   { transform: rotate(12deg); }
-  25%  { transform: rotate(-8deg); }
-  50%  { transform: rotate(-28deg); }
-  75%  { transform: rotate(-18deg); }
-  100% { transform: rotate(12deg); }
-}
-
-@keyframes legSwing {
-  0%   { transform: rotate(-15deg); }
-  30%  { transform: rotate(18deg); }
-  60%  { transform: rotate(-8deg); }
-  100% { transform: rotate(22deg); }
-}
-
-@keyframes torsoSway {
-  0%, 100%  { transform: translateX(0) rotate(0deg); }
-  25%       { transform: translateX(1px) rotate(1.5deg); }
-  50%       { transform: translateX(-1px) rotate(-1.5deg); }
-  75%       { transform: translateX(1px) rotate(1deg); }
-}
-
-@keyframes headBob {
-  0%, 100%  { transform: translateX(-50%) translateY(0) rotate(0deg); }
-  25%       { transform: translateX(-50%) translateY(-1px) rotate(1deg); }
-  50%       { transform: translateX(-50%) translateY(0) rotate(-1deg); }
-  75%       { transform: translateX(-50%) translateY(1px) rotate(0.5deg); }
-}
-
+// ===== KEYFRAMES ===========================================
 @keyframes grantedPulse {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.035); }
+  40%  { transform: scale(1.02); }
   100% { transform: scale(1); }
 }
 
@@ -870,30 +808,12 @@ $clay-bg: #e0eaff;
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes deniedFlash {
-  0%, 100% {
-    box-shadow:
-      0 8px 28px rgba(79, 142, 247, 0.35),
-      inset 0 -4px 10px rgba(0,0,0,0.08),
-      inset 0 4px 10px rgba(255,255,255,0.35) !important;
-  }
-  30% {
-    box-shadow:
-      0 10px 30px rgba(220, 38, 38, 0.45),
-      0 0 0 3px rgba(239, 68, 68, 0.22),
-      inset 0 -4px 10px rgba(91, 8, 8, 0.08),
-      inset 0 4px 10px rgba(255,255,255,0.3) !important;
-  }
-}
-
 @keyframes deniedShake {
-  0%   { transform: translate(52px, -50%); }
-  15%  { transform: translate(58px, -50%); }
-  30%  { transform: translate(46px, -50%); }
-  45%  { transform: translate(56px, -50%); }
-  60%  { transform: translate(48px, -50%); }
-  75%  { transform: translate(52px, -50%); }
-  100% { transform: translate(0, -50%); }
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(8px); }
+  60%      { transform: translateX(-5px); }
+  80%      { transform: translateX(5px); }
 }
 
 @keyframes spin {
@@ -901,64 +821,59 @@ $clay-bg: #e0eaff;
   100% { transform: rotate(360deg); }
 }
 
-// ===== RESPONSIVE =====
+// ===== RESPONSIVE ==========================================
 @media (max-width: 1024px) {
   .login-container { flex-direction: column; overflow-y: auto; }
 
   .company-info-section {
     flex: 0 0 auto;
-    padding: 36px 36px 16px;
+    padding: 40px 36px 16px;
     align-items: center;
     text-align: center;
 
-    .company-logo-main { width: 45%; margin: 0 auto 16px; }
-    .clock-section { margin: 0 auto 16px; min-width: auto; max-width: 90%; padding: 18px 28px;
-      .current-time { font-size: 3.2rem; }
-      .current-date { font-size: 1rem; }
+    .company-logo-main { width: 42%; margin: 0 auto 18px; }
+    .clock-section {
+      margin: 0 auto 18px;
+      align-items: center;
+      text-align: center;
+      padding: 20px 36px;
+      .current-time { font-size: 4rem; }
+      .current-date { font-size: 1.15rem; }
     }
     .mission-section .section-text,
     .vision-section .section-text { padding-left: 0; }
     .section-title { justify-content: center; }
   }
 
-  .login-card { flex: 1; padding: 20px; }
-  .login-form { max-width: 100%; }
+  .login-card { flex: 1; padding: 24px; }
+  .login-form { max-width: 100%; min-height: auto; }
 }
 
 @media (max-width: 768px) {
   .company-info-section { padding: 32px 20px 12px; }
-  .login-form { padding: 30px 24px; border-radius: 28px; }
-}
-
-@media (max-width: 768px) {
-  .company-info-section {
-    .clock-section {
-      min-width: auto;
-      padding: 18px 22px;
-      .current-time { font-size: 2.8rem; }
-      .current-date { font-size: 1rem; }
-    }
+  .login-form {
+    padding: 36px 26px;
+    border-radius: 24px;
+    .clock-section .current-time { font-size: 3.4rem; }
   }
 }
 
 @media (max-width: 480px) {
   .company-info-section {
-    .company-logo-main { width: 78%; }
+    .company-logo-main { width: 70%; }
     .clock-section {
-      padding: 16px 18px;
-      .current-time { font-size: 2.2rem; letter-spacing: 2px; }
-      .current-date { font-size: 0.95rem; }
+      .current-time { font-size: 2.9rem; letter-spacing: -1.5px; }
+      .current-date { font-size: 1.05rem; }
     }
   }
-  .login-form { padding: 24px 18px; border-radius: 24px; }
+  .login-form {
+    padding: 30px 20px;
+    border-radius: 22px;
+    .form-header .app-title-text { font-size: 2.2rem; }
+  }
   .options-row {
     gap: 8px;
-    .forgot-link { font-size: 0.72rem; }
+    .forgot-link { font-size: 0.82rem; }
   }
-  .login-button {
-    height: 52px;
-    ::ng-deep .mdc-button__label { padding: 0 10px 0 14px; }
-    .btn-inner { grid-template-columns: minmax(0, 1fr) 92px; column-gap: 4px; }
-    .btn-scene { width: 92px; }
-  }
+  .login-button { height: 50px; }
 }

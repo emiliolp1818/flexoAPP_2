@@ -1,6 +1,7 @@
 
 import { Component, signal, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 
 import { MatButtonModule } from '@angular/material/button';
@@ -39,7 +40,7 @@ import { interval, Subscription } from 'rxjs';
 
 
 import { PermissionsService } from '../../shared/services/permissions.service';
-import { Permission, PermissionCategory, UserPermissionsResponse } from '../../shared/models/permission.model';
+import { Permission, PermissionCategory, UserPermissionsResponse, PERMISSIONS } from '../../shared/models/permission.model';
 
 
 interface SystemConfig {
@@ -58,6 +59,7 @@ interface SystemConfig {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
@@ -101,6 +103,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   selectedUserForPermissions = signal<number | null>(null);
   permissionCategories = signal<PermissionCategory[]>([]);
+
+  // Código de licencia editable. Por ahora se persiste en localStorage;
+  // más adelante se conectará a un endpoint del backend.
+  private readonly LICENSE_STORAGE_KEY = 'flexoapp_license_code';
+  // Licencia válida temporal: si el código ingresado no coincide exactamente,
+  // el badge pasa de "Activa" a "Desactivada".
+  private readonly VALID_LICENSE_CODE = 'FLEXO-2026-XXXX-7A9B-C3D5-E1F2';
+  licenseCode = this.loadLicenseCode();
+
+  // true solo si el código coincide exactamente con la licencia válida
+  isLicenseValid(): boolean {
+    return (this.licenseCode || '').trim() === this.VALID_LICENSE_CODE;
+  }
 
 
   userDisplayedColumns: string[] = ['user', 'contact', 'role', 'status', 'lastLogin', 'actions'];
@@ -1041,12 +1056,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
       const diffMs = now.getTime() - ln.getTime();
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      
-      // Si la última actividad fue hace menos de 5 minutos, está en línea
-      if (diffMinutes < 5) {
+
+      // "En línea" solo si realmente está conectado (login reciente y sin logout
+      // posterior). Se usa isUserOnline para respetar el mismo criterio.
+      if (this.isUserOnline(user)) {
         return isSpanish ? '🟢 En línea' : '🟢 Online';
       }
-      
+
       // Si pasaron más de 24 horas, mostrar fecha y hora
       if (diffHours >= 24) {
         const dateStr = this.timeFormatService.formatDate(ln);
@@ -1066,12 +1082,22 @@ export class SettingsComponent implements OnInit, OnDestroy {
   isUserOnline(user: any): boolean {
     const ln = user?.lastLogin ? new Date(user.lastLogin) : null;
     if (!ln || isNaN(ln.getTime())) return false;
-    
+
+    // Si existe un cierre de sesión (LOGOUT) igual o más reciente que el último
+    // login, el usuario ya se desconectó → NO está en línea aunque el login sea
+    // reciente. (Antes solo se miraba lastLogin y aparecía "en línea" tras salir.)
+    const lo = user?.lastLogout ? new Date(user.lastLogout) : null;
+    const loValid = lo && !isNaN(lo.getTime());
+    if (loValid && lo!.getTime() >= ln.getTime()) {
+      return false;
+    }
+
     const now = new Date();
     const diffMs = now.getTime() - ln.getTime();
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    
-    // Usuario en línea si la última actividad fue hace menos de 5 minutos
+
+    // Usuario en línea si el último login fue hace menos de 5 minutos y no hay
+    // logout posterior.
     return diffMinutes < 5;
   }
 
@@ -1114,6 +1140,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
 
   async resetPassword(user: User) {
+    // Solo admins / supervisores / usuarios con el permiso pueden restablecer.
+    if (!this.canResetPassword()) {
+      this.snackBar.open('No tienes permiso para restablecer contraseñas', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
     const email = user.email || 'correo no disponible';
     
     const snackBarRef = this.snackBar.open('', 'Restablecer', {
@@ -1135,45 +1167,80 @@ export class SettingsComponent implements OnInit, OnDestroy {
       try {
         console.log(`🔐 Restableciendo contraseña para usuario MySQL: ${user.userCode}`);
 
-        const response = await this.http.post(`${environment.apiUrl}/auth/users/${user.id}/reset-password`, {}).toPromise();
+        // Ruta correcta: el endpoint vive en UsersController (api/users/...)
+        const response: any = await this.http.post(
+          `${environment.apiUrl}/users/${user.id}/reset-password`, {}
+        ).toPromise();
 
-        if (response) {
-        console.log(`✅ Contraseña restablecida en MySQL para: ${user.userCode}`);
+        console.log(`✅ Contraseña temporal generada para: ${user.userCode}`);
 
-        const snackBarRef = this.snackBar.open('', '', {
+        const tempPass = response?.temporaryPassword || '';
+        const minutes = response?.expiresInMinutes || 10;
+
+        // Snackbar de éxito (mensaje original) — breve
+        const okSnack = this.snackBar.open('', '', {
           duration: 5000,
           panelClass: ['status-listo-snackbar', 'animated-snackbar'],
           horizontalPosition: 'center',
           verticalPosition: 'bottom'
         });
-
         setTimeout(() => {
           const container = document.querySelector('.status-listo-snackbar .mdc-snackbar__label');
           if (container) {
-            container.innerHTML = `<span class="status-icon">✓</span> Contraseña restablecida. Nueva contraseña enviada a ${email}`;
+            container.innerHTML = `<span class="status-icon">✓</span> Contraseña restablecida para ${user.firstName} ${user.lastName}`;
           }
         }, 0);
-      }
-    } catch (error) {
-      console.error('❌ Error restableciendo contraseña en MySQL:', error);
 
-
-      const snackBarRef = this.snackBar.open('', '', {
-        duration: 4000,
-        panelClass: ['status-listo-snackbar', 'animated-snackbar'],
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom'
-      });
-
-      setTimeout(() => {
-        const container = document.querySelector('.status-listo-snackbar .mdc-snackbar__label');
-        if (container) {
-          container.innerHTML = `<span class="status-icon">✓</span> Contraseña restablecida para ${user.firstName} ${user.lastName}`;
+        // Segundo snackbar (persistente) con la CONTRASEÑA TEMPORAL para entregar
+        // al usuario. Incluye botón para copiarla. Válida por 10 min.
+        if (tempPass) {
+          const tempSnack = this.snackBar.open('', 'Copiar', {
+            duration: 20000,
+            panelClass: ['status-preparando-snackbar', 'animated-snackbar', 'temp-password-snackbar'],
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom'
+          });
+          setTimeout(() => {
+            const container = document.querySelector('.status-preparando-snackbar .mdc-snackbar__label');
+            if (container) {
+              container.innerHTML =
+                `<div style="display:flex;align-items:center;gap:12px;width:100%;">` +
+                  `<span class="status-icon" style="flex-shrink:0;">🔑</span>` +
+                  `<div style="display:flex;flex-direction:column;gap:4px;line-height:1.35;min-width:0;">` +
+                    `<span style="font-weight:600;">Contraseña temporal · ${user.userCode}</span>` +
+                    `<span style="font-family:'SF Mono',ui-monospace,monospace;font-size:1.15rem;font-weight:700;letter-spacing:2px;background:rgba(255,255,255,0.22);padding:3px 10px;border-radius:8px;display:inline-block;width:fit-content;">${tempPass}</span>` +
+                    `<span style="font-size:0.82rem;opacity:0.92;">Válida ${minutes} min · el usuario debe cambiarla al ingresar</span>` +
+                  `</div>` +
+                `</div>`;
+            }
+          }, 0);
+          tempSnack.onAction().subscribe(() => {
+            try {
+              navigator.clipboard?.writeText(tempPass);
+              this.snackBar.open('Contraseña temporal copiada', 'OK', { duration: 2000 });
+            } catch {
+              // Clipboard no disponible — el admin puede copiarla manualmente
+            }
+          });
         }
-      }, 0);
-    } finally {
-      this.loading.set(false);
-    }
+      } catch (error) {
+        console.error('❌ Error restableciendo contraseña en MySQL:', error);
+
+        const errSnack = this.snackBar.open('', 'Cerrar', {
+          duration: 5000,
+          panelClass: ['status-terminado-snackbar', 'animated-snackbar'],
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom'
+        });
+        setTimeout(() => {
+          const container = document.querySelector('.status-terminado-snackbar .mdc-snackbar__label');
+          if (container) {
+            container.innerHTML = `<span class="status-icon">✕</span> No se pudo restablecer la contraseña de ${user.firstName} ${user.lastName}`;
+          }
+        }, 0);
+      } finally {
+        this.loading.set(false);
+      }
     });
   }
 
@@ -1669,6 +1736,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return user?.role?.toLowerCase() === 'admin';
   }
 
+  /**
+   * Solo admins, supervisores o usuarios con el permiso 'users.reset_password'
+   * pueden restablecer contraseñas (generar la contraseña temporal).
+   */
+  canResetPassword(): boolean {
+    const role = this.currentUser()?.role?.toLowerCase();
+    if (role === 'admin' || role === 'supervisor') return true;
+    return this.permissionsService.hasPermission(PERMISSIONS.USERS_RESET_PASSWORD);
+  }
+
 
   getGrantedCount(category: PermissionCategory): number {
     return category.permissions.filter(p => p.isGranted).length;
@@ -1680,6 +1757,89 @@ export class SettingsComponent implements OnInit, OnDestroy {
     if (userId) {
       this.loadUserPermissions();
     }
+  }
+
+  // Carga el código de licencia guardado (o un valor de ejemplo por defecto)
+  private loadLicenseCode(): string {
+    try {
+      const saved = localStorage.getItem(this.LICENSE_STORAGE_KEY);
+      if (saved) return saved;
+    } catch {
+      // localStorage no disponible
+    }
+    return 'FLEXO-2026-XXXX-7A9B-C3D5-E1F2';
+  }
+
+  // Guarda el código de licencia ingresado manualmente por el usuario
+  saveLicenseCode(): void {
+    const code = (this.licenseCode || '').trim();
+
+    if (!code) {
+      const errSnack = this.snackBar.open('', '', {
+        duration: 3000,
+        panelClass: ['status-terminado-snackbar', 'animated-snackbar'],
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom'
+      });
+      setTimeout(() => {
+        const container = document.querySelector('.status-terminado-snackbar .mdc-snackbar__label');
+        if (container) {
+          container.innerHTML = `<span class="status-icon">✕</span> El código de licencia no puede estar vacío`;
+        }
+      }, 0);
+      return;
+    }
+
+    this.licenseCode = code;
+    try {
+      localStorage.setItem(this.LICENSE_STORAGE_KEY, code);
+    } catch {
+      // localStorage no disponible
+    }
+
+    const snackBarRef = this.snackBar.open('', '', {
+      duration: 3000,
+      panelClass: ['status-listo-snackbar', 'animated-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+    setTimeout(() => {
+      const container = document.querySelector('.status-listo-snackbar .mdc-snackbar__label');
+      if (container) {
+        container.innerHTML = `<span class="status-icon">✓</span> Código de licencia guardado`;
+      }
+    }, 0);
+  }
+
+  // Copia el código de licencia al portapapeles
+  copyLicenseCode(): void {
+    try {
+      navigator.clipboard?.writeText(this.licenseCode);
+    } catch {
+      // Clipboard no disponible — el usuario puede copiar manualmente
+    }
+
+    const snackBarRef = this.snackBar.open('', '', {
+      duration: 2500,
+      panelClass: ['status-listo-snackbar', 'animated-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+
+    setTimeout(() => {
+      const container = document.querySelector('.status-listo-snackbar .mdc-snackbar__label');
+      if (container) {
+        container.innerHTML = `<span class="status-icon">✓</span> Código de licencia copiado`;
+      }
+    }, 0);
+  }
+
+  // Nombre completo del usuario seleccionado (para el trigger del selector de permisos)
+  getSelectedUserName(): string {
+    const userId = this.selectedUserForPermissions();
+    if (userId === null || userId === undefined) return '';
+    const user = this.users().find(u => String(u.id) === String(userId));
+    return user ? `${user.firstName} ${user.lastName}`.trim() : '';
   }
 
 }

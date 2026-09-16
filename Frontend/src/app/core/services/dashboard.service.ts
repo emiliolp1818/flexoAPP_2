@@ -64,6 +64,16 @@ export class DashboardService {
       );
   }
 
+  getWeeklyPreparation(): Observable<any> {
+    const cached = this.getCached<any>('weekly');
+    if (cached) return of(cached);
+    return this.http.get<any>(`${environment.apiUrl}/dashboard/weekly-preparation`)
+      .pipe(
+        tap(data => this.setCache('weekly', data)),
+        catchError((err) => { console.error('❌ Service weekly-preparation error:', err); return of({ month: '', weeks: [] }); })
+      );
+  }
+
   getKpiTrends(): Observable<any> {
     const cached = this.getCached<any>('kpi');
     if (cached) return of(cached);

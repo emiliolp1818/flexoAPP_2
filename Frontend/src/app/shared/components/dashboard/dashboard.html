@@ -191,24 +191,43 @@
           <span class="legend-item t2"><span class="legend-dot"></span>T2 (14-22)</span>
           <span class="legend-item t3"><span class="legend-dot"></span>T3 (22-6)</span>
         </div>
-        <div class="shift-bars-row">
-          <ng-container *ngIf="shiftData().length > 0">
-            <div class="shift-day-col" *ngFor="let day of shiftData()">
-              <div class="triple-bar">
-                <div class="thin-bar t1" [style.height.px]="day.shifts[0].count * 12 || 3">
-                  <span class="bar-num" *ngIf="day.shifts[0].count > 0">{{ day.shifts[0].count }}</span>
+        <div class="shift-plot">
+          <!-- Línea analítica de tendencia (total de programas por día) -->
+          <div class="shift-trend-layer" *ngIf="shiftData().length > 1">
+            <svg class="shift-trend" viewBox="0 0 100 100"
+                 preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="shiftTrendFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#6366f1" stop-opacity="0.2" />
+                  <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path class="shift-trend-area" [attr.d]="getShiftTrendArea()" fill="url(#shiftTrendFill)" />
+              <path class="shift-trend-line" [attr.d]="getShiftTrendPath()" fill="none" />
+            </svg>
+            <div *ngFor="let pt of getShiftTrendPoints()" class="shift-trend-dot"
+                 [style.left.%]="pt.x" [style.top.%]="pt.y"></div>
+          </div>
+
+          <div class="shift-bars-row">
+            <ng-container *ngIf="shiftData().length > 0">
+              <div class="shift-day-col" *ngFor="let day of shiftData()">
+                <div class="triple-bar">
+                  <div class="thin-bar t1" [style.height.px]="day.shifts[0].count * 12 || 3">
+                    <span class="bar-num" *ngIf="day.shifts[0].count > 0">{{ day.shifts[0].count }}</span>
+                  </div>
+                  <div class="thin-bar t2" [style.height.px]="day.shifts[1].count * 12 || 3">
+                    <span class="bar-num" *ngIf="day.shifts[1].count > 0">{{ day.shifts[1].count }}</span>
+                  </div>
+                  <div class="thin-bar t3" [style.height.px]="day.shifts[2].count * 12 || 3">
+                    <span class="bar-num" *ngIf="day.shifts[2].count > 0">{{ day.shifts[2].count }}</span>
+                  </div>
                 </div>
-                <div class="thin-bar t2" [style.height.px]="day.shifts[1].count * 12 || 3">
-                  <span class="bar-num" *ngIf="day.shifts[1].count > 0">{{ day.shifts[1].count }}</span>
-                </div>
-                <div class="thin-bar t3" [style.height.px]="day.shifts[2].count * 12 || 3">
-                  <span class="bar-num" *ngIf="day.shifts[2].count > 0">{{ day.shifts[2].count }}</span>
-                </div>
+                <span class="day-label">{{ day.day.substring(0, 3) }}</span>
+                <span class="day-date-label">{{ day.date }}</span>
               </div>
-              <span class="day-label">{{ day.day.substring(0, 3) }}</span>
-              <span class="day-date-label">{{ day.date }}</span>
-            </div>
-          </ng-container>
+            </ng-container>
+          </div>
         </div>
       </div>
       <div *ngIf="shiftData().length === 0" class="chart-empty">
@@ -219,20 +238,85 @@
     <div class="chart-card">
       <h3 class="chart-title"><mat-icon>calendar_today</mat-icon> Preparación por Día</h3>
       <div class="daily-chart">
-        <div class="daily-bars">
-          <ng-container *ngIf="dailyData().length > 0">
-            <div class="daily-col" *ngFor="let day of dailyData()">
-              <div class="daily-bar-wrapper">
-                <span class="daily-count">{{ day.count }}</span>
-                <div class="daily-bar" [style.height.%]="getDailyBarHeight(day.count)"></div>
+        <div class="daily-plot">
+          <!-- Capa de tendencia: SVG + puntos comparten el mismo espacio -->
+          <div class="daily-trend-layer" *ngIf="dailyData().length > 1">
+            <svg class="daily-trend" viewBox="0 0 100 100"
+                 preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="dailyTrendFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.22" />
+                  <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path class="daily-trend-area" [attr.d]="getDailyTrendArea()" fill="url(#dailyTrendFill)" />
+              <path class="daily-trend-line" [attr.d]="getDailyTrendPath()" fill="none" />
+            </svg>
+            <!-- Puntos de la línea -->
+            <div *ngFor="let pt of getDailyTrendPoints()" class="daily-trend-dot"
+                 [style.left.%]="pt.x" [style.top.%]="pt.y"></div>
+          </div>
+
+          <div class="daily-bars">
+            <ng-container *ngIf="dailyData().length > 0">
+              <div class="daily-col" *ngFor="let day of dailyData()">
+                <div class="daily-bar-wrapper">
+                  <span class="daily-count">{{ day.count }}</span>
+                  <div class="daily-bar" [style.height.%]="getDailyBarHeight(day.count)"></div>
+                </div>
+                <span class="daily-label">{{ day.dayName }}</span>
+                <span class="daily-date">{{ day.date }}</span>
               </div>
-              <span class="daily-label">{{ day.dayName }}</span>
-              <span class="daily-date">{{ day.date }}</span>
-            </div>
-          </ng-container>
+            </ng-container>
+          </div>
         </div>
         <div *ngIf="dailyData().length === 0" class="chart-empty">
           <mat-icon>info</mat-icon> Sin datos
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjeta única: Preparación Quincenal (2 donuts lado a lado) -->
+    <div class="chart-card quincena-card" *ngIf="weeklyData().length > 0">
+      <h3 class="chart-title"><mat-icon>donut_large</mat-icon> Preparación Quincenal</h3>
+
+      <div class="quincena-row">
+        <div class="quincena-donut" *ngFor="let week of weeklyData()">
+          <div class="quincena-range">{{ week.rangeStart }} - {{ week.rangeEnd }}</div>
+
+          <div class="donut-wrap">
+            <svg class="donut-svg" viewBox="-5 -5 52 52" aria-hidden="true">
+              <circle class="donut-track" cx="21" cy="21" r="15.9155" fill="none"
+                      stroke="#e2e8f0" stroke-width="9"></circle>
+              <circle *ngFor="let seg of getDonutSegments(week)"
+                      class="donut-seg"
+                      cx="21" cy="21" r="15.9155" fill="none"
+                      [attr.stroke]="seg.color"
+                      stroke-width="9"
+                      [attr.stroke-dasharray]="seg.dash + ' ' + (100 - seg.dash)"
+                      [attr.stroke-dashoffset]="seg.offset"
+                      stroke-linecap="butt">
+              </circle>
+
+              <g *ngFor="let lbl of getDonutLabels(week)">
+                <!-- Nombre del día: radial (adentro → afuera) sobre la banda -->
+                <text class="donut-day-label"
+                      [attr.x]="lbl.dx" [attr.y]="lbl.dy"
+                      [attr.text-anchor]="lbl.anchor"
+                      [attr.transform]="'rotate(' + lbl.drotate + ' ' + lbl.dx + ' ' + lbl.dy + ')'"
+                      dominant-baseline="central">{{ lbl.dayText }}</text>
+                <!-- Conteo: por fuera del anillo -->
+                <text class="donut-count-label"
+                      [attr.x]="lbl.cx2" [attr.y]="lbl.cy2"
+                      [attr.fill]="lbl.color"
+                      text-anchor="middle" dominant-baseline="central">{{ lbl.count }}</text>
+              </g>
+            </svg>
+            <div class="donut-center">
+              <span class="donut-total">{{ week.total }}</span>
+              <span class="donut-total-label">pedidos</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -251,7 +335,7 @@
                      [style.background]="getPantoneBarColor(i)">
                 </div>
               </div>
-              <span class="pantone-name-v">{{ p.name }}</span>
+              <span class="pantone-name-v" [title]="p.name">{{ shortPantoneName(p.name) }}</span>
             </div>
           </ng-container>
         </div>

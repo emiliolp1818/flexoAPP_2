@@ -1,11 +1,7 @@
 <div class="login-container">
 
-  <div class="animated-background">
-    <div class="floating-orb"></div>
-    <div class="floating-orb"></div>
-    <div class="floating-orb"></div>
-  </div>
-
+  <!-- Líneas diagonales de fondo (empresarial, solo CSS) -->
+  <div class="login-bg-lines" aria-hidden="true"></div>
 
   <div class="company-info-section">
     <img src="../logo2.3.png" alt="FlexoSpring Logo" class="company-logo-main">
@@ -45,15 +41,9 @@
 
     <div class="login-form">
 
-      <div class="logo-container">
-        <img src="../usuario.2.0.png" alt="Usuario" class="company-logo">
-        
-      </div>
-
-
       <div class="form-header">
-        <h2>FlexoApp</h2>
-        <p>Accede a tu cuenta</p>
+        <h2 class="app-title"><span class="app-title-text">FlexoApp</span></h2>
+        <p>Acceder a cuenta</p>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
@@ -65,16 +55,15 @@
 
 
         <div class="form-field">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="fill" floatLabel="always" subscriptSizing="dynamic" class="login-field">
             <mat-label>Usuario</mat-label>
             <input
               matInput
               formControlName="userCode"
               autocomplete="username"
-              placeholder="Ingrese su usuario"
               type="text"
               inputmode="text" />
-            <mat-icon matSuffix>person</mat-icon>
+            <mat-icon matSuffix class="field-suffix-icon">person</mat-icon>
             <mat-error *ngIf="loginForm.get('userCode')?.invalid && loginForm.get('userCode')?.touched">
               Usuario requerido
             </mat-error>
@@ -83,21 +72,21 @@
 
 
         <div class="form-field">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="fill" floatLabel="always" subscriptSizing="dynamic" class="login-field">
             <mat-label>Contraseña</mat-label>
             <input
               matInput
               [type]="hidePassword() ? 'password' : 'text'"
               formControlName="password"
-              autocomplete="current-password"
-              placeholder="Ingrese su contraseña" />
+              autocomplete="current-password" />
             <button
               mat-icon-button
               matSuffix
               type="button"
+              class="field-suffix-btn"
               (click)="togglePasswordVisibility()"
               [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'">
-              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              <mat-icon class="field-suffix-icon">{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
             <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
               Contraseña requerida
@@ -105,20 +94,64 @@
           </mat-form-field>
         </div>
 
-        <!-- Enlace de recuperar contraseña -->
-        <div class="forgot-password-link">
+        <!-- Fila Recordarme + Olvidé contraseña (misma línea) -->
+        <div class="options-row">
+          <mat-checkbox
+            class="remember-checkbox"
+            color="accent"
+            formControlName="rememberMe">
+            Recordarme
+          </mat-checkbox>
           <a href="#" (click)="onForgotPassword($event)" class="forgot-link">
             ¿Olvidaste tu contraseña?
           </a>
+        </div>
+
+        <!-- Adquirir licencia -->
+        <div class="license-row">
+          <a href="#" (click)="onAcquireLicense($event)" class="license-link"
+             [class.open]="showLicenseInfo()">
+            <mat-icon>workspace_premium</mat-icon>
+            <span>Adquirir licencia</span>
+            <mat-icon class="chevron">{{ showLicenseInfo() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </a>
+
+          <div class="license-contact-panel" *ngIf="showLicenseInfo()">
+            <p class="license-contact-intro">
+              Para adquirir o renovar tu licencia, contáctanos:
+            </p>
+            <a class="contact-item" href="mailto:emiliojlp18@hotmail.com">
+              <mat-icon>email</mat-icon>
+              <span>emiliojlp18&#64;hotmail.com</span>
+            </a>
+            <a class="contact-item" href="tel:+573332420216">
+              <mat-icon>phone</mat-icon>
+              <span>+57 333 242 0216</span>
+            </a>
+          </div>
         </div>
 
         <button
           mat-raised-button
           type="submit"
           class="login-button"
-          [disabled]="loginForm.invalid || isLoading() || isBlocked()">
-          <mat-icon *ngIf="isLoading()" class="spinning">refresh</mat-icon>
-          <span>{{ isLoading() ? 'Iniciando...' : isBlocked() ? 'Bloqueado' : 'Iniciar Sesión' }}</span>
+          [ngClass]="{
+            'btn-walking': buttonState() === 'walking',
+            'btn-granted': buttonState() === 'granted',
+            'btn-denied': buttonState() === 'denied'
+          }"
+          [disabled]="loginForm.invalid || isLoading() || isBlocked() || buttonState() === 'granted'">
+
+          <span class="btn-label" [ngSwitch]="buttonState()">
+            <ng-container *ngSwitchCase="'granted'">
+              <mat-icon class="check-icon">check_circle</mat-icon>
+              <span>Acceso Concedido</span>
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              <mat-icon *ngIf="isLoading() && buttonState() === 'idle'" class="spinning">refresh</mat-icon>
+              <span>{{ isLoading() ? 'Iniciando...' : isBlocked() ? 'Bloqueado' : 'Iniciar Sesión' }}</span>
+            </ng-container>
+          </span>
         </button>
       </form>
     </div>

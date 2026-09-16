@@ -182,7 +182,7 @@
                             matTooltip="Editar usuario" class="action-btn edit-btn large-icon">
                             <mat-icon class="large-action-icon">edit</mat-icon>
                           </button>
-                          <button mat-icon-button color="accent" (click)="resetPassword(user)" [disabled]="loading()"
+                          <button *ngIf="canResetPassword()" mat-icon-button color="accent" (click)="resetPassword(user)" [disabled]="loading()"
                             matTooltip="Restablecer contraseña" class="action-btn reset-btn large-icon">
                             <mat-icon class="large-action-icon">lock_reset</mat-icon>
                           </button>
@@ -335,7 +335,10 @@
                     <mat-form-field appearance="outline" class="user-selector-field-inline">
                       <mat-label>Seleccionar Usuario</mat-label>
                       <mat-select [(value)]="selectedUserForPermissions"
+                                  panelClass="ap-user-select-panel"
+                                  [panelWidth]="null"
                                   (selectionChange)="onUserForPermissionsChange($event.value)">
+                        <mat-select-trigger>{{ getSelectedUserName() }}</mat-select-trigger>
                         <mat-option *ngFor="let user of users()" [value]="user.id" class="user-option-with-avatar">
                           <div class="user-option-content">
                             <!-- Avatar -->
@@ -491,15 +494,58 @@
                     <div class="system-card-items">
                       <div class="system-info-item-compact">
                         <span class="system-label">Email:</span>
-                        <span class="system-value">soporte@flexoapp.com</span>
+                        <span class="system-value">emiliojlp18@hotmail.com</span>
                       </div>
                       <div class="system-info-item-compact">
                         <span class="system-label">Teléfono:</span>
-                        <span class="system-value">+1 (555) 123-4567</span>
+                        <span class="system-value">+57 333 242 0216</span>
                       </div>
                       <div class="system-info-item-compact">
                         <span class="system-label">Horario:</span>
                         <span class="system-value">Lun-Vie 8:00-18:00</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Licencia del Sistema -->
+                <div class="license-card">
+                  <div class="license-header">
+                    <div class="license-icon">
+                      <mat-icon>verified_user</mat-icon>
+                    </div>
+                    <div class="license-title-group">
+                      <span class="license-title">Código de Licencia</span>
+                      <span class="license-subtitle">Licencia activa de FlexoApp</span>
+                    </div>
+                    <span class="license-badge" [class.inactive]="!isLicenseValid()">
+                      <mat-icon>{{ isLicenseValid() ? 'check_circle' : 'cancel' }}</mat-icon>
+                      {{ isLicenseValid() ? 'Activa' : 'Desactivada' }}
+                    </span>
+                  </div>
+
+                  <div class="license-body">
+                    <div class="license-code-field">
+                      <span class="license-code-label">Clave de producto</span>
+                      <div class="license-code-row">
+                        <input type="text"
+                               class="license-code-input"
+                               [(ngModel)]="licenseCode"
+                               placeholder="Ingresa el código de licencia"
+                               spellcheck="false"
+                               autocomplete="off">
+                        <button mat-icon-button class="license-copy-btn"
+                                (click)="copyLicenseCode()"
+                                matTooltip="Copiar código de licencia">
+                          <mat-icon>content_copy</mat-icon>
+                        </button>
+                      </div>
+                      <div class="license-actions">
+                        <button mat-flat-button class="license-save-btn"
+                                (click)="saveLicenseCode()">
+                          <mat-icon>save</mat-icon>
+                          <span>Guardar licencia</span>
+                        </button>
                       </div>
                     </div>
                   </div>

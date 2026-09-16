@@ -31,6 +31,7 @@ export class DashboardComponent implements OnInit {
   });
   shiftData = signal<any[]>([]);
   dailyData = signal<any[]>([]);
+  weeklyData = signal<{ week: number; label: string; rangeStart: string; rangeEnd: string; total: number; days: any[] }[]>([]);
   setupTrendBars = signal<{value: number, percent: number, day: string, date: string}[]>(Array(7).fill({value: 0, percent: 6, day: '', date: ''}));
   readyTrendBars = signal<{value: number, percent: number, day: string, date: string}[]>(Array(7).fill({value: 0, percent: 6, day: '', date: ''}));
   designsTrendBars = signal<{value: number, percent: number, day: string, date: string}[]>(Array(7).fill({value: 0, percent: 6, day: '', date: ''}));
@@ -65,6 +66,7 @@ export class DashboardComponent implements OnInit {
     this.loadSystemStats();
     this.loadShiftEfficiency();
     this.loadDailyPreparation();
+    this.loadWeeklyPreparation();
     this.loadKpiTrends();
     this.loadBestTimeWeek();
     this.loadMonthlyProduction();
@@ -84,6 +86,15 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getShiftEfficiency().subscribe({
       next: (data) => { this.shiftData.set(data); this.chartsLoading.set(false); },
       error: () => { this.chartsLoading.set(false); }
+    });
+  }
+
+  private loadWeeklyPreparation(): void {
+    this.dashboardService.getWeeklyPreparation().subscribe({
+      next: (data) => {
+        this.weeklyData.set(data?.weeks || []);
+      },
+      error: () => { this.weeklyData.set([]); }
     });
   }
 
@@ -128,8 +139,18 @@ export class DashboardComponent implements OnInit {
   }
 
   getPantoneBarColor(index: number): string {
-    const colors = ['#8b5cf6','#7c3aed','#6d28d9','#5b21b6','#4c1d95','#a78bfa','#c4b5fd','#ddd6fe'];
+    const colors = ['#8b5cf6','#7c3aed','#6d28d9','#5b21b6','#4c1d95','#a78bfa','#9333ea','#c4b5fd','#7e22ce','#ddd6fe'];
     return colors[index % colors.length];
+  }
+
+  // Acorta nombres de pantone largos para que no deformen las columnas.
+  // Deja intactos los cortos (tipo "P 186"); recorta los largos con "…".
+  shortPantoneName(name: string): string {
+    if (!name) return '';
+    const clean = name.trim();
+    const maxLen = 7; // p.ej. "P 2975" cabe; nombres más largos se recortan
+    if (clean.length <= maxLen) return clean;
+    return clean.substring(0, maxLen).trim() + '…';
   }
 
   todayDate(): string {
@@ -191,6 +212,54 @@ export class DashboardComponent implements OnInit {
     }));
   }
 
+  // ── Línea analítica de tendencia (SVG) para Eficiencia por Turno ──
+  // Se basa en el total de programas del día (suma de los 3 turnos).
+  private getShiftDayTotal(day: any): number {
+    const shifts = day?.shifts || [];
+    return shifts.reduce((sum: number, s: any) => sum + (s?.count || 0), 0);
+  }
+
+  getShiftTrendPoints(): { x: number; y: number }[] {
+    const data = this.shiftData();
+    const n = data.length;
+    if (n === 0) return [];
+    const totals = data.map(d => this.getShiftDayTotal(d));
+    const maxTotal = Math.max(...totals, 1);
+    return data.map((d, i) => {
+      const x = n === 1 ? 50 : (i / (n - 1)) * 100;
+      const norm = totals[i] / maxTotal; // 0..1
+      const y = 62 - norm * 54; // flota en la mitad superior
+      return { x, y };
+    });
+  }
+
+  getShiftTrendPath(): string {
+    const pts = this.getShiftTrendPoints();
+    if (pts.length === 0) return '';
+    if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+      const t = 0.18;
+      const c1x = p1.x + (p2.x - p0.x) * t;
+      const c1y = p1.y + (p2.y - p0.y) * t;
+      const c2x = p2.x - (p3.x - p1.x) * t;
+      const c2y = p2.y - (p3.y - p1.y) * t;
+      d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
+    }
+    return d;
+  }
+
+  getShiftTrendArea(): string {
+    const line = this.getShiftTrendPath();
+    if (!line) return '';
+    return `${line} L 100 100 L 0 100 Z`;
+  }
+
   getShiftBarWidth(avgTime: number): number {
     const maxTime = Math.max(...this.shiftData().map(s => s.averageTime), 1);
     return Math.min((avgTime / maxTime) * 100, 100);
@@ -213,6 +282,165 @@ export class DashboardComponent implements OnInit {
   getDailyBarHeight(count: number): number {
     const maxCount = Math.max(...this.dailyData().map(d => d.count), 1);
     return Math.max((count / maxCount) * 100, 4);
+  }
+
+  // ── Donuts de Preparación por Semana ─────────────────────────
+  // Paleta de colores por día (7 tonos, se repiten si hace falta)
+  private readonly weekDayColors = [
+    '#3b82f6', // azul
+    '#10b981', // verde
+    '#f59e0b', // ámbar
+    '#8b5cf6', // púrpura
+    '#ec4899', // rosa
+    '#06b6d4', // cian
+    '#f97316'  // naranja
+  ];
+
+  getWeekDayColor(index: number): string {
+    return this.weekDayColors[index % this.weekDayColors.length];
+  }
+
+  // Genera los segmentos del donut (para stroke-dasharray sobre un círculo r=15.9155)
+  // Circunferencia normalizada a 100 para trabajar en porcentajes.
+  getDonutSegments(week: { total: number; days: any[] }): {
+    color: string; dash: number; offset: number; day: any; index: number;
+  }[] {
+    const days = week?.days || [];
+    const total = days.reduce((s, d) => s + (d.count || 0), 0);
+    const segments: { color: string; dash: number; offset: number; day: any; index: number }[] = [];
+    if (total === 0) return segments;
+
+    let acc = 0;
+    days.forEach((d, i) => {
+      const value = d.count || 0;
+      if (value <= 0) return;
+      const pct = (value / total) * 100;
+      segments.push({
+        color: this.getWeekDayColor(i),
+        dash: pct,
+        // offset negativo para empezar arriba y avanzar en sentido horario
+        offset: 25 - acc,
+        day: d,
+        index: i
+      });
+      acc += pct;
+    });
+    return segments;
+  }
+
+  // Días de la semana que tienen al menos 1 pedido (para la leyenda)
+  getWeekLegendDays(week: { days: any[] }): { day: any; index: number; color: string }[] {
+    return (week?.days || []).map((day, index) => ({
+      day, index, color: this.getWeekDayColor(index)
+    }));
+  }
+
+  // Etiquetas del donut:
+  //  - dayText: nombre + fecha, ORIENTADO RADIALMENTE (a lo largo del radio,
+  //    de adentro hacia afuera) sobre la banda de color.
+  //  - count: número de pedidos, colocado POR FUERA del anillo (upright).
+  // viewBox 0 0 42 42, centro (21,21), radio del anillo = 15.9155.
+  getDonutLabels(week: { total: number; days: any[] }): {
+    // etiqueta radial del día
+    dx: number; dy: number; drotate: number; anchor: string; dayText: string;
+    // conteo por fuera del anillo
+    cx2: number; cy2: number; count: number; color: string;
+  }[] {
+    const days = week?.days || [];
+    const total = days.reduce((s, d) => s + (d.count || 0), 0);
+    const labels: any[] = [];
+    if (total === 0) return labels;
+
+    const cx = 21, cy = 21;
+    const rBand = 15.9155;   // radio del centro del anillo (banda de color)
+    const rOut = 24.5;       // radio para el conteo por fuera del anillo
+    let acc = 0;
+
+    days.forEach((d) => {
+      const value = d.count || 0;
+      if (value <= 0) return;
+      const pct = value / total;
+      const midFraction = acc + pct / 2;
+      acc += pct;
+
+      const angleDeg = midFraction * 360;            // desde arriba, horario
+      const angleRad = (angleDeg - 90) * Math.PI / 180;
+
+      // Posición del texto del día sobre la banda de color
+      const dx = cx + rBand * Math.cos(angleRad);
+      const dy = cy + rBand * Math.sin(angleRad);
+
+      // Orientación RADIAL: el texto corre a lo largo del radio (adentro→afuera).
+      // rotate = angleDeg alinea el eje del texto con el radio.
+      // Si cae en la mitad izquierda, lo volteamos 180° para que no quede al revés.
+      let drotate = angleDeg;
+      let anchor = 'start'; // el texto crece del centro hacia afuera
+      if (angleDeg > 90 && angleDeg < 270) {
+        drotate = angleDeg + 180;
+        anchor = 'end';
+      }
+
+      // Posición del conteo por fuera del anillo
+      const cx2 = cx + rOut * Math.cos(angleRad);
+      const cy2 = cy + rOut * Math.sin(angleRad);
+
+      labels.push({
+        dx, dy, drotate, anchor,
+        dayText: `${d.dayName} ${d.date}`,
+        cx2, cy2, count: value,
+        color: this.getWeekDayColor(days.indexOf(d))
+      });
+    });
+
+    return labels;
+  }
+
+  // ── Línea analítica de tendencia (SVG) sobre las barras ──────
+  // Coordenadas en un viewBox 0..100 x 0..100 (preserveAspectRatio="none").
+  // El eje Y está invertido: 0 = arriba, 100 = abajo.
+
+  // Puntos {x, y} centrados sobre cada barra
+  getDailyTrendPoints(): { x: number; y: number }[] {
+    const data = this.dailyData();
+    const n = data.length;
+    if (n === 0) return [];
+    const maxCount = Math.max(...data.map(d => d.count), 1);
+    return data.map((d, i) => {
+      const x = n === 1 ? 50 : (i / (n - 1)) * 100;
+      // La línea flota en la mitad superior: y entre 8 (máximo) y 62 (mínimo)
+      const norm = d.count / maxCount; // 0..1
+      const y = 62 - norm * 54;
+      return { x, y };
+    });
+  }
+
+  // Path suave (curva Catmull-Rom → Bézier) que conecta los puntos
+  getDailyTrendPath(): string {
+    const pts = this.getDailyTrendPoints();
+    if (pts.length === 0) return '';
+    if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+      const t = 0.18; // suavizado
+      const c1x = p1.x + (p2.x - p0.x) * t;
+      const c1y = p1.y + (p2.y - p0.y) * t;
+      const c2x = p2.x - (p3.x - p1.x) * t;
+      const c2y = p2.y - (p3.y - p1.y) * t;
+      d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
+    }
+    return d;
+  }
+
+  // Path del área (mismo trazo cerrado hasta la base) para el degradado
+  getDailyTrendArea(): string {
+    const line = this.getDailyTrendPath();
+    if (!line) return '';
+    return `${line} L 100 100 L 0 100 Z`;
   }
 
   getFormattedSetupTime(): string {

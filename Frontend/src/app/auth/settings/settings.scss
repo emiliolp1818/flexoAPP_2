@@ -2561,11 +2561,11 @@ $gray-900: #0f172a;
 // Grid de Sistema Compacto
 .system-info-grid-compact {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
 
-  @media (max-width: 1200px) {
+  @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
 }
@@ -4001,6 +4001,1775 @@ $gray-900: #0f172a;
 
     .permission-toggle-btn {
       width: 100%;
+    }
+  }
+}
+
+// ============================================================
+//  APPLE DESIGN SYSTEM — Módulo de Configuración (Settings)
+//  Aplica encima del tema base sin romper la funcionalidad.
+//  Tipografía SF Pro, azul de sistema #0071e3, glassmorphism,
+//  bordes hairline y radios Apple. Unificado con Login/Diseño.
+// ============================================================
+
+$ap-blue:        #0071e3;
+$ap-blue-hover:  #0077ed;
+$ap-blue-dark:   #006edb;
+$ap-green:       #34c759;
+$ap-red:         #ff3b30;
+$ap-amber:       #ff9f0a;
+$ap-text:        #1d1d1f;
+$ap-text-2:      #6e6e73;
+$ap-text-3:      #86868b;
+$ap-hairline:    rgba(0, 0, 0, 0.08);
+$ap-font:        -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
+
+// ── Fondo general ────────────────────────────────────────────
+:host {
+  background: linear-gradient(160deg, #eaf1ff 0%, #dfe9ff 30%, #e9e4ff 65%, #e6f0ff 100%) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+.settings-container {
+  background: transparent !important;
+  font-family: $ap-font !important;
+}
+
+// ── Encabezado ───────────────────────────────────────────────
+.settings-header {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border-bottom: 1px solid $ap-hairline !important;
+  box-shadow: none !important;
+
+  .page-title {
+    font-family: $ap-font !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.6px !important;
+    color: $ap-text !important;
+    mat-icon { color: $ap-blue !important; }
+  }
+  .page-subtitle {
+    font-family: $ap-font !important;
+    font-weight: 400 !important;
+    color: $ap-text-2 !important;
+    letter-spacing: -0.2px !important;
+  }
+}
+
+// ── Tarjeta contenedora ──────────────────────────────────────
+.settings-content .settings-card {
+  background: rgba(255, 255, 255, 0.62) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+// ── Tabs ─────────────────────────────────────────────────────
+.settings-card {
+  .mat-mdc-tab-labels,
+  .mat-mdc-tab-label-container {
+    font-family: $ap-font !important;
+  }
+
+  .mat-mdc-tab .mdc-tab__text-label {
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.2px !important;
+    color: $ap-text-2 !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: $ap-blue !important;
+  }
+  .mat-mdc-tab .mdc-tab-indicator__content--underline {
+    border-color: $ap-blue !important;
+    border-top-width: 2px !important;
+  }
+  .mat-mdc-tab mat-icon { color: inherit !important; }
+}
+
+// ── Section header (títulos de sección + acciones) ───────────
+.section-header {
+  h3 {
+    font-family: $ap-font !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.4px !important;
+    color: $ap-text !important;
+    mat-icon { color: $ap-blue !important; }
+  }
+  .section-description {
+    font-family: $ap-font !important;
+    font-weight: 400 !important;
+    color: $ap-text-2 !important;
+    letter-spacing: -0.2px !important;
+  }
+
+  // Botón primario (Nuevo Usuario)
+  .load-programming-btn,
+  button[color="primary"] {
+    background: $ap-blue !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.2px !important;
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.28) !important;
+    .mdc-button__label, span, mat-icon { color: #ffffff !important; }
+    &:hover:not(:disabled) { background: $ap-blue-hover !important; box-shadow: 0 6px 16px rgba(0, 113, 227, 0.36) !important; }
+  }
+
+  // Botón secundario (Actualizar)
+  .export-btn,
+  button[color="accent"] {
+    background: rgba(0, 113, 227, 0.08) !important;
+    color: $ap-blue !important;
+    border: 1px solid rgba(0, 113, 227, 0.2) !important;
+    border-radius: 12px !important;
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    .mdc-button__label, span, mat-icon { color: $ap-blue !important; }
+    &:hover:not(:disabled) { background: rgba(0, 113, 227, 0.14) !important; }
+  }
+}
+
+// ── Tabla de usuarios ────────────────────────────────────────
+.users-table-container {
+  border-radius: 16px !important;
+  border: 1px solid $ap-hairline !important;
+  // La cabecera y el radio se mantienen, pero el contenido debe poder
+  // desplazarse verticalmente para ver todos los usuarios de la lista.
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 280px) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+}
+
+.users-table {
+  background: transparent !important;
+  font-family: $ap-font !important;
+
+  .excel-header {
+    background: rgba(248, 250, 252, 0.9) !important;
+    border-bottom: 1px solid $ap-hairline !important;
+    border-right: none !important;
+    .header-content {
+      font-family: $ap-font !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.3px !important;
+      color: $ap-text-2 !important;
+      text-transform: uppercase;
+      mat-icon { color: $ap-blue !important; }
+    }
+  }
+
+  .excel-cell {
+    font-family: $ap-font !important;
+    color: $ap-text !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    border-right: none !important;
+  }
+
+  .mat-mdc-row {
+    transition: background 0.15s ease !important;
+    &:hover { background: rgba(0, 113, 227, 0.04) !important; }
+  }
+
+  .user-name { font-family: $ap-font !important; font-weight: 600 !important; color: $ap-text !important; letter-spacing: -0.2px !important; }
+  .user-code { font-family: $ap-font !important; color: $ap-text-3 !important; }
+  .contact-text { font-family: $ap-font !important; color: $ap-text-2 !important; }
+  .contact-icon { color: $ap-text-3 !important; }
+
+  // Avatar por defecto — radio Apple
+  .default-avatar,
+  .profile-image { border-radius: 12px !important; }
+
+  // Chip de rol
+  .role-chip {
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    letter-spacing: -0.1px !important;
+  }
+
+  // Badge de estado
+  .status-badge {
+    font-family: $ap-font !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    &.active { background: rgba(52, 199, 89, 0.14) !important; color: #248a3d !important; }
+    &.inactive { background: rgba(0, 0, 0, 0.06) !important; color: $ap-text-2 !important; }
+  }
+
+  // Botones de acción (editar / reset / eliminar)
+  .action-btn {
+    border-radius: 10px !important;
+    &.edit-btn mat-icon { color: $ap-blue !important; }
+    &.reset-btn mat-icon { color: $ap-amber !important; }
+    &.delete-btn mat-icon { color: $ap-red !important; }
+    &.edit-btn:hover { background: rgba(0, 113, 227, 0.1) !important; }
+    &.reset-btn:hover { background: rgba(255, 159, 10, 0.12) !important; }
+    &.delete-btn:hover { background: rgba(255, 59, 48, 0.1) !important; }
+  }
+}
+
+// Toggle de estado del usuario — azul de sistema
+.compact-toggle,
+mat-slide-toggle {
+  .mdc-switch--selected .mdc-switch__track::after { background: $ap-blue !important; }
+  .mdc-switch--selected .mdc-switch__handle::after { background: #ffffff !important; }
+}
+
+// ============================================================
+//  USUARIOS — Refinamiento compacto, minimalista y fluido
+//  (más denso, filas más finas, avatares pequeños, hover suave)
+// ============================================================
+.users-table-container {
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.users-table.compact-table,
+.users-table {
+  min-width: 0 !important;
+
+  // Filas más finas y aireadas
+  .mat-mdc-header-row { height: 40px !important; min-height: 40px !important; }
+  .mat-mdc-row { height: 56px !important; min-height: 56px !important; }
+
+  // Header minimalista: tipografía pequeña, sin degradado
+  .excel-header {
+    background: rgba(250, 250, 252, 0.85) !important;
+    padding: 0 12px !important;
+    .header-content {
+      font-size: 10.5px !important;
+      letter-spacing: 0.4px !important;
+      gap: 5px !important;
+      mat-icon { font-size: 15px !important; width: 15px !important; height: 15px !important; }
+    }
+  }
+
+  // Celdas compactas
+  .excel-cell {
+    padding: 6px 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  // Hover fluido: fondo suave + microdesplazamiento
+  .mat-mdc-row {
+    transition: background 0.18s ease, box-shadow 0.18s ease !important;
+    &:hover {
+      background: rgba(0, 113, 227, 0.045) !important;
+      box-shadow: inset 3px 0 0 $ap-blue !important;
+    }
+  }
+
+  // Perfil de usuario compacto
+  // El avatar ocupa (casi) todo el alto del renglón para que la foto se vea grande.
+  // Solo se ajusta el ALTO; el ancho de la fila/columna no cambia.
+  .user-cell {
+    min-width: 0 !important;
+    max-width: none !important;
+    // Padding vertical mínimo para que el avatar pueda llenar el alto de la fila
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+
+    .user-profile { gap: 10px !important; }
+
+    .user-avatar {
+      width: 48px !important;
+      height: 48px !important;
+      min-width: 48px !important;
+      flex-shrink: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+
+      .profile-image,
+      .default-avatar {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 10px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        // Centrar contenido (iniciales / imagen) dentro del avatar
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        // La imagen cubre todo el cuadro sin deformarse
+        object-fit: cover !important;
+      }
+    }
+
+    .user-name { font-size: 13px !important; line-height: 1.25 !important; }
+    .user-code { font-size: 11px !important; line-height: 1.2 !important; }
+  }
+
+  // Contacto compacto
+  .contact-cell {
+    .contact-item { gap: 6px !important; }
+    .contact-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; }
+    .contact-text { font-size: 12px !important; }
+  }
+
+  // Chip de rol — pill sutil
+  .role-chip {
+    font-size: 11px !important;
+    min-height: 22px !important;
+    padding: 2px 10px !important;
+    background: rgba(0, 113, 227, 0.1) !important;
+    color: $ap-blue !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  // Estado: toggle + badge compactos y alineados
+  .status-container { gap: 8px !important; }
+  .status-badge {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  // Botones de acción más pequeños y con microinteracción
+  .actions-cell .action-buttons {
+    gap: 2px !important;
+    margin-right: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  .action-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 9px !important;
+    padding: 0 !important;
+    transition: background 0.15s ease, transform 0.12s ease !important;
+
+    // Centrar el ícono dentro del botón (MDC deja el contenido descentrado)
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 32px !important;
+
+    .large-action-icon,
+    mat-icon {
+      font-size: 17px !important;
+      width: 17px !important;
+      height: 17px !important;
+      line-height: 17px !important;
+      margin: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    // Centrar los targets internos del mat-icon-button (MDC)
+    .mat-mdc-button-touch-target { width: 32px !important; height: 32px !important; }
+    .mat-mdc-button-persistent-ripple,
+    .mat-mdc-focus-indicator { border-radius: 9px !important; }
+    .mat-mdc-button-touch-target,
+    .mat-mdc-button-persistent-ripple {
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+    }
+
+    &:hover { transform: translateY(-1px) !important; }
+    &:active { transform: translateY(0) scale(0.94) !important; }
+  }
+
+  // Último acceso — texto discreto, punto online verde
+  .last-login { font-size: 11.5px !important; color: $ap-text-2 !important; }
+  .last-login.online { color: $ap-green !important; font-weight: 500 !important; }
+}
+
+// Cabecera de la sección Usuarios — más compacta
+.tab-content .section-header {
+  h3 { font-size: 16px !important; gap: 7px !important; }
+  h3 mat-icon { font-size: 19px !important; width: 19px !important; height: 19px !important; }
+  .section-description { font-size: 12.5px !important; }
+
+  .header-actions {
+    gap: 8px !important;
+    button {
+      height: 36px !important;
+      border-radius: 11px !important;
+      font-size: 13px !important;
+      mat-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; }
+    }
+  }
+}
+
+// ── Grids compactos (Config / Permisos / Sistema) ────────────
+.config-category-compact,
+.permission-category-compact,
+.system-card-compact {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid $ap-hairline !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden;
+}
+
+.config-category-header-compact,
+.category-header-compact,
+.system-card-header-compact {
+  font-family: $ap-font !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.2px !important;
+  color: $ap-text !important;
+  background: rgba(248, 250, 252, 0.7) !important;
+  border-bottom: 1px solid $ap-hairline !important;
+  mat-icon { color: $ap-blue !important; }
+}
+
+.category-name-compact,
+.category-name,
+.system-card-title { font-family: $ap-font !important; }
+
+.category-count-compact,
+.category-count {
+  font-family: $ap-font !important;
+  font-weight: 600 !important;
+  color: $ap-blue !important;
+  background: rgba(0, 113, 227, 0.1) !important;
+  border-radius: 8px !important;
+}
+
+// Tarjetas de config / permisos
+.config-card-compact,
+.permission-card-compact {
+  font-family: $ap-font !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  transition: background 0.15s ease !important;
+  &:hover { background: rgba(0, 113, 227, 0.03) !important; }
+}
+
+.config-name-compact,
+.permission-name-compact {
+  font-family: $ap-font !important;
+  font-weight: 500 !important;
+  color: $ap-text !important;
+  letter-spacing: -0.2px !important;
+}
+.config-desc-compact,
+.permission-desc-compact {
+  font-family: $ap-font !important;
+  color: $ap-text-2 !important;
+}
+
+// Botón ON/OFF (boolean config + permisos)
+.config-toggle-btn-compact,
+.permission-toggle-btn {
+  font-family: $ap-font !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  border: 1px solid $ap-hairline !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: $ap-text-2 !important;
+  transition: all 0.18s ease !important;
+
+  mat-icon { color: inherit !important; }
+
+  &.active {
+    background: $ap-blue !important;
+    color: #ffffff !important;
+    border-color: $ap-blue-dark !important;
+    box-shadow: 0 3px 10px rgba(0, 113, 227, 0.3) !important;
+    mat-icon, span { color: #ffffff !important; }
+  }
+  &:disabled { opacity: 0.5 !important; }
+}
+
+// Info del sistema
+.system-label { font-family: $ap-font !important; color: $ap-text-2 !important; }
+.system-value { font-family: $ap-font !important; font-weight: 500 !important; color: $ap-text !important; }
+.system-status-online { color: $ap-green !important; mat-icon { color: $ap-green !important; } }
+.system-count { color: $ap-blue !important; font-weight: 600 !important; }
+
+// ── Tarjetas de Sistema — refinamiento Apple ─────────────────
+.system-card-compact {
+  transition: box-shadow 0.24s ease, transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+
+  &:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08) !important;
+    border-color: rgba(0, 113, 227, 0.25) !important;
+  }
+}
+
+.system-card-header-compact {
+  padding: 9px 14px !important;
+  gap: 9px !important;
+  background: rgba(248, 250, 252, 0.7) !important;
+  border-bottom: 1px solid $ap-hairline !important;
+
+  mat-icon {
+    color: $ap-blue !important;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    filter: none !important;
+  }
+
+  .system-card-title {
+    font-family: $ap-font !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    letter-spacing: -0.2px !important;
+    text-transform: none !important;
+    color: $ap-text !important;
+  }
+}
+
+// Cuerpo de la tarjeta: menos padding y menos separación entre items
+.system-card-items {
+  padding: 8px !important;
+}
+
+.system-info-item-compact {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid $ap-hairline !important;
+  border-radius: 10px !important;
+  padding: 7px 11px !important;
+  margin-bottom: 6px !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
+
+  &:hover {
+    background: rgba(0, 113, 227, 0.03) !important;
+    border-color: rgba(0, 113, 227, 0.2) !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .system-label { font-weight: 500 !important; font-size: 0.82rem !important; }
+  .system-value {
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    mat-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; }
+  }
+}
+
+// ── Tarjeta de Licencia — estilo Apple ───────────────────────
+.license-card {
+  margin-top: 10px;
+  font-family: $ap-font !important;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid $ap-hairline;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+
+  .license-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    background: rgba(248, 250, 252, 0.7);
+    border-bottom: 1px solid $ap-hairline;
+
+    .license-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: rgba(0, 113, 227, 0.1);
+
+      mat-icon {
+        color: $ap-blue;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .license-title-group {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+
+      .license-title {
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: -0.2px;
+        color: $ap-text;
+      }
+
+      .license-subtitle {
+        font-size: 0.72rem;
+        font-weight: 400;
+        color: $ap-text-2;
+        letter-spacing: -0.1px;
+      }
+    }
+
+    .license-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: $ap-green;
+      background: rgba(52, 199, 89, 0.12);
+      border: 1px solid rgba(52, 199, 89, 0.25);
+      border-radius: 999px;
+      padding: 4px 10px;
+
+      mat-icon {
+        color: $ap-green;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+      }
+
+      // Licencia inválida: badge rojo de sistema Apple
+      &.inactive {
+        color: #ff3b30;
+        background: rgba(255, 59, 48, 0.1);
+        border-color: rgba(255, 59, 48, 0.25);
+        mat-icon { color: #ff3b30; }
+      }
+    }
+  }
+
+  .license-body {
+    padding: 11px 14px;
+
+    .license-code-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .license-code-label {
+        font-size: 0.74rem;
+        font-weight: 500;
+        color: $ap-text-2;
+        letter-spacing: -0.1px;
+      }
+
+      .license-code-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid $ap-hairline;
+        border-radius: 11px;
+        padding: 2px 4px 2px 12px;
+        transition: border-color 0.2s ease, background 0.2s ease;
+
+        &:hover {
+          border-color: rgba(0, 0, 0, 0.16);
+          background: rgba(255, 255, 255, 0.9);
+        }
+
+        .license-code-input {
+          flex: 1;
+          min-width: 0;
+          border: none;
+          outline: none;
+          background: transparent;
+          font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+          font-size: 0.9rem;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+          color: $ap-text;
+          padding: 6px 0;
+
+          &::placeholder {
+            color: $ap-text-3;
+            font-weight: 400;
+            letter-spacing: -0.1px;
+          }
+        }
+
+        .license-copy-btn {
+          flex-shrink: 0;
+          color: $ap-text-3;
+          transition: color 0.15s ease, background 0.15s ease;
+
+          &:hover {
+            color: $ap-blue;
+            background: rgba(0, 113, 227, 0.08);
+          }
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+          }
+        }
+      }
+
+      // Foco: acento azul de sistema sobre el contenedor
+      .license-code-row:focus-within {
+        border-color: $ap-blue;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+      }
+
+      .license-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 9px;
+
+        .license-save-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-family: $ap-font !important;
+          font-weight: 500 !important;
+          font-size: 0.82rem !important;
+          letter-spacing: -0.2px !important;
+          color: #ffffff !important;
+          background: $ap-blue !important;
+          border-radius: 10px !important;
+          padding: 0 14px !important;
+          height: 34px !important;
+          box-shadow: 0 3px 10px rgba(0, 113, 227, 0.25) !important;
+          transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease !important;
+
+          &:hover {
+            background: $ap-blue-hover !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 5px 14px rgba(0, 113, 227, 0.32) !important;
+          }
+          &:active { transform: translateY(0) !important; }
+
+          mat-icon {
+            color: #ffffff !important;
+            font-size: 16px !important;
+            width: 16px !important;
+            height: 16px !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ── Campos de formulario (config + selector de usuario) ──────
+.config-input-compact,
+.config-select-compact,
+.user-selector-field-inline {
+  font-family: $ap-font !important;
+
+  .mat-mdc-text-field-wrapper {
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.75) !important;
+  }
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing { border-color: $ap-hairline !important; }
+  &.mat-focused {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing { border-color: $ap-blue !important; border-width: 1.5px !important; }
+  }
+  input, .mat-mdc-select-value-text {
+    font-family: $ap-font !important;
+    color: $ap-text !important;
+    caret-color: $ap-blue !important;
+  }
+  .mdc-floating-label { font-family: $ap-font !important; color: $ap-text-3 !important; }
+  .mat-mdc-form-field-icon-prefix mat-icon,
+  .mat-mdc-select-arrow { color: $ap-text-3 !important; }
+}
+
+// ── Estados vacíos / carga ───────────────────────────────────
+.no-data,
+.no-user-selected-compact {
+  mat-icon { color: rgba(0, 113, 227, 0.25) !important; }
+  p { font-family: $ap-font !important; color: $ap-text-2 !important; }
+}
+.loading-container {
+  p { font-family: $ap-font !important; color: $ap-text-2 !important; }
+  .loading-icon { color: $ap-blue !important; }
+}
+
+// ============================================================
+//  AJUSTES (Configuraciones del Sistema) — Apple Design notable
+//  Filas laterales (items en grid multi-columna dentro de cada
+//  categoría), glassmorphism marcado y micro-interacciones.
+//  Scoped a .config-tab-content.
+// ============================================================
+.config-tab-content {
+
+  // Cabecera de sección más ligera
+  .section-header {
+    margin-bottom: 12px !important;
+    h3 { font-size: 15px !important; gap: 7px !important; letter-spacing: -0.3px !important; }
+    h3 mat-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; color: $ap-blue !important; }
+    .section-description { font-size: 12px !important; }
+  }
+
+  // Grid de categorías: cada categoría ocupa una fila completa para
+  // permitir que sus items se distribuyan en columnas laterales.
+  .config-grid-compact {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  // Tarjeta de categoría: compacta, glass, radio Apple, acento superior.
+  .config-category-compact {
+    position: relative !important;
+    border: 1px solid $ap-hairline !important;
+    border-radius: 14px !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62)) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    box-shadow:
+      0 3px 12px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+    transition: box-shadow 0.24s ease, transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    overflow: hidden !important;
+
+    // Fina franja de acento azul en la parte superior
+    &::before {
+      content: '' !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      height: 2px !important;
+      background: linear-gradient(90deg, $ap-blue, #4aa3ff) !important;
+      opacity: 0.85 !important;
+    }
+
+    &:hover {
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+      transform: translateY(-2px) !important;
+    }
+  }
+
+  // Header de la categoría: compacto, ícono en "chip" con gradiente azul
+  .config-category-header-compact {
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    padding: 9px 14px !important;
+    background: rgba(250, 250, 252, 0.6) !important;
+    border-bottom: 1px solid $ap-hairline !important;
+
+    > mat-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 26px !important;
+      height: 26px !important;
+      font-size: 15px !important;
+      border-radius: 8px !important;
+      background: linear-gradient(145deg, $ap-blue, #4aa3ff) !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(0, 113, 227, 0.28) !important;
+      flex-shrink: 0 !important;
+    }
+
+    .category-name-compact {
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.3px !important;
+      color: $ap-text !important;
+      flex: 1 !important;
+    }
+
+    .category-count-compact {
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      min-width: 20px !important;
+      height: 20px !important;
+      padding: 0 7px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: $ap-blue !important;
+      background: rgba(0, 113, 227, 0.12) !important;
+      border-radius: 999px !important;
+    }
+  }
+
+  // *** FILAS LATERALES ***
+  // Items en columnas dentro de una grilla responsiva más densa.
+  .config-items-grid-compact {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  // Cada item es una "celda" auto-contenida (info arriba, control abajo),
+  // ahora más compacta.
+  .config-card-compact {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 7px !important;
+    padding: 9px 11px !important;
+    border: 1px solid $ap-hairline !important;
+    border-bottom: 1px solid $ap-hairline !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.55) !important;
+    transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+
+    &.last-item, &:last-child { border-bottom: 1px solid $ap-hairline !important; }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.9) !important;
+      border-color: rgba(0, 113, 227, 0.35) !important;
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.09) !important;
+      transform: translateY(-1px) !important;
+    }
+  }
+
+  .config-content-compact { min-width: 0 !important; flex: 1 !important; }
+  .config-name-compact {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.2px !important;
+    color: $ap-text !important;
+    line-height: 1.25 !important;
+  }
+  .config-desc-compact {
+    font-size: 10.5px !important;
+    color: $ap-text-2 !important;
+    line-height: 1.3 !important;
+    margin-top: 2px !important;
+  }
+
+  // Control alineado a la derecha dentro de la celda
+  .config-control-compact {
+    min-width: 0 !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+
+  // Botón ON/OFF: pill compacto, estilo control segmentado iOS
+  .config-toggle-btn-compact {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    min-width: 58px !important;
+    height: 27px !important;
+    padding: 0 11px !important;
+    border-radius: 999px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.4px !important;
+    border: 1px solid $ap-hairline !important;
+    background: rgba(120, 120, 128, 0.12) !important;
+    color: $ap-text-2 !important;
+    box-shadow: none !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+
+    mat-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; color: inherit !important; }
+
+    &:hover { background: rgba(120, 120, 128, 0.2) !important; }
+
+    &.active {
+      background: linear-gradient(145deg, $ap-blue, #4aa3ff) !important;
+      color: #ffffff !important;
+      border-color: transparent !important;
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.38) !important;
+      mat-icon, span { color: #ffffff !important; }
+      &:hover { background: linear-gradient(145deg, $ap-blue-hover, #4aa3ff) !important; }
+    }
+  }
+
+  // Campos (string/number/select): compactos estilo iOS, a todo el ancho de la celda
+  .config-input-compact,
+  .config-select-compact {
+    width: 100% !important;
+    font-family: $ap-font !important;
+
+    .mat-mdc-form-field-infix {
+      min-height: 32px !important;
+      padding-top: 6px !important;
+      padding-bottom: 6px !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    .mat-mdc-text-field-wrapper {
+      border-radius: 10px !important;
+      background: rgba(255, 255, 255, 0.85) !important;
+    }
+    .mat-mdc-form-field-subscript-wrapper { display: none !important; }
+    input, .mat-mdc-select-value-text {
+      font-size: 12px !important;
+      color: $ap-text !important;
+      caret-color: $ap-blue !important;
+    }
+    .mat-mdc-form-field-icon-prefix mat-icon { font-size: 14px !important; color: $ap-text-3 !important; }
+  }
+}
+
+// ============================================================
+//  PERMISOS (Gestión de Permisos) — Apple Design notable
+//  Replica el diseño compacto de la pestaña de Configuración:
+//  tarjetas de categoría glass con franja de acento, ícono en
+//  "chip" azul, grilla densa de celdas y toggle pill iOS.
+//  Scoped a .permissions-tab.
+// ============================================================
+.permissions-tab {
+
+  // ── Cabecera unificada + selector de usuario ───────────────
+  .section-header.permissions-unified-header {
+    margin-bottom: 12px !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 10px 14px !important;
+    background: rgba(255, 255, 255, 0.55) !important;
+    border: 1px solid $ap-hairline !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+
+    &:hover { border-color: $ap-hairline !important; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important; }
+
+    h3 {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      gap: 7px !important;
+      letter-spacing: -0.3px !important;
+      color: $ap-text !important;
+    }
+    h3 mat-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; color: $ap-blue !important; filter: none !important; }
+    .section-description { font-size: 12px !important; color: $ap-text-2 !important; }
+  }
+
+  .permissions-user-selector-inline {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: 520px !important;
+    max-width: 640px !important;
+
+    @media (max-width: 1024px) {
+      min-width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    // Campo del selector: minimalista Apple (anula el estilo "premium" azul)
+    .user-selector-field-inline {
+      flex: 1 !important;
+
+      ::ng-deep {
+        // Contenedor del input: hairline sutil, radio Apple, sin glow ni lift
+        .mat-mdc-text-field-wrapper {
+          background: rgba(255, 255, 255, 0.7) !important;
+          border: 1px solid $ap-hairline !important;
+          border-radius: 12px !important;
+          box-shadow: none !important;
+          overflow: visible !important;
+          transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+
+          // Elimina el "shimmer" del estilo premium
+          &::before { display: none !important; }
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border-color: rgba(0, 0, 0, 0.16) !important;
+            box-shadow: none !important;
+            transform: none !important;
+            &::before { left: -100% !important; }
+          }
+        }
+
+        .mat-mdc-form-field-infix {
+          min-height: 40px !important;
+          padding-top: 6px !important;
+          padding-bottom: 6px !important;
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .mat-mdc-form-field-subscript-wrapper { display: none !important; }
+
+        // Ícono prefijo compacto, sin sombra ni animación
+        .mat-mdc-form-field-icon-prefix {
+          color: $ap-text-3 !important;
+          margin-right: 8px !important;
+          margin-left: 2px !important;
+
+          mat-icon {
+            font-size: 18px !important;
+            width: 18px !important;
+            height: 18px !important;
+            filter: none !important;
+            transform: none !important;
+          }
+        }
+
+        // Valor seleccionado: tipografía Apple compacta, una sola línea
+        .mat-mdc-select-value {
+          font-family: $ap-font !important;
+          font-weight: 500 !important;
+          font-size: 13px !important;
+          letter-spacing: -0.2px !important;
+          color: $ap-text !important;
+        }
+
+        .mat-mdc-select-arrow { color: $ap-text-3 !important; }
+
+        // Label: neutro; azul de sistema al enfocar
+        .mat-mdc-floating-label,
+        .mat-mdc-form-field-label {
+          font-family: $ap-font !important;
+          font-weight: 500 !important;
+          font-size: 13px !important;
+          color: $ap-text-3 !important;
+          letter-spacing: -0.1px !important;
+        }
+
+        // Label flotante: chip con fondo blanco para que no lo corte el borde superior
+        .mdc-floating-label--float-above {
+          padding: 0 5px !important;
+          background: #ffffff !important;
+          border-radius: 4px !important;
+        }
+
+        // Focus: acento azul de sistema sutil, sin desplazamiento
+        &.mat-focused .mat-mdc-text-field-wrapper {
+          border-color: $ap-blue !important;
+          border-width: 1px !important;
+          background: rgba(255, 255, 255, 0.95) !important;
+          box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+          transform: none !important;
+        }
+
+        &.mat-focused .mat-mdc-form-field-icon-prefix mat-icon {
+          color: $ap-blue !important;
+          transform: none !important;
+          filter: none !important;
+        }
+
+        &.mat-focused .mat-mdc-floating-label,
+        &.mat-focused .mat-mdc-form-field-label { color: $ap-blue !important; }
+      }
+    }
+
+    // Nota "Solo admins" como chip discreto Apple
+    .admin-note-inline {
+      flex-shrink: 0 !important;
+      font-family: $ap-font !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      color: $ap-text-2 !important;
+      background: rgba(120, 120, 128, 0.1) !important;
+      border: 1px solid $ap-hairline !important;
+      border-radius: 999px !important;
+      padding: 5px 10px !important;
+      box-shadow: none !important;
+      transition: background 0.2s ease !important;
+
+      &:hover { transform: none !important; box-shadow: none !important; background: rgba(120, 120, 128, 0.16) !important; border-color: $ap-hairline !important; }
+      mat-icon { color: $ap-text-3 !important; font-size: 14px !important; width: 14px !important; height: 14px !important; filter: none !important; }
+    }
+  }
+
+  // ── Grid de categorías: una fila completa por categoría ────
+  .permissions-grid-compact {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 0 !important;
+  }
+
+  // Tarjeta de categoría: glass, radio Apple, franja de acento superior
+  .permission-category-compact {
+    position: relative !important;
+    border: 1px solid $ap-hairline !important;
+    border-radius: 14px !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62)) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    box-shadow:
+      0 3px 12px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+    transition: box-shadow 0.24s ease, transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    overflow: hidden !important;
+
+    &::before {
+      content: '' !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      height: 2px !important;
+      background: linear-gradient(90deg, $ap-blue, #4aa3ff) !important;
+      opacity: 0.85 !important;
+    }
+
+    &:hover {
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+      transform: translateY(-2px) !important;
+      border-color: $ap-hairline !important;
+    }
+  }
+
+  // Header de la categoría: compacto, ícono en "chip" con gradiente azul
+  .category-header-compact {
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    padding: 9px 14px !important;
+    background: rgba(250, 250, 252, 0.6) !important;
+    border-bottom: 1px solid $ap-hairline !important;
+
+    > mat-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 26px !important;
+      height: 26px !important;
+      font-size: 15px !important;
+      border-radius: 8px !important;
+      background: linear-gradient(145deg, $ap-blue, #4aa3ff) !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(0, 113, 227, 0.28) !important;
+      filter: none !important;
+      flex-shrink: 0 !important;
+    }
+
+    .category-name {
+      font-family: $ap-font !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.3px !important;
+      text-transform: none !important;
+      color: $ap-text !important;
+      flex: 1 !important;
+    }
+
+    .category-count {
+      font-family: $ap-font !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      min-width: 20px !important;
+      height: 20px !important;
+      padding: 0 7px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: $ap-blue !important;
+      background: rgba(0, 113, 227, 0.12) !important;
+      border: none !important;
+      border-radius: 999px !important;
+      box-shadow: none !important;
+    }
+  }
+
+  // Items de permiso en grilla densa multi-columna
+  .permissions-grid-items {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  // Cada permiso es una "celda" auto-contenida (info arriba, control abajo)
+  .permission-card-compact {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 7px !important;
+    padding: 9px 11px !important;
+    border: 1px solid $ap-hairline !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.55) !important;
+    transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.9) !important;
+      border-color: rgba(0, 113, 227, 0.35) !important;
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.09) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    // Estado activo: acento azul sutil (coherente con Apple), sin verde
+    &.active {
+      background: rgba(0, 113, 227, 0.06) !important;
+      border-color: rgba(0, 113, 227, 0.25) !important;
+
+      &:hover {
+        background: rgba(0, 113, 227, 0.1) !important;
+        border-color: rgba(0, 113, 227, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(0, 113, 227, 0.12) !important;
+      }
+    }
+  }
+
+  .permission-content {
+    min-width: 0 !important;
+    flex: 1 !important;
+
+    .permission-name-compact {
+      font-family: $ap-font !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.2px !important;
+      color: $ap-text !important;
+      line-height: 1.25 !important;
+      margin-bottom: 0 !important;
+    }
+
+    .permission-desc-compact {
+      font-family: $ap-font !important;
+      font-size: 10.5px !important;
+      color: $ap-text-2 !important;
+      line-height: 1.3 !important;
+      margin-top: 2px !important;
+    }
+  }
+
+  // Toggle ON/OFF: pill compacto estilo control segmentado iOS
+  .permission-toggle-btn {
+    display: inline-flex !important;
+    align-self: flex-end !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    min-width: 58px !important;
+    height: 27px !important;
+    padding: 0 11px !important;
+    border-radius: 999px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.4px !important;
+    text-transform: uppercase !important;
+    border: 1px solid $ap-hairline !important;
+    box-shadow: none !important;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+
+    mat-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; color: inherit !important; }
+
+    // OFF: gris neutro (sin rojo)
+    &:not(.active) {
+      background: rgba(120, 120, 128, 0.12) !important;
+      color: $ap-text-2 !important;
+
+      mat-icon { color: $ap-text-2 !important; }
+
+      &:hover:not(:disabled) {
+        background: rgba(120, 120, 128, 0.2) !important;
+        transform: none !important;
+        box-shadow: none !important;
+        mat-icon { transform: none !important; }
+      }
+    }
+
+    // ON: azul de sistema (sin verde)
+    &.active {
+      background: linear-gradient(145deg, $ap-blue, #4aa3ff) !important;
+      color: #ffffff !important;
+      border-color: transparent !important;
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.38) !important;
+
+      mat-icon { color: #ffffff !important; }
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(145deg, $ap-blue-hover, #4aa3ff) !important;
+        transform: none !important;
+        box-shadow: 0 6px 18px rgba(0, 113, 227, 0.42) !important;
+        mat-icon { transform: none !important; }
+      }
+    }
+
+    &:disabled {
+      opacity: 0.45 !important;
+      cursor: not-allowed !important;
+      background: rgba(120, 120, 128, 0.1) !important;
+      box-shadow: none !important;
+    }
+  }
+
+  // Estado vacío: limpio, radio Apple
+  .no-user-selected-compact {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px dashed $ap-hairline !important;
+    border-radius: 16px !important;
+    margin-top: 12px !important;
+    padding: 44px 24px !important;
+
+    mat-icon { color: rgba(0, 113, 227, 0.3) !important; opacity: 1 !important; }
+    p {
+      font-family: $ap-font !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.2px !important;
+      color: $ap-text-2 !important;
+    }
+  }
+}
+
+// ============================================================
+//  Desplegable de usuarios (Permisos) — panel Apple minimalista
+//  Se aplica via panelClass="ap-user-select-panel" en el
+//  <mat-select>. El overlay del CDK se renderiza fuera del
+//  componente, por eso se estila de forma global con ::ng-deep.
+// ============================================================
+::ng-deep .ap-user-select-panel.mat-mdc-select-panel {
+  border-radius: 14px !important;
+  border: 1px solid $ap-hairline !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  padding: 6px !important;
+  max-height: 340px !important;
+  // Ancho mayor que el trigger para que los nombres/roles no se corten
+  min-width: 200px !important;
+
+  // Scrollbar fino y neutro
+  &::-webkit-scrollbar { width: 7px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(120, 120, 128, 0.35);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    &:hover { background: rgba(120, 120, 128, 0.5); background-clip: padding-box; }
+  }
+
+  // Cada opción: fila compacta, sin efectos pesados
+  .user-option-with-avatar {
+    min-height: 44px !important;
+    padding: 6px 10px !important;
+    margin: 2px 0 !important;
+    border-radius: 10px !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    transition: background 0.15s ease !important;
+
+    // Elimina el shimmer del estilo premium
+    &::before { display: none !important; }
+
+    &:hover {
+      background: rgba(0, 113, 227, 0.08) !important;
+      box-shadow: none !important;
+      transform: none !important;
+      &::before { left: -100% !important; }
+    }
+
+    &.mat-mdc-option-active {
+      background: rgba(0, 113, 227, 0.08) !important;
+      box-shadow: none !important;
+    }
+
+    &.mat-mdc-option-selected {
+      background: rgba(0, 113, 227, 0.12) !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    // Oculta el check por defecto de Material (usamos solo el fondo azul)
+    .mat-pseudo-checkbox { display: none !important; }
+
+    .user-option-content {
+      gap: 10px !important;
+      padding: 0 !important;
+
+      // Avatar compacto, cuadrado con radio Apple, sin animaciones
+      .option-avatar {
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 8px !important;
+        border: 1px solid $ap-hairline !important;
+        box-shadow: none !important;
+        transition: none !important;
+
+        .avatar-image:hover { transform: none !important; }
+
+        .avatar-default {
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          letter-spacing: 0 !important;
+          &::before, &::after { display: none !important; }
+        }
+      }
+
+      .option-info {
+        gap: 1px !important;
+
+        .option-name {
+          font-family: $ap-font !important;
+          font-weight: 500 !important;
+          font-size: 13px !important;
+          letter-spacing: -0.2px !important;
+          color: $ap-text !important;
+          transition: none !important;
+        }
+
+        // Rol: texto secundario simple, sin badge ni borde
+        .option-role {
+          font-family: $ap-font !important;
+          font-size: 11px !important;
+          font-weight: 400 !important;
+          color: $ap-text-2 !important;
+          background: none !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          border-radius: 0 !important;
+          letter-spacing: -0.1px !important;
+          transition: none !important;
+        }
+      }
+    }
+
+    // Neutraliza los hover "premium" (rotaciones/escala/gradientes)
+    &:hover .option-avatar { transform: none !important; box-shadow: none !important; border-color: $ap-hairline !important; }
+    &:hover .option-name { color: $ap-text !important; }
+    &:hover .option-role { background: none !important; border: none !important; box-shadow: none !important; transform: none !important; }
+  }
+}
+
+// ============================================================
+// TEMA OSCURO — Overrides para la sección de Configuración
+// ------------------------------------------------------------
+// El bloque "Apple style" de arriba fija colores claros con
+// !important (texto #1d1d1f, superficies blancas translúcidas,
+// hairlines negros), por lo que el tema oscuro global de
+// themes.scss no llega a aplicarse aquí. Estos overrides
+// remapean esas superficies a equivalentes oscuros cuando el
+// body está en modo oscuro (clase .theme-dark o data-theme).
+// ============================================================
+
+body.theme-dark,
+body[data-theme="dark"] {
+
+  // Paleta oscura local (equivalente Apple dark)
+  $d-surface:      rgba(44, 44, 46, 0.72);      // superficie tarjeta/celda
+  $d-surface-soft: rgba(58, 58, 60, 0.55);      // superficie más clara (headers)
+  $d-surface-solid:rgba(28, 28, 30, 0.9);       // inputs/campos
+  $d-text:         #f2f2f7;                      // texto principal
+  $d-text-2:       #aeaeb2;                      // texto secundario
+  $d-text-3:       #8e8e93;                      // texto terciario
+  $d-hairline:     rgba(255, 255, 255, 0.12);   // bordes finos
+  $d-blue:         #0a84ff;                      // azul de sistema (dark)
+
+  .settings-container {
+
+    // ── Encabezado y pestañas ──────────────────────────────
+    .settings-header {
+      border-bottom: 1px solid $d-hairline !important;
+      .page-title { color: $d-text !important; mat-icon { color: $d-blue !important; } }
+      .page-subtitle { color: $d-text-2 !important; }
+    }
+
+    .mat-mdc-tab .mdc-tab__text-label { color: $d-text-2 !important; }
+    .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label { color: $d-blue !important; }
+    .mat-mdc-tab .mdc-tab-indicator__content--underline { border-color: $d-blue !important; }
+
+    // ── Cabecera de sección ────────────────────────────────
+    .section-header {
+      h3 { color: $d-text !important; mat-icon { color: $d-blue !important; } }
+      .section-description { color: $d-text-2 !important; }
+    }
+
+    // ── Botón secundario (accent) ──────────────────────────
+    button[color="accent"] {
+      background: rgba(10, 132, 255, 0.16) !important;
+      color: $d-blue !important;
+      border: 1px solid rgba(10, 132, 255, 0.32) !important;
+      .mdc-button__label, span, mat-icon { color: $d-blue !important; }
+      &:hover:not(:disabled) { background: rgba(10, 132, 255, 0.24) !important; }
+    }
+
+    // ── Tabla de usuarios ──────────────────────────────────
+    .users-table-container { border: 1px solid $d-hairline !important; }
+
+    .users-table {
+      .excel-header {
+        background: $d-surface-soft !important;
+        border-bottom: 1px solid $d-hairline !important;
+        .header-content { color: $d-text-2 !important; mat-icon { color: $d-blue !important; } }
+      }
+      .excel-cell {
+        color: $d-text !important;
+        border-bottom: 1px solid $d-hairline !important;
+      }
+      .user-name  { color: $d-text !important; }
+      .user-code  { color: $d-text-3 !important; }
+      .contact-text { color: $d-text-2 !important; }
+      .contact-icon { color: $d-text-3 !important; }
+      .status-badge.inactive { background: rgba(255, 255, 255, 0.1) !important; color: $d-text-2 !important; }
+      .last-login { color: $d-text-2 !important; }
+    }
+
+    // ── Tarjetas de sistema (Información) ───────────────────
+    .system-card-compact {
+      background: $d-surface !important;
+      border: 1px solid $d-hairline !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    .category-header-compact,
+    .system-card-header-compact {
+      color: $d-text !important;
+      background: $d-surface-soft !important;
+      border-bottom: 1px solid $d-hairline !important;
+      mat-icon { color: $d-blue !important; }
+    }
+
+    .system-label { color: $d-text-2 !important; }
+    .system-value { color: $d-text !important; }
+    .system-info-item-compact {
+      background: $d-surface !important;
+      border: 1px solid $d-hairline !important;
+      &:hover { background: rgba(72, 72, 74, 0.7) !important; border-color: rgba(10, 132, 255, 0.45) !important; }
+    }
+
+    // ── Tarjeta de licencia ────────────────────────────────
+    .license-card {
+      background: $d-surface !important;
+      border: 1px solid $d-hairline !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35) !important;
+
+      .license-header {
+        background: $d-surface-soft !important;
+        border-bottom: 1px solid $d-hairline !important;
+
+        .license-icon { background: rgba(10, 132, 255, 0.18) !important; mat-icon { color: $d-blue !important; } }
+        .license-title { color: $d-text !important; }
+        .license-subtitle { color: $d-text-2 !important; }
+        .license-badge {
+          color: #30d158 !important;
+          background: rgba(48, 209, 88, 0.16) !important;
+          border-color: rgba(48, 209, 88, 0.3) !important;
+          mat-icon { color: #30d158 !important; }
+
+          &.inactive {
+            color: #ff453a !important;
+            background: rgba(255, 69, 58, 0.16) !important;
+            border-color: rgba(255, 69, 58, 0.3) !important;
+            mat-icon { color: #ff453a !important; }
+          }
+        }
+      }
+
+      .license-body {
+        .license-code-label { color: $d-text-2 !important; }
+        .license-code-row {
+          background: rgba(58, 58, 60, 0.6) !important;
+          border: 1px solid $d-hairline !important;
+          &:hover { background: rgba(72, 72, 74, 0.7) !important; border-color: rgba(255, 255, 255, 0.18) !important; }
+          &:focus-within { border-color: $d-blue !important; box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2) !important; }
+          .license-code-input { color: $d-text !important; &::placeholder { color: $d-text-3 !important; } }
+          .license-copy-btn { color: $d-text-3 !important; &:hover { color: $d-blue !important; background: rgba(10, 132, 255, 0.16) !important; } }
+        }
+
+        .license-save-btn {
+          background: linear-gradient(145deg, $d-blue, #409cff) !important;
+          box-shadow: 0 3px 10px rgba(10, 132, 255, 0.35) !important;
+          &:hover { box-shadow: 0 5px 14px rgba(10, 132, 255, 0.45) !important; }
+        }
+      }
+    }
+
+    // ── Grid de configuración (categorías) ─────────────────
+    .config-category-compact {
+      border: 1px solid $d-hairline !important;
+      background: linear-gradient(180deg, rgba(58, 58, 60, 0.55), rgba(44, 44, 46, 0.55)) !important;
+      box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+
+      &:hover {
+        box-shadow:
+          0 8px 24px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+      }
+    }
+
+    .config-category-header-compact {
+      background: $d-surface-soft !important;
+      border-bottom: 1px solid $d-hairline !important;
+      .category-name-compact { color: $d-text !important; }
+    }
+
+    // Contador de categoría
+    .category-count-compact,
+    .category-count {
+      color: $d-blue !important;
+      background: rgba(10, 132, 255, 0.18) !important;
+    }
+
+    // ── Celdas de configuración / permisos ─────────────────
+    .config-card-compact,
+    .permission-card-compact {
+      background: $d-surface !important;
+      border: 1px solid $d-hairline !important;
+      border-bottom: 1px solid $d-hairline !important;
+
+      &:hover {
+        background: rgba(72, 72, 74, 0.7) !important;
+        border-color: rgba(10, 132, 255, 0.45) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
+      }
+    }
+
+    .config-name-compact,
+    .permission-name-compact { color: $d-text !important; }
+    .config-desc-compact,
+    .permission-desc-compact { color: $d-text-2 !important; }
+
+    // ── Botón ON/OFF ───────────────────────────────────────
+    .config-toggle-btn-compact,
+    .permission-toggle-btn {
+      background: rgba(120, 120, 128, 0.24) !important;
+      color: $d-text-2 !important;
+      border: 1px solid $d-hairline !important;
+
+      &:hover { background: rgba(120, 120, 128, 0.36) !important; }
+
+      &.active {
+        background: linear-gradient(145deg, $d-blue, #409cff) !important;
+        color: #ffffff !important;
+        border-color: transparent !important;
+        box-shadow: 0 4px 14px rgba(10, 132, 255, 0.4) !important;
+        mat-icon, span { color: #ffffff !important; }
+        &:hover { background: linear-gradient(145deg, #409cff, #5aa9ff) !important; }
+      }
+    }
+
+    // ── Campos (string/number/select) ──────────────────────
+    .config-input-compact,
+    .config-select-compact {
+      .mat-mdc-text-field-wrapper {
+        background: $d-surface-solid !important;
+      }
+      input, .mat-mdc-select-value-text {
+        color: $d-text !important;
+        caret-color: $d-blue !important;
+      }
+      .mat-mdc-form-field-icon-prefix mat-icon { color: $d-text-3 !important; }
+    }
+
+    // Slide toggles
+    .compact-toggle,
+    mat-slide-toggle {
+      .mdc-switch--selected .mdc-switch__track::after { background: $d-blue !important; }
     }
   }
 }
