@@ -25,7 +25,6 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
 import { PermissionsService, PERMISSIONS } from '../../services/permissions.service';
-import { ConfirmDeleteActivityDialogComponent } from './confirm-delete-activity-dialog';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { trigger, state, style, transition, animate } from '@angular/animations';
@@ -268,12 +267,8 @@ export class ReportsComponent implements OnInit {
 
         if (activities.length === 0) {
           this.showWarningSnackbar('No se encontraron actividades', 3000);
-        } else {
-          const message = response.totalCount > activities.length
-            ? `Mostrando ${activities.length} de ${response.totalCount} actividades`
-            : `${activities.length} actividades encontradas`;
-          this.showSuccessSnackbar(message, 2000);
         }
+        // Sin snackbar de conteo: puede confundir (actividades ≠ pedidos)
       } else {
         this.activities.set([]);
         this.filteredActivities.set([]);
@@ -292,6 +287,19 @@ export class ReportsComponent implements OnInit {
   }
 
   // Cargar más actividades (siguiente página)
+  // Carga automática al hacer scroll cerca del fondo (paginación infinita)
+  onMainScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    if (!el) return;
+    if (this.loadingMore() || !this.hasMoreData()) return;
+
+    const umbral = 250; // px antes del fondo para empezar a cargar
+    const cercaDelFondo = el.scrollTop + el.clientHeight >= el.scrollHeight - umbral;
+    if (cercaDelFondo) {
+      this.loadMoreActivitiesFromServer();
+    }
+  }
+
   async loadMoreActivitiesFromServer() {
     if (this.loadingMore() || !this.hasMoreData()) {
       return;
@@ -355,15 +363,10 @@ export class ReportsComponent implements OnInit {
         // Limpiar cache para recalcular
         this.activitiesByModuleCache.clear();
         this.machineStatsCache = null;
-
-        this.showSuccessSnackbar(
-          `Cargadas ${newActivities.length} actividades más (${this.activities().length} de ${this.totalCount()})`, 
-          2000
-        );
+        // Sin snackbar: la carga por scroll es silenciosa
       }
     } catch (error) {
       console.error('❌ Error cargando más actividades:', error);
-      this.showErrorSnackbar('Error al cargar más actividades', 3000);
     } finally {
       this.loadingMore.set(false);
     }
@@ -586,76 +589,80 @@ export class ReportsComponent implements OnInit {
 
   async deleteActivity(activity: any) {
     if (!this.canDeleteActivity()) {
-      this.snackBar.open('No tienes permiso para eliminar actividades', 'Cerrar', { duration: 3000 });
+      this.showWarningSnackbar('No tienes permiso para eliminar actividades', 3000);
       return;
     }
 
-    const dialogRef = this.dialog.open(ConfirmDeleteActivityDialogComponent, {
-      width: '420px',
-      disableClose: false,
-      data: {
-        title: 'Eliminar Actividad',
-        message: '¿Estás seguro de eliminar esta actividad?',
-        detail: `${activity.action} — ${activity.description || ''}`,
-        confirmText: 'Sí, eliminar'
+    // Confirmación con snackbar animado (mismo patrón/posición que los demás módulos)
+    const confirmRef = this.snackBar.open('', 'Eliminar', {
+      duration: 8000,
+      panelClass: ['status-terminado-snackbar', 'animated-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+    setTimeout(() => {
+      const label = document.querySelector('.status-terminado-snackbar .mat-mdc-snack-bar-label');
+      if (label) {
+        label.innerHTML = `<span class="status-icon">⚠</span> ¿Eliminar esta actividad? (${activity.action || ''})`;
+      }
+    }, 0);
+
+    confirmRef.onAction().subscribe(async () => {
+      try {
+        await this.http.delete(`${environment.apiUrl}/audit/${activity.id}`).toPromise();
+        const current = this.activities();
+        this.activities.set(current.filter(a => a.id !== activity.id));
+        this.showSuccessSnackbar('Actividad eliminada', 2000);
+      } catch {
+        this.showErrorSnackbar('Error al eliminar actividad', 3000);
       }
     });
-
-    const confirmed = await dialogRef.afterClosed().toPromise();
-    if (!confirmed) return;
-
-    try {
-      await this.http.delete(`${environment.apiUrl}/audit/${activity.id}`).toPromise();
-      const current = this.activities();
-      this.activities.set(current.filter(a => a.id !== activity.id));
-      this.snackBar.open('Actividad eliminada', 'Cerrar', { duration: 2000 });
-    } catch {
-      this.snackBar.open('Error al eliminar actividad', 'Cerrar', { duration: 3000 });
-    }
   }
 
   async deleteOrderActivities(order: any) {
     if (!this.canDeleteActivity()) {
-      this.snackBar.open('No tienes permiso para eliminar actividades', 'Cerrar', { duration: 3000 });
+      this.showWarningSnackbar('No tienes permiso para eliminar actividades', 3000);
       return;
     }
 
-    const dialogRef = this.dialog.open(ConfirmDeleteActivityDialogComponent, {
-      width: '420px',
-      disableClose: false,
-      data: {
-        title: 'Eliminar Pedido del Reporte',
-        message: `¿Eliminar todas las actividades del pedido ${order.otSap}?`,
-        detail: `Artículo: ${order.articulo} — ${order.descripcion || ''}`,
-        confirmText: 'Sí, eliminar todo'
+    // Confirmación con snackbar animado (mismo patrón/posición que los demás módulos)
+    const confirmRef = this.snackBar.open('', 'Eliminar', {
+      duration: 8000,
+      panelClass: ['status-terminado-snackbar', 'animated-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+    setTimeout(() => {
+      const label = document.querySelector('.status-terminado-snackbar .mat-mdc-snack-bar-label');
+      if (label) {
+        label.innerHTML = `<span class="status-icon">⚠</span> ¿Eliminar todas las actividades del pedido ${order.otSap}?`;
+      }
+    }, 0);
+
+    confirmRef.onAction().subscribe(async () => {
+      try {
+        const current = this.activities();
+        const toDelete = current.filter(a => {
+          if (!a.details) return false;
+          try {
+            const det = typeof a.details === 'string' ? JSON.parse(a.details) : a.details;
+            return det.otSap === order.otSap;
+          } catch { return false; }
+        });
+
+        for (const act of toDelete) {
+          try {
+            await this.http.delete(`${environment.apiUrl}/audit/${act.id}`).toPromise();
+          } catch {}
+        }
+
+        this.activities.set(current.filter(a => !toDelete.includes(a)));
+        this.machineStatsCache = null;
+        this.showSuccessSnackbar(`Pedido ${order.otSap} eliminado (${toDelete.length} actividades)`, 3000);
+      } catch {
+        this.showErrorSnackbar('Error al eliminar pedido', 3000);
       }
     });
-
-    const confirmed = await dialogRef.afterClosed().toPromise();
-    if (!confirmed) return;
-
-    try {
-      const current = this.activities();
-      const toDelete = current.filter(a => {
-        if (!a.details) return false;
-        try {
-          const det = typeof a.details === 'string' ? JSON.parse(a.details) : a.details;
-          return det.otSap === order.otSap;
-        } catch { return false; }
-      });
-
-      for (const act of toDelete) {
-        try {
-          await this.http.delete(`${environment.apiUrl}/audit/${act.id}`).toPromise();
-        } catch {}
-      }
-
-      this.activities.set(current.filter(a => !toDelete.includes(a)));
-      this.machineStatsCache = null;
-      this.snackBar.open(`Pedido ${order.otSap} eliminado (${toDelete.length} actividades)`, 'Cerrar', { duration: 3000 });
-    } catch {
-      this.snackBar.open('Error al eliminar pedido', 'Cerrar', { duration: 3000 });
-    }
   }
 
   getModuleColor(module: string): string {

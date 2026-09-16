@@ -652,3 +652,271 @@ $gray-500: #6b7280; $gray-700: #374151; $gray-800: #1f2937;
   display: flex; align-items: center; gap: 8px; padding: 16px;
   justify-content: center; color: $gray-500; font-size: 0.8rem;
 }
+
+// ============================================================
+//  APPLE DESIGN — Refinamiento del módulo Consulta de Pantones
+//  Coherente con Login, Configuraciones, Dashboard e Información.
+// ============================================================
+$cp-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
+$cp-text:      #1d1d1f;
+$cp-text-2:    #6e6e73;
+$cp-text-3:    #86868b;
+$cp-blue:      #0071e3;
+$cp-blue-hover:#0077ed;
+$cp-green:     #34c759;
+$cp-hairline:  rgba(0, 0, 0, 0.08);
+
+.consulta-container {
+  font-family: $cp-font !important;
+  background: linear-gradient(160deg, #eef2f9 0%, #e6edf8 45%, #ece7f8 100%) !important;
+
+  h1, h2, h3, p, span, button, div, input, th, td { font-family: $cp-font; }
+
+  // ── Header ────────────────────────────────────────────────
+  .consulta-header {
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border-bottom: 1px solid $cp-hairline !important;
+    box-shadow: none !important;
+
+    &::before { display: none !important; }
+
+    .header-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .page-title {
+      color: $cp-text !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.3px !important;
+      mat-icon { color: $cp-blue !important; }
+    }
+    .page-subtitle {
+      margin: 0 !important;
+      font-size: 0.82rem !important;
+      font-weight: 400 !important;
+      color: $cp-text-2 !important;
+      letter-spacing: -0.1px !important;
+    }
+    .rango-label {
+      background: rgba(0, 113, 227, 0.1) !important;
+      color: $cp-blue !important;
+      border-radius: 999px !important;
+    }
+  }
+
+  // Botón Exportar (accent) — Apple
+  .export-btn {
+    background: $cp-blue !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.2px !important;
+    box-shadow: 0 3px 10px rgba(0, 113, 227, 0.25) !important;
+    .mdc-button__label, span, mat-icon { color: #ffffff !important; }
+    &:hover:not(:disabled) { background: $cp-blue-hover !important; }
+    &:disabled { opacity: 0.5 !important; }
+  }
+
+  // ── Barra de búsqueda (glass) ─────────────────────────────
+  .search-bar {
+    background: rgba(255, 255, 255, 0.55) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-bottom: 1px solid $cp-hairline !important;
+  }
+
+  // Campos de búsqueda / chips — estilo iOS (filled, hairline, radio 12)
+  .search-field-wrapper,
+  .filter-chip {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid $cp-hairline !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+
+    .search-icon, .chip-icon { color: $cp-text-3 !important; }
+    .search-input, .chip-mat-select { color: $cp-text !important; }
+    .search-input::placeholder { color: $cp-text-3 !important; }
+
+    &:hover { border-color: rgba(0, 0, 0, 0.16) !important; background: rgba(255, 255, 255, 0.85) !important; }
+    &:focus-within {
+      border-color: $cp-blue !important;
+      background: rgba(255, 255, 255, 0.95) !important;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+    }
+    &.active {
+      border-color: $cp-blue !important;
+      background: rgba(0, 113, 227, 0.06) !important;
+      .chip-icon { color: $cp-blue !important; }
+    }
+  }
+
+  // Botones Buscar / Limpiar
+  .search-btn {
+    background: $cp-blue !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.2px !important;
+    box-shadow: 0 3px 10px rgba(0, 113, 227, 0.25) !important;
+    .mdc-button__label, span, mat-icon { color: #ffffff !important; }
+    &:hover:not(:disabled) { background: $cp-blue-hover !important; }
+  }
+  .clear-all-btn { color: $cp-text-2 !important; border-radius: 12px !important; }
+
+  // ── KPI cards (glass hairline) ────────────────────────────
+  .kpi-card {
+    background: rgba(255, 255, 255, 0.62) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid $cp-hairline !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.24s ease !important;
+
+    &:hover { transform: translateY(-3px) !important; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08) !important; }
+
+    .kpi-icon { border-radius: 12px !important; }
+    .kpi-value { color: $cp-text !important; font-weight: 700 !important; letter-spacing: -0.5px !important; }
+    .kpi-label { color: $cp-text-2 !important; font-weight: 500 !important; }
+  }
+
+  // ── Sección de tabla ──────────────────────────────────────
+  .table-section {
+    background: rgba(255, 255, 255, 0.62) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid $cp-hairline !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .table-header-bar {
+    background: rgba(248, 250, 252, 0.7) !important;
+    border-bottom: 1px solid $cp-hairline !important;
+    color: $cp-text !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.2px !important;
+    mat-icon { color: $cp-blue !important; }
+    .count-badge {
+      background: rgba(0, 113, 227, 0.1) !important;
+      color: $cp-blue !important;
+      border-radius: 999px !important;
+    }
+  }
+
+  // ── Tabla ─────────────────────────────────────────────────
+  .unified-table {
+    thead th {
+      background: rgba(248, 250, 252, 0.85) !important;
+      color: $cp-text-2 !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.1px !important;
+      border-bottom: 1px solid $cp-hairline !important;
+      text-transform: none !important;
+    }
+
+    // Columna Pantone compacta (evita el espacio en blanco de más)
+    .th-color { min-width: 120px !important; width: 150px !important; }
+    .td-color { width: 150px !important; }
+
+    .pantone-row {
+      td { border-bottom: 1px solid $cp-hairline !important; color: $cp-text !important; }
+      &:hover { background: rgba(0, 113, 227, 0.04) !important; }
+      &.expanded { background: rgba(0, 113, 227, 0.06) !important; }
+
+      .pantone-name { color: $cp-text !important; font-weight: 600 !important; }
+      .td-fecha, .td-linea, .td-articulos, .td-ots { color: $cp-text-2 !important; }
+    }
+
+    // Rank badge — azul de sistema (en vez de púrpura)
+    .pantone-rank-badge {
+      background: $cp-blue !important;
+    }
+
+    // Estado — pills Apple suaves
+    .estado-badge {
+      border-radius: 999px !important;
+      text-transform: none !important;
+      &.listo { background: rgba(52, 199, 89, 0.14) !important; color: #1a7f3c !important; }
+      &.terminado { background: rgba(0, 113, 227, 0.12) !important; color: $cp-blue !important; }
+    }
+  }
+
+  // Tabla de detalle (pedidos expandidos)
+  .detail-container { background: rgba(248, 250, 252, 0.6) !important; }
+  .detail-table {
+    thead th { background: rgba(248, 250, 252, 0.9) !important; color: $cp-text-2 !important; border-bottom: 1px solid $cp-hairline !important; }
+    td { border-bottom: 1px solid $cp-hairline !important; color: $cp-text !important; }
+  }
+
+  .loading-container, .loading-detail { color: $cp-text-2 !important; }
+}
+
+// Panel de los selectores (overlay CDK) — estilo Apple
+::ng-deep .filter-panel.mat-mdc-select-panel {
+  border-radius: 12px !important;
+  border: 1px solid $cp-hairline !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
+}
+
+// ── Modo oscuro ──────────────────────────────────────────────
+body.dark-theme .consulta-container,
+:host-context(.dark-theme) .consulta-container {
+  $d-surface: rgba(44, 44, 46, 0.62);
+  $d-soft: rgba(58, 58, 60, 0.5);
+  $d-hairline: rgba(255, 255, 255, 0.12);
+  $d-text: #f5f5f7;
+  $d-text-2: rgba(235, 235, 245, 0.6);
+  $d-blue: #0a84ff;
+
+  background: linear-gradient(160deg, #1c1c1e 0%, #161618 55%, #1a1820 100%) !important;
+
+  .consulta-header {
+    background: $d-surface !important;
+    border-bottom-color: $d-hairline !important;
+    .page-title { color: $d-text !important; mat-icon { color: $d-blue !important; } }
+    .page-subtitle { color: $d-text-2 !important; }
+  }
+
+  .search-bar { background: $d-soft !important; border-bottom-color: $d-hairline !important; }
+  .search-field-wrapper, .filter-chip {
+    background: rgba(58,58,60,0.6) !important;
+    border-color: $d-hairline !important;
+    .search-input, .chip-mat-select { color: $d-text !important; }
+    .search-icon, .chip-icon { color: $d-text-2 !important; }
+    &:hover { background: rgba(72,72,74,0.7) !important; }
+  }
+
+  .kpi-card, .table-section {
+    background: $d-surface !important;
+    border-color: $d-hairline !important;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4) !important;
+  }
+  .kpi-value { color: $d-text !important; }
+  .kpi-label { color: $d-text-2 !important; }
+
+  .table-header-bar {
+    background: $d-soft !important;
+    border-bottom-color: $d-hairline !important;
+    color: $d-text !important;
+    mat-icon { color: $d-blue !important; }
+  }
+
+  .unified-table {
+    thead th { background: $d-soft !important; color: $d-text-2 !important; border-bottom-color: $d-hairline !important; }
+    .pantone-row {
+      td { border-bottom-color: $d-hairline !important; color: $d-text !important; }
+      &:hover { background: rgba(10,132,255,0.12) !important; }
+      &.expanded { background: rgba(10,132,255,0.16) !important; }
+      .pantone-name { color: $d-text !important; }
+      .td-fecha, .td-linea, .td-articulos, .td-ots { color: $d-text-2 !important; }
+    }
+  }
+}

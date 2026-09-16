@@ -349,7 +349,7 @@
                 <span class="pantone-count">{{ p.count }}</span>
                 <div class="pantone-bar-v"
                      [style.height.px]="(p.count / topPantones()[0].count) * 160"
-                     [style.background]="getPantoneBarColor(i)">
+                     [style.background]="getPantoneHex(p.name, i)">
                 </div>
               </div>
               <span class="pantone-name-v" [title]="p.name">{{ shortPantoneName(p.name) }}</span>

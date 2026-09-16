@@ -337,6 +337,10 @@ body:not(.theme-dark):not([data-theme="dark"]) { background-color: #f8fafc; }
     .mdc-snackbar__surface {
       background-color: transparent !important;
       padding: 0 !important;
+      // Label + botón de acción en la misma fila
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
     }
   }
   
@@ -354,6 +358,25 @@ body:not(.theme-dark):not([data-theme="dark"]) { background-color: #f8fafc; }
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
     animation: fadeIn 0.4s ease-out;
+    flex: 1 1 auto !important;
+  }
+
+  // Botón de acción (ej. "Eliminar") visible en TODOS los snackbars animados
+  .mat-mdc-snack-bar-actions {
+    flex-shrink: 0 !important;
+    padding-right: 10px !important;
+  }
+  .mat-mdc-snack-bar-action.mdc-button {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 4px 12px !important;
+    min-width: auto !important;
+
+    &:hover { background: rgba(255, 255, 255, 0.32) !important; }
+    .mdc-button__label { color: #ffffff !important; }
   }
 }
 

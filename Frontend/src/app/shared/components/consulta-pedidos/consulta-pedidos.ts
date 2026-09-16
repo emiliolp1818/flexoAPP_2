@@ -207,10 +207,17 @@ export class ConsultaPedidosComponent implements OnInit {
 
   private async cargarPedidosPantone(pantone: PantoneMes) {
     try {
-      // Obtener pedidos del backup filtrados por los OTs de este pantone
+      // Enviar los MISMOS filtros que el listado para que la lista de pedidos
+      // coincida exactamente con el conteo de "Usos".
+      const body: any = { color: pantone.color, ots: pantone.ots };
+      if (this.mesFilter() !== null) body.mes = this.mesFilter();
+      if (this.fechaDesde()) body.fechaDesde = this.fechaDesde()!.toISOString();
+      if (this.fechaHasta()) body.fechaHasta = this.fechaHasta()!.toISOString();
+      if (this.lineaTintaFilter()) body.lineaTinta = this.lineaTintaFilter();
+
       const response: any = await this.http.post(
         `${environment.apiUrl}/maquinasbackup/pedidos-by-pantone`,
-        { color: pantone.color, ots: pantone.ots }
+        body
       ).toPromise();
 
       if (response?.data) {
@@ -331,7 +338,9 @@ export class ConsultaPedidosComponent implements OnInit {
 
     sheet.mergeCells('A1:H1');
     const titleCell = sheet.getCell('A1');
-    titleCell.value = `Pantone: ${pantone.color} — ${pantone.cantidad} usos | ${pantone.kilos.toFixed(1)} kg | ${pantone.metros.toFixed(0)} m`;
+    const totKg = data.reduce((s, p) => s + (p.kilos || 0), 0);
+    const totM = data.reduce((s, p) => s + (p.metros || 0), 0);
+    titleCell.value = `Pantone: ${pantone.color} — ${data.length} pedidos | ${totKg.toFixed(1)} kg | ${totM.toFixed(0)} m`;
     titleCell.font = { bold: true, size: 14 };
     titleCell.alignment = { horizontal: 'center' };
 
@@ -383,14 +392,15 @@ export class ConsultaPedidosComponent implements OnInit {
     doc.setFont('helvetica', 'bold');
     doc.text(`Pantone: ${pantone.color}`, 14, 18);
 
+    const totalKilos = data.reduce((s, p) => s + p.kilos, 0);
+    const totalMetros = data.reduce((s, p) => s + p.metros, 0);
+    const maquinasSet = [...new Set(data.map(p => p.maquina).filter(m => !!m))].sort((a, b) => a - b);
+
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100);
-    doc.text(`${pantone.cantidad} usos · ${pantone.kilos.toFixed(1)} kg · ${pantone.metros.toFixed(0)} m · Máquinas: ${pantone.maquinas.map(m => 'M' + m).join(', ') || 'N/A'}`, 14, 25);
+    doc.text(`${data.length} pedidos · ${totalKilos.toFixed(1)} kg · ${totalMetros.toFixed(0)} m · Máquinas: ${maquinasSet.map(m => 'M' + m).join(', ') || 'N/A'}`, 14, 25);
     doc.setTextColor(0);
-
-    const totalKilos = data.reduce((s, p) => s + p.kilos, 0);
-    const totalMetros = data.reduce((s, p) => s + p.metros, 0);
 
     const tableData = data.map(p => [
       p.otSap, p.articulo, p.descripcion || '—', p.maquina ? `M${p.maquina}` : '—',

@@ -409,6 +409,9 @@ namespace FlexoAPP.API.Controllers
                     try
                     {
                         var colores = System.Text.Json.JsonSerializer.Deserialize<string[]>(coloresStr) ?? Array.Empty<string>();
+                        // "Usos" = nº de pedidos que usan el color. Si un color se
+                        // repite en el mismo pedido, se cuenta UNA sola vez.
+                        var contadosEnEstePedido = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                         foreach (var color in colores)
                         {
                             if (string.IsNullOrWhiteSpace(color)) continue;
@@ -418,6 +421,8 @@ namespace FlexoAPP.API.Controllers
                             if (heptaNames.Contains(c)) continue;
                             var upper = c.ToUpper();
                             if (lacaKeywords.Any(k => upper.Contains(k))) continue;
+
+                            if (!contadosEnEstePedido.Add(c)) continue; // ya contado en este pedido
 
                             if (!pantoneCount.ContainsKey(c)) pantoneCount[c] = 0;
                             pantoneCount[c]++;
@@ -518,34 +523,97 @@ namespace FlexoAPP.API.Controllers
                 using var connection = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
                 await connection.OpenAsync();
 
+                // ── Misma ventana de fechas que GetPantonesMes ──────────
                 var today = DateTime.Now;
-                var desde = new DateTime(today.Year, today.Month, 1).AddMonths(-2);
+                DateTime desde;
+                DateTime hasta;
 
+                if (request.FechaDesde.HasValue && request.FechaHasta.HasValue)
+                {
+                    desde = request.FechaDesde.Value.Date;
+                    hasta = request.FechaHasta.Value.Date.AddDays(1).AddSeconds(-1);
+                }
+                else if (request.FechaDesde.HasValue)
+                {
+                    desde = request.FechaDesde.Value.Date;
+                    hasta = request.FechaDesde.Value.Date.AddDays(1).AddSeconds(-1);
+                }
+                else if (request.FechaHasta.HasValue)
+                {
+                    desde = new DateTime(today.Year, today.Month, 1).AddMonths(-2);
+                    hasta = request.FechaHasta.Value.Date.AddDays(1).AddSeconds(-1);
+                }
+                else if (request.Mes.HasValue && request.Mes.Value >= 1 && request.Mes.Value <= 12)
+                {
+                    desde = new DateTime(today.Year, request.Mes.Value, 1);
+                    hasta = desde.AddMonths(1).AddSeconds(-1);
+                }
+                else
+                {
+                    desde = new DateTime(today.Year, today.Month, 1).AddMonths(-2);
+                    hasta = today.Date.AddDays(1).AddSeconds(-1);
+                }
+
+                // ── Filtro por línea de tinta (mismos artículos que el conteo) ──
+                var articulosFiltro = new HashSet<string>();
+                bool filtrarPorLinea = !string.IsNullOrWhiteSpace(request.LineaTinta);
+                if (filtrarPorLinea)
+                {
+                    using var lineaCmd = new MySqlCommand(
+                        "SELECT DISTINCT articulo FROM cod_tintas WHERE linea_tinta = @Linea", connection);
+                    lineaCmd.Parameters.AddWithValue("@Linea", request.LineaTinta);
+                    using var lineaReader = await lineaCmd.ExecuteReaderAsync();
+                    while (await lineaReader.ReadAsync())
+                        articulosFiltro.Add(lineaReader.GetString(0));
+                    await lineaReader.CloseAsync();
+                }
+
+                // Traemos candidatos con LIKE (rápido en SQL) y luego confirmamos
+                // coincidencia EXACTA del color sobre el array deserializado,
+                // igual que hace el conteo. Así "Usos" y la lista cuadran.
                 var command = new MySqlCommand { Connection = connection };
                 command.CommandText = @"
                     SELECT b.backup_id, b.ot_sap, b.Articulo, b.NumeroMaquina, b.Cliente, b.Referencia,
                            b.Colores, b.Kilos, COALESCE(b.Metros, 0) AS Metros, b.Estado, b.backup_date
                     FROM maquinas_backup b
-                    WHERE b.backup_date >= @Desde
+                    WHERE b.backup_date >= @Desde AND b.backup_date <= @Hasta
                       AND b.Estado IN ('LISTO', 'TERMINADO', 'TERMINADA')
                       AND b.Colores LIKE @ColorPattern
-                    ORDER BY b.backup_date DESC
-                    LIMIT 100";
+                    ORDER BY b.backup_date DESC";
                 command.Parameters.AddWithValue("@Desde", desde);
+                command.Parameters.AddWithValue("@Hasta", hasta);
                 command.Parameters.AddWithValue("@ColorPattern", $"%{request.Color}%");
 
+                var target = (request.Color ?? string.Empty).Trim();
                 var pedidos = new List<object>();
                 using var reader = await command.ExecuteReaderAsync();
 
                 while (await reader.ReadAsync())
                 {
+                    var articulo = reader.GetString("Articulo");
+                    if (filtrarPorLinea && !articulosFiltro.Contains(articulo)) continue;
+
+                    var coloresStr = reader.IsDBNull(reader.GetOrdinal("Colores")) ? "[]" : reader.GetString("Colores");
+
+                    // Confirmar coincidencia EXACTA del color en el array (no substring)
+                    bool matchExacto;
+                    try
+                    {
+                        var arr = System.Text.Json.JsonSerializer.Deserialize<string[]>(coloresStr) ?? Array.Empty<string>();
+                        matchExacto = arr.Any(x => !string.IsNullOrWhiteSpace(x) &&
+                                                   x.Trim().Equals(target, StringComparison.OrdinalIgnoreCase));
+                    }
+                    catch { matchExacto = false; }
+
+                    if (!matchExacto) continue;
+
                     pedidos.Add(new
                     {
                         otSap = reader.GetString("ot_sap"),
-                        articulo = reader.GetString("Articulo"),
+                        articulo,
                         numeroMaquina = reader.GetInt32("NumeroMaquina"),
                         referencia = reader.IsDBNull(reader.GetOrdinal("Referencia")) ? null : reader.GetString("Referencia"),
-                        colores = reader.GetString("Colores"),
+                        colores = coloresStr,
                         kilos = reader.GetDecimal("Kilos"),
                         metros = reader.GetDecimal("Metros"),
                         estado = reader.IsDBNull(reader.GetOrdinal("Estado")) ? null : reader.GetString("Estado"),
@@ -629,5 +697,11 @@ namespace FlexoAPP.API.Controllers
     {
         public string Color { get; set; } = string.Empty;
         public string[]? Ots { get; set; }
+        // Mismos filtros que el listado de pantones, para que la lista de
+        // pedidos coincida exactamente con el conteo de "Usos".
+        public int? Mes { get; set; }
+        public DateTime? FechaDesde { get; set; }
+        public DateTime? FechaHasta { get; set; }
+        public string? LineaTinta { get; set; }
     }
 }

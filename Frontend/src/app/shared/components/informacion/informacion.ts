@@ -82,10 +82,10 @@ export class InformacionComponent implements OnInit, OnDestroy {
 
 
   appInfo = signal<AppInfo>({
-    name: 'FlexoAPP',
-    version: '1.0.0',
+    name: 'FlexoApp',
+    version: '2.0',
     description: 'Sistema de gestión flexográfica',
-    author: 'FlexoAPP Team'
+    author: 'Emilio López'
   });
 
 
@@ -192,27 +192,12 @@ export class InformacionComponent implements OnInit, OnDestroy {
 
   private loadAppInfo(): void {
 
-    this.http.get('/package.json').subscribe({
-      next: (packageData: any) => {
-
-        this.appInfo.set({
-          name: packageData.name || 'FlexoAPP Frontend',
-          version: packageData.version || '1.0.0',
-          description: packageData.description || 'Sistema de gestión flexográfica con Angular + TypeScript',
-          author: packageData.author || 'FlexoAPP Team'
-        });
-        console.log('✅ Información de la aplicación cargada desde package.json');
-      },
-      error: (error) => {
-
-        console.warn('⚠️ No se pudo cargar package.json, usando valores por defecto:', error);
-        this.appInfo.set({
-          name: 'flexoapp-frontend',
-          version: '1.0.0',
-          description: 'FlexoAPP Frontend - Sistema de gestión flexográfica con Angular + TypeScript',
-          author: 'FlexoAPP Team'
-        });
-      }
+    // Información fija de la aplicación (no depende de package.json)
+    this.appInfo.set({
+      name: 'FlexoApp',
+      version: '2.0',
+      description: 'FlexoAPP - Sistema de gestión flexográfica con Angular + TypeScript',
+      author: 'Emilio López'
     });
   }
 

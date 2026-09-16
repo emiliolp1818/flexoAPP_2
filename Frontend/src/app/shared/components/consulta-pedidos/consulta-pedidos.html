@@ -3,7 +3,10 @@
   <!-- Header -->
   <div class="consulta-header">
     <div class="header-content">
-      <h1 class="page-title"><mat-icon>palette</mat-icon> Consulta de Pantones</h1>
+      <div class="header-info">
+        <h1 class="page-title"><mat-icon>palette</mat-icon> Consulta de Pantones</h1>
+        <p class="page-subtitle">Consulta y análisis de pantones usados en los últimos 3 meses, con detalle de pedidos, uso y exportación a Excel/PDF</p>
+      </div>
       <div class="header-actions">
         <button mat-raised-button color="accent" (click)="exportGeneralExcel()" class="export-btn" [disabled]="loading()">
           <mat-icon>download</mat-icon> Exportar
@@ -128,7 +131,6 @@
               <th class="th-articulos">Art.</th>
               <th class="th-ots">OTs</th>
               <th class="th-maquinas">Máq.</th>
-              <th class="th-colores">Colores</th>
               <th class="th-actions">Export</th>
               <th class="th-expand"></th>
             </tr>
@@ -161,12 +163,6 @@
                   <span *ngIf="pantone.maquinas.length > 3" class="more-machines">+{{ pantone.maquinas.length - 3 }}</span>
                   <span *ngIf="!pantone.maquinas || pantone.maquinas.length === 0">—</span>
                 </td>
-                <td class="td-colores-inline">
-                  <div class="color-dots-row">
-                    <div *ngFor="let c of pantone.coloresCompletos" class="pantone-dot" 
-                         [style.background-color]="getPantoneInfo(c).hex" [matTooltip]="c"></div>
-                  </div>
-                </td>
                 <td class="td-actions" (click)="$event.stopPropagation()">
                   <button class="export-btn-mini excel-btn" (click)="exportPantoneExcel(pantone, $event)" matTooltip="Excel">
                     <mat-icon>table_chart</mat-icon>
@@ -181,7 +177,7 @@
               </tr>
               <!-- Detalle de pedidos -->
               <tr *ngIf="isPantoneExpanded(pantone.color)" class="detail-row">
-                <td [attr.colspan]="14">
+                <td [attr.colspan]="13">
                   <div class="detail-container">
                     <table class="detail-table" *ngIf="getPedidos(pantone.color).length > 0">
                       <thead>

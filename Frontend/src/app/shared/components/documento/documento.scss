@@ -696,3 +696,264 @@ $gray-900: #0f172a;
     }
   }
 }
+
+// ============================================================
+//  APPLE DESIGN — Refinamiento del módulo Documentos
+//  Coherente con Login, Configuraciones, Dashboard, Información y Consulta.
+// ============================================================
+$dc-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
+$dc-text:      #1d1d1f;
+$dc-text-2:    #6e6e73;
+$dc-text-3:    #86868b;
+$dc-blue:      #0071e3;
+$dc-blue-hover:#0077ed;
+$dc-green:     #34c759;
+$dc-red:       #ff3b30;
+$dc-hairline:  rgba(0, 0, 0, 0.08);
+
+.documento-container {
+  font-family: $dc-font !important;
+  background: linear-gradient(160deg, #eef2f9 0%, #e6edf8 45%, #ece7f8 100%) !important;
+
+  h1, h2, h3, p, span, button, div, input, th, td { font-family: $dc-font; }
+
+  // ── Header ────────────────────────────────────────────────
+  .documento-header {
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid $dc-hairline !important;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.06) !important;
+
+    &::before { display: none !important; }
+
+    .page-title {
+      color: $dc-text !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.3px !important;
+      mat-icon { color: $dc-blue !important; }
+    }
+    .page-subtitle { color: $dc-text-2 !important; font-weight: 400 !important; letter-spacing: -0.1px !important; }
+  }
+
+  // Botones del header — Apple (Subir = azul sólido, Crear = azul suave)
+  .load-programming-btn {
+    background: $dc-blue !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.2px !important;
+    box-shadow: 0 3px 10px rgba(0, 113, 227, 0.28) !important;
+    .mdc-button__label, span, mat-icon { color: #ffffff !important; }
+    &:hover:not(:disabled) { background: $dc-blue-hover !important; transform: translateY(-1px) !important; }
+  }
+  .export-btn {
+    background: rgba(0, 113, 227, 0.1) !important;
+    color: $dc-blue !important;
+    border: 1px solid rgba(0, 113, 227, 0.22) !important;
+    border-radius: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.2px !important;
+    box-shadow: none !important;
+    .mdc-button__label, span, mat-icon { color: $dc-blue !important; }
+    &:hover:not(:disabled) { background: rgba(0, 113, 227, 0.16) !important; }
+  }
+
+  // ── Barra de búsqueda / filtros ───────────────────────────
+  .search-field-wrapper-uni {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid $dc-hairline !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+
+    .search-icon-uni { color: $dc-text-3 !important; }
+    .search-input-uni, .select-inline-uni { color: $dc-text !important; }
+    .search-input-uni::placeholder { color: $dc-text-3 !important; }
+
+    &:hover { border-color: rgba(0, 0, 0, 0.16) !important; background: rgba(255, 255, 255, 0.85) !important; }
+    &:focus-within {
+      border-color: $dc-blue !important;
+      background: rgba(255, 255, 255, 0.95) !important;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+    }
+  }
+
+  .results-badge-uni {
+    background: rgba(0, 113, 227, 0.1) !important;
+    color: $dc-blue !important;
+    border: 1px solid rgba(0, 113, 227, 0.2) !important;
+    border-radius: 999px !important;
+    font-weight: 600 !important;
+    mat-icon { color: $dc-blue !important; }
+  }
+
+  // ── Tarjeta de la tabla ───────────────────────────────────
+  .grid-card {
+    background: rgba(255, 255, 255, 0.62) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid $dc-hairline !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+
+    mat-card-header {
+      background: rgba(248, 250, 252, 0.7) !important;
+      border-bottom: 1px solid $dc-hairline !important;
+      mat-card-title {
+        color: $dc-text !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.2px !important;
+        mat-icon { color: $dc-blue !important; }
+      }
+    }
+  }
+
+  // ── Tabla ─────────────────────────────────────────────────
+  .excel-table {
+    .excel-header {
+      background: rgba(248, 250, 252, 0.85) !important;
+      color: $dc-text-2 !important;
+      border-bottom: 1px solid $dc-hairline !important;
+      .header-content { color: $dc-text-2 !important; font-weight: 600 !important; letter-spacing: -0.1px !important; }
+      mat-icon { color: $dc-blue !important; }
+    }
+
+    .excel-row {
+      transition: background 0.15s ease !important;
+      &:hover { background: rgba(0, 113, 227, 0.04) !important; }
+
+      .excel-cell { border-bottom: 1px solid $dc-hairline !important; color: $dc-text !important; }
+      .name-text { color: $dc-text !important; font-weight: 500 !important; }
+      .name-content mat-icon { color: $dc-blue !important; }
+      .description-text, .size-text, .date-text { color: $dc-text-2 !important; }
+    }
+
+    // Badges — pills Apple suaves
+    .type-badge {
+      background: rgba(0, 113, 227, 0.1) !important;
+      color: $dc-blue !important;
+      border: 1px solid rgba(0, 113, 227, 0.2) !important;
+      border-radius: 999px !important;
+      box-shadow: none !important;
+      mat-icon { color: $dc-blue !important; }
+    }
+    .category-badge {
+      background: rgba(120, 120, 128, 0.1) !important;
+      color: $dc-text-2 !important;
+      border: 1px solid $dc-hairline !important;
+      border-radius: 999px !important;
+    }
+    .status-badge {
+      border-radius: 999px !important;
+      box-shadow: none !important;
+      &.status-active {
+        background: rgba(52, 199, 89, 0.14) !important;
+        color: #1a7f3c !important;
+        border: 1px solid rgba(52, 199, 89, 0.28) !important;
+        mat-icon { color: $dc-green !important; }
+      }
+      &.status-draft {
+        background: rgba(245, 158, 11, 0.14) !important;
+        color: #b45309 !important;
+        border: 1px solid rgba(245, 158, 11, 0.28) !important;
+        mat-icon { color: #f59e0b !important; }
+      }
+      &.status-archived {
+        background: rgba(120, 120, 128, 0.12) !important;
+        color: $dc-text-2 !important;
+        border: 1px solid $dc-hairline !important;
+      }
+    }
+
+    // Botones de acción con hover suave
+    .action-btn {
+      border-radius: 10px !important;
+      transition: background 0.15s ease !important;
+    }
+  }
+
+  .no-data {
+    p { color: $dc-text-2 !important; }
+    mat-icon { color: $dc-text-3 !important; }
+  }
+}
+
+// ── Modo oscuro ──────────────────────────────────────────────
+body.dark-theme .documento-container,
+:host-context(.dark-theme) .documento-container {
+  $d-surface: rgba(44, 44, 46, 0.62);
+  $d-soft: rgba(58, 58, 60, 0.5);
+  $d-hairline: rgba(255, 255, 255, 0.12);
+  $d-text: #f5f5f7;
+  $d-text-2: rgba(235, 235, 245, 0.6);
+  $d-blue: #0a84ff;
+
+  background: linear-gradient(160deg, #1c1c1e 0%, #161618 55%, #1a1820 100%) !important;
+
+  .documento-header {
+    background: $d-surface !important;
+    border-color: $d-hairline !important;
+    .page-title { color: $d-text !important; mat-icon { color: $d-blue !important; } }
+    .page-subtitle { color: $d-text-2 !important; }
+  }
+
+  .search-field-wrapper-uni {
+    background: rgba(58,58,60,0.6) !important;
+    border-color: $d-hairline !important;
+    .search-input-uni, .select-inline-uni { color: $d-text !important; }
+    .search-icon-uni { color: $d-text-2 !important; }
+    &:hover { background: rgba(72,72,74,0.7) !important; }
+  }
+
+  .grid-card {
+    background: $d-surface !important;
+    border-color: $d-hairline !important;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4) !important;
+    mat-card-header {
+      background: $d-soft !important;
+      border-bottom-color: $d-hairline !important;
+      mat-card-title { color: $d-text !important; mat-icon { color: $d-blue !important; } }
+    }
+  }
+
+  .excel-table {
+    .excel-header {
+      background: $d-soft !important;
+      border-bottom-color: $d-hairline !important;
+      .header-content { color: $d-text-2 !important; }
+      mat-icon { color: $d-blue !important; }
+    }
+    .excel-row {
+      &:hover { background: rgba(10,132,255,0.12) !important; }
+      .excel-cell { border-bottom-color: $d-hairline !important; color: $d-text !important; }
+      .name-text { color: $d-text !important; }
+      .description-text, .size-text, .date-text { color: $d-text-2 !important; }
+    }
+  }
+}
+
+// ── Diálogos de documentos (crear/editar/subir) — panel Apple ──
+// El overlay del CDK se renderiza fuera del componente; se estila global.
+::ng-deep .ap-doc-dialog .mat-mdc-dialog-container {
+  .mat-mdc-dialog-surface,
+  .mdc-dialog__surface {
+    border-radius: 20px !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22) !important;
+    overflow: hidden !important;
+  }
+}
+
+body.dark-theme ::ng-deep .ap-doc-dialog .mat-mdc-dialog-container,
+:host-context(.dark-theme) .ap-doc-dialog .mat-mdc-dialog-container {
+  .mat-mdc-dialog-surface,
+  .mdc-dialog__surface {
+    background: rgba(44, 44, 46, 0.96) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+}

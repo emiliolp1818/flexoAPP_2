@@ -129,48 +129,102 @@ import { MatSelectModule } from '@angular/material/select';
     </mat-dialog-actions>
   `,
   styles: [`
-    // Formulario de documento
-    .document-form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      padding: 8px 0;
-
-      .full-width {
-        width: 100%;
-      }
+    :host {
+      display: block;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
     }
 
-    // Título del diálogo
+    // Título del diálogo — Apple limpio
     h2[mat-dialog-title] {
       display: flex;
       align-items: center;
-      gap: 12px;
-      color: #1e293b;
+      gap: 10px;
+      margin: 0;
+      padding: 18px 22px 12px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: #1d1d1f;
 
-      mat-icon {
-        color: #2563eb;
-      }
+      mat-icon { color: #0071e3; }
     }
 
-    // Contenido del diálogo
+    // Contenido del diálogo — compacto
     mat-dialog-content {
-      min-width: 500px;
-      max-height: 600px;
-      padding: 20px 24px;
+      min-width: 440px;
+      max-width: 460px;
+      max-height: 70vh;
+      padding: 4px 22px 8px !important;
     }
 
-    // Acciones del diálogo
+    // Formulario compacto
+    .document-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 6px 0;
+
+      .full-width { width: 100%; }
+    }
+
+    // Campos estilo iOS (filled discreto, hairline, radio Apple)
+    ::ng-deep .document-form .mat-mdc-form-field {
+      width: 100%;
+
+      .mat-mdc-text-field-wrapper {
+        border-radius: 12px !important;
+        background: rgba(118, 118, 128, 0.06) !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+      .mdc-line-ripple::before,
+      .mdc-line-ripple::after { display: none !important; }
+      .mat-mdc-form-field-focus-overlay { background: transparent !important; }
+
+      &:hover .mat-mdc-text-field-wrapper { border-color: rgba(0, 0, 0, 0.16) !important; }
+      &.mat-focused .mat-mdc-text-field-wrapper {
+        border-color: #0071e3 !important;
+        background: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+      }
+
+      .mat-mdc-form-field-infix { min-height: 46px !important; padding-top: 10px !important; padding-bottom: 8px !important; }
+      .mat-mdc-floating-label { color: #86868b !important; }
+      &.mat-focused .mat-mdc-floating-label { color: #0071e3 !important; }
+      input.mat-mdc-input-element, textarea.mat-mdc-input-element,
+      .mat-mdc-select-value-text { color: #1d1d1f !important; }
+      .mat-mdc-form-field-icon-prefix { color: #86868b !important; }
+      &.mat-focused .mat-mdc-form-field-icon-prefix mat-icon { color: #0071e3 !important; }
+      .mat-mdc-form-field-subscript-wrapper { display: none !important; }
+    }
+
+    // Acciones — botones Apple
     mat-dialog-actions {
-      padding: 16px 24px;
+      padding: 12px 22px 18px !important;
+      gap: 8px;
+
+      button[mat-button] {
+        border-radius: 10px !important;
+        color: #6e6e73 !important;
+        font-weight: 500 !important;
+        letter-spacing: -0.2px !important;
+      }
+      button[mat-raised-button] {
+        background: #0071e3 !important;
+        color: #ffffff !important;
+        border-radius: 10px !important;
+        font-weight: 500 !important;
+        letter-spacing: -0.2px !important;
+        box-shadow: 0 3px 10px rgba(0, 113, 227, 0.28) !important;
+        .mdc-button__label, mat-icon { color: #ffffff !important; }
+        &:disabled { opacity: 0.5 !important; box-shadow: none !important; }
+      }
     }
 
     // Iconos en las opciones del select
-    mat-option {
-      mat-icon {
-        margin-right: 8px;
-        vertical-align: middle;
-      }
+    mat-option mat-icon {
+      margin-right: 8px;
+      vertical-align: middle;
     }
   `]
 })

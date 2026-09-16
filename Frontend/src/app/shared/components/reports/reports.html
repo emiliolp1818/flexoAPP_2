@@ -99,7 +99,7 @@
   </aside>
 
   <!-- Panel Principal Derecho -->
-  <main class="reports-main" [class.has-sidebar]="true">
+  <main class="reports-main" [class.has-sidebar]="true" (scroll)="onMainScroll($event)">
 
     <!-- Loading State -->
     <div *ngIf="loading()" class="main-loading">
@@ -131,14 +131,10 @@
         </div>
       </div>
 
-      <!-- Paginación del Servidor (si hay más datos) -->
-      <div class="server-pagination" *ngIf="hasMoreData() && filteredActivities().length > 0">
-        <button mat-raised-button color="accent" (click)="loadMoreActivitiesFromServer()" [disabled]="loadingMore()">
-          <mat-spinner *ngIf="loadingMore()" diameter="20"></mat-spinner>
-          <mat-icon *ngIf="!loadingMore()">cloud_download</mat-icon>
-          {{ loadingMore() ? 'Cargando...' : 'Cargar más actividades' }}
-          <span class="server-count" *ngIf="!loadingMore()">({{ totalCount() - activities().length }} disponibles)</span>
-        </button>
+      <!-- Indicador sutil de carga por scroll (paginación automática) -->
+      <div class="scroll-loading" *ngIf="loadingMore()">
+        <mat-spinner diameter="22"></mat-spinner>
+        <span>Cargando más...</span>
       </div>
 
       <!-- Contenido Específico por Módulo -->
@@ -187,11 +183,16 @@
                     <span class="order-time" *ngIf="order.historialEstados?.length">
                       {{ order.historialEstados[order.historialEstados.length-1].timestamp | date:'dd/MM HH:mm' }}
                     </span>
+                    <!-- Pantones en línea, junto a la fecha (más compacto) -->
+                    <span class="order-pantones-inline" *ngIf="order.pantoneColors && order.pantoneColors.length > 0">
+                      <span *ngFor="let color of order.pantoneColors" class="pantone-tag">{{ color }}</span>
+                    </span>
+                    <!-- Descripción del pedido, después de los pantones -->
+                    <span class="order-desc" *ngIf="order.descripcion !== '-'">{{ order.descripcion }}</span>
                   </div>
                   <div class="order-badges">
                     <span class="badge-time" *ngIf="order.duration > 0">{{ formatDuration(order.duration) }}</span>
                     <span class="badge-colors" *ngIf="order.numeroColores">🎨 {{ order.numeroColores }}</span>
-                    <span class="badge-desc" *ngIf="order.descripcion !== '-'">{{ order.descripcion }}</span>
                     <button mat-icon-button class="delete-btn" *ngIf="canDeleteActivity()" 
                             (click)="deleteOrderActivities(order); $event.stopPropagation()" matTooltip="Eliminar">
                       <mat-icon>delete</mat-icon>
@@ -200,36 +201,30 @@
                   </div>
                 </div>
 
-                <!-- Pantones inline -->
-                <div class="order-pantones" *ngIf="order.pantoneColors && order.pantoneColors.length > 0">
-                  <span class="pantone-label">Pantones:</span>
-                  <span *ngFor="let color of order.pantoneColors" class="pantone-tag">{{ color }}</span>
-                </div>
+                <!-- Flujo de estados horizontal (stepper) -->
+                <div class="order-flow" *ngIf="order.expanded && order.historialEstados?.length">
 
-                <!-- Timeline expandible -->
-                <div class="order-timeline" *ngIf="order.expanded && order.historialEstados?.length">
-                  <div *ngFor="let estado of order.historialEstados; let i = index" class="timeline-item"
-                       [class.estado-preparando]="estado.estado === 'PREPARANDO'"
-                       [class.estado-listo]="estado.estado === 'LISTO'"
-                       [class.estado-corriendo]="estado.estado === 'CORRIENDO'"
-                       [class.estado-suspendido]="estado.estado === 'SUSPENDIDO'"
-                       [class.estado-terminado]="estado.estado === 'TERMINADO'">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-content">
-                      <div class="timeline-header">
-                        <span class="estado-badge">{{ estado.estado }}</span>
-                        <span class="timeline-time">{{ estado.timestamp | date:'HH:mm' }}</span>
-                        <span class="timeline-duration" *ngIf="estado.estado === 'LISTO' && estado.duration > 0">
-                          {{ formatDuration(estado.duration) }}
-                        </span>
-                      </div>
-                      <div class="timeline-user" *ngIf="estado.userCode && estado.userCode !== '-'">
-                        👤 {{ estado.userName || estado.userCode }}
-                      </div>
-                      <div class="timeline-obs" *ngIf="estado.observaciones">
-                        {{ estado.observaciones }}
-                      </div>
+                  <!-- Pasos de estado en fila: PREPARANDO ── LISTO ── ... -->
+                  <div class="flow-steps">
+                    <div *ngFor="let estado of order.historialEstados; let last = last"
+                         class="flow-step"
+                         [class.estado-preparando]="estado.estado === 'PREPARANDO'"
+                         [class.estado-listo]="estado.estado === 'LISTO'"
+                         [class.estado-corriendo]="estado.estado === 'CORRIENDO'"
+                         [class.estado-suspendido]="estado.estado === 'SUSPENDIDO'"
+                         [class.estado-terminado]="estado.estado === 'TERMINADO'">
+                      <span class="estado-badge">{{ estado.estado }}</span>
+                      <span class="flow-time">{{ estado.timestamp | date:'dd/MM HH:mm' }}</span>
                     </div>
+                  </div>
+
+                  <!-- Usuario + tiempo al final, a la derecha, en un solo renglón -->
+                  <div class="flow-meta">
+                    <span class="flow-user"
+                          *ngIf="order.historialEstados[order.historialEstados.length-1].userName || order.historialEstados[order.historialEstados.length-1].userCode">
+                      👤 {{ order.historialEstados[order.historialEstados.length-1].userName || order.historialEstados[order.historialEstados.length-1].userCode }}
+                    </span>
+                    <span class="flow-duration" *ngIf="order.duration > 0">{{ formatDuration(order.duration) }}</span>
                   </div>
                 </div>
 

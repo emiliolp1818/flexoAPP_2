@@ -621,3 +621,262 @@ $gray-900: #0f172a;
     }
   }
 }
+
+// ============================================================
+//  APPLE DESIGN — Refinamiento del módulo Información
+//  Coherente con Login, Configuraciones y Dashboard.
+// ============================================================
+$if-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
+$if-text:      #1d1d1f;
+$if-text-2:    #6e6e73;
+$if-text-3:    #86868b;
+$if-blue:      #0071e3;
+$if-blue-hover:#0077ed;
+$if-green:     #34c759;
+$if-red:       #ff3b30;
+$if-hairline:  rgba(0, 0, 0, 0.08);
+
+.informacion-container {
+  font-family: $if-font !important;
+  // Fondo suave difuso tipo macOS Big Sur
+  background: linear-gradient(160deg, #eef2f9 0%, #e6edf8 45%, #ece7f8 100%) !important;
+
+  h1, h2, h3, p, span, button, div { font-family: $if-font; }
+
+  // Grid: menos gap; las tarjetas se estiran al alto de la fila (simétricas)
+  .info-grid {
+    gap: 12px !important;
+    align-items: stretch !important;
+    align-content: start !important;
+    margin-top: 12px !important;
+  }
+
+  // ── Header ────────────────────────────────────────────────
+  .informacion-header {
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid $if-hairline !important;
+    border-radius: 18px !important;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.06) !important;
+
+    // Quita la franja azul superior (estilo Apple limpio)
+    &::before { display: none !important; }
+
+    .page-title {
+      color: $if-text !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.4px !important;
+      mat-icon { color: $if-blue !important; }
+    }
+    .page-subtitle { color: $if-text-2 !important; font-weight: 400 !important; letter-spacing: -0.1px !important; }
+  }
+
+  // Botón Actualizar — Apple
+  .export-btn {
+    background: $if-blue !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.2px !important;
+    box-shadow: 0 3px 10px rgba(0, 113, 227, 0.28) !important;
+    transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease !important;
+    .mdc-button__label, span, mat-icon { color: #ffffff !important; }
+    &:hover:not(:disabled) { background: $if-blue-hover !important; transform: translateY(-1px) !important; }
+    &:disabled { opacity: 0.5 !important; }
+  }
+
+  // ── Tarjetas (glass hairline Apple) ───────────────────────
+  .info-card,
+  .license-card {
+    background: rgba(255, 255, 255, 0.62) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border: 1px solid $if-hairline !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.24s ease !important;
+
+    // Franja de acento superior sutil (azul de sistema)
+    &::before {
+      height: 2px !important;
+      background: $if-blue !important;
+      opacity: 0.85 !important;
+    }
+
+    &:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.09) !important;
+    }
+
+    // Header de cada tarjeta: neutro, sin uppercase ni borde azul grueso
+    mat-card-header {
+      background: rgba(248, 250, 252, 0.7) !important;
+      border-bottom: 1px solid $if-hairline !important;
+      padding: 10px 16px !important;
+
+      mat-card-title {
+        color: $if-text !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: -0.2px !important;
+        text-transform: none !important;
+        mat-icon { color: $if-blue !important; }
+      }
+    }
+
+    mat-card-content { padding: 6px 16px 10px !important; }
+  }
+
+  // Todas las tarjetas de info con el mismo alto (se estiran al alto de la fila)
+  .info-card {
+    min-height: 0 !important;
+    height: 100% !important;
+    align-self: stretch !important;
+  }
+
+  // ── Filas de datos (compactas) ────────────────────────────
+  .info-row {
+    border-bottom: 1px solid $if-hairline !important;
+    padding: 7px 0 !important;
+
+    .info-label {
+      color: $if-text-2 !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.1px !important;
+      mat-icon { color: $if-blue !important; }
+    }
+    .info-value {
+      color: $if-text !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.1px !important;
+    }
+  }
+
+  // ── Badges — pastel Apple (suaves, sin gradientes fuertes) ─
+  .version-badge {
+    background: rgba(0, 113, 227, 0.1) !important;
+    color: $if-blue !important;
+    border: 1px solid rgba(0, 113, 227, 0.2) !important;
+    border-radius: 8px !important;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+  }
+
+  .ip-badge {
+    background: rgba(52, 199, 89, 0.12) !important;
+    color: #1a7f3c !important;
+    border: 1px solid rgba(52, 199, 89, 0.25) !important;
+    border-radius: 8px !important;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace !important;
+    box-shadow: none !important;
+  }
+
+  .port-badge {
+    background: rgba(245, 158, 11, 0.14) !important;
+    color: #b45309 !important;
+    border: 1px solid rgba(245, 158, 11, 0.28) !important;
+    border-radius: 8px !important;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace !important;
+    box-shadow: none !important;
+  }
+
+  .url-value {
+    color: $if-blue !important;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace !important;
+  }
+
+  // Estado (En línea / Fuera de línea) — colores de sistema Apple
+  .status-badge {
+    border-radius: 999px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+
+    &.online {
+      background: rgba(52, 199, 89, 0.14) !important;
+      color: #1a7f3c !important;
+      border: 1px solid rgba(52, 199, 89, 0.28) !important;
+      mat-icon { color: $if-green !important; }
+    }
+    &.offline {
+      background: rgba(255, 59, 48, 0.12) !important;
+      color: #c0271e !important;
+      border: 1px solid rgba(255, 59, 48, 0.28) !important;
+      mat-icon { color: $if-red !important; }
+    }
+  }
+
+  // ── Licencia ──────────────────────────────────────────────
+  // Tarjeta más alta para que el texto de la licencia se lea cómodo
+  .license-card {
+    max-height: 560px !important;
+    margin-top: 4px !important;
+  }
+
+  .license-content {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid $if-hairline !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    min-height: 340px !important;
+
+    pre {
+      color: $if-text-2 !important;
+      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace !important;
+      font-size: 0.8rem !important;
+      line-height: 1.55 !important;
+    }
+  }
+
+  // Loading
+  .loading-container p { color: $if-text-2 !important; font-family: $if-font !important; }
+}
+
+// ── Modo oscuro ──────────────────────────────────────────────
+body.dark-theme .informacion-container,
+:host-context(.dark-theme) .informacion-container {
+  $d-surface: rgba(44, 44, 46, 0.62);
+  $d-soft: rgba(58, 58, 60, 0.5);
+  $d-hairline: rgba(255, 255, 255, 0.12);
+  $d-text: #f5f5f7;
+  $d-text-2: rgba(235, 235, 245, 0.6);
+  $d-blue: #0a84ff;
+
+  background: linear-gradient(160deg, #1c1c1e 0%, #161618 55%, #1a1820 100%) !important;
+
+  .informacion-header {
+    background: $d-surface !important;
+    border-color: $d-hairline !important;
+    .page-title { color: $d-text !important; mat-icon { color: $d-blue !important; } }
+    .page-subtitle { color: $d-text-2 !important; }
+  }
+
+  .info-card, .license-card {
+    background: $d-surface !important;
+    border-color: $d-hairline !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4) !important;
+    &::before { background: $d-blue !important; }
+    mat-card-header {
+      background: $d-soft !important;
+      border-bottom-color: $d-hairline !important;
+      mat-card-title { color: $d-text !important; mat-icon { color: $d-blue !important; } }
+    }
+  }
+
+  .info-row {
+    border-bottom-color: $d-hairline !important;
+    .info-label { color: $d-text-2 !important; mat-icon { color: $d-blue !important; } }
+    .info-value { color: $d-text !important; }
+  }
+
+  .version-badge { background: rgba(10,132,255,0.18) !important; color: $d-blue !important; border-color: rgba(10,132,255,0.32) !important; }
+  .url-value { color: $d-blue !important; }
+
+  .license-content {
+    background: $d-soft !important;
+    border-color: $d-hairline !important;
+    pre { color: $d-text-2 !important; }
+  }
+}

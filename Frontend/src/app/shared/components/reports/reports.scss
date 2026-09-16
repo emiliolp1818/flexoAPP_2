@@ -1322,3 +1322,623 @@ $transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 8px !important;
   }
 }
+
+// ============================================================
+//  APPLE DESIGN — Refinamiento del módulo Reportes / Auditoría
+//  Coherente con Login, Configuraciones, Dashboard, Información,
+//  Consulta y Documentos. Incluye mejora del menú lateral.
+// ============================================================
+$rp-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Inter', system-ui, sans-serif;
+$rp-text:      #1d1d1f;
+$rp-text-2:    #6e6e73;
+$rp-text-3:    #86868b;
+$rp-blue:      #0071e3;
+$rp-blue-hover:#0077ed;
+$rp-green:     #34c759;
+$rp-hairline:  rgba(0, 0, 0, 0.08);
+
+.reports-container {
+  font-family: $rp-font !important;
+  background: linear-gradient(160deg, #eef2f9 0%, #e6edf8 45%, #ece7f8 100%) !important;
+
+  h1, h2, h3, p, span, button, div, input { font-family: $rp-font; }
+
+  // ── Sidebar (glass hairline) ──────────────────────────────
+  .reports-sidebar {
+    background: rgba(255, 255, 255, 0.62) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    border-right: 1px solid $rp-hairline !important;
+
+    .sidebar-header {
+      border-bottom: 1px solid $rp-hairline !important;
+
+      .sidebar-title {
+        color: $rp-text !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.3px !important;
+        mat-icon { color: $rp-blue !important; }
+      }
+      .sidebar-stats {
+        .stat-count, .stat-modules {
+          background: rgba(0, 113, 227, 0.1) !important;
+          color: $rp-blue !important;
+          border-radius: 999px !important;
+          font-weight: 600 !important;
+        }
+        .stat-modules {
+          background: rgba(120, 120, 128, 0.1) !important;
+          color: $rp-text-2 !important;
+        }
+      }
+    }
+
+    .sidebar-filters {
+      border-bottom: 1px solid $rp-hairline !important;
+
+      // Campos estilo iOS (un poco más grandes)
+      .search-field-wrapper {
+        background: rgba(118, 118, 128, 0.06) !important;
+        border: 1px solid $rp-hairline !important;
+        border-radius: 11px !important;
+        padding: 9px 12px !important;
+        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+
+        .search-icon { color: $rp-text-3 !important; font-size: 18px !important; width: 18px !important; height: 18px !important; }
+        .search-input { color: $rp-text !important; font-size: 13px !important; }
+        .search-input::placeholder { color: $rp-text-3 !important; }
+
+        &:focus-within {
+          border-color: $rp-blue !important;
+          background: #ffffff !important;
+          box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15) !important;
+        }
+      }
+
+      // Botones de filtro
+      .filter-btn.primary {
+        background: $rp-blue !important;
+        color: #ffffff !important;
+        border-radius: 10px !important;
+        font-weight: 500 !important;
+        box-shadow: 0 3px 10px rgba(0, 113, 227, 0.25) !important;
+        .mdc-button__label, mat-icon { color: #ffffff !important; }
+        &:hover:not(:disabled) { background: $rp-blue-hover !important; }
+      }
+      .filter-btn.secondary { color: $rp-text-2 !important; border-radius: 10px !important; }
+    }
+
+    // Sugerencias de usuario (un poco más grandes)
+    .suggestions-dropdown {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1px solid $rp-hairline !important;
+      border-radius: 12px !important;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
+      max-height: 260px !important;
+
+      .suggestion-item {
+        padding: 9px 12px !important;
+        gap: 8px !important;
+        mat-icon { color: $rp-text-3 !important; font-size: 18px !important; width: 18px !important; height: 18px !important; }
+        .s-code { font-size: 12.5px !important; font-weight: 700 !important; color: $rp-text !important; }
+        .s-name { font-size: 12px !important; color: $rp-text-2 !important; }
+        &:hover { background: rgba(0, 113, 227, 0.08) !important; }
+      }
+    }
+  }
+
+  // ── MENÚ LATERAL DE MÓDULOS (mejorado) ────────────────────
+  .modules-list { padding: 8px !important; }
+
+  .module-item {
+    border-radius: 12px !important;
+    margin-bottom: 4px !important;
+    transition: background 0.15s ease, transform 0.15s ease !important;
+
+    &:hover:not(.empty) {
+      background: rgba(0, 113, 227, 0.05) !important;
+      transform: translateX(1px);
+    }
+
+    &.selected {
+      background: rgba(0, 113, 227, 0.1) !important;
+      box-shadow: inset 3px 0 0 $rp-blue;
+      .module-btn .module-label { color: $rp-blue !important; font-weight: 600 !important; }
+      .module-btn .module-count { background: $rp-blue !important; color: #fff !important; }
+    }
+
+    .module-btn {
+      border-radius: 12px !important;
+      padding: 9px 10px !important;
+
+      .module-icon {
+        border-radius: 10px !important;
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+      }
+      .module-label { color: $rp-text !important; font-weight: 500 !important; letter-spacing: -0.1px !important; }
+      .module-count {
+        background: rgba(120, 120, 128, 0.16) !important;
+        color: $rp-text-2 !important;
+        border-radius: 999px !important;
+        font-weight: 700 !important;
+      }
+      .module-chevron { color: $rp-text-3 !important; }
+    }
+  }
+
+  .sidebar-empty { color: $rp-text-2 !important; mat-icon { color: $rp-text-3 !important; } }
+
+  // ── Panel principal ───────────────────────────────────────
+  .reports-main {
+    background: transparent !important;
+
+    .main-loading, .main-empty { color: $rp-text-2 !important; mat-icon { color: $rp-text-3 !important; } h3 { color: $rp-text !important; } }
+
+    // Indicador sutil de carga por scroll
+    .scroll-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 0;
+      font-size: 12px;
+      color: $rp-text-2;
+    }
+  }
+
+  // Botones de acción (expandir/eliminar) centrados verticalmente
+  // en la tabla de actividades genéricas (todas las pestañas no-Máquinas)
+  .activities-detail .activity-row {
+    align-items: center !important;
+
+    .activity-actions-col {
+      display: flex !important;
+      align-items: center !important;
+      align-self: center !important;
+
+      .expand-btn,
+      .delete-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        align-self: center !important;
+        line-height: normal !important;
+
+        mat-icon {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          line-height: 1 !important;
+          margin: 0 !important;
+        }
+      }
+      .delete-btn:hover mat-icon { color: #ff3b30 !important; }
+    }
+  }
+
+  // Header del módulo seleccionado
+  .module-detail .detail-header {
+    h2 { color: $rp-text !important; font-weight: 600 !important; letter-spacing: -0.3px !important; }
+    .detail-subtitle { color: $rp-text-2 !important; }
+    .detail-icon { border-radius: 12px !important; }
+
+    .detail-actions button[color="primary"] {
+      background: $rp-blue !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      box-shadow: 0 3px 10px rgba(0, 113, 227, 0.25) !important;
+      .mdc-button__label, mat-icon { color: #fff !important; }
+    }
+    .detail-actions button:not([color="primary"]) {
+      background: rgba(0, 113, 227, 0.1) !important;
+      color: $rp-blue !important;
+      border-radius: 10px !important;
+      .mdc-button__label, mat-icon { color: $rp-blue !important; }
+    }
+  }
+
+  // Barra de stats (MACHINES)
+  .stats-bar {
+    .stat-item {
+      background: rgba(255, 255, 255, 0.62) !important;
+      border: 1px solid $rp-hairline !important;
+      border-radius: 14px !important;
+      backdrop-filter: blur(20px) saturate(180%);
+      mat-icon { color: $rp-blue !important; }
+      strong { color: $rp-text !important; }
+      span { color: $rp-text-2 !important; }
+    }
+  }
+
+  // Tarjetas de pedido y actividad — glass hairline
+  .order-item, .activity-item {
+    background: rgba(255, 255, 255, 0.62) !important;
+    border: 1px solid $rp-hairline !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  // Badges genéricos
+  .action-badge {
+    background: rgba(0, 113, 227, 0.1) !important;
+    color: $rp-blue !important;
+    border-radius: 999px !important;
+  }
+
+  // Botones de paginación
+  .pagination-btn {
+    border-radius: 10px !important;
+    color: $rp-blue !important;
+    border-color: rgba(0, 113, 227, 0.28) !important;
+  }
+  .server-pagination button[color="accent"] {
+    background: rgba(0, 113, 227, 0.1) !important;
+    color: $rp-blue !important;
+    border-radius: 10px !important;
+    .mdc-button__label, mat-icon { color: $rp-blue !important; }
+  }
+}
+
+// ── Modo oscuro ──────────────────────────────────────────────
+body.dark-theme .reports-container,
+:host-context(.dark-theme) .reports-container {
+  $d-surface: rgba(44, 44, 46, 0.62);
+  $d-soft: rgba(58, 58, 60, 0.5);
+  $d-hairline: rgba(255, 255, 255, 0.12);
+  $d-text: #f5f5f7;
+  $d-text-2: rgba(235, 235, 245, 0.6);
+  $d-blue: #0a84ff;
+
+  background: linear-gradient(160deg, #1c1c1e 0%, #161618 55%, #1a1820 100%) !important;
+
+  .reports-sidebar {
+    background: $d-surface !important;
+    border-right-color: $d-hairline !important;
+    .sidebar-header { border-bottom-color: $d-hairline !important; .sidebar-title { color: $d-text !important; mat-icon { color: $d-blue !important; } } }
+    .sidebar-filters {
+      border-bottom-color: $d-hairline !important;
+      .search-field-wrapper {
+        background: rgba(58,58,60,0.6) !important;
+        border-color: $d-hairline !important;
+        .search-input { color: $d-text !important; }
+        .search-icon { color: $d-text-2 !important; }
+      }
+    }
+  }
+
+  .module-item {
+    &:hover:not(.empty) { background: rgba(10,132,255,0.12) !important; }
+    &.selected { background: rgba(10,132,255,0.18) !important; box-shadow: inset 3px 0 0 $d-blue; .module-btn .module-label { color: $d-blue !important; } }
+    .module-btn .module-label { color: $d-text !important; }
+  }
+
+  .module-detail .detail-header {
+    h2 { color: $d-text !important; }
+    .detail-subtitle { color: $d-text-2 !important; }
+  }
+
+  .stats-bar .stat-item, .order-item, .activity-item {
+    background: $d-surface !important;
+    border-color: $d-hairline !important;
+    strong, .user-name { color: $d-text !important; }
+    span, .user-code { color: $d-text-2 !important; }
+  }
+}
+
+// ============================================================
+//  Lista de pedidos (módulo Máquinas en Auditoría) — Apple
+//  Ajuste fino de organización y estilo de badges/tags.
+// ============================================================
+.reports-container {
+
+  .machines-detail {
+
+    .orders-header h3 {
+      color: $rp-text !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.2px !important;
+      font-size: 13px !important;
+    }
+
+    .order-items { gap: 8px !important; }
+
+    .order-item {
+      // Ya recibe glass/hairline del bloque anterior; aquí refinamos interior.
+      overflow: hidden !important;
+
+      &.expanded {
+        border-color: rgba(0, 113, 227, 0.35) !important;
+        box-shadow: 0 4px 16px rgba(0, 113, 227, 0.1) !important;
+      }
+
+      .order-header {
+        padding: 11px 14px !important;
+        gap: 12px !important;
+        align-items: center !important;
+        &:hover { background: rgba(0, 113, 227, 0.04) !important; }
+
+        .order-main {
+          gap: 9px !important;
+          flex: 1 1 auto !important;
+          // La fecha ya no se empuja al extremo; fluye con los demás
+          .order-time { margin-left: 0 !important; }
+
+          .order-index {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px !important;
+            height: 22px !important;
+            min-width: 22px !important;
+            border-radius: 6px !important;
+            background: rgba(120, 120, 128, 0.12) !important;
+            color: $rp-text-2 !important;
+            font-weight: 700 !important;
+            font-size: 10px !important;
+          }
+
+          .order-articulo {
+            color: $rp-blue !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.2px !important;
+          }
+
+          .order-ot {
+            color: $rp-text-2 !important;
+            font-weight: 500 !important;
+          }
+
+          // Máquina: pill azul de sistema (suave)
+          .order-maquina {
+            background: rgba(0, 113, 227, 0.12) !important;
+            color: $rp-blue !important;
+            border: 1px solid rgba(0, 113, 227, 0.22) !important;
+            border-radius: 999px !important;
+            padding: 2px 8px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.2px !important;
+          }
+
+          .order-time { color: $rp-text-3 !important; flex-shrink: 0 !important; }
+
+          // Pantones en línea, junto a la fecha.
+          // Soporta hasta 10 pantones: se muestran en una fila con wrap
+          // suave si no caben, sin empujar el resto (max-width acotado).
+          .order-pantones-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            row-gap: 3px;
+            min-width: 0;
+            flex: 0 1 auto;
+            max-width: 46%;
+            overflow: hidden;
+
+            .pantone-tag {
+              background: rgba(0, 113, 227, 0.08) !important;
+              color: $rp-blue !important;
+              border: 1px solid rgba(0, 113, 227, 0.16) !important;
+              border-radius: 6px !important;
+              padding: 1px 6px !important;
+              font-size: 9px !important;
+              font-weight: 600 !important;
+              white-space: nowrap;
+              flex-shrink: 0;
+            }
+          }
+
+          // Descripción del pedido, después de los pantones (ocupa el sobrante,
+          // se trunca primero para que los 10 pantones quepan bien).
+          .order-desc {
+            font-size: 11px !important;
+            color: $rp-text-2 !important;
+            font-weight: 500 !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1 1 60px;
+            min-width: 40px;
+          }
+        }
+
+        .order-badges {
+          gap: 8px !important;
+          flex: 0 0 auto !important;
+          justify-content: flex-end !important;
+          align-items: center !important;
+
+          // Tiempo: pill verde de sistema
+          .badge-time {
+            background: rgba(52, 199, 89, 0.14) !important;
+            color: #1a7f3c !important;
+            border: 1px solid rgba(52, 199, 89, 0.28) !important;
+            border-radius: 999px !important;
+            padding: 2px 8px !important;
+            font-weight: 700 !important;
+            flex-shrink: 0;
+          }
+
+          // Colores: pill lila suave
+          .badge-colors {
+            background: rgba(124, 58, 237, 0.12) !important;
+            color: #6d28d9 !important;
+            border: 1px solid rgba(124, 58, 237, 0.22) !important;
+            border-radius: 999px !important;
+            padding: 2px 8px !important;
+            font-weight: 600 !important;
+            flex-shrink: 0;
+          }
+
+          // Botón eliminar centrado verticalmente
+          .delete-btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            align-self: center !important;
+            flex-shrink: 0;
+            &:hover mat-icon { color: #ff3b30 !important; }
+          }
+          .expand-toggle { color: $rp-text-3 !important; align-self: center !important; flex-shrink: 0; }
+        }
+      }
+
+      // Pantones inline — tags Apple
+      .order-pantones {
+        padding: 0 14px 10px !important;
+        gap: 5px !important;
+
+        .pantone-label {
+          color: $rp-text-3 !important;
+          font-weight: 600 !important;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+        .pantone-tag {
+          background: rgba(0, 113, 227, 0.08) !important;
+          color: $rp-blue !important;
+          border: 1px solid rgba(0, 113, 227, 0.16) !important;
+          border-radius: 6px !important;
+          padding: 2px 7px !important;
+          font-weight: 600 !important;
+        }
+      }
+
+      // Flujo de estados HORIZONTAL: PREPARANDO ── LISTO ── CORRIENDO ── ...
+      .order-flow {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        border-top: 1px solid $rp-hairline !important;
+        background: rgba(248, 250, 252, 0.6) !important;
+        padding: 10px 14px !important;
+
+        // Los pasos, uno al lado del otro con conector "──" entre ellos
+        .flow-steps {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-start;
+          flex-wrap: wrap;
+          gap: 0;
+          flex: 1 1 auto;
+          min-width: 0;
+
+          .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            position: relative;
+            padding: 14px 10px 0;   // espacio arriba para la fila de nodos/puntos
+
+            // Punto (nodo) en la parte superior de cada estado
+            &::before {
+              content: '';
+              position: absolute;
+              top: 3px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 9px;
+              height: 9px;
+              border-radius: 50%;
+              background: #ffffff;
+              border: 2px solid rgba(0, 113, 227, 0.55);
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+              z-index: 2;
+            }
+
+            // Línea conectora entre el punto de este estado y el del siguiente
+            &:not(:last-child)::after {
+              content: '';
+              position: absolute;
+              top: 7px;                 // a la altura del centro de los puntos
+              left: 50%;
+              width: 100%;              // llega hasta el punto del siguiente paso
+              height: 2px;
+              background: rgba(0, 113, 227, 0.3);
+              border-radius: 2px;
+              z-index: 1;
+            }
+
+            .estado-badge {
+              border-radius: 999px !important;
+              font-weight: 700 !important;
+              font-size: 10px !important;
+              padding: 2px 10px !important;
+              white-space: nowrap;
+              position: relative;
+              z-index: 2;
+            }
+
+            // Fecha/hora debajo de cada estado
+            .flow-time {
+              font-size: 9.5px;
+              color: $rp-text-3;
+              white-space: nowrap;
+            }
+          }
+
+          // Color del punto según el estado
+          .estado-preparando::before { border-color: #f59e0b !important; }
+          .estado-listo::before { border-color: #34c759 !important; }
+          .estado-corriendo::before { border-color: #0071e3 !important; }
+          .estado-suspendido::before { border-color: #f97316 !important; }
+          .estado-terminado::before { border-color: #ff3b30 !important; }
+        }
+
+        // Usuario + tiempo al final, a la derecha, en un solo renglón
+        .flow-meta {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          flex-shrink: 0;
+          margin-left: auto;
+
+          .flow-user {
+            font-size: 11px;
+            color: $rp-text-2;
+            white-space: nowrap;
+          }
+          .flow-duration {
+            font-size: 10px;
+            font-weight: 700;
+            color: #1a7f3c;
+            background: rgba(52, 199, 89, 0.14);
+            border: 1px solid rgba(52, 199, 89, 0.28);
+            border-radius: 999px;
+            padding: 2px 8px;
+            white-space: nowrap;
+          }
+        }
+
+        // Colores de la píldora según el estado
+        .estado-preparando .estado-badge { background: rgba(245,158,11,0.16) !important; color: #b45309 !important; border: 1px solid rgba(245,158,11,0.3) !important; }
+        .estado-listo .estado-badge { background: rgba(52,199,89,0.16) !important; color: #1a7f3c !important; border: 1px solid rgba(52,199,89,0.3) !important; }
+        .estado-corriendo .estado-badge { background: rgba(0,113,227,0.14) !important; color: #0071e3 !important; border: 1px solid rgba(0,113,227,0.28) !important; }
+        .estado-suspendido .estado-badge { background: rgba(249,115,22,0.16) !important; color: #c2410c !important; border: 1px solid rgba(249,115,22,0.3) !important; }
+        .estado-terminado .estado-badge { background: rgba(255,59,48,0.14) !important; color: #c0271e !important; border: 1px solid rgba(255,59,48,0.28) !important; }
+      }
+    }
+  }
+}
+
+// Modo oscuro para la lista de pedidos
+body.dark-theme .reports-container .machines-detail,
+:host-context(.dark-theme) .reports-container .machines-detail {
+  .orders-header h3 { color: #f5f5f7 !important; }
+  .order-item {
+    .order-header {
+      &:hover { background: rgba(10,132,255,0.12) !important; }
+      .order-main .order-index { background: rgba(255,255,255,0.12) !important; color: rgba(235,235,245,0.7) !important; }
+      .order-main .order-ot { color: rgba(235,235,245,0.7) !important; }
+      .order-badges .badge-desc { color: rgba(235,235,245,0.6) !important; }
+    }
+    .order-timeline { background: rgba(58,58,60,0.4) !important; border-top-color: rgba(255,255,255,0.12) !important; }
+  }
+}

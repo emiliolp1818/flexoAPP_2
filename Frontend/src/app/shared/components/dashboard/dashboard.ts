@@ -7,6 +7,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { HeaderComponent } from '../header/header';
 import { DashboardService, DashboardStats } from '../../../core/services/dashboard.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PantoneLiveService } from '../../services/pantone-live.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -49,6 +50,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private dashboardService: DashboardService,
     private authService: AuthService,
+    private pantoneService: PantoneLiveService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -154,7 +156,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private loadTopPantones(): void {
     this.dashboardService.getTopPantones().subscribe({
-      next: (data) => this.topPantones.set(data),
+      next: (data) => {
+        this.topPantones.set(data);
+        // Asegura que los colores HEX estén cargados; si llegan después,
+        // re-emite el signal para que las barras se repinten con su color real.
+        this.pantoneService.loadFromApi().then(() => {
+          this.topPantones.set([...this.topPantones()]);
+        });
+      },
       error: () => {}
     });
   }
@@ -162,6 +171,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
   getPantoneBarColor(index: number): string {
     const colors = ['#8b5cf6','#7c3aed','#6d28d9','#5b21b6','#4c1d95','#a78bfa','#9333ea','#c4b5fd','#7e22ce','#ddd6fe'];
     return colors[index % colors.length];
+  }
+
+  // Color HEX real del pantone (desde la BD via PantoneLiveService).
+  // Si no se encuentra, cae en la paleta púrpura por índice.
+  getPantoneHex(name: string, index: number): string {
+    if (!name) return this.getPantoneBarColor(index);
+    // Normaliza prefijo "P_" (el servicio ya maneja "P "/"pantone ")
+    let search = name.trim();
+    if (search.toUpperCase().startsWith('P_')) search = search.substring(2);
+
+    const found = this.pantoneService.getColorByCode(search)
+                  || this.pantoneService.searchColors(search)?.[0];
+    const hex = found?.hex;
+
+    // Evita blancos/near-white que no se verían sobre la tarjeta blanca
+    if (hex && hex.toUpperCase() !== '#FFFFFF') return hex;
+    return this.getPantoneBarColor(index);
+  }
+
+  // Texto legible sobre la barra según el color de fondo
+  getPantoneTextColor(name: string, index: number): string {
+    const hex = this.getPantoneHex(name, index).replace('#', '');
+    if (hex.length < 6) return '#1e293b';
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 140 ? '#1e293b' : '#ffffff';
   }
 
   // Acorta nombres de pantone largos para que no deformen las columnas.

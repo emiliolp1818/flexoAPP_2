@@ -48,16 +48,23 @@ export interface PdfViewerData {
         </button>
       </div>
 
-      <!-- Contenedor del PDF -->
+      <!-- Contenedor del documento -->
       <div class="pdf-container">
         <div *ngIf="loading" class="loading-overlay">
           <mat-spinner diameter="50"></mat-spinner>
           <p>Cargando documento...</p>
         </div>
 
+        <!-- Vista de imagen -->
+        <div *ngIf="isImage && imageUrl" class="image-view">
+          <img [src]="imageUrl" [alt]="data.fileName" class="preview-image"
+               (load)="onImageLoad()">
+        </div>
+
+        <!-- Vista de PDF / documentos convertidos -->
         <iframe
           #pdfIframe
-          *ngIf="safePdfUrl"
+          *ngIf="!isImage && safePdfUrl"
           [src]="safePdfUrl"
           class="pdf-iframe"
           (load)="onPdfLoad()"
@@ -220,6 +227,25 @@ export interface PdfViewerData {
       background: #ffffff;
     }
 
+    .image-view {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      padding: 16px;
+      background: #f1f5f9;
+    }
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
@@ -276,7 +302,9 @@ export class PdfViewerDialogComponent implements OnInit {
   @ViewChild('pdfIframe') pdfIframe!: ElementRef<HTMLIFrameElement>;
 
   loading = true;
+  isImage = false;
   safePdfUrl: SafeResourceUrl | null = null;
+  imageUrl: string | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<PdfViewerDialogComponent>,
@@ -287,16 +315,34 @@ export class PdfViewerDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // ¿Es una imagen? (por tipo, nombre o extensión de la URL original)
+    const imageExt = /\.(png|jpe?g|gif|webp|bmp|svg)$/i;
+    const typeStr = (this.data.fileType || '').toLowerCase();
+    const nameStr = (this.data.fileName || '').toLowerCase();
+    const origStr = (this.data.originalFileUrl || '').toLowerCase();
+    this.isImage = typeStr.includes('image') || typeStr.includes('imagen') ||
+                   imageExt.test(nameStr) || imageExt.test(origStr);
+
+    if (this.isImage) {
+      // Mostrar la imagen directamente. El endpoint /pdf ahora devuelve la
+      // imagen con su content-type real; usamos la URL original si existe.
+      this.imageUrl = this.data.originalFileUrl || this.data.pdfUrl;
+      this.loading = false;
+      return;
+    }
 
     let urlToShow = this.data.pdfUrl;
 
-
-    if (this.data.fileType?.toLowerCase().includes('pdf') && this.data.originalFileUrl) {
+    if (typeStr.includes('pdf') && this.data.originalFileUrl) {
       urlToShow = this.data.originalFileUrl;
     }
 
-
     this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(urlToShow);
+  }
+
+  onImageLoad(): void {
+    this.loading = false;
+    this.cdr.detectChanges();
   }
 
   onPdfLoad(): void {

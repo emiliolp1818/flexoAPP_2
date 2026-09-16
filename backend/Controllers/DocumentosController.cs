@@ -942,8 +942,16 @@ namespace FlexoAPP.API.Controllers
                     return NotFound(new { message = "Archivo no encontrado en el servidor" });
                 }
 
+                // Si la columna Extension está vacía o inconsistente, derivarla del
+                // nombre del archivo real (registros antiguos o creados sin subir).
+                var ext = (extension ?? string.Empty).Trim().TrimStart('.').ToLower();
+                if (string.IsNullOrEmpty(ext))
+                {
+                    ext = Path.GetExtension(fileName).TrimStart('.').ToLower();
+                }
 
-                if (extension?.ToLower() == "pdf")
+
+                if (ext == "pdf")
                 {
                     _logger.LogDebug($"Document {id} is already PDF, returning directly");
                     var pdfBytes = await System.IO.File.ReadAllBytesAsync(filePath);
@@ -953,25 +961,53 @@ namespace FlexoAPP.API.Controllers
                     return File(pdfBytes, "application/pdf");
                 }
 
+                // Imágenes: se devuelven tal cual con su content-type real; el
+                // navegador las renderiza directamente (el visor las muestra en <img>).
+                var imageTypes = new Dictionary<string, string>
+                {
+                    { "png", "image/png" },
+                    { "jpg", "image/jpeg" },
+                    { "jpeg", "image/jpeg" },
+                    { "gif", "image/gif" },
+                    { "webp", "image/webp" },
+                    { "bmp", "image/bmp" },
+                    { "svg", "image/svg+xml" }
+                };
+                if (imageTypes.TryGetValue(ext, out var imageMime))
+                {
+                    _logger.LogDebug($"Document {id} is an image ({ext}), returning directly");
+                    var imgBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+                    Response.Headers["Content-Disposition"] = "inline";
+                    return File(imgBytes, imageMime);
+                }
+
 
                 byte[]? pdfContent = null;
 
 
-                if (extension?.ToLower() == "xlsx" || extension?.ToLower() == "xls")
+                if (ext == "xlsx" || ext == "xls")
                 {
                     _logger.LogDebug($"Converting Excel file to PDF (No Watermark): {filePath}");
                     pdfContent = await _pdfConversionService.ConvertExcelToPdfAsync(filePath);
                 }
 
-                else if (extension?.ToLower() == "docx" || extension?.ToLower() == "doc")
+                else if (ext == "docx" || ext == "doc")
                 {
                     _logger.LogDebug($"Converting Word file to PDF (No Watermark): {filePath}");
                     pdfContent = await _pdfConversionService.ConvertWordToPdfAsync(filePath);
                 }
+                else if (ext == "txt" || ext == "csv")
+                {
+                    // Texto plano: se puede mostrar directo en el iframe
+                    _logger.LogDebug($"Document {id} is plain text ({ext}), returning directly");
+                    var txtBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+                    Response.Headers["Content-Disposition"] = "inline";
+                    return File(txtBytes, "text/plain; charset=utf-8");
+                }
                 else
                 {
-                    _logger.LogWarning($"Unsupported file type for PDF conversion: {extension}");
-                    return BadRequest(new { message = $"Tipo de archivo no soportado para conversión a PDF: {extension}" });
+                    _logger.LogWarning($"Unsupported file type for PDF conversion: {ext}");
+                    return BadRequest(new { message = $"Tipo de archivo no soportado para vista previa: {ext}" });
                 }
 
                 if (pdfContent == null || pdfContent.Length == 0)

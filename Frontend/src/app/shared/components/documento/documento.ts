@@ -25,7 +25,6 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { UploadDocumentoDialogComponent } from './dialogs/upload-documento-dialog';
 import { CreateDocumentoDialogComponent } from './dialogs/create-documento-dialog';
-import { ConfirmDialogComponent } from './dialogs/confirm-dialog';
 import { PdfViewerDialogComponent } from './dialogs/pdf-viewer-dialog';
 
 import { DocumentoService } from '../../services/documento.service';
@@ -201,7 +200,9 @@ export class DocumentoComponent implements OnInit {
   uploadDocument(): void {
 
     const dialogRef = this.dialog.open(UploadDocumentoDialogComponent, {
-      width: '600px',
+      width: '480px',
+      maxWidth: '94vw',
+      panelClass: 'ap-doc-dialog',
       disableClose: false
     });
 
@@ -248,7 +249,9 @@ export class DocumentoComponent implements OnInit {
   createNewDocument(): void {
 
     const dialogRef = this.dialog.open(CreateDocumentoDialogComponent, {
-      width: '600px',
+      width: '480px',
+      maxWidth: '94vw',
+      panelClass: 'ap-doc-dialog',
       disableClose: false
     });
 
@@ -532,7 +535,9 @@ export class DocumentoComponent implements OnInit {
   editDocument(document: Documento): void {
 
     const dialogRef = this.dialog.open(CreateDocumentoDialogComponent, {
-      width: '600px',
+      width: '480px',
+      maxWidth: '94vw',
+      panelClass: 'ap-doc-dialog',
       disableClose: false,
       data: document
     });
@@ -583,44 +588,33 @@ export class DocumentoComponent implements OnInit {
       return;
     }
 
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '450px',
-      disableClose: false,
-      data: {
-        title: 'Confirmar Eliminación',
-        message: `¿Está seguro de que desea eliminar el documento "${document.nombre}"? Esta acción no se puede deshacer.`,
-        confirmText: 'Eliminar',
-        cancelText: 'Cancelar',
-        type: 'danger'
-      }
+    // Confirmación con el snackbar animado (mismo patrón/posición que los demás módulos)
+    const confirmRef = this.snackBar.open('', 'Eliminar', {
+      duration: 8000,
+      panelClass: ['status-terminado-snackbar', 'animated-snackbar'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
     });
 
-
-    dialogRef.afterClosed().subscribe(confirmed => {
-
-      if (confirmed) {
-
-        this.documentoService.delete(document.documentoID!).subscribe({
-
-          next: () => {
-
-            this.showMessage(`✓ Documento "${document.nombre}" eliminado correctamente`);
-
-
-            this.loadDocuments();
-          },
-
-          error: (error) => {
-
-            console.error('Error al eliminar documento:', error);
-
-            this.showMessage('✗ Error al eliminar el documento');
-          }
-        });
+    const nombreDoc = document.nombre;
+    setTimeout(() => {
+      const container = window.document.querySelector('.status-terminado-snackbar .mdc-snackbar__label');
+      if (container) {
+        container.innerHTML = `<span class="status-icon">⚠</span> ¿Eliminar el documento "${nombreDoc}"? Esta acción no se puede deshacer.`;
       }
+    }, 0);
 
-
+    confirmRef.onAction().subscribe(() => {
+      this.documentoService.delete(document.documentoID!).subscribe({
+        next: () => {
+          this.showMessage(`✓ Documento "${document.nombre}" eliminado correctamente`);
+          this.loadDocuments();
+        },
+        error: (error) => {
+          console.error('Error al eliminar documento:', error);
+          this.showMessage('✗ Error al eliminar el documento');
+        }
+      });
     });
   }
 
