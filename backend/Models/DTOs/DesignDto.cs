@@ -20,6 +20,26 @@ namespace FlexoAPP.API.Models.DTOs
         public DateTime LastModified { get; set; }
         public int CreatedByUserId { get; set; }
         public string? CreatedByUserName { get; set; }
+
+        /// <summary>
+        /// Datos de tintas (cod_tintas) enlazados por Articulo == ArticleF.
+        /// Se rellena al leer un diseño individual para que el frontend maneje
+        /// diseño + tintas como un solo objeto (unificación lógica, Opción A).
+        /// </summary>
+        public DesignCodTintaDto? CodTinta { get; set; }
+    }
+
+    /// <summary>
+    /// Sección de tintas embebida dentro del diseño. Representa el registro de
+    /// cod_tintas asociado por artículo (carpeta/estante/línea + colores con
+    /// codTinta/cobertura/anilox). Reutiliza ColorTintaDto para cada color.
+    /// </summary>
+    public class DesignCodTintaDto
+    {
+        public string? Carpeta { get; set; }
+        public string? Estante { get; set; }
+        public string? LineaTinta { get; set; }
+        public List<ColorTintaDto> Colores { get; set; } = new();
     }
 
     public class CreateDesignDto
@@ -56,6 +76,13 @@ namespace FlexoAPP.API.Models.DTOs
         public List<string> Colors { get; set; } = new List<string>();
 
         public string Status { get; set; } = "ACTIVO";
+
+        /// <summary>
+        /// Datos de tintas opcionales. Si se envían, el backend crea/actualiza el
+        /// registro de cod_tintas asociado (Articulo == ArticleF) en la misma
+        /// transacción que el diseño. Opcional para no romper llamadas existentes.
+        /// </summary>
+        public DesignCodTintaDto? CodTinta { get; set; }
     }
 
     public class UpdateDesignDto
@@ -85,7 +112,12 @@ namespace FlexoAPP.API.Models.DTOs
 
         public string? Status { get; set; }
 
-
+        /// <summary>
+        /// Datos de tintas opcionales. Si se envían, el backend hace upsert del
+        /// registro de cod_tintas asociado (Articulo == ArticleF) en la misma
+        /// transacción que la actualización del diseño.
+        /// </summary>
+        public DesignCodTintaDto? CodTinta { get; set; }
     }
 
     public class DesignStatsDto

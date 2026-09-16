@@ -911,35 +911,71 @@
           </div>
         </div>
 
-        <!-- SECCIÓN 3: Colores Pantone -->
+        <!-- SECCIÓN 3: Colores y Datos de Tintas (igual que en editar) -->
         <div class="form-section colors-form-section">
           <div class="section-header">
             <div class="section-icon colors-icon">
               <mat-icon>palette</mat-icon>
             </div>
             <div class="section-info">
-              <h3 class="section-title">Colores Pantone</h3>
-              <p class="section-desc">Definición de la paleta cromática del diseño</p>
+              <h3 class="section-title">Colores y Datos de Tintas</h3>
+              <p class="section-desc">Paleta cromática, carpeta, estante y códigos de tinta por color</p>
             </div>
           </div>
 
-          <!-- Panel de colores expandible -->
-          <div class="colors-panel" *ngIf="createDesignForm.get('colorCount')?.value > 0">
-            <div class="color-selectors">
-              <div *ngFor="let color of selectedColors(); let i = index; trackBy: trackByIndex" class="color-selector">
-                <div class="color-number-badge">{{ i + 1 }}</div>
+          <!-- Metadatos: carpeta / estante / línea tinta -->
+          <div class="tintas-meta-line">
+            <mat-form-field appearance="outline" class="meta-field-line">
+              <mat-label>Carpeta</mat-label>
+              <input matInput [(ngModel)]="newCodTinta().carpeta" [ngModelOptions]="{standalone: true}" placeholder="—">
+              <mat-icon matPrefix class="field-icon">folder</mat-icon>
+            </mat-form-field>
 
-                <mat-form-field appearance="outline" class="color-field">
-                  <mat-label>Color {{ i + 1 }}</mat-label>
-                  <input matInput [value]="color?.displayName || ''" (input)="searchPantoneColors($any($event.target).value)"
-                    (blur)="updateColorManual(i, $any($event.target).value)" [matAutocomplete]="colorAuto"
-                    placeholder="Ej: 209, Black, Cyan">
-                  <mat-icon matSuffix>search</mat-icon>
+            <mat-form-field appearance="outline" class="meta-field-line">
+              <mat-label>Estante</mat-label>
+              <input matInput [(ngModel)]="newCodTinta().estante" [ngModelOptions]="{standalone: true}" placeholder="—">
+              <mat-icon matPrefix class="field-icon">shelves</mat-icon>
+            </mat-form-field>
 
-                  <mat-autocomplete #colorAuto="matAutocomplete" [displayWith]="displayPantoneColor" class="ap-autocomplete-panel"
+            <mat-form-field appearance="outline" class="meta-field-line">
+              <mat-label>Línea de Tinta</mat-label>
+              <input matInput [(ngModel)]="newCodTinta().lineaTinta" [ngModelOptions]="{standalone: true}"
+                placeholder="Ej: Flexo UV, Base Agua"
+                [matAutocomplete]="lineaTintaAutoCreate"
+                (input)="filterLineasTinta($any($event.target).value)">
+              <mat-icon matPrefix class="field-icon">format_paint</mat-icon>
+              <mat-autocomplete #lineaTintaAutoCreate="matAutocomplete" class="ap-autocomplete-panel">
+                <mat-option *ngFor="let linea of filteredLineasTinta()" [value]="linea">{{ linea }}</mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+
+          <!-- Tabla de colores con codTinta / cobertura / codAnilox -->
+          <div class="colors-panel" *ngIf="newCodTinta().colores?.length">
+            <div class="color-table">
+              <div class="color-table-header color-table-header--edit">
+                <span class="cth-num">#</span>
+                <span class="cth-color">Color Pantone</span>
+                <span class="cth-swatch"></span>
+                <span class="cth-tinta">Cód. Tinta</span>
+                <span class="cth-cob">Cobertura</span>
+                <span class="cth-anilox">Cód. Anilox</span>
+              </div>
+
+              <div *ngFor="let tintaColor of newCodTinta().colores; let i = index" class="color-table-row color-table-row--edit">
+                <div class="ct-num"><span class="color-num-badge">{{ i + 1 }}</span></div>
+
+                <!-- Color Pantone editable -->
+                <div class="ct-color">
+                  <input class="ct-input ct-pantone-input"
+                    [value]="selectedColors()[i]?.displayName || tintaColor.nombre || ''"
+                    (input)="searchPantoneColors($any($event.target).value)"
+                    (blur)="updateColorManual(i, $any($event.target).value)"
+                    [matAutocomplete]="colorAutoCreate"
+                    placeholder="209, Black, Magenta…">
+                  <mat-autocomplete #colorAutoCreate="matAutocomplete" [displayWith]="displayPantoneColor" class="ap-autocomplete-panel"
                     (optionSelected)="selectPantoneColor(i, $event.option.value)">
-                    <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor"
-                      class="color-option">
+                    <mat-option *ngFor="let pantoneColor of availablePantoneColors()" [value]="pantoneColor" class="color-option">
                       <div class="color-option-content">
                         <div class="color-preview" [style.background-color]="pantoneColor.hex"></div>
                         <div class="color-info">
@@ -949,31 +985,51 @@
                       </div>
                     </mat-option>
                   </mat-autocomplete>
-                </mat-form-field>
-
-                <div class="color-swatch-preview" 
-                  [style.background-color]="color?.hex && color?.hex !== '#cccccc' ? color.hex : '#e2e8f0'"
-                  [class.empty-swatch]="!color?.hex || color?.hex === '#cccccc'"
-                  [matTooltip]="!color?.hex || color?.hex === '#cccccc' ? 'Sin color' : color.displayName">
                 </div>
 
-                <div class="color-action-buttons">
-                  <ng-container *ngIf="color?.id; else createColorNew">
-                    <button mat-icon-button class="edit-color-btn" matTooltip="Editar color"
-                      (click)="editPantoneColor(i)" type="button">
-                      <mat-icon>edit</mat-icon>
-                    </button>
-                    <button mat-icon-button class="delete-color-btn" matTooltip="Eliminar color"
-                      (click)="deletePantoneColor(i)" type="button">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </ng-container>
-                  <ng-template #createColorNew>
-                    <button mat-icon-button class="create-color-btn" matTooltip="Crear color Pantone"
-                      (click)="openCreatePantoneDialog(i)" type="button">
-                      <mat-icon>add</mat-icon>
-                    </button>
-                  </ng-template>
+                <!-- Swatch + acciones del color -->
+                <div class="ct-swatch">
+                  <div class="color-swatch-preview"
+                    [style.background-color]="getColorSwatchHex(i, tintaColor.nombre)"
+                    [matTooltip]="selectedColors()[i]?.displayName || tintaColor.nombre">
+                  </div>
+                  <div class="ct-swatch-actions">
+                    <ng-container *ngIf="selectedColors()[i]?.id; else createColorNew">
+                      <button mat-icon-button class="edit-color-btn" matTooltip="Editar color"
+                        (click)="editPantoneColor(i)" type="button">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button mat-icon-button class="delete-color-btn" matTooltip="Eliminar color"
+                        (click)="deletePantoneColor(i)" type="button">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </ng-container>
+                    <ng-template #createColorNew>
+                      <button mat-icon-button class="create-color-btn" matTooltip="Crear color Pantone"
+                        (click)="openCreatePantoneDialog(i)" type="button">
+                        <mat-icon>add</mat-icon>
+                      </button>
+                    </ng-template>
+                  </div>
+                </div>
+
+                <!-- Cód. Tinta -->
+                <div class="ct-tinta">
+                  <input class="ct-input" [(ngModel)]="tintaColor.codTinta" [ngModelOptions]="{standalone: true}" placeholder="—">
+                </div>
+
+                <!-- Cobertura -->
+                <div class="ct-cob">
+                  <div class="ct-cob-wrap">
+                    <input class="ct-input ct-input-num" type="number" step="0.01" min="0" max="100"
+                      [(ngModel)]="tintaColor.cobertura" [ngModelOptions]="{standalone: true}" placeholder="0.00">
+                    <span class="ct-pct">%</span>
+                  </div>
+                </div>
+
+                <!-- Cód. Anilox -->
+                <div class="ct-anilox">
+                  <input class="ct-input" [(ngModel)]="tintaColor.codAnilox" [ngModelOptions]="{standalone: true}" placeholder="—">
                 </div>
               </div>
             </div>

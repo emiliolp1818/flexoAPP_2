@@ -1,6 +1,8 @@
 using FlexoAPP.API.Models.DTOs;
 using FlexoAPP.API.Models.Entities;
 using FlexoAPP.API.Repositories;
+using FlexoAPP.API.Data.Context;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using OfficeOpenXml;
 using FlexoAPP.API.Helpers;
@@ -12,11 +14,98 @@ namespace FlexoAPP.API.Services
     {
         private readonly IDesignRepository _designRepository;
         private readonly ILogger<DesignService> _logger;
+        private readonly FlexoAPPDbContext _context;
 
-        public DesignService(IDesignRepository designRepository, ILogger<DesignService> logger)
+        public DesignService(IDesignRepository designRepository, ILogger<DesignService> logger, FlexoAPPDbContext context)
         {
             _designRepository = designRepository;
             _logger = logger;
+            _context = context;
+        }
+
+        /// <summary>
+        /// Upsert (crea o actualiza) el registro de cod_tintas asociado a un diseño
+        /// por Articulo == ArticleF. Parte de la unificación lógica (Opción A):
+        /// el módulo de diseño gestiona diseño + tintas como una unidad.
+        /// NO llama a SaveChanges — el llamador controla la transacción.
+        /// </summary>
+        private async Task UpsertCodTintaForDesignAsync(string articleF, string? descripcion, DesignCodTintaDto codTinta, string username)
+        {
+            if (string.IsNullOrWhiteSpace(articleF)) return;
+
+            var articulo = articleF.Trim();
+            var coloresJson = JsonSerializer.Serialize(codTinta.Colores ?? new List<ColorTintaDto>());
+
+            // Buscar registro existente (coincidencia exacta de artículo).
+            // No hay índice único en la BD, así que tomamos el más reciente si hay varios.
+            var existing = await _context.Set<CodTinta>()
+                .Where(c => c.Articulo == articulo)
+                .OrderByDescending(c => c.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (existing != null)
+            {
+                existing.Descripcion = descripcion ?? existing.Descripcion;
+                existing.Carpeta = codTinta.Carpeta;
+                existing.Estante = codTinta.Estante;
+                existing.LineaTinta = codTinta.LineaTinta;
+                existing.ColoresData = coloresJson;
+                existing.UpdatedAt = DateTime.UtcNow;
+                existing.UpdatedBy = username;
+            }
+            else
+            {
+                _context.Set<CodTinta>().Add(new CodTinta
+                {
+                    Articulo = articulo,
+                    Descripcion = descripcion ?? string.Empty,
+                    Carpeta = codTinta.Carpeta,
+                    Estante = codTinta.Estante,
+                    LineaTinta = codTinta.LineaTinta,
+                    ColoresData = coloresJson,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedBy = username,
+                    UpdatedBy = username
+                });
+            }
+        }
+
+        /// <summary>
+        /// Carga el registro de cod_tintas asociado a un artículo y lo mapea al
+        /// DTO embebido del diseño (o null si no existe). Aplica la misma prioridad
+        /// que el buscador de máquinas: exacto &gt; con-datos &gt; más reciente.
+        /// </summary>
+        private async Task<DesignCodTintaDto?> LoadCodTintaForDesignAsync(string? articleF)
+        {
+            if (string.IsNullOrWhiteSpace(articleF)) return null;
+
+            var articulo = articleF.Trim();
+            var record = await _context.Set<CodTinta>()
+                .AsNoTracking()
+                .Where(c => c.Articulo == articulo)
+                .OrderByDescending(c => c.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (record == null) return null;
+
+            List<ColorTintaDto> colores;
+            try
+            {
+                colores = JsonSerializer.Deserialize<List<ColorTintaDto>>(record.ColoresData) ?? new();
+            }
+            catch
+            {
+                colores = new();
+            }
+
+            return new DesignCodTintaDto
+            {
+                Carpeta = record.Carpeta,
+                Estante = record.Estante,
+                LineaTinta = record.LineaTinta,
+                Colores = colores
+            };
         }
 
         public async Task<IEnumerable<DesignDto>> GetAllDesignsAsync()
@@ -142,7 +231,13 @@ namespace FlexoAPP.API.Services
         public async Task<DesignDto?> GetDesignByIdAsync(int id)
         {
             var design = await _designRepository.GetDesignByIdAsync(id);
-            return design != null ? MapToDto(design) : null;
+            if (design == null) return null;
+
+            // Unificación lógica (Opción A): al leer un diseño individual se adjunta
+            // su registro de tintas (cod_tintas) enlazado por Articulo == ArticleF.
+            var dto = MapToDto(design);
+            dto.CodTinta = await LoadCodTintaForDesignAsync(design.ArticleF);
+            return dto;
         }
 
         public async Task<DesignDto?> GetDesignByArticleFAsync(string articleF)
@@ -190,10 +285,33 @@ namespace FlexoAPP.API.Services
                 LastModified = DateTimeHelper.Now
             };
 
-            var createdDesign = await _designRepository.CreateDesignAsync(design);
-            _logger.LogInformation("Design created with ID: {DesignId} by User: {UserId}", createdDesign.Id, userId);
+            // Unificación lógica (Opción A): crear el diseño y su registro de
+            // cod_tintas dentro de la misma transacción. Si algo falla, se revierte
+            // todo y no queda un diseño huérfano sin datos de tinta.
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Set<Design>().Add(design);
+                await _context.SaveChangesAsync();
 
-            return MapToDto(createdDesign);
+                if (createDto.CodTinta != null)
+                {
+                    await UpsertCodTintaForDesignAsync(design.ArticleF ?? string.Empty, createDto.Description, createDto.CodTinta, $"user:{userId}");
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                _logger.LogInformation("Design created with ID: {DesignId} by User: {UserId}", design.Id, userId);
+
+                var dto = MapToDto(design);
+                dto.CodTinta = await LoadCodTintaForDesignAsync(design.ArticleF);
+                return dto;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<DesignDto> UpdateDesignAsync(int id, UpdateDesignDto updateDto, int userId)
@@ -251,10 +369,34 @@ namespace FlexoAPP.API.Services
             if (!string.IsNullOrEmpty(updateDto.Status))
                 existingDesign.Status = updateDto.Status;
 
-            var updatedDesign = await _designRepository.UpdateDesignAsync(existingDesign);
-            _logger.LogInformation("Design updated with ID: {DesignId} by User: {UserId}", id, userId);
+            // Unificación lógica (Opción A): actualizar el diseño y hacer upsert del
+            // registro de cod_tintas asociado dentro de una única transacción.
+            // El repositorio comparte la misma instancia de DbContext (scoped +
+            // AddDbContextPool), por lo que su SaveChanges participa en esta transacción.
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var updatedDesign = await _designRepository.UpdateDesignAsync(existingDesign);
 
-            return MapToDto(updatedDesign);
+                if (updateDto.CodTinta != null)
+                {
+                    await UpsertCodTintaForDesignAsync(updatedDesign.ArticleF ?? existingDesign.ArticleF ?? string.Empty,
+                        updatedDesign.Description ?? existingDesign.Description, updateDto.CodTinta, $"user:{userId}");
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                _logger.LogInformation("Design updated with ID: {DesignId} by User: {UserId}", id, userId);
+
+                var dto = MapToDto(updatedDesign);
+                dto.CodTinta = await LoadCodTintaForDesignAsync(updatedDesign.ArticleF);
+                return dto;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> DeleteDesignAsync(int id)

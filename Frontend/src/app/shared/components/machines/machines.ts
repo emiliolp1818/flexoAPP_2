@@ -3340,8 +3340,14 @@ export class MachinesComponent implements OnInit, OnDestroy {
     // ===== RELLENAR CON LOS COLORES DEL PROGRAMA =====
     // Iterar sobre los colores del programa y asignarlos a las unidades correspondientes
     if (colores && colores.length > 0) {
-      // Crear promesas para obtener códigos de tinta
-      const promises = colores.slice(0, 10).map(async (color, index) => {
+      // OPTIMIZACIÓN CLAVE: obtener el registro de cod_tintas del artículo UNA SOLA
+      // vez (no una petición por color). Antes se disparaba una llamada HTTP por
+      // cada color al mismo endpoint /cod-tintas/search, y bajo latencia algunas
+      // superaban el timeout y salían vacías → códigos faltantes al imprimir y
+      // "hay que recargar varias veces". Ahora una sola llamada resuelve todos.
+      const coloresMap = await this.getCodTintaColoresForArticulo(program.articulo);
+
+      colores.slice(0, 10).forEach((color, index) => {
         coloresFF459[index].color = color;
 
         const key = `${program.otSap}-${index}`;
@@ -3354,27 +3360,59 @@ export class MachinesComponent implements OnInit, OnDestroy {
           coloresFF459[index].codigoAnilox = aniloxData.anilox.codigo || '';
         }
 
-        // Obtener código de tinta desde cod_tintas (con cache + timeout 2s)
-        try {
-          const cacheKey = `${program.articulo}|${color}`;
-          let colorData = this.codTintasCache.get(cacheKey);
-          if (!colorData) {
-            colorData = await firstValueFrom(
-              this.codTintasService.getColorData(program.articulo, color).pipe(timeout(2000))
-            );
-            if (colorData) this.codTintasCache.set(cacheKey, colorData);
-          }
-          if (colorData && colorData.codTinta) {
-            coloresFF459[index].codigoTinta = colorData.codTinta;
-          }
-        } catch (error) {
-          // Timeout o error — código de tinta es opcional, continuar
+        // Resolver el código de tinta desde el mapa (match por nombre normalizado).
+        const codTinta = coloresMap.get(this.normalizeColorName(color));
+        if (codTinta) {
+          coloresFF459[index].codigoTinta = codTinta;
         }
       });
-
-      await Promise.all(promises);
     }
     return coloresFF459;
+  }
+
+  /**
+   * Normaliza el nombre de un color para hacer match robusto entre los colores
+   * del pedido y los del registro de cod_tintas (mayúsculas, separadores unificados).
+   */
+  private normalizeColorName(name: string): string {
+    return (name || '').trim().toUpperCase().replace(/[_\s]+/g, ' ').trim();
+  }
+
+  /**
+   * Devuelve un Map (nombreColorNormalizado → codTinta) para un artículo,
+   * haciendo UNA sola llamada a /cod-tintas/search y cacheándolo por artículo.
+   * Toma el primer registro devuelto (el backend ya prioriza exacto > con-datos
+   * > reciente). Con timeout de 4s: si falla, devuelve un mapa vacío (los códigos
+   * quedan en blanco, igual que antes, pero sin multiplicar peticiones).
+   */
+  private async getCodTintaColoresForArticulo(articulo: string): Promise<Map<string, string>> {
+    const cacheKey = `ART:${(articulo || '').trim().toUpperCase()}`;
+    const cached = this.codTintasCache.get(cacheKey);
+    if (cached instanceof Map) {
+      return cached;
+    }
+
+    const map = new Map<string, string>();
+    try {
+      const records = await firstValueFrom(
+        this.codTintasService.searchByArticulo(articulo).pipe(timeout(4000))
+      );
+      const record = (records || [])[0];
+      if (record && Array.isArray(record.colores)) {
+        record.colores.forEach(c => {
+          const nombre = this.normalizeColorName(c.nombre);
+          // No sobrescribir un código ya presente con uno vacío (conserva datos)
+          if (nombre && c.codTinta && !map.has(nombre)) {
+            map.set(nombre, c.codTinta);
+          }
+        });
+      }
+      // Cachear solo si se obtuvo el registro (evita cachear fallos de red)
+      this.codTintasCache.set(cacheKey, map);
+    } catch {
+      // Timeout o error de red — devolver mapa vacío sin cachear para reintentar
+    }
+    return map;
   }
 
   // ===== MÉTODO AUXILIAR PARA FORMATEAR KILOS EN IMPRESIÓN =====

@@ -248,6 +248,18 @@ export class DesignComponent implements OnInit, OnDestroy {
   private codTintasUpdateTimers = new Map<number, any>();
   private codTintasUpdatePending = new Map<number, boolean>();
 
+  // Datos de tintas temporales para el formulario de CREAR (carpeta/estante/
+  // línea + codTinta/cobertura/codAnilox por color). Se persisten en cod_tintas
+  // DESPUÉS de crear el diseño (el registro necesita el articleF ya creado).
+  newCodTinta = signal<CodTintaRecord>({
+    articulo: '',
+    descripcion: '',
+    carpeta: '',
+    estante: '',
+    lineaTinta: '',
+    colores: [{ nombre: '', codTinta: '', cobertura: null, codAnilox: '' }]
+  });
+
   constructor() {
 
     this.createDesignForm = this.fb.group({
@@ -988,6 +1000,16 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     });
 
     this.selectedColors.set([{ code: '', name: '', displayName: '', hex: '#cccccc', rgb: { r: 204, g: 204, b: 204 }, cmyk: { c: 0, m: 0, y: 0, k: 0 }, category: '', colorType: 'pantone' as const }]);
+
+    // Reiniciar los datos de tintas temporales del formulario de crear
+    this.newCodTinta.set({
+      articulo: '',
+      descripcion: '',
+      carpeta: '',
+      estante: '',
+      lineaTinta: '',
+      colores: [{ nombre: '', codTinta: '', cobertura: null, codAnilox: '' }]
+    });
   }
 
 
@@ -1023,11 +1045,21 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       const formData = this.createDesignForm.value;
       console.log('💾 Guardando nuevo diseño:', formData);
 
-      const response = await this.http.post<FlexographicDesign>(`${environment.apiUrl}/designs`, formData).toPromise();
+      // Unificación lógica (Opción A): el diseño y sus datos de tintas se envían
+      // en UNA sola petición. El backend crea el diseño y hace upsert de cod_tintas
+      // en la misma transacción, evitando diseños huérfanos si algo falla.
+      const body = {
+        ...formData,
+        codTinta: this.buildCodTintaPayload()
+      };
+
+      const response = await this.http.post<FlexographicDesign>(`${environment.apiUrl}/designs`, body).toPromise();
 
       if (response) {
         console.log('✅ Diseño creado exitosamente:', response);
 
+        // Mantener el autocomplete de líneas de tinta al día si se agregó una nueva
+        this.registerNewLineaTinta(this.newCodTinta().lineaTinta);
 
         await this.loadDesigns();
 
@@ -1083,6 +1115,40 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     }
   }
 
+  /**
+   * Construye el objeto `codTinta` embebido que se envía junto al diseño en el
+   * POST /designs (unificación lógica, Opción A). Toma carpeta/estante/línea y
+   * los datos por color (codTinta/cobertura/codAnilox) del formulario de CREAR.
+   * El nombre de cada color se toma del Pantone seleccionado.
+   */
+  private buildCodTintaPayload(): { carpeta: string; estante: string; lineaTinta: string; colores: ColorTinta[] } {
+    const rec = this.newCodTinta();
+    const colores: ColorTinta[] = (rec.colores || []).map((c, i) => ({
+      nombre: (this.selectedColors()[i]?.displayName || c.nombre || '').trim(),
+      codTinta: (c.codTinta || '').trim(),
+      cobertura: c.cobertura ?? null,
+      codAnilox: (c.codAnilox || '').trim()
+    }));
+
+    return {
+      carpeta: (rec.carpeta || '').trim(),
+      estante: (rec.estante || '').trim(),
+      lineaTinta: (rec.lineaTinta || '').trim(),
+      colores
+    };
+  }
+
+  /**
+   * Incorpora una línea de tinta nueva al autocomplete si aún no existe, para
+   * que aparezca de inmediato en el desplegable sin recargar.
+   */
+  private registerNewLineaTinta(linea: string | undefined) {
+    const value = (linea || '').trim();
+    if (value && !this.allLineasTinta.some(l => l.toLowerCase() === value.toLowerCase())) {
+      this.allLineasTinta = [...this.allLineasTinta, value].sort((a, b) => a.localeCompare(b));
+      this.filteredLineasTinta.set(this.allLineasTinta);
+    }
+  }
 
 
   updateColors() {
@@ -1103,6 +1169,33 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
     this.selectedColors.set(newSelectedColors);
     const colorCodes = newSelectedColors.map(color => color.displayName);
     form.get('colors')?.setValue(colorCodes, { emitEvent: false });
+
+    // En el formulario de CREAR, ajustar también las filas de la tabla de tintas
+    if (!isEditing) {
+      this.syncNewTintaColoresToCount(colorCount, newSelectedColors);
+    }
+  }
+
+  /**
+   * Ajusta las filas de tinta temporales (formulario CREAR) al número de colores,
+   * conservando codTinta/cobertura/codAnilox de las filas existentes.
+   */
+  private syncNewTintaColoresToCount(colorCount: number, selected: PantoneColor[]) {
+    const rec = { ...this.newCodTinta() };
+    const colores = Array.isArray(rec.colores) ? [...rec.colores] : [];
+
+    while (colores.length < colorCount) {
+      const idx = colores.length;
+      colores.push({ nombre: selected[idx]?.displayName || '', codTinta: '', cobertura: null, codAnilox: '' });
+    }
+    while (colores.length > colorCount) {
+      colores.pop();
+    }
+    for (let i = 0; i < colorCount; i++) {
+      const nombre = selected[i]?.displayName;
+      if (nombre && colores[i]) colores[i].nombre = nombre;
+    }
+    this.newCodTinta.set({ ...rec, colores });
   }
 
 
@@ -1135,6 +1228,18 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    * Pantone se actualiza el `nombre` en codTintaRecord.colores y se persiste.
    */
   private syncColorNombreToTinta(index: number, nombre: string) {
+    // Modo CREAR: sincronizar contra el registro temporal newCodTinta
+    if (this.showCreateForm() && !this.showEditForm()) {
+      const rec = { ...this.newCodTinta() };
+      const colores = Array.isArray(rec.colores) ? [...rec.colores] : [];
+      if (colores[index] && colores[index].nombre !== nombre) {
+        colores[index] = { ...colores[index], nombre };
+        this.newCodTinta.set({ ...rec, colores });
+      }
+      return;
+    }
+
+    // Modo EDITAR: sincronizar y persistir en el codTintaRecord del diseño
     const design = this.editingDesign();
     const record = design?.codTintaRecord;
     if (!record?.colores || !record.colores[index]) return;
@@ -2310,7 +2415,17 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
 
     // Opción A: garantizar que exista el registro de tintas para mostrar
     // siempre las columnas Cód. Tinta / Cobertura / Cód. Anilox junto a cada Pantone.
-    this.ensureCodTintaRecord(design);
+    // Tras resolver el registro, reconciliar sus colores con los del diseño para
+    // que cada código de tinta/anilox/cobertura quede alineado con su color aunque
+    // el orden guardado sea distinto.
+    this.ensureCodTintaRecord(design).then(() => {
+      const current = this.editingDesign();
+      if (current && current.articleF === design.articleF && current.codTintaRecord) {
+        this.reconcileCodTintaColorsWithDesign(current);
+        // Refrescar la señal para que el template re-renderice con el orden corregido
+        this.editingDesign.set({ ...current });
+      }
+    });
   }
 
 
@@ -2348,7 +2463,7 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       console.log('   URL:', `${environment.apiUrl}/designs/${editingDesign.id}`);
 
 
-      const updateData = {
+      const updateData: any = {
         articleF: formData.articleF,
         client: formData.client,
         description: formData.description,
@@ -2361,6 +2476,25 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         status: formData.status
       };
 
+      // Unificación lógica (Opción A): adjuntar los datos de tintas para que el
+      // backend haga upsert de cod_tintas en la MISMA transacción al pulsar Guardar.
+      // Esto reemplaza el autoguardado por campo (que hacía lento el módulo).
+      const rec = editingDesign.codTintaRecord;
+      if (rec) {
+        const colores: ColorTinta[] = (rec.colores || []).map((c, i) => ({
+          nombre: (this.selectedColors()[i]?.displayName || c.nombre || '').trim(),
+          codTinta: (c.codTinta || '').trim(),
+          cobertura: c.cobertura ?? null,
+          codAnilox: (c.codAnilox || '').trim()
+        }));
+        updateData.codTinta = {
+          carpeta: (rec.carpeta || '').trim(),
+          estante: (rec.estante || '').trim(),
+          lineaTinta: (rec.lineaTinta || '').trim(),
+          colores
+        };
+      }
+
       console.log('   Datos a enviar:', updateData);
 
 
@@ -2372,6 +2506,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       if (response) {
         console.log('✅ Diseño actualizado exitosamente:', response);
 
+        // Mantener el autocomplete de líneas de tinta al día si se agregó una nueva
+        this.registerNewLineaTinta(editingDesign.codTintaRecord?.lineaTinta);
+
         this.snackBar.open(`Diseño "${formData.articleF}" actualizado exitosamente`, 'Cerrar', {
           duration: 4000,
           panelClass: ['success-snackbar']
@@ -2382,8 +2519,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         this.editingDesign.set(null);
         this.editDesignForm.reset();
 
-
+        // Forzar refresco de la caché de cod_tintas para reflejar lo guardado
         await this.loadDesigns();
+        await this.loadAllCodTintasAndEnrich(true);
       }
     } catch (error: any) {
       console.error('❌ Error actualizando diseño:', error);
@@ -3465,44 +3603,113 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
   }
 
   /**
-   * Guarda cambios de carpeta/estante/lineaTinta del codTintaRecord embebido en un diseño
+   * Guarda cambios de carpeta/estante/lineaTinta del codTintaRecord embebido en un diseño.
+   *
+   * IMPORTANTE: en el FORMULARIO DE EDITAR (modal) NO se autoguarda — los cambios
+   * quedan solo en memoria (ya escritos vía [(ngModel)]) y se persisten al pulsar
+   * "Guardar" (saveEditedDesign, endpoint unificado). Solo la edición inline de la
+   * fila expandida (sin botón Guardar) mantiene el guardado automático.
    */
   async updateCodTintaOnDesign(design: FlexographicDesign) {
     if (!design.codTintaRecord?.id) return;
-    await this.updateCodTintaRecord(design.codTintaRecord);
 
-    // Si la línea de tinta escrita es nueva, agregarla al desplegable para que
-    // quede disponible en futuras ediciones (mismo comportamiento del diálogo de creación).
+    // Mantener el autocomplete de líneas de tinta al día en ambos casos
     const linea = (design.codTintaRecord.lineaTinta || '').trim();
     if (linea && !this.allLineasTinta.some(l => l.toLowerCase() === linea.toLowerCase())) {
       this.allLineasTinta = [...this.allLineasTinta, linea].sort((a, b) => a.localeCompare(b));
       this.filteredLineasTinta.set(this.allLineasTinta);
     }
+
+    // En el modal de edición NO persistir aquí (se hace en Guardar).
+    if (this.showEditForm()) return;
+
+    await this.updateCodTintaRecord(design.codTintaRecord);
   }
 
   /**
-   * Actualiza el código de tinta de un color dentro del codTintaRecord de un diseño
+   * Actualiza el código de tinta de un color dentro del codTintaRecord de un diseño.
+   * En el modal de edición solo actualiza en memoria (se guarda con el botón Guardar).
    */
   async updateCodTintaOnDesignColor(design: FlexographicDesign, colorIndex: number, value: string) {
     if (!design.codTintaRecord) return;
+    if (design.codTintaRecord.colores?.[colorIndex]) {
+      design.codTintaRecord.colores[colorIndex].codTinta = value;
+    }
+    if (this.showEditForm()) return; // modal: sin autoguardado
     await this.updateCodTinta(design.codTintaRecord, colorIndex, value);
   }
 
   /**
-   * Actualiza el código de anilox de un color dentro del codTintaRecord de un diseño
+   * Actualiza el código de anilox de un color dentro del codTintaRecord de un diseño.
+   * En el modal de edición solo actualiza en memoria (se guarda con el botón Guardar).
    */
   async updateCodAniloxOnDesignColor(design: FlexographicDesign, colorIndex: number, value: string) {
     if (!design.codTintaRecord) return;
+    if (design.codTintaRecord.colores?.[colorIndex]) {
+      design.codTintaRecord.colores[colorIndex].codAnilox = value;
+    }
+    if (this.showEditForm()) return; // modal: sin autoguardado
     await this.updateCodAnilox(design.codTintaRecord, colorIndex, value);
   }
 
   /**
-   * Actualiza la cobertura de un color dentro del codTintaRecord de un diseño
+   * Actualiza la cobertura de un color dentro del codTintaRecord de un diseño.
+   * En el modal de edición solo actualiza en memoria (se guarda con el botón Guardar).
    */
   async updateCoberturaOnDesignColor(design: FlexographicDesign, colorIndex: number, value: number | null) {
     if (!design.codTintaRecord) return;
+    if (design.codTintaRecord.colores?.[colorIndex]) {
+      design.codTintaRecord.colores[colorIndex].cobertura = value;
+    }
+    if (this.showEditForm()) return; // modal: sin autoguardado
     if (value === null) return;
     await this.updateCobertura(design.codTintaRecord, colorIndex, value);
+  }
+
+  /**
+   * Reconcilia el arreglo `colores` del registro de tintas con los colores del
+   * diseño, EN EL MISMO ORDEN que se muestran en el formulario. Corrige el
+   * problema de que los códigos de tinta/anilox/cobertura aparecieran vacíos o
+   * desalineados cuando el orden (o la cantidad) de colores del registro de
+   * cod_tintas no coincidía con el orden de los colores del diseño.
+   *
+   * - Para cada color del diseño (en su orden), busca por NOMBRE la fila
+   *   correspondiente en el registro de tintas y conserva sus datos
+   *   (codTinta / cobertura / codAnilox).
+   * - Si no hay coincidencia, crea una fila vacía para ese color.
+   * - Reutiliza cada fila existente una sola vez (evita duplicar datos cuando
+   *   hay colores repetidos).
+   */
+  private reconcileCodTintaColorsWithDesign(design: FlexographicDesign): void {
+    const record = design.codTintaRecord;
+    if (!record) return;
+
+    const designColors = design.colors || [];
+    if (designColors.length === 0) return;
+
+    const originales = Array.isArray(record.colores) ? [...record.colores] : [];
+    const usados = new Array(originales.length).fill(false);
+
+    const norm = (s: string | undefined | null) => (s || '').trim().toUpperCase();
+
+    const reconciliados: ColorTinta[] = designColors.map(colorName => {
+      // Buscar la primera fila del registro con el mismo nombre que aún no se usó
+      const idx = originales.findIndex((c, i) => !usados[i] && norm(c.nombre) === norm(colorName));
+      if (idx !== -1) {
+        usados[idx] = true;
+        const src = originales[idx];
+        return {
+          nombre: colorName,
+          codTinta: src.codTinta || '',
+          cobertura: src.cobertura ?? null,
+          codAnilox: src.codAnilox || ''
+        };
+      }
+      // Sin coincidencia por nombre → fila vacía para ese color del diseño
+      return { nombre: colorName, codTinta: '', cobertura: null, codAnilox: '' };
+    });
+
+    record.colores = reconciliados;
   }
 
   /**
@@ -3549,7 +3756,12 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         return;
       }
     } catch {
-      // Si la verificación falla, se continúa con la creación como fallback.
+      // IMPORTANTE: si la verificación FALLA (error de red), NO creamos un
+      // registro nuevo. Crear "a ciegas" era la causa de registros vacíos
+      // DUPLICADOS que luego tapaban al registro con datos y hacían que máquinas
+      // imprimiera los códigos de tinta vacíos. Mejor abortar y reintentar luego.
+      console.warn('⚠️ No se pudo verificar cod_tintas; se omite la creación automática para evitar duplicados.');
+      return;
     }
 
     try {
