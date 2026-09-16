@@ -1,4 +1,5 @@
-import { Component, signal, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +16,9 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrls: ['./dashboard.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
+
+  private dataChangedSub?: Subscription;
 
   isLoading = signal(true);
   kpiLoading = signal(true);
@@ -63,6 +66,22 @@ export class DashboardComponent implements OnInit {
       }
     });
 
+    // Carga inicial (sirve desde caché si existe, sin nuevas peticiones).
+    this.loadAllData();
+
+    // Recarga SOLO cuando llega un cambio real vía SignalR (el servicio
+    // invalida el caché y emite dataChanged$). Sin polling ni peticiones
+    // repetidas mientras no haya cambios.
+    this.dataChangedSub = this.dashboardService.dataChanged$.subscribe(() => {
+      this.loadAllData();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.dataChangedSub?.unsubscribe();
+  }
+
+  private loadAllData(): void {
     this.loadSystemStats();
     this.loadShiftEfficiency();
     this.loadDailyPreparation();
@@ -226,7 +245,8 @@ export class DashboardComponent implements OnInit {
     const totals = data.map(d => this.getShiftDayTotal(d));
     const maxTotal = Math.max(...totals, 1);
     return data.map((d, i) => {
-      const x = n === 1 ? 50 : (i / (n - 1)) * 100;
+      // Centro de cada columna (barras distribuidas con space-between)
+      const x = ((i + 0.5) / n) * 100;
       const norm = totals[i] / maxTotal; // 0..1
       const y = 62 - norm * 54; // flota en la mitad superior
       return { x, y };
@@ -406,7 +426,8 @@ export class DashboardComponent implements OnInit {
     if (n === 0) return [];
     const maxCount = Math.max(...data.map(d => d.count), 1);
     return data.map((d, i) => {
-      const x = n === 1 ? 50 : (i / (n - 1)) * 100;
+      // Centro de cada columna (barras distribuidas con space-between)
+      const x = ((i + 0.5) / n) * 100;
       // La línea flota en la mitad superior: y entre 8 (máximo) y 62 (mínimo)
       const norm = d.count / maxCount; // 0..1
       const y = 62 - norm * 54;

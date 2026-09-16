@@ -281,40 +281,40 @@
       <h3 class="chart-title"><mat-icon>donut_large</mat-icon> Preparación Quincenal</h3>
 
       <div class="quincena-row">
-        <div class="quincena-donut" *ngFor="let week of weeklyData()">
-          <div class="quincena-range">{{ week.rangeStart }} - {{ week.rangeEnd }}</div>
+        <div class="quincena-block" *ngFor="let week of weeklyData()">
+          <div class="quincena-range">{{ week.label }} · {{ week.rangeStart }} - {{ week.rangeEnd }}</div>
 
-          <div class="donut-wrap">
-            <svg class="donut-svg" viewBox="-5 -5 52 52" aria-hidden="true">
-              <circle class="donut-track" cx="21" cy="21" r="15.9155" fill="none"
-                      stroke="#e2e8f0" stroke-width="9"></circle>
-              <circle *ngFor="let seg of getDonutSegments(week)"
-                      class="donut-seg"
-                      cx="21" cy="21" r="15.9155" fill="none"
-                      [attr.stroke]="seg.color"
-                      stroke-width="9"
-                      [attr.stroke-dasharray]="seg.dash + ' ' + (100 - seg.dash)"
-                      [attr.stroke-dashoffset]="seg.offset"
-                      stroke-linecap="butt">
-              </circle>
+          <div class="quincena-content">
+            <div class="donut-wrap">
+              <svg class="donut-svg" viewBox="0 0 42 42" aria-hidden="true">
+                <circle class="donut-track" cx="21" cy="21" r="15.9155" fill="none"
+                        stroke="#e2e8f0" stroke-width="9"></circle>
+                <circle *ngFor="let seg of getDonutSegments(week)"
+                        class="donut-seg"
+                        cx="21" cy="21" r="15.9155" fill="none"
+                        [attr.stroke]="seg.color"
+                        stroke-width="9"
+                        [attr.stroke-dasharray]="seg.dash + ' ' + (100 - seg.dash)"
+                        [attr.stroke-dashoffset]="seg.offset"
+                        stroke-linecap="butt">
+                </circle>
+              </svg>
+              <div class="donut-center">
+                <span class="donut-total">{{ week.total }}</span>
+                <span class="donut-total-label">pedidos</span>
+              </div>
+            </div>
 
-              <g *ngFor="let lbl of getDonutLabels(week)">
-                <!-- Nombre del día: radial (adentro → afuera) sobre la banda -->
-                <text class="donut-day-label"
-                      [attr.x]="lbl.dx" [attr.y]="lbl.dy"
-                      [attr.text-anchor]="lbl.anchor"
-                      [attr.transform]="'rotate(' + lbl.drotate + ' ' + lbl.dx + ' ' + lbl.dy + ')'"
-                      dominant-baseline="central">{{ lbl.dayText }}</text>
-                <!-- Conteo: por fuera del anillo -->
-                <text class="donut-count-label"
-                      [attr.x]="lbl.cx2" [attr.y]="lbl.cy2"
-                      [attr.fill]="lbl.color"
-                      text-anchor="middle" dominant-baseline="central">{{ lbl.count }}</text>
-              </g>
-            </svg>
-            <div class="donut-center">
-              <span class="donut-total">{{ week.total }}</span>
-              <span class="donut-total-label">pedidos</span>
+            <!-- Leyenda vertical: solo días con pedidos -->
+            <div class="quincena-legend">
+              <ng-container *ngFor="let l of getWeekLegendDays(week)">
+                <div class="legend-row" *ngIf="l.day.count > 0">
+                  <span class="legend-swatch" [style.background]="l.color"></span>
+                  <span class="legend-day">{{ l.day.dayName }} {{ l.day.date }}</span>
+                  <span class="legend-count">{{ l.day.count }}</span>
+                </div>
+              </ng-container>
+              <div class="legend-empty" *ngIf="week.total === 0">Sin pedidos</div>
             </div>
           </div>
         </div>

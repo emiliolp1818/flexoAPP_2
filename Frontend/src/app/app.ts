@@ -4,6 +4,7 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header';
 import { SessionTimeoutService } from './core/services/session-timeout.service';
 import { AuthService } from './core/services/auth.service';
+import { SignalRService } from './shared/services/signalr.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -22,6 +23,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private sessionTimeoutService = inject(SessionTimeoutService);
   private authService = inject(AuthService);
+  private signalRService = inject(SignalRService);
 
   ngOnInit() {
     this.router.events
@@ -40,6 +42,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
     if (this.authService.isLoggedIn() && !this.isLoginPage) {
       this.sessionTimeoutService.startMonitoring();
+    }
+
+    // Reconectar SignalR al recargar la página con sesión activa (F5).
+    // Sin esto, tras un refresh no llegarían los eventos de cambio en
+    // tiempo real que invalidan el caché del dashboard.
+    const token = this.authService.getToken();
+    if (token && this.authService.isLoggedIn()) {
+      void this.signalRService.startConnection(token);
     }
 
     console.log('🚀 FlexoAPP iniciado correctamente');
