@@ -121,7 +121,7 @@ npm start
 ## 🔐 Credenciales por Defecto
 
 - **Usuario**: admin
-- **Contraseña**: admin123
+- **Contraseña**:
 
 ⚠️ **Importante**: Cambiar estas credenciales en producción
 
