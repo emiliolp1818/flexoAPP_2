@@ -52,6 +52,10 @@ namespace FlexoAPP.API.Services
                 existing.ColoresData = coloresJson;
                 existing.UpdatedAt = DateTime.UtcNow;
                 existing.UpdatedBy = username;
+
+                // El contexto usa NoTracking global: marcar explícitamente como
+                // Modified para que SaveChanges persista los cambios del cod_tinta.
+                _context.Set<CodTinta>().Update(existing);
             }
             else
             {
@@ -365,16 +369,18 @@ namespace FlexoAPP.API.Services
                 existingDesign.Status = updateDto.Status;
 
             // Unificación lógica (Opción A): actualizar el diseño y hacer upsert del
-            // registro de cod_tintas asociado. `existingDesign` ya está rastreado por
-            // el _context (GetDesignByIdAsync no usa AsNoTracking), y el upsert de
-            // cod_tintas usa el mismo _context. Por eso un ÚNICO SaveChangesAsync
-            // persiste AMBOS de forma atómica (EF envuelve el SaveChanges en su propia
-            // transacción, compatible con MySqlRetryingExecutionStrategy).
+            // registro de cod_tintas asociado, ambos con el mismo _context, y un
+            // ÚNICO SaveChangesAsync los persiste de forma atómica (EF envuelve el
+            // SaveChanges en su propia transacción, compatible con la estrategia de
+            // reintentos de MySQL).
             //
-            // NOTA: se eliminó la transacción manual (BeginTransaction) porque con la
-            // estrategia de reintentos de MySQL causaba que los cambios no se
-            // persistieran / lanzara 409. Un solo SaveChanges ya es atómico.
+            // CRÍTICO: el DbContext está configurado con
+            // QueryTrackingBehavior.NoTrackingWithIdentityResolution (ver Program.cs),
+            // por lo que las entidades leídas NO se rastrean automáticamente. Hay que
+            // MARCARLAS EXPLÍCITAMENTE como Modified para que SaveChanges las persista;
+            // de lo contrario el update respondía 200 pero no guardaba nada en la BD.
             existingDesign.LastModified = DateTimeHelper.Now;
+            _context.Set<Design>().Update(existingDesign);
 
             if (updateDto.CodTinta != null)
             {
