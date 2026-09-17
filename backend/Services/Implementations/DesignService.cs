@@ -288,30 +288,40 @@ namespace FlexoAPP.API.Services
             // Unificación lógica (Opción A): crear el diseño y su registro de
             // cod_tintas dentro de la misma transacción. Si algo falla, se revierte
             // todo y no queda un diseño huérfano sin datos de tinta.
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            //
+            // IMPORTANTE: con MySqlRetryingExecutionStrategy las transacciones
+            // iniciadas por el usuario deben ejecutarse dentro de la estrategia de
+            // ejecución (CreateExecutionStrategy), de lo contrario lanza:
+            // "does not support user-initiated transactions".
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                _context.Set<Design>().Add(design);
-                await _context.SaveChangesAsync();
-
-                if (createDto.CodTinta != null)
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    await UpsertCodTintaForDesignAsync(design.ArticleF ?? string.Empty, createDto.Description, createDto.CodTinta, $"user:{userId}");
+                    _context.Set<Design>().Add(design);
                     await _context.SaveChangesAsync();
+
+                    if (createDto.CodTinta != null)
+                    {
+                        await UpsertCodTintaForDesignAsync(design.ArticleF ?? string.Empty, createDto.Description, createDto.CodTinta, $"user:{userId}");
+                        await _context.SaveChangesAsync();
+                    }
+
+                    await transaction.CommitAsync();
                 }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
 
-                await transaction.CommitAsync();
-                _logger.LogInformation("Design created with ID: {DesignId} by User: {UserId}", design.Id, userId);
+            _logger.LogInformation("Design created with ID: {DesignId} by User: {UserId}", design.Id, userId);
 
-                var dto = MapToDto(design);
-                dto.CodTinta = await LoadCodTintaForDesignAsync(design.ArticleF);
-                return dto;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+            var dto = MapToDto(design);
+            dto.CodTinta = await LoadCodTintaForDesignAsync(design.ArticleF);
+            return dto;
         }
 
         public async Task<DesignDto> UpdateDesignAsync(int id, UpdateDesignDto updateDto, int userId)
@@ -373,30 +383,40 @@ namespace FlexoAPP.API.Services
             // registro de cod_tintas asociado dentro de una única transacción.
             // El repositorio comparte la misma instancia de DbContext (scoped +
             // AddDbContextPool), por lo que su SaveChanges participa en esta transacción.
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            //
+            // IMPORTANTE: con MySqlRetryingExecutionStrategy la transacción debe
+            // ejecutarse dentro de la estrategia de ejecución (CreateExecutionStrategy),
+            // si no lanza "does not support user-initiated transactions".
+            Design updatedDesign = existingDesign;
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
-                var updatedDesign = await _designRepository.UpdateDesignAsync(existingDesign);
-
-                if (updateDto.CodTinta != null)
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    await UpsertCodTintaForDesignAsync(updatedDesign.ArticleF ?? existingDesign.ArticleF ?? string.Empty,
-                        updatedDesign.Description ?? existingDesign.Description, updateDto.CodTinta, $"user:{userId}");
-                    await _context.SaveChangesAsync();
+                    updatedDesign = await _designRepository.UpdateDesignAsync(existingDesign);
+
+                    if (updateDto.CodTinta != null)
+                    {
+                        await UpsertCodTintaForDesignAsync(updatedDesign.ArticleF ?? existingDesign.ArticleF ?? string.Empty,
+                            updatedDesign.Description ?? existingDesign.Description, updateDto.CodTinta, $"user:{userId}");
+                        await _context.SaveChangesAsync();
+                    }
+
+                    await transaction.CommitAsync();
                 }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
 
-                await transaction.CommitAsync();
-                _logger.LogInformation("Design updated with ID: {DesignId} by User: {UserId}", id, userId);
+            _logger.LogInformation("Design updated with ID: {DesignId} by User: {UserId}", id, userId);
 
-                var dto = MapToDto(updatedDesign);
-                dto.CodTinta = await LoadCodTintaForDesignAsync(updatedDesign.ArticleF);
-                return dto;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+            var dto = MapToDto(updatedDesign);
+            dto.CodTinta = await LoadCodTintaForDesignAsync(updatedDesign.ArticleF);
+            return dto;
         }
 
         public async Task<bool> DeleteDesignAsync(int id)
