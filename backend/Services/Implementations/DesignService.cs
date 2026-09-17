@@ -286,36 +286,21 @@ namespace FlexoAPP.API.Services
             };
 
             // Unificación lógica (Opción A): crear el diseño y su registro de
-            // cod_tintas dentro de la misma transacción. Si algo falla, se revierte
-            // todo y no queda un diseño huérfano sin datos de tinta.
-            //
-            // IMPORTANTE: con MySqlRetryingExecutionStrategy las transacciones
-            // iniciadas por el usuario deben ejecutarse dentro de la estrategia de
-            // ejecución (CreateExecutionStrategy), de lo contrario lanza:
-            // "does not support user-initiated transactions".
-            var strategy = _context.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () =>
+            // cod_tintas. Ambos usan el mismo _context, por lo que un ÚNICO
+            // SaveChangesAsync los persiste de forma atómica (EF lo envuelve en su
+            // propia transacción interna, compatible con la estrategia de reintentos
+            // de MySQL). Se eliminó la transacción manual porque con
+            // MySqlRetryingExecutionStrategy impedía la persistencia / lanzaba 409.
+            _context.Set<Design>().Add(design);
+
+            if (createDto.CodTinta != null)
             {
-                await using var transaction = await _context.Database.BeginTransactionAsync();
-                try
-                {
-                    _context.Set<Design>().Add(design);
-                    await _context.SaveChangesAsync();
+                // Nota: el diseño aún no tiene Id, pero el upsert de cod_tintas se
+                // enlaza por ArticleF (string), no por Id, así que no necesita el Id.
+                await UpsertCodTintaForDesignAsync(design.ArticleF ?? string.Empty, createDto.Description, createDto.CodTinta, $"user:{userId}");
+            }
 
-                    if (createDto.CodTinta != null)
-                    {
-                        await UpsertCodTintaForDesignAsync(design.ArticleF ?? string.Empty, createDto.Description, createDto.CodTinta, $"user:{userId}");
-                        await _context.SaveChangesAsync();
-                    }
-
-                    await transaction.CommitAsync();
-                }
-                catch
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
-            });
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Design created with ID: {DesignId} by User: {UserId}", design.Id, userId);
 
@@ -380,42 +365,29 @@ namespace FlexoAPP.API.Services
                 existingDesign.Status = updateDto.Status;
 
             // Unificación lógica (Opción A): actualizar el diseño y hacer upsert del
-            // registro de cod_tintas asociado dentro de una única transacción.
-            // El repositorio comparte la misma instancia de DbContext (scoped +
-            // AddDbContextPool), por lo que su SaveChanges participa en esta transacción.
+            // registro de cod_tintas asociado. `existingDesign` ya está rastreado por
+            // el _context (GetDesignByIdAsync no usa AsNoTracking), y el upsert de
+            // cod_tintas usa el mismo _context. Por eso un ÚNICO SaveChangesAsync
+            // persiste AMBOS de forma atómica (EF envuelve el SaveChanges en su propia
+            // transacción, compatible con MySqlRetryingExecutionStrategy).
             //
-            // IMPORTANTE: con MySqlRetryingExecutionStrategy la transacción debe
-            // ejecutarse dentro de la estrategia de ejecución (CreateExecutionStrategy),
-            // si no lanza "does not support user-initiated transactions".
-            Design updatedDesign = existingDesign;
-            var strategy = _context.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () =>
+            // NOTA: se eliminó la transacción manual (BeginTransaction) porque con la
+            // estrategia de reintentos de MySQL causaba que los cambios no se
+            // persistieran / lanzara 409. Un solo SaveChanges ya es atómico.
+            existingDesign.LastModified = DateTimeHelper.Now;
+
+            if (updateDto.CodTinta != null)
             {
-                await using var transaction = await _context.Database.BeginTransactionAsync();
-                try
-                {
-                    updatedDesign = await _designRepository.UpdateDesignAsync(existingDesign);
+                await UpsertCodTintaForDesignAsync(existingDesign.ArticleF ?? string.Empty,
+                    existingDesign.Description, updateDto.CodTinta, $"user:{userId}");
+            }
 
-                    if (updateDto.CodTinta != null)
-                    {
-                        await UpsertCodTintaForDesignAsync(updatedDesign.ArticleF ?? existingDesign.ArticleF ?? string.Empty,
-                            updatedDesign.Description ?? existingDesign.Description, updateDto.CodTinta, $"user:{userId}");
-                        await _context.SaveChangesAsync();
-                    }
-
-                    await transaction.CommitAsync();
-                }
-                catch
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
-            });
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Design updated with ID: {DesignId} by User: {UserId}", id, userId);
 
-            var dto = MapToDto(updatedDesign);
-            dto.CodTinta = await LoadCodTintaForDesignAsync(updatedDesign.ArticleF);
+            var dto = MapToDto(existingDesign);
+            dto.CodTinta = await LoadCodTintaForDesignAsync(existingDesign.ArticleF);
             return dto;
         }
 
