@@ -277,36 +277,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   getShiftTrendPoints(): { x: number; y: number }[] {
+    // MISMA lógica que la línea de "Preparación por día" (getDailyTrendPoints),
+    // que se ve bien coordinada. El valor por día es el TOTAL del día (suma de
+    // los 3 turnos), equivalente al `count` diario.
     const data = this.shiftData();
     const n = data.length;
     if (n === 0) return [];
-
-    // MISMA escala que las barras: el punto de cada día debe pasar por la PUNTA
-    // de la barra más alta de ese día. Las barras escalan respecto al conteo
-    // máximo de un turno individual entre todos los días (igual que getShiftBarHeight).
-    let maxCount = 1;
-    for (const day of data) {
-      for (const s of (day?.shifts || [])) {
-        if ((s?.count || 0) > maxCount) maxCount = s.count;
-      }
-    }
-
+    const totals = data.map(d => this.getShiftDayTotal(d));
+    const maxTotal = Math.max(...totals, 1);
     return data.map((d, i) => {
-      // Con layout `space-between`, el centro de la primera columna está en 0% y
-      // el de la última en 100%.
-      const x = n === 1 ? 50 : (i / (n - 1)) * 100;
-
-      // Conteo máximo del turno de ESTE día → la barra más alta del día
-      const shifts = d?.shifts || [];
-      const dayMax = shifts.reduce((m: number, s: any) => Math.max(m, s?.count || 0), 0);
-
-      // Altura de esa barra en % del contenedor (idéntica a getShiftBarHeight).
-      const barHeightPct = dayMax > 0 ? Math.max((dayMax / maxCount) * 100, 8) : 0;
-
-      // El SVG tiene y=0 arriba y y=100 abajo; una barra de altura h% ocupa desde
-      // abajo, así que su punta está en y = 100 - h. Se resta 4 para que la línea
-      // pase justo POR ENCIMA de la punta (separada), sin cortar la barra.
-      const y = Math.max(100 - barHeightPct - 4, 2);
+      // Centro de cada columna (barras distribuidas uniformemente)
+      const x = ((i + 0.5) / n) * 100;
+      // La línea flota en la mitad superior: y entre 8 (máximo) y 62 (mínimo)
+      const norm = totals[i] / maxTotal; // 0..1
+      const y = 62 - norm * 54;
       return { x, y };
     });
   }
@@ -322,8 +306,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const p1 = pts[i];
       const p2 = pts[i + 1];
       const p3 = pts[i + 2] || p2;
-      // Mayor tensión → curva más suave y afinada
-      const t = 0.22;
+      const t = 0.18; // mismo suavizado que la línea de Preparación por día
       const c1x = p1.x + (p2.x - p0.x) * t;
       const c1y = p1.y + (p2.y - p0.y) * t;
       const c2x = p2.x - (p3.x - p1.x) * t;

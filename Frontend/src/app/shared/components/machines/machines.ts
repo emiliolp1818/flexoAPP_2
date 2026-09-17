@@ -97,18 +97,32 @@ interface UserPermissions {
 }
 
 /**
- * Parsea una fecha del backend asegurando que se interprete como UTC.
- * El backend usa DateTime.UtcNow pero la serialización JSON puede omitir la "Z".
+ * Parsea una fecha del backend interpretándola como HORA LOCAL de Colombia.
+ *
+ * IMPORTANTE: el backend guarda las fechas con DateTimeHelper.Now (hora local de
+ * Colombia UTC-5), NO en UTC. Por eso NO se debe agregar la "Z" (que las
+ * interpretaría como UTC y añadiría 5 horas de desfase en toda la UI: última
+ * acción, inicio de preparación, contador de tiempo, etc.).
+ *
+ * Como el navegador del operador también está en Colombia, parsear el string
+ * SIN sufijo de zona hace que JS lo interprete como hora local (marco correcto),
+ * y las diferencias de tiempo (p.ej. PREPARANDO→LISTO) quedan bien calculadas.
  */
-function parseUtcDate(value: string | Date | null | undefined): Date {
+function parseLocalDate(value: string | Date | null | undefined): Date {
   if (!value) return new Date();
   if (value instanceof Date) return value;
-  // Si no termina en Z ni tiene offset, agregar Z para que JS lo interprete como UTC
-  const str = String(value);
-  if (!str.endsWith('Z') && !str.includes('+') && !/\d{2}:\d{2}$/.test(str.slice(-6))) {
-    return new Date(str + 'Z');
-  }
+  let str = String(value).trim();
+  // Quitar 'Z' final o un offset explícito para forzar interpretación LOCAL,
+  // ya que el backend envía hora Colombia sin información de zona confiable.
+  str = str.replace(/Z$/i, '');
+  str = str.replace(/[+-]\d{2}:\d{2}$/, '');
   return new Date(str);
+}
+
+// Alias mantenido por compatibilidad con las llamadas existentes.
+// Ahora interpreta las fechas como hora local de Colombia (no UTC).
+function parseUtcDate(value: string | Date | null | undefined): Date {
+  return parseLocalDate(value);
 }
 
 
@@ -2029,11 +2043,13 @@ export class MachinesComponent implements OnInit, OnDestroy {
       if (previousEstado === 'PREPARANDO' && newStatus === 'LISTO') {
         const preparandoStartedAtFromServer = response.data?.preparandoStartedAt || previousPreparando;
         if (preparandoStartedAtFromServer) {
-          const raw = preparandoStartedAtFromServer instanceof Date
-            ? preparandoStartedAtFromServer.toISOString()
-            : String(preparandoStartedAtFromServer);
-          const fechaUTC = raw.endsWith('Z') ? raw : raw + 'Z';
-          const tiempoInicio = new Date(fechaUTC);
+          // El backend guarda preparandoStartedAt en HORA LOCAL de Colombia
+          // (DateTimeHelper.Now), NO en UTC. Por eso NO se le debe agregar la 'Z'
+          // (eso lo interpretaba como UTC y añadía 5 horas de desfase, mostrando
+          // p.ej. "5 horas y 4 minutos" en vez de "4 minutos"). Se parsea como
+          // hora local del navegador (que también está en Colombia), así la resta
+          // contra Date.now() da el intervalo real transcurrido.
+          const tiempoInicio = parseLocalDate(preparandoStartedAtFromServer);
           const totalSegundos = Math.floor(Math.abs(Date.now() - tiempoInicio.getTime()) / 1000);
           const horas = Math.floor(totalSegundos / 3600);
           const minutos = Math.floor((totalSegundos % 3600) / 60);

@@ -460,13 +460,15 @@
     flex-direction: column;
   }
 
-  // Capa que aloja SVG + puntos, alineada a la zona de barras (excluye labels)
+  // Capa que aloja SVG + puntos, alineada EXACTO a la zona de barras (excluye
+  // labels). El bottom coincide con el alto total de las labels:
+  // day-label (16px + 4px margin) + day-date-label (10px) = 30px.
   .shift-trend-layer {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
-    bottom: 26px; // altura aprox de day-label + day-date-label
+    bottom: 30px;
     pointer-events: none;
     z-index: 2;
   }
@@ -566,8 +568,10 @@
       }
     }
 
-    .day-label { font-size: 10px; font-weight: 700; color: #1e293b; margin-top: 4px; }
-    .day-date-label { font-size: 8px; color: #94a3b8; }
+    // Alturas explícitas para que la zona de labels sea determinista y el layer
+    // de la línea de tendencia se alinee EXACTO con el fondo de las barras.
+    .day-label { font-size: 10px; font-weight: 700; color: #1e293b; margin-top: 4px; line-height: 12px; height: 16px; }
+    .day-date-label { font-size: 8px; color: #94a3b8; line-height: 10px; height: 10px; }
   }
 }
 
