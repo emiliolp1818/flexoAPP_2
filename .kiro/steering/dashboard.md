@@ -163,8 +163,11 @@ Tipografías internas:
 ### Grid `.charts-row`
 ```scss
 display: grid;
-grid-template-columns: 1fr 1fr 1fr;
+// 4 columnas: Eficiencia por Turno | Preparación/día (más angosta) | Quincenal (donuts) | Pantones.
+// Solo la 2ª tarjeta (Preparación por día) se estrecha; el resto mantiene 1fr.
+grid-template-columns: 1fr 0.78fr 1fr 1fr;
 gap: 10px;
+align-items: start;
 ```
 
 ### Tarjeta `.chart-card`
@@ -199,20 +202,21 @@ Estos valores son el equilibrio entre visualización y que los botones sean visi
 ### Eficiencia por Turno — tipografías internas
 - `.day-label`: `font-size: 10px`, `font-weight: 700`, color `#1e293b`
 - `.day-date-label`: `font-size: 8px`, color `#94a3b8`
-- `.bar-num`: `font-size: 9px`, `font-weight: 800`, color `white`, `text-shadow: 0 1px 2px rgba(0,0,0,0.4)`, `position: absolute`, `bottom: 2px`, `line-height: 1`
+- `.bar-num`: `font-size: 9px`, `font-weight: 800`, color `#1e293b` (texto oscuro, sin `text-shadow`), `position: absolute`, colocado ARRIBA de la barra (`bottom: 100%`, `margin-bottom: 3px`, `left: 50%`, `transform: translateX(-50%)`, `white-space: nowrap`), `line-height: 1`
 - Leyenda `.legend-item`: `font-size: 10px`, `font-weight: 600`, color `#475569`
 - Colores turnos: T1 `#fbbf24→#f59e0b`, T2 `#60a5fa→#3b82f6`, T3 `#818cf8→#6366f1`
 - Ancho barras `.thin-bar`: `width: 16px`
-- Gap entre días `.shift-bars-row`: `gap: 2px`
-- Gap entre barras `.triple-bar`: `gap: 3px`
-- Multiplicador altura: `count * 12` (no 16 — evita desbordamiento)
-- **REGLA**: `.bar-num` siempre con `bottom: 2px` (nunca `top`) para que sea visible sin importar la altura
+- Gap entre días `.shift-bars-row`: `gap: 12px` (cada día = grupo de 3 barras, bien separado del siguiente)
+- Gap entre barras `.triple-bar`: `gap: 2px` (las 3 barras del mismo día van juntas/agrupadas)
+- Altura de barra: `getShiftBarHeight(count)` en `dashboard.ts` — devuelve un **porcentaje** escalado al mayor conteo de todos los turnos visibles (igual que "Preparación por Día"): la barra más alta llega al `100%` del contenedor y el resto es proporcional, con mínimo `8%` (y `4%` cuando el conteo es `0`). Se usa via `[style.height.%]="getShiftBarHeight(...)"`. Al ser porcentaje, la barra NUNCA se desborda del alto de la tarjeta sin importar el número.
+- **REGLA**: la altura de las barras de turno se ESCALA al conteo máximo y se expresa en `%` (relativo al contenedor), nunca `count * N` px sin límite (evita que la columna se desborde por encima de la tarjeta con conteos altos)
+- **REGLA**: `.bar-num` se coloca ENCIMA del tope de la barra (`bottom: 100%` + `margin-bottom`), no dentro de ella, para que sea legible sin importar la altura
 
 ### Preparación por Día — tipografías internas
 - `.daily-count`: `font-size: 11px`, `font-weight: 700`, color `#1e293b`
 - `.daily-label`: `font-size: 11px`, `font-weight: 500`, color `#64748b`
 - `.daily-date`: `font-size: 9px`, `font-weight: 600`, color `#94a3b8`
-- Barra: `background: linear-gradient(180deg, #3b82f6, #2563eb)`, `max-width: 40px`
+- Barra: `background: linear-gradient(180deg, #3b82f6, #2563eb)`, `max-width: 18px`
 
 ### Top Pantones del Mes — tipografías internas
 - `.pantone-count`: `font-size: 10px`, `font-weight: 700`, color `#1e293b`

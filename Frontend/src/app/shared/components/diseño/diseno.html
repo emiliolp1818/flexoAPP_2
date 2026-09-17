@@ -602,6 +602,17 @@
               </div>
 
               <div class="header-actions">
+
+                <!-- Buscador de anilox por código (y otros campos) -->
+                <div class="search-field-wrapper-d anilox-search-wrapper">
+                  <mat-icon class="search-icon-d">search</mat-icon>
+                  <input class="search-input-d" [(ngModel)]="aniloxSearchTerm" (input)="filterAnilox()"
+                    placeholder="Buscar por código...">
+                  <button class="clear-input-d" *ngIf="aniloxSearchTerm" (click)="aniloxSearchTerm = ''; filterAnilox()">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+
                 <button mat-raised-button color="primary" class="create-anilox-btn" 
                   [disabled]="!userPermissions().canCreateDesign"
                   (click)="createAnilox()">

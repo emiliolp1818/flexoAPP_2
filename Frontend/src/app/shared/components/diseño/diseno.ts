@@ -237,6 +237,10 @@ export class DesignComponent implements OnInit, OnDestroy {
   private codTintasCacheLoadedAt = 0;
   private readonly CODTINTAS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
   private codTintasLoadInFlight: Promise<void> | null = null;
+  // Clave para persistir la caché de cod_tintas entre entradas al módulo.
+  // Al reentrar, se rehidrata desde sessionStorage y la primera carga es
+  // instantánea (sin volver a descargar toda la tabla) mientras esté vigente el TTL.
+  private readonly CODTINTAS_CACHE_STORAGE_KEY = 'flexoapp_codtintas_cache_v1';
   
   // Paginación para Cod Tintas
   codTintasCurrentPage = signal<number>(1);
@@ -294,6 +298,9 @@ export class DesignComponent implements OnInit, OnDestroy {
     this.loadCurrentUser();
     this.loadPantoneColors();
     this.initializeOptimizations();
+    // Rehidratar la caché de cod_tintas desde sessionStorage ANTES de cargar
+    // diseños: si sigue vigente, el enriquecimiento será instantáneo (sin HTTP).
+    this.hydrateCodTintasCacheFromStorage();
     this.initializeAniloxData();
     this.loadMachineConfigs();
     this.loadDesigns();
@@ -716,24 +723,14 @@ export class DesignComponent implements OnInit, OnDestroy {
         this.totalRecords.set(response.totalCount);
         this.hasMoreData.set(page < response.totalPages);
 
-        // Enriquecer diseños con datos de cod_tintas
-        await this.loadAllCodTintasAndEnrich();
-
-        // Snackbar de éxito con icono animado
-        const mensajeConIcono = `<span class="status-icon">✓</span>Página ${page} cargada`;
-        const snackBarRef = this.snackBar.open('', 'Cerrar', {
-          duration: 2000,
-          panelClass: ['status-listo-snackbar', 'animated-snackbar'],
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom'
-        });
-
-        setTimeout(() => {
-          const label = document.querySelector('.status-listo-snackbar .mat-mdc-snack-bar-label');
-          if (label) {
-            label.innerHTML = mensajeConIcono;
-          }
-        }, 0);
+        // OPTIMIZACIÓN: la tabla de diseños ya está lista para pintar. El
+        // enriquecimiento con cod_tintas se hace de forma NO BLOQUEANTE (sin await)
+        // para que el usuario vea los diseños de inmediato; cuando el mapa de
+        // cod_tintas esté listo, enrichDesignsWithCodTintas() reasigna las señales
+        // y las columnas de tintas aparecen sin recargar. Ya no bloquea `loading`.
+        this.loadAllCodTintasAndEnrich().catch(err =>
+          console.error('❌ Error enriqueciendo con cod_tintas (no bloqueante):', err)
+        );
       }
     } catch (error: any) {
       console.error('❌ Error cargando diseños paginados:', error);
@@ -3485,12 +3482,17 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
       filtered = filtered.filter((a: any) => a.maquina === parseInt(this.selectedMachine));
     }
 
+    // Conversión segura a texto en minúsculas (tolerante a null/undefined) para
+    // evitar "Cannot read properties of undefined (reading 'toString')".
+    const s = (v: any): string => (v === null || v === undefined) ? '' : v.toString().toLowerCase();
+
     filtered = filtered.filter((a: any) =>
-      a.codigo.toString().includes(searchLower) ||
-      a.bcm.toString().includes(searchLower) ||
-      a.lineatura.toString().includes(searchLower) ||
-      a.marca.toLowerCase().includes(searchLower) ||
-      a.volumenReal.toString().includes(searchLower)
+      s(a.codigo).includes(searchLower) ||
+      s(a.bcm).includes(searchLower) ||
+      s(a.lineatura).includes(searchLower) ||
+      s(a.marca).includes(searchLower) ||
+      // El campo real es `volumen_real`; se contempla también `volumenReal` por compatibilidad.
+      s(a.volumen_real ?? a.volumenReal).includes(searchLower)
     );
 
     this.filteredAniloxData = filtered;
@@ -3545,6 +3547,9 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
         // Marcar la caché como recién cargada
         this.codTintasCacheLoadedAt = Date.now();
 
+        // Persistir en sessionStorage para que reentrar al módulo sea instantáneo
+        this.saveCodTintasCacheToStorage(records);
+
         // Enriquecer los diseños ya cargados en memoria
         this.enrichDesignsWithCodTintas();
       } catch (err) {
@@ -3566,6 +3571,46 @@ Esta acción eliminará PERMANENTEMENTE todos los diseños de la base de datos M
    */
   private invalidateCodTintasCache() {
     this.codTintasCacheLoadedAt = 0;
+    try { sessionStorage.removeItem(this.CODTINTAS_CACHE_STORAGE_KEY); } catch { /* noop */ }
+  }
+
+  /**
+   * Rehidrata la caché de cod_tintas desde sessionStorage si sigue vigente (TTL).
+   * Devuelve true si se pudo rehidratar (mapa listo para enriquecer sin HTTP).
+   */
+  private hydrateCodTintasCacheFromStorage(): boolean {
+    try {
+      const raw = sessionStorage.getItem(this.CODTINTAS_CACHE_STORAGE_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw) as { at: number; records: CodTintaRecord[] };
+      if (!parsed || !Array.isArray(parsed.records)) return false;
+      // Descartar si expiró
+      if ((Date.now() - parsed.at) >= this.CODTINTAS_CACHE_TTL_MS) {
+        sessionStorage.removeItem(this.CODTINTAS_CACHE_STORAGE_KEY);
+        return false;
+      }
+      this.codTintasMap.clear();
+      parsed.records.forEach(r => { if (r?.articulo) this.codTintasMap.set(r.articulo.toUpperCase(), r); });
+      this.codTintasData.set(parsed.records);
+      this.filteredCodTintasData.set(parsed.records);
+      this.codTintasTotalRecords.set(parsed.records.length);
+      this.codTintasCacheLoadedAt = parsed.at;
+      return this.codTintasMap.size > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Persiste la caché de cod_tintas en sessionStorage con su timestamp. */
+  private saveCodTintasCacheToStorage(records: CodTintaRecord[]) {
+    try {
+      sessionStorage.setItem(
+        this.CODTINTAS_CACHE_STORAGE_KEY,
+        JSON.stringify({ at: this.codTintasCacheLoadedAt, records })
+      );
+    } catch {
+      // Si el storage está lleno o no disponible, se ignora: la caché en memoria sigue funcionando.
+    }
   }
 
   /**

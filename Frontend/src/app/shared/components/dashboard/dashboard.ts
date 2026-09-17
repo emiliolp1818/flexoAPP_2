@@ -280,13 +280,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const data = this.shiftData();
     const n = data.length;
     if (n === 0) return [];
-    const totals = data.map(d => this.getShiftDayTotal(d));
-    const maxTotal = Math.max(...totals, 1);
+
+    // MISMA escala que las barras: el punto de cada día debe pasar por la PUNTA
+    // de la barra más alta de ese día. Las barras escalan respecto al conteo
+    // máximo de un turno individual entre todos los días (igual que getShiftBarHeight).
+    let maxCount = 1;
+    for (const day of data) {
+      for (const s of (day?.shifts || [])) {
+        if ((s?.count || 0) > maxCount) maxCount = s.count;
+      }
+    }
+
     return data.map((d, i) => {
-      // Centro de cada columna (barras distribuidas con space-between)
-      const x = ((i + 0.5) / n) * 100;
-      const norm = totals[i] / maxTotal; // 0..1
-      const y = 62 - norm * 54; // flota en la mitad superior
+      // Con layout `space-between`, el centro de la primera columna está en 0% y
+      // el de la última en 100%.
+      const x = n === 1 ? 50 : (i / (n - 1)) * 100;
+
+      // Conteo máximo del turno de ESTE día → la barra más alta del día
+      const shifts = d?.shifts || [];
+      const dayMax = shifts.reduce((m: number, s: any) => Math.max(m, s?.count || 0), 0);
+
+      // Altura de esa barra en % del contenedor (idéntica a getShiftBarHeight).
+      const barHeightPct = dayMax > 0 ? Math.max((dayMax / maxCount) * 100, 8) : 0;
+
+      // El SVG tiene y=0 arriba y y=100 abajo; una barra de altura h% ocupa desde
+      // abajo, así que su punta está en y = 100 - h. Se resta 4 para que la línea
+      // pase justo POR ENCIMA de la punta (separada), sin cortar la barra.
+      const y = Math.max(100 - barHeightPct - 4, 2);
       return { x, y };
     });
   }
@@ -302,7 +322,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const p1 = pts[i];
       const p2 = pts[i + 1];
       const p3 = pts[i + 2] || p2;
-      const t = 0.18;
+      // Mayor tensión → curva más suave y afinada
+      const t = 0.22;
       const c1x = p1.x + (p2.x - p0.x) * t;
       const c1y = p1.y + (p2.y - p0.y) * t;
       const c2x = p2.x - (p3.x - p1.x) * t;
@@ -321,6 +342,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
   getShiftBarWidth(avgTime: number): number {
     const maxTime = Math.max(...this.shiftData().map(s => s.averageTime), 1);
     return Math.min((avgTime / maxTime) * 100, 100);
+  }
+
+  /**
+   * Altura (%) de cada barra de turno, ESCALADA dinámicamente respecto al mayor
+   * conteo de todos los turnos visibles (igual que "Preparación por día"): la
+   * barra más alta llega al 100% del contenedor y el resto es proporcional. Al
+   * usar porcentaje NUNCA se desborda del alto de la tarjeta, sin importar el
+   * número. Antes usaba `count * 12` px sin límite y se salía de la tarjeta.
+   */
+  getShiftBarHeight(count: number): number {
+    const c = count || 0;
+    if (c <= 0) return 4; // barra mínima visible cuando el conteo es 0
+
+    // Máximo conteo entre todos los turnos de todos los días visibles
+    let maxCount = 1;
+    for (const day of this.shiftData()) {
+      for (const s of (day?.shifts || [])) {
+        if ((s?.count || 0) > maxCount) maxCount = s.count;
+      }
+    }
+
+    // El máximo llega al 100% del contenedor; el resto proporcional (mín. 8%)
+    return Math.max((c / maxCount) * 100, 8);
   }
 
   getShiftEfficiencyPct(avgTime: number): number {

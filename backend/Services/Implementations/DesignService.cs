@@ -3,6 +3,7 @@ using FlexoAPP.API.Models.Entities;
 using FlexoAPP.API.Repositories;
 using FlexoAPP.API.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using OfficeOpenXml;
 using FlexoAPP.API.Helpers;
@@ -15,12 +16,19 @@ namespace FlexoAPP.API.Services
         private readonly IDesignRepository _designRepository;
         private readonly ILogger<DesignService> _logger;
         private readonly FlexoAPPDbContext _context;
+        private readonly IMemoryCache _cache;
 
-        public DesignService(IDesignRepository designRepository, ILogger<DesignService> logger, FlexoAPPDbContext context)
+        // Debe coincidir con la clave usada en CodTintasController para que la
+        // caché de la lista completa de cod_tintas se invalide también cuando el
+        // módulo de diseño crea/actualiza tintas (upsert por artículo).
+        private const string CODTINTAS_CACHE_KEY_ALL = "cod_tintas_all";
+
+        public DesignService(IDesignRepository designRepository, ILogger<DesignService> logger, FlexoAPPDbContext context, IMemoryCache cache)
         {
             _designRepository = designRepository;
             _logger = logger;
             _context = context;
+            _cache = cache;
         }
 
         /// <summary>
@@ -73,6 +81,12 @@ namespace FlexoAPP.API.Services
                     UpdatedBy = username
                 });
             }
+
+            // Invalidar la caché de la lista de cod_tintas: el módulo de diseño acaba
+            // de crear/actualizar un registro de tintas, así que la próxima lectura
+            // (GET /cod-tintas) debe traer datos frescos. La misma clave la usa
+            // CodTintasController.
+            _cache.Remove(CODTINTAS_CACHE_KEY_ALL);
         }
 
         /// <summary>

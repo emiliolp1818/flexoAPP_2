@@ -213,13 +213,13 @@
             <ng-container *ngIf="shiftData().length > 0">
               <div class="shift-day-col" *ngFor="let day of shiftData()">
                 <div class="triple-bar">
-                  <div class="thin-bar t1" [style.height.px]="day.shifts[0].count * 12 || 3">
+                  <div class="thin-bar t1" [style.height.%]="getShiftBarHeight(day.shifts[0].count)">
                     <span class="bar-num" *ngIf="day.shifts[0].count > 0">{{ day.shifts[0].count }}</span>
                   </div>
-                  <div class="thin-bar t2" [style.height.px]="day.shifts[1].count * 12 || 3">
+                  <div class="thin-bar t2" [style.height.%]="getShiftBarHeight(day.shifts[1].count)">
                     <span class="bar-num" *ngIf="day.shifts[1].count > 0">{{ day.shifts[1].count }}</span>
                   </div>
-                  <div class="thin-bar t3" [style.height.px]="day.shifts[2].count * 12 || 3">
+                  <div class="thin-bar t3" [style.height.%]="getShiftBarHeight(day.shifts[2].count)">
                     <span class="bar-num" *ngIf="day.shifts[2].count > 0">{{ day.shifts[2].count }}</span>
                   </div>
                 </div>
@@ -235,7 +235,7 @@
       </div>
     </div>
 
-    <div class="chart-card">
+    <div class="chart-card daily-card">
       <h3 class="chart-title"><mat-icon>calendar_today</mat-icon> Preparación por Día</h3>
       <div class="daily-chart">
         <div class="daily-plot">

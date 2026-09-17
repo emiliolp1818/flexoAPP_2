@@ -38,6 +38,14 @@ Endpoints implementados:
 - `DELETE /api/cod-tintas/{id}` - Eliminar registro
 - `GET /api/cod-tintas/search/{articulo}` - Buscar por artículo
 
+> **Caché en memoria de `GET /api/cod-tintas`**: la lista completa se cachea con
+> `IMemoryCache` bajo la clave `cod_tintas_all` con un TTL de **5 minutos**. Es la
+> consulta más cara del arranque del módulo de diseño (trae toda la tabla y
+> deserializa el JSON de colores por fila), por lo que se sirve desde caché usando
+> `AsNoTracking`. La caché se **invalida** (`_cache.Remove("cod_tintas_all")`) tras
+> cualquier mutación: crear, actualizar, eliminar e importar. Requiere `IMemoryCache`
+> inyectado en el constructor del controlador.
+
 > **Orden de resultados de `search/{articulo}`**: los registros se devuelven priorizando
 > (1) coincidencia **exacta** del artículo sobre coincidencias parciales (`Contains`),
 > (2) registros que **contienen datos de tinta** (`codTinta` / `codAnilox` / `cobertura`)

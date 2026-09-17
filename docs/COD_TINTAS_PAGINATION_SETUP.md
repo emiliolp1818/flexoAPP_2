@@ -180,6 +180,20 @@ Esto solo afecta el enriquecimiento de diseños con datos de `cod_tintas`; la pa
 de la pestaña "Cod Tintas" sigue consultando el endpoint `/api/cod-tintas/paginated`
 normalmente.
 
+### Enriquecimiento no bloqueante al cargar la página de diseños
+
+Al cargar una página de diseños (`loadDesignsPage`), la tabla se pinta de inmediato con
+los datos de diseños; el enriquecimiento con `cod_tintas` ya **no bloquea** la carga:
+
+- El estado `loading` deja de estar atado a la descarga del mapa de `cod_tintas`. El
+  usuario ve los diseños al instante.
+- `loadAllCodTintasAndEnrich()` se ejecuta en segundo plano (sin `await`). Cuando el
+  mapa de `cod_tintas` está listo, `enrichDesignsWithCodTintas()` reasigna las señales y
+  las columnas de tintas (Cód. Tinta / Cobertura / Cód. Anilox) aparecen sin recargar.
+- Si el enriquecimiento en segundo plano falla, el error se registra en consola sin
+  interrumpir la vista de diseños.
+- Se eliminó el snackbar "Página N cargada" que se mostraba tras cada carga de página.
+
 ## Troubleshooting
 
 ### Error 400 persiste

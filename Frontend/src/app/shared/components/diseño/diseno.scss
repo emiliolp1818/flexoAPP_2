@@ -7106,3 +7106,144 @@ $ap-font:        -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Te
     grid-template-columns: 1fr !important;
   }
 }
+
+// ============================================================
+//  APPLE · TAB ANILOX — unificación visual con la pestaña Diseños
+//  Convierte el layout en una "tarjeta flotante" glassmorphism
+//  con esquinas redondeadas, igual que la tabla de Diseños, para
+//  un diseño estándar y simétrico entre ambas pestañas.
+// ============================================================
+
+// Fondo del contenido del tab = mismo degradado suave del módulo
+// (antes era un gris plano #f8fafc que rompía la simetría).
+.design-container .anilox-tab-content,
+.anilox-tab-content {
+  background: transparent !important;
+  padding: 12px !important;
+}
+
+// Layout como tarjeta flotante (glass) con esquinas redondeadas
+.design-container .anilox-layout,
+.anilox-layout {
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+  position: relative;
+  z-index: 1;
+}
+
+// Sidebar dentro de la tarjeta: sin sombra propia, hairline sutil,
+// header con acento azul de sistema (no gradiente).
+.design-container .anilox-sidebar,
+.anilox-sidebar {
+  border-right: 1px solid $ap-hairline !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: none !important;
+
+  .sidebar-header {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border-bottom: 1px solid $ap-hairline !important;
+    // Título e ícono en azul de sistema, coherente con el header de Diseños
+    h3 { font-family: $ap-font !important; font-weight: 600 !important; color: $ap-text !important; letter-spacing: -0.2px !important; }
+    mat-icon { color: $ap-blue !important; }
+  }
+}
+
+// Área principal transparente (la tarjeta ya aporta el fondo glass)
+.design-container .anilox-main-area,
+.anilox-main-area {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+// Header interno del inventario: transparente + hairline (igual look
+// que la barra de herramientas de Diseños).
+.design-container .anilox-header,
+.anilox-header {
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-bottom: 1px solid $ap-hairline !important;
+
+  .header-title {
+    h2 {
+      font-family: $ap-font !important;
+      font-weight: 600 !important;
+      font-size: 1.05rem !important;
+      color: $ap-text !important;
+      letter-spacing: -0.3px !important;
+    }
+    mat-icon { color: $ap-blue !important; }
+  }
+}
+
+// Cabecera de la tabla translúcida (deja ver el glass de la tarjeta)
+.design-container .anilox-table .anilox-header-cell,
+.anilox-table .anilox-header-cell {
+  background: rgba(248, 250, 252, 0.72) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+// Tabla transparente sobre la tarjeta
+.design-container .anilox-table,
+.anilox-table {
+  background: transparent !important;
+}
+
+// Contenedor de tabla sin fondo propio (hereda el de la tarjeta)
+.design-container .anilox-table-container,
+.anilox-table-container {
+  background: transparent !important;
+}
+
+// Buscador de anilox en la cabecera (al lado de los botones). Reutiliza el
+// estilo Apple del buscador de Diseños (.search-field-wrapper-d) pero con un
+// ancho contenido para que conviva con los botones Crear/Importar.
+.anilox-header .header-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+
+  .anilox-search-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 240px !important;
+    min-width: 180px !important;
+    height: 40px !important;
+    padding: 0 10px !important;
+
+    .search-input-d {
+      flex: 1 !important;
+      min-width: 0 !important;
+      border: none !important;
+      background: transparent !important;
+      outline: none !important;
+    }
+    .search-icon-d { font-size: 18px !important; width: 18px !important; height: 18px !important; }
+    .clear-input-d {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: none !important;
+      background: transparent !important;
+      cursor: pointer !important;
+      color: $ap-text-3 !important;
+      padding: 2px !important;
+      border-radius: 50% !important;
+      mat-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; }
+      &:hover { color: $ap-text !important; background: rgba(0, 0, 0, 0.06) !important; }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .anilox-header .header-actions .anilox-search-wrapper {
+    width: 100% !important;
+  }
+}

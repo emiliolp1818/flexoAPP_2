@@ -271,9 +271,36 @@ http://localhost:8080/profiler
 
 ---
 
+## 10. Caché de Endpoints de Solo Lectura (Cod Tintas)
+
+### Cambio:
+El endpoint `GET /api/cod-tintas` ahora sirve la lista completa desde `IMemoryCache`
+en lugar de re-consultar toda la tabla en cada carga del módulo de diseño.
+
+```csharp
+CACHE_KEY_ALL: "cod_tintas_all"
+TTL: 5 minutos (AbsoluteExpirationRelativeToNow)
+Lectura: AsNoTracking() + GetOrCreateAsync
+Invalidación: _cache.Remove("cod_tintas_all") en crear / actualizar / eliminar / importar
+```
+
+La misma clave (`cod_tintas_all`) es compartida por dos escritores:
+- `CodTintasController` — al crear / actualizar / eliminar / importar registros.
+- `DesignService` — cuando el módulo de diseño crea o actualiza el registro de
+  tintas asociado a un artículo al editar un diseño. Tras persistir el `cod_tinta`
+  invalida la caché para que la próxima lectura (`GET /api/cod-tintas`) traiga datos frescos.
+
+**Impacto:**
+- ✅ Evita re-consultar toda la tabla y re-deserializar el JSON de colores por fila
+- ✅ Reduce latencia en el arranque del módulo de diseño (consumidor frecuente)
+- ✅ Datos siempre frescos: cualquier mutación invalida la caché, incluidas las
+  escrituras indirectas hechas desde el módulo de diseño
+
+---
+
 ## Próximos Pasos
 
-1. **Implementar Response Caching** para endpoints de solo lectura
+1. ✅ **Response Caching para endpoints de solo lectura** — aplicado en `GET /api/cod-tintas` (ver sección 10)
 2. **Agregar Redis** si se necesita caché distribuido
 3. **Implementar Rate Limiting** para prevenir abuso
 4. **Agregar APM** (Application Performance Monitoring) como Sentry
@@ -281,6 +308,11 @@ http://localhost:8080/profiler
 ---
 
 ## Changelog
+
+### v2.2.0 - 2026-09-16
+- ✅ Caché en memoria (`IMemoryCache`) para `GET /api/cod-tintas` (TTL 5 min, clave `cod_tintas_all`)
+- ✅ Lectura con `AsNoTracking` e invalidación en crear/actualizar/eliminar/importar
+- ✅ `DesignService` invalida la caché compartida `cod_tintas_all` al crear/actualizar el registro de tintas de un diseño
 
 ### v2.1.0 - 2026-03-08
 - ✅ Optimización completa de Kestrel

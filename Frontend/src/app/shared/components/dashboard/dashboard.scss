@@ -333,9 +333,9 @@
 // ===== Fila 2: Gráficas =====
 .charts-row {
   display: grid;
-  // 4 columnas iguales: Eficiencia por Turno | Preparación/día | Quincenal (donuts) | Pantones
-  // Las 3 de la derecha quedan simétricas; Eficiencia por Turno mantiene su ancho (1fr).
-  grid-template-columns: repeat(4, 1fr);
+  // 4 columnas: Eficiencia por Turno | Preparación/día (más angosta) | Quincenal (donuts) | Pantones.
+  // Solo se ajusta el ancho de la 2ª tarjeta (Preparación por día); el resto mantiene 1fr.
+  grid-template-columns: 1fr 0.78fr 1fr 1fr;
   gap: 10px;
   align-items: start;
 }
@@ -480,7 +480,7 @@
 
     .shift-trend-line {
       stroke: #6366f1;
-      stroke-width: 2;
+      stroke-width: 1.5;
       stroke-linecap: round;
       stroke-linejoin: round;
       vector-effect: non-scaling-stroke;
@@ -510,7 +510,9 @@
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 2px;
+    // Mayor separación ENTRE días: cada día (3 barras = 24 h) queda como un grupo
+    // visualmente separado del día siguiente.
+    gap: 12px;
     flex: 1;
     min-height: 60px;
     position: relative;
@@ -520,12 +522,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    height: 100%;
 
     .triple-bar {
       display: flex;
       align-items: flex-end;
-      gap: 3px;
+      // Barras del MISMO día bien juntas (agrupadas de 3 en 3)
+      gap: 2px;
       width: 100%;
+      // Ocupa todo el alto disponible para que la altura en % de las barras
+      // tenga referencia (igual que .daily-col → la barra máxima llena el 100%).
+      flex: 1;
       justify-content: center;
 
       .thin-bar {
@@ -541,11 +548,16 @@
         .bar-num {
           font-size: 9px;
           font-weight: 800;
-          color: white;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+          // Número ARRIBA de la barra (encima del tope), no dentro de ella
+          color: #1e293b;
+          text-shadow: none;
           position: absolute;
-          bottom: 2px;
+          bottom: 100%;
+          margin-bottom: 3px;
+          left: 50%;
+          transform: translateX(-50%);
           line-height: 1;
+          white-space: nowrap;
         }
 
         &.t1 { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
@@ -701,7 +713,7 @@
   .daily-bar-wrapper { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
   .daily-count { font-size: 11px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
   .daily-bar {
-    width: 100%; max-width: 22px; background: linear-gradient(180deg, #3b82f6, #2563eb);
+    width: 100%; max-width: 18px; background: linear-gradient(180deg, #3b82f6, #2563eb);
     border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.6s ease;
   }
   .daily-label { font-size: 11px; color: #64748b; font-weight: 500; margin-top: 6px; text-transform: capitalize; }

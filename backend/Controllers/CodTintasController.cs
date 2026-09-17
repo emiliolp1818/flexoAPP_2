@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using FlexoAPP.API.Data.Context;
 using FlexoAPP.API.Models.Entities;
 using FlexoAPP.API.Models.DTOs;
@@ -16,39 +17,65 @@ namespace FlexoAPP.API.Controllers
     {
         private readonly FlexoAPPDbContext _context;
         private readonly ILogger<CodTintasController> _logger;
+        private readonly IMemoryCache _cache;
 
-        public CodTintasController(FlexoAPPDbContext context, ILogger<CodTintasController> logger)
+        // Clave y TTL de la caché de la lista completa de cod_tintas. Esta es la
+        // consulta más cara del arranque del módulo de diseño (trae toda la tabla
+        // y deserializa JSON por fila), por lo que se cachea y se invalida en cada
+        // mutación (crear / actualizar / eliminar / importar).
+        private const string CACHE_KEY_ALL = "cod_tintas_all";
+        private static readonly TimeSpan CACHE_TTL = TimeSpan.FromMinutes(5);
+
+        public CodTintasController(FlexoAPPDbContext context, ILogger<CodTintasController> logger, IMemoryCache cache)
         {
             _context = context;
             _logger = logger;
+            _cache = cache;
         }
 
         /// <summary>
-        /// Obtener todos los registros de códigos de tintas
+        /// Invalida la caché de la lista completa de cod_tintas. Se llama tras
+        /// cualquier mutación para que la próxima lectura traiga datos frescos.
+        /// </summary>
+        private void InvalidateCache()
+        {
+            _cache.Remove(CACHE_KEY_ALL);
+        }
+
+        /// <summary>
+        /// Obtener todos los registros de códigos de tintas (con caché en memoria)
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<object>> GetAll()
         {
             try
             {
-                var records = await _context.Set<CodTinta>()
-                    .OrderByDescending(c => c.CreatedAt)
-                    .ToListAsync();
-
-                var response = records.Select(r => new CodTintaResponseDto
+                // Servir desde caché si está disponible (evita re-consultar toda la
+                // tabla y re-deserializar el JSON de colores en cada carga del módulo).
+                var response = await _cache.GetOrCreateAsync(CACHE_KEY_ALL, async entry =>
                 {
-                    Id = r.Id,
-                    Articulo = r.Articulo,
-                    Descripcion = r.Descripcion,
-                    Carpeta = r.Carpeta,
-                    Estante = r.Estante,
-                    LineaTinta = r.LineaTinta,
-                    Colores = JsonSerializer.Deserialize<List<ColorTintaDto>>(r.ColoresData) ?? new(),
-                    CreatedAt = r.CreatedAt,
-                    UpdatedAt = r.UpdatedAt,
-                    CreatedBy = r.CreatedBy,
-                    UpdatedBy = r.UpdatedBy
-                }).ToList();
+                    entry.AbsoluteExpirationRelativeToNow = CACHE_TTL;
+
+                    var records = await _context.Set<CodTinta>()
+                        .AsNoTracking()
+                        .OrderByDescending(c => c.CreatedAt)
+                        .ToListAsync();
+
+                    return records.Select(r => new CodTintaResponseDto
+                    {
+                        Id = r.Id,
+                        Articulo = r.Articulo,
+                        Descripcion = r.Descripcion,
+                        Carpeta = r.Carpeta,
+                        Estante = r.Estante,
+                        LineaTinta = r.LineaTinta,
+                        Colores = JsonSerializer.Deserialize<List<ColorTintaDto>>(r.ColoresData) ?? new(),
+                        CreatedAt = r.CreatedAt,
+                        UpdatedAt = r.UpdatedAt,
+                        CreatedBy = r.CreatedBy,
+                        UpdatedBy = r.UpdatedBy
+                    }).ToList();
+                });
 
                 return Ok(new { success = true, data = response });
             }
@@ -205,6 +232,7 @@ namespace FlexoAPP.API.Controllers
 
                 _context.Set<CodTinta>().Add(record);
                 await _context.SaveChangesAsync();
+                InvalidateCache();
 
                 var response = new CodTintaResponseDto
                 {
@@ -273,6 +301,7 @@ namespace FlexoAPP.API.Controllers
                     record.Descripcion, record.ColoresData);
 
                 var rowsAffected = await _context.SaveChangesAsync();
+                InvalidateCache();
 
                 _logger.LogDebug("✅ Cambios guardados en la base de datos para ID {Id}. Filas afectadas: {Rows}", id, rowsAffected);
 
@@ -318,6 +347,7 @@ namespace FlexoAPP.API.Controllers
 
                 _context.Set<CodTinta>().Remove(record);
                 await _context.SaveChangesAsync();
+                InvalidateCache();
 
                 _logger.LogDebug("Código de tintas eliminado: {Id} por {User}", id, username);
 
@@ -630,6 +660,7 @@ namespace FlexoAPP.API.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                InvalidateCache();
 
                 var result = new
                 {

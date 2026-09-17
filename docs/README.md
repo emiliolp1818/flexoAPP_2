@@ -115,6 +115,7 @@ npm start
 
 - [Guía de Despliegue Railway](./deployment/RAILWAY_DEPLOYMENT.md)
 - [Documentación API](./api/API_DOCUMENTATION.md)
+- [API del Dashboard](./api/DASHBOARD_API.md)
 - [Esquema de Base de Datos](./database/DATABASE_SCHEMA.md)
 - [Especificaciones del Sistema](../FLEXOAPP_SPECIFICATIONS.md)
 

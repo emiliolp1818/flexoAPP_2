@@ -107,7 +107,13 @@ namespace flexoAPP.Services
 
         public async Task<MaquinaDto> UpdateMachineStatusAsync(string otSap, string estado, string? observaciones, int? userId, string? userName, DateTime? clientTimestamp = null, List<string>? pantoneColors = null)
         {
-            var now = clientTimestamp ?? DateTimeHelper.Now;
+            // CRÍTICO: el timestamp de la acción SIEMPRE se calcula en el backend en
+            // hora de Colombia (DateTimeHelper.Now). Antes se usaba `clientTimestamp`
+            // (new Date().toISOString() del navegador = UTC), lo que guardaba la
+            // acción 5 horas adelantada y la desplazaba al día/turno equivocado en el
+            // dashboard (contaba el día siguiente). Se ignora el clientTimestamp para
+            // mantener una única zona horaria consistente en toda la BD.
+            var now = DateTimeHelper.Now;
             var existing = await _repository.GetByOtSapAsync(otSap);
             if (existing == null)
             {

@@ -632,10 +632,11 @@ namespace FlexoAPP.API.Controllers
                 var sevenDaysAgo = today.AddDays(-6);
                 var dayNamesMap = new[] { "Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb" };
 
-                // Zona horaria de Colombia (UTC-5)
-                var colombiaZone = TimeZoneInfo.FindSystemTimeZoneById("America/Bogota");
-
-                // Fetch con ventana más amplia (8 días) para cubrir desfase UTC/Colombia
+                // IMPORTANTE: Activities.Timestamp YA se guarda en hora local de
+                // Colombia (vía DateTimeHelper.Now). Por eso NO se debe reconvertir
+                // de UTC a Colombia: hacerlo restaba 5 horas de más y desplazaba las
+                // acciones al turno anterior (T2 se veía como T1) y al día anterior.
+                // Se usa el Timestamp tal cual.
                 var activities = await _context.Activities
                     .AsNoTracking()
                     .Where(a =>
@@ -644,7 +645,7 @@ namespace FlexoAPP.API.Controllers
                         a.Duration != null &&
                         a.Description.Contains("PREPARANDO") &&
                         a.Description.Contains("LISTO") &&
-                        a.Timestamp >= sevenDaysAgo.AddDays(-1))
+                        a.Timestamp >= sevenDaysAgo)
                     .Select(a => new { a.Timestamp, Duration = a.Duration!.Value })
                     .ToListAsync();
 
@@ -652,13 +653,11 @@ namespace FlexoAPP.API.Controllers
                     .Where(a => a.Duration.TotalMinutes >= 5)
                     .Select(a => new
                     {
-                        // Convertir timestamp a hora Colombia (asumimos UTC en BD)
-                        Timestamp = TimeZoneInfo.ConvertTimeFromUtc(
-                            DateTime.SpecifyKind(a.Timestamp, DateTimeKind.Utc), 
-                            colombiaZone),
+                        // Timestamp ya está en hora Colombia: se usa directamente.
+                        Timestamp = a.Timestamp,
                         Duration = a.Duration
                     })
-                    .Where(a => a.Timestamp.Date >= sevenDaysAgo) // Filtrar ya en hora Colombia
+                    .Where(a => a.Timestamp.Date >= sevenDaysAgo)
                     .ToList();
 
                 int GetShift(DateTime dt) {
